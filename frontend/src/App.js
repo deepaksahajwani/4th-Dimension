@@ -72,8 +72,11 @@ function App() {
   }, []);
 
   const handleGoogleAuth = async (sessionId) => {
+    console.log('Google auth started with session:', sessionId);
     try {
       const response = await axios.post(`${API}/auth/google/session?session_id=${sessionId}`);
+      console.log('Google auth response:', response.data);
+      
       localStorage.setItem('token', response.data.session_token);
       localStorage.setItem('user', JSON.stringify(response.data.user));
       setUser(response.data.user);
@@ -81,18 +84,21 @@ function App() {
       
       // Check if profile completion is required
       if (response.data.requires_profile_completion) {
+        console.log('Redirecting to complete-profile');
         toast.success('Please complete your profile!');
         window.location.href = '/complete-profile';
       } else if (response.data.user.is_validated) {
+        console.log('Redirecting to dashboard - user is validated');
         toast.success('Logged in successfully!');
         window.location.href = '/dashboard';
       } else {
+        console.log('Redirecting to pending-approval - user not validated');
         toast.info('Your registration is pending approval');
         window.location.href = '/pending-approval';
       }
     } catch (error) {
+      console.error('Google auth error:', error);
       toast.error('Google authentication failed');
-      console.error(error);
     }
   };
 
