@@ -68,7 +68,7 @@ export default function Projects({ user, onLogout }) {
       setFormData({ name: '', client_id: '', project_type: 'Architecture', address: '', city: '', team_leader: '', assigned_to: [] });
       fetchData();
     } catch (error) {
-      toast.error(error.response?.data?.detail || 'Failed to create project');
+      toast.error(formatErrorMessage(error, 'Failed to create project'));
     }
   };
 
@@ -81,7 +81,7 @@ export default function Projects({ user, onLogout }) {
       await fetchData();
       setFormData({ ...formData, client_id: response.data.id });
     } catch (error) {
-      toast.error(error.response?.data?.detail || 'Failed to create client');
+      toast.error(formatErrorMessage(error, 'Failed to create client'));
     }
   };
 
