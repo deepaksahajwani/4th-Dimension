@@ -64,7 +64,7 @@ export default function Projects({ user, onLogout }) {
       await axios.post(`${API}/projects`, formData);
       toast.success('Project created successfully!');
       setOpen(false);
-      setFormData({ name: '', client_id: '', project_type: 'Architecture', address: '', city: '', assigned_to: [] });
+      setFormData({ name: '', client_id: '', project_type: 'Architecture', address: '', city: '', team_leader: '', assigned_to: [] });
       fetchData();
     } catch (error) {
       toast.error(error.response?.data?.detail || 'Failed to create project');
