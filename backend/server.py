@@ -95,9 +95,10 @@ class Project(BaseModel):
     model_config = ConfigDict(extra="ignore")
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     client_id: str
-    project_type: str  # architectural, interior, both
+    project_type: str  # Architecture, Interior, Planning, Landscape
     name: str
-    plot_dimensions: Optional[str] = None
+    address: Optional[str] = None
+    city: Optional[str] = None
     status: str  # consultation, layout_design, elevation_design, structural, execution, interior, completed
     assigned_to: List[str] = []  # User IDs
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
@@ -109,7 +110,8 @@ class ProjectCreate(BaseModel):
     client_id: str
     project_type: str
     name: str
-    plot_dimensions: Optional[str] = None
+    address: Optional[str] = None
+    city: Optional[str] = None
     assigned_to: Optional[List[str]] = []
 
 class Drawing(BaseModel):
