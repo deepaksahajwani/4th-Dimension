@@ -9,10 +9,10 @@ export default function Layout({ children, user, onLogout }) {
     { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
     { name: 'Projects', href: '/projects', icon: FolderOpen },
     { name: 'Clients', href: '/clients', icon: Users },
-    { name: 'Team', href: '/team', icon: Users },
+    ...(user?.is_owner ? [{ name: 'Manage Team', href: '/team', icon: Users }] : []),
     { name: 'Tasks', href: '/tasks', icon: CheckSquare },
     { name: 'Drawings', href: '/drawings', icon: FileText },
-    ...(user?.role === 'owner' ? [{ name: 'Accounting', href: '/accounting', icon: DollarSign }] : []),
+    ...(user?.is_owner ? [{ name: 'Accounting', href: '/accounting', icon: DollarSign }] : []),
     { name: 'Settings', href: '/settings', icon: Settings },
   ];
 
