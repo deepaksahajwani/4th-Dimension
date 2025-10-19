@@ -581,6 +581,7 @@ async def complete_profile(
             "email": profile.email,
             "mobile": profile.mobile,
             "date_of_birth": dob.isoformat() if dob else None,
+            "gender": profile.gender,
             "marital_status": profile.marital_status,
             "role": profile.role,
             "mobile_verified": True,
