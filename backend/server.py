@@ -475,6 +475,7 @@ async def create_project(project_data: ProjectCreate, current_user: User = Depen
         name=project_data.name,
         address=project_data.address,
         city=project_data.city,
+        team_leader=project_data.team_leader,
         assigned_to=project_data.assigned_to or [],
         status="consultation"
     )
