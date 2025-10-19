@@ -354,7 +354,7 @@ async def register(user_data: UserRegister):
         raise HTTPException(status_code=400, detail="Email already registered")
     
     # Check if this is the owner (Deepak Sahajwani)
-    is_owner_email = user_data.email.lower() == "deepak@4thdimension.com" or user_data.name.lower() == "deepak sahajwani"
+    is_owner_email = user_data.email.lower() in ["deepaksahajwani@gmail.com", "deepak@4thdimension.com"] or user_data.name.lower() == "deepak sahajwani"
     
     # Create user
     user = User(
