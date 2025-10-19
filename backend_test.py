@@ -359,17 +359,30 @@ class BackendTester:
 
     def test_complete_profile_invalid_otp(self):
         """Test profile completion with invalid OTPs"""
-        if not self.auth_token:
-            self.log_result("Complete Profile Invalid OTP", False, "No auth token available")
-            return
-            
         try:
-            headers = {"Authorization": f"Bearer {self.auth_token}"}
+            # Create a new user for this test
+            test_email = f"testuser_otp_{uuid.uuid4().hex[:8]}@example.com"
+            
+            # Register new user
+            register_payload = {
+                "email": test_email,
+                "password": "TestPassword123!",
+                "name": "Test User OTP"
+            }
+            
+            register_response = self.session.post(f"{BACKEND_URL}/auth/register", json=register_payload)
+            if register_response.status_code != 200:
+                self.log_result("Complete Profile Invalid OTP", False, "Failed to create test user")
+                return
+                
+            new_auth_token = register_response.json()["access_token"]
+            headers = {"Authorization": f"Bearer {new_auth_token}"}
+            
             payload = {
                 "full_name": "John Doe Smith",
                 "postal_address": "123 Test Street, Test City, 12345", 
-                "email": "test@example.com",
-                "mobile": "+919876543210",
+                "email": "test2@example.com",
+                "mobile": "+919876543211",
                 "date_of_birth": "1990-01-15",
                 "gender": "male",
                 "marital_status": "single",
@@ -393,7 +406,7 @@ class BackendTester:
                                   f"Wrong error message: {data}")
             else:
                 self.log_result("Complete Profile Invalid OTP", False, 
-                              f"Expected 400, got {response.status_code}")
+                              f"Expected 400, got {response.status_code}", response.text)
                 
         except Exception as e:
             self.log_result("Complete Profile Invalid OTP", False, f"Exception: {str(e)}")
