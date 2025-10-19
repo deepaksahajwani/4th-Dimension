@@ -45,9 +45,24 @@ export default function LoginPage({ onLogin }) {
 
   const handleRegister = async (e) => {
     e.preventDefault();
+    
+    if (registerData.password !== registerData.confirmPassword) {
+      toast.error('Passwords do not match');
+      return;
+    }
+    
+    if (registerData.password.length < 6) {
+      toast.error('Password must be at least 6 characters');
+      return;
+    }
+    
     setLoading(true);
     try {
-      const response = await axios.post(`${API}/auth/register`, registerData);
+      const response = await axios.post(`${API}/auth/register`, {
+        email: registerData.email,
+        password: registerData.password,
+        name: registerData.name
+      });
       onLogin(response.data.user, response.data.access_token);
       toast.success('Registration successful! Please complete your profile.');
       navigate('/complete-profile');
