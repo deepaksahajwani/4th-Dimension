@@ -332,6 +332,11 @@ async def require_owner(current_user: User = Depends(get_current_user)):
         raise HTTPException(status_code=403, detail="Only owner can perform this action")
     return current_user
 
+async def require_admin(current_user: User = Depends(get_current_user)):
+    if current_user.role != "owner" and not current_user.is_admin:
+        raise HTTPException(status_code=403, detail="Only owner or administrator can perform this action")
+    return current_user
+
 
 # ==================== AUTH ROUTES ====================
 
