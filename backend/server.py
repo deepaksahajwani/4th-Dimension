@@ -444,6 +444,94 @@ async def get_users(current_user: User = Depends(get_current_user)):
             user['created_at'] = datetime.fromisoformat(user['created_at'])
     return users
 
+@api_router.post("/users/generate-otp")
+async def generate_otp(request: OTPRequest, current_user: User = Depends(require_owner)):
+    """Generate OTP for sensitive operations (add/delete team members)"""
+    # Generate 6-digit OTP
+    otp_code = ''.join(random.choices(string.digits, k=6))
+    
+    # Store OTP in database
+    otp = OTP(
+        user_id=current_user.id,
+        otp_code=otp_code,
+        action=request.action,
+        expires_at=datetime.now(timezone.utc) + timedelta(minutes=5)
+    )
+    
+    otp_dict = otp.model_dump()
+    otp_dict['created_at'] = otp_dict['created_at'].isoformat()
+    otp_dict['expires_at'] = otp_dict['expires_at'].isoformat()
+    
+    await db.otps.insert_one(otp_dict)
+    
+    # In production, send OTP via email/SMS
+    # For now, return it in response for demo purposes
+    return {
+        "message": "OTP generated successfully",
+        "otp_code": otp_code,  # Remove this in production
+        "expires_in": 300  # 5 minutes
+    }
+
+@api_router.post("/users/verify-otp")
+async def verify_otp(request: OTPVerify, current_user: User = Depends(require_owner)):
+    """Verify OTP for sensitive operations"""
+    otp_doc = await db.otps.find_one({
+        "user_id": current_user.id,
+        "otp_code": request.otp_code,
+        "action": request.action,
+        "used": False
+    })
+    
+    if not otp_doc:
+        raise HTTPException(status_code=400, detail="Invalid or expired OTP")
+    
+    # Check expiry
+    expires_at = datetime.fromisoformat(otp_doc['expires_at']) if isinstance(otp_doc['expires_at'], str) else otp_doc['expires_at']
+    if expires_at < datetime.now(timezone.utc):
+        raise HTTPException(status_code=400, detail="OTP has expired")
+    
+    # Mark OTP as used
+    await db.otps.update_one(
+        {"id": otp_doc['id']},
+        {"$set": {"used": True}}
+    )
+    
+    return {
+        "message": "OTP verified successfully",
+        "verified": True
+    }
+
+@api_router.delete("/users/{user_id}")
+async def delete_user(user_id: str, otp_code: str, current_user: User = Depends(require_owner)):
+    """Delete a team member (requires OTP verification)"""
+    # Verify OTP
+    otp_doc = await db.otps.find_one({
+        "user_id": current_user.id,
+        "otp_code": otp_code,
+        "action": "delete_member",
+        "used": True  # Already verified by verify-otp endpoint
+    })
+    
+    if not otp_doc:
+        raise HTTPException(status_code=400, detail="OTP verification required")
+    
+    # Don't allow deleting yourself
+    if user_id == current_user.id:
+        raise HTTPException(status_code=400, detail="Cannot delete your own account")
+    
+    # Check if user exists
+    user = await db.users.find_one({"id": user_id})
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    # Delete user
+    await db.users.delete_one({"id": user_id})
+    
+    # Delete user's sessions
+    await db.user_sessions.delete_many({"user_id": user_id})
+    
+    return {"message": "Team member deleted successfully"}
+
 
 # ==================== CLIENT ROUTES ====================
 
