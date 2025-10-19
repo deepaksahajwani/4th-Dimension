@@ -603,7 +603,72 @@ async def get_users(current_user: User = Depends(get_current_user)):
     for user in users:
         if isinstance(user.get('created_at'), str):
             user['created_at'] = datetime.fromisoformat(user['created_at'])
+        if user.get('date_of_joining') and isinstance(user['date_of_joining'], str):
+            user['date_of_joining'] = datetime.fromisoformat(user['date_of_joining'])
     return users
+
+@api_router.get("/users/pending")
+async def get_pending_users(current_user: User = Depends(require_admin)):
+    """Get all users pending validation"""
+    users = await db.users.find({"is_validated": False}, {"_id": 0, "password_hash": 0}).to_list(1000)
+    for user in users:
+        if isinstance(user.get('created_at'), str):
+            user['created_at'] = datetime.fromisoformat(user['created_at'])
+        if user.get('date_of_joining') and isinstance(user['date_of_joining'], str):
+            user['date_of_joining'] = datetime.fromisoformat(user['date_of_joining'])
+    return users
+
+@api_router.post("/users/{user_id}/validate")
+async def validate_user(user_id: str, current_user: User = Depends(require_admin)):
+    """Approve a pending user (owner or admin only)"""
+    user = await db.users.find_one({"id": user_id})
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    if user['is_validated']:
+        raise HTTPException(status_code=400, detail="User already validated")
+    
+    # Update user
+    await db.users.update_one(
+        {"id": user_id},
+        {"$set": {"is_validated": True}}
+    )
+    
+    return {"message": "User validated successfully"}
+
+@api_router.post("/users/{user_id}/reject")
+async def reject_user(user_id: str, current_user: User = Depends(require_admin)):
+    """Reject a pending user (owner or admin only)"""
+    user = await db.users.find_one({"id": user_id})
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    if user['is_validated']:
+        raise HTTPException(status_code=400, detail="User already validated")
+    
+    # Delete user
+    await db.users.delete_one({"id": user_id})
+    
+    return {"message": "User rejected and removed"}
+
+@api_router.post("/users/update-admin")
+async def update_admin_rights(request: UpdateUserAdmin, current_user: User = Depends(require_owner)):
+    """Grant or revoke administrator rights (owner only)"""
+    user = await db.users.find_one({"id": request.user_id})
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    if user['role'] == 'owner':
+        raise HTTPException(status_code=400, detail="Cannot change admin rights for owner")
+    
+    # Update admin status
+    await db.users.update_one(
+        {"id": request.user_id},
+        {"$set": {"is_admin": request.is_admin}}
+    )
+    
+    action = "granted" if request.is_admin else "revoked"
+    return {"message": f"Administrator rights {action} successfully"}
 
 @api_router.post("/users/generate-otp")
 async def generate_otp(request: OTPRequest, current_user: User = Depends(require_owner)):
