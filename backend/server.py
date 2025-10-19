@@ -594,14 +594,11 @@ async def ai_review_drawing(drawing_id: str, current_user: User = Depends(get_cu
         raise HTTPException(status_code=400, detail="No drawing file uploaded")
     
     try:
-        # Download file from S3
-        response = s3_client.get_object(Bucket=S3_BUCKET_NAME, Key=drawing['s3_key'])
-        file_bytes = response['Body'].read()
+        # Get file from local storage
+        file_path = UPLOAD_DIR / drawing['s3_key']
         
-        # Save temporarily
-        temp_path = f"/tmp/{drawing_id}.pdf"
-        with open(temp_path, "wb") as f:
-            f.write(file_bytes)
+        if not file_path.exists():
+            raise HTTPException(status_code=404, detail="Drawing file not found")
         
         # AI Review using GPT-5
         llm_key = os.environ.get('EMERGENT_LLM_KEY')
@@ -612,7 +609,7 @@ async def ai_review_drawing(drawing_id: str, current_user: User = Depends(get_cu
         ).with_model("openai", "gpt-5")
         
         file_content = FileContentWithMimeType(
-            file_path=temp_path,
+            file_path=str(file_path),
             mime_type="application/pdf"
         )
         
@@ -633,9 +630,6 @@ async def ai_review_drawing(drawing_id: str, current_user: User = Depends(get_cu
             {"id": drawing_id},
             {"$set": {"ai_review": review_data}}
         )
-        
-        # Cleanup
-        os.remove(temp_path)
         
         return {
             "message": "AI review completed",
