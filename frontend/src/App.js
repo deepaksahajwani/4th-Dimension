@@ -89,18 +89,16 @@ function App() {
         console.log('Redirecting to complete-profile');
         toast.success('Please complete your profile!');
         window.location.href = '/complete-profile';
-      } else if (response.data.user.is_validated) {
-        console.log('Redirecting to dashboard - user is validated');
+      } else {
+        console.log('Redirecting to dashboard');
         toast.success('Logged in successfully!');
         window.location.href = '/dashboard';
-      } else {
-        console.log('Redirecting to pending-approval - user not validated');
-        toast.info('Your registration is pending approval');
-        window.location.href = '/pending-approval';
       }
     } catch (error) {
       console.error('Google auth error:', error);
       toast.error('Google authentication failed');
+    } finally {
+      setIsProcessingOAuth(false);
     }
   };
 
