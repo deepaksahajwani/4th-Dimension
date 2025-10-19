@@ -252,7 +252,7 @@ export default function LoginPage({ onLogin }) {
                 <div className="text-center mt-4">
                   <button
                     type="button"
-                    className="text-sm text-blue-600 hover:text-blue-800"
+                    className="text-sm text-orange-500 hover:text-orange-600 font-medium"
                     onClick={() => setIsLogin(true)}
                   >
                     Already have an account? Sign in
