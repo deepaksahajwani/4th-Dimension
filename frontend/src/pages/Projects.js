@@ -139,21 +139,70 @@ export default function Projects({ user, onLogout }) {
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="client">Client</Label>
-                    <select
-                      id="client"
-                      className="flex h-10 w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm"
-                      value={formData.client_id}
-                      onChange={(e) => setFormData({ ...formData, client_id: e.target.value })}
-                      required
-                      data-testid="project-client-select"
-                    >
-                      <option value="">Select client</option>
-                      {clients.map((client) => (
-                        <option key={client.id} value={client.id}>
-                          {client.name}
-                        </option>
-                      ))}
-                    </select>
+                    {!showClientForm ? (
+                      <div className="space-y-2">
+                        <select
+                          id="client"
+                          className="flex h-10 w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm"
+                          value={formData.client_id}
+                          onChange={(e) => {
+                            if (e.target.value === 'add_new') {
+                              setShowClientForm(true);
+                            } else {
+                              setFormData({ ...formData, client_id: e.target.value });
+                            }
+                          }}
+                          required
+                          data-testid="project-client-select"
+                        >
+                          <option value="">Select client</option>
+                          {clients.map((client) => (
+                            <option key={client.id} value={client.id}>
+                              {client.name}
+                            </option>
+                          ))}
+                          <option value="add_new" className="text-blue-600 font-medium">+ Add New Client</option>
+                        </select>
+                      </div>
+                    ) : (
+                      <div className="space-y-2 p-3 border border-blue-200 rounded-lg bg-blue-50">
+                        <Input
+                          placeholder="Client Name"
+                          value={newClient.name}
+                          onChange={(e) => setNewClient({ ...newClient, name: e.target.value })}
+                          required
+                        />
+                        <Input
+                          placeholder="Contact Number"
+                          value={newClient.contact}
+                          onChange={(e) => setNewClient({ ...newClient, contact: e.target.value })}
+                        />
+                        <Input
+                          placeholder="Email"
+                          type="email"
+                          value={newClient.email}
+                          onChange={(e) => setNewClient({ ...newClient, email: e.target.value })}
+                        />
+                        <div className="flex gap-2">
+                          <Button
+                            type="button"
+                            size="sm"
+                            onClick={handleCreateClient}
+                            className="flex-1"
+                          >
+                            Create Client
+                          </Button>
+                          <Button
+                            type="button"
+                            size="sm"
+                            variant="outline"
+                            onClick={() => setShowClientForm(false)}
+                          >
+                            Cancel
+                          </Button>
+                        </div>
+                      </div>
+                    )}
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="type">Project Type</Label>
@@ -164,21 +213,32 @@ export default function Projects({ user, onLogout }) {
                       onChange={(e) => setFormData({ ...formData, project_type: e.target.value })}
                       data-testid="project-type-select"
                     >
-                      <option value="architectural">Architectural</option>
-                      <option value="interior">Interior</option>
-                      <option value="both">Both</option>
+                      <option value="Architecture">Architecture</option>
+                      <option value="Interior">Interior</option>
+                      <option value="Planning">Planning</option>
+                      <option value="Landscape">Landscape</option>
                     </select>
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="plot">Plot Dimensions</Label>
+                    <Label htmlFor="city">City</Label>
                     <Input
-                      id="plot"
-                      placeholder="e.g., 50x80 ft"
-                      value={formData.plot_dimensions}
-                      onChange={(e) => setFormData({ ...formData, plot_dimensions: e.target.value })}
-                      data-testid="project-plot-input"
+                      id="city"
+                      placeholder="e.g., Mumbai"
+                      value={formData.city}
+                      onChange={(e) => setFormData({ ...formData, city: e.target.value })}
+                      data-testid="project-city-input"
                     />
                   </div>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="address">Address</Label>
+                  <Input
+                    id="address"
+                    placeholder="e.g., 123 Main Street, Area Name"
+                    value={formData.address}
+                    onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+                    data-testid="project-address-input"
+                  />
                 </div>
                 <Button type="submit" className="w-full" data-testid="submit-project-btn">
                   Create Project
