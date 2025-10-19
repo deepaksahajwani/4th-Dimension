@@ -112,6 +112,8 @@ function App() {
         <Routes>
           <Route path="/" element={<LoginPage onLogin={handleLogin} />} />
           <Route path="/register" element={<SelfRegister />} />
+          <Route path="/complete-profile" element={<CompleteProfile />} />
+          <Route path="/pending-approval" element={<PendingApproval />} />
           <Route
             path="/dashboard"
             element={
