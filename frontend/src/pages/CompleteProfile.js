@@ -173,22 +173,40 @@ export default function CompleteProfile() {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="marital_status">Marital Status</Label>
+                    <Label htmlFor="gender">Gender</Label>
                     <div className="relative">
-                      <Heart className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
+                      <UserCircle className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
                       <select
-                        id="marital_status"
+                        id="gender"
                         className="flex h-10 w-full rounded-md border border-slate-200 bg-white px-3 py-2 pl-10 text-sm ring-offset-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        value={formData.marital_status}
-                        onChange={(e) => setFormData({ ...formData, marital_status: e.target.value })}
-                        data-testid="marital-status-select"
+                        value={formData.gender}
+                        onChange={(e) => setFormData({ ...formData, gender: e.target.value })}
+                        data-testid="gender-select"
                       >
-                        <option value="single">Single</option>
-                        <option value="married">Married</option>
-                        <option value="divorced">Divorced</option>
-                        <option value="widowed">Widowed</option>
+                        <option value="male">Male</option>
+                        <option value="female">Female</option>
+                        <option value="other">Other</option>
                       </select>
                     </div>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="marital_status">Marital Status</Label>
+                  <div className="relative">
+                    <Heart className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
+                    <select
+                      id="marital_status"
+                      className="flex h-10 w-full rounded-md border border-slate-200 bg-white px-3 py-2 pl-10 text-sm ring-offset-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      value={formData.marital_status}
+                      onChange={(e) => setFormData({ ...formData, marital_status: e.target.value })}
+                      data-testid="marital-status-select"
+                    >
+                      <option value="single">Single</option>
+                      <option value="married">Married</option>
+                      <option value="divorced">Divorced</option>
+                      <option value="widowed">Widowed</option>
+                    </select>
                   </div>
                 </div>
 
