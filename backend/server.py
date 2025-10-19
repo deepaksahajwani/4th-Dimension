@@ -57,6 +57,12 @@ class User(BaseModel):
     role: str  # owner, architect, interior_designer, visualizer, office_boy
     password_hash: Optional[str] = None
     picture: Optional[str] = None
+    is_admin: bool = False  # Can validate new members
+    is_validated: bool = True  # For self-registered users pending validation
+    date_of_joining: Optional[datetime] = None
+    phone: Optional[str] = None
+    email_verified: bool = False
+    phone_verified: bool = False
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 class UserCreate(BaseModel):
@@ -64,6 +70,14 @@ class UserCreate(BaseModel):
     name: str
     password: str
     role: str
+
+class UserSelfRegister(BaseModel):
+    email: EmailStr
+    name: str
+    password: str
+    role: str
+    phone: str
+    date_of_joining: str
 
 class UserLogin(BaseModel):
     email: EmailStr
