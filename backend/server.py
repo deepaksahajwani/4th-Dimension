@@ -356,19 +356,40 @@ async def register(user_data: UserRegister):
     # Check if this is the owner (Deepak Sahajwani)
     is_owner_email = user_data.email.lower() in ["deepaksahajwani@gmail.com", "deepak@4thdimension.com"] or user_data.name.lower() == "deepak sahajwani"
     
-    # Create user
-    user = User(
-        email=user_data.email,
-        name=user_data.name,
-        role="pending",  # Will be set during profile completion
-        password_hash=get_password_hash(user_data.password),
-        is_owner=is_owner_email,
-        is_validated=is_owner_email,  # Owner is auto-validated
-        registration_completed=False
-    )
+    # If owner, create complete profile automatically
+    if is_owner_email:
+        user = User(
+            email=user_data.email,
+            name="Deepak Shreechand Sahajwani",  # Full name
+            postal_address="",  # Can be updated later
+            mobile="+919913899888",
+            date_of_birth=datetime(1973, 9, 15),
+            gender="male",
+            marital_status="married",
+            role="owner",
+            password_hash=get_password_hash(user_data.password),
+            is_owner=True,
+            is_validated=True,
+            mobile_verified=True,
+            email_verified=True,
+            registration_completed=True  # Profile already complete
+        )
+    else:
+        # Regular user - needs profile completion
+        user = User(
+            email=user_data.email,
+            name=user_data.name,
+            role="pending",
+            password_hash=get_password_hash(user_data.password),
+            is_owner=False,
+            is_validated=False,
+            registration_completed=False
+        )
     
     user_dict = user.model_dump()
     user_dict['created_at'] = user_dict['created_at'].isoformat()
+    if user_dict.get('date_of_birth'):
+        user_dict['date_of_birth'] = user_dict['date_of_birth'].isoformat()
     
     await db.users.insert_one(user_dict)
     
@@ -383,9 +404,10 @@ async def register(user_data: UserRegister):
             "email": user.email,
             "name": user.name,
             "is_owner": user.is_owner,
+            "is_validated": user.is_validated,
             "registration_completed": user.registration_completed
         },
-        "requires_profile_completion": True
+        "requires_profile_completion": not user.registration_completed
     }
 
 @api_router.post("/auth/login")
