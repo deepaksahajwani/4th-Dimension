@@ -293,14 +293,14 @@ export default function LoginPage({ onLogin }) {
                       />
                     </div>
                   </div>
-                  <Button type="submit" className="w-full" disabled={loading} data-testid="login-submit-btn">
+                  <Button type="submit" className="w-full bg-orange-500 hover:bg-orange-600 text-white" disabled={loading} data-testid="login-submit-btn">
                     {loading ? 'Signing in...' : 'Sign In'}
                   </Button>
 
                   <div className="text-center mt-4">
                     <button
                       type="button"
-                      className="text-sm text-blue-600 hover:text-blue-800"
+                      className="text-sm text-orange-500 hover:text-orange-600 font-medium"
                       onClick={() => setIsLogin(false)}
                     >
                       Don't have an account? Register here
