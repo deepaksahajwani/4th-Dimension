@@ -109,6 +109,7 @@ function App() {
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<LoginPage onLogin={handleLogin} />} />
+          <Route path="/register" element={<SelfRegister />} />
           <Route
             path="/dashboard"
             element={
