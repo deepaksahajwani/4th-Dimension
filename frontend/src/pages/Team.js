@@ -281,7 +281,89 @@ export default function Team({ user, onLogout }) {
           )}
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {/* Pending Members Section - Admin/Owner Only */}
+        {isAdmin && pendingUsers.length > 0 && (
+          <div className="mb-8">
+            <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-4">
+              <h2 className="text-lg font-semibold text-amber-900 mb-2">Pending Validation</h2>
+              <p className="text-sm text-amber-700">{pendingUsers.length} team member(s) awaiting approval</p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {pendingUsers.map((member) => (
+                <Card key={member.id} className="border-2 border-amber-200">
+                  <CardContent className="p-6">
+                    <div className="flex items-start justify-between mb-4">
+                      <div className="flex items-start gap-4">
+                        <div className="w-16 h-16 bg-gradient-to-br from-amber-100 to-amber-200 rounded-full flex items-center justify-center flex-shrink-0">
+                          <span className="text-2xl font-bold text-amber-600">
+                            {member.name.charAt(0).toUpperCase()}
+                          </span>
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <h3 className="font-semibold text-slate-900 text-lg truncate">{member.name}</h3>
+                          <Badge className={`${getRoleBadgeColor(member.role)} mt-2`}>
+                            {member.role.replace('_', ' ')}
+                          </Badge>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="space-y-2 mb-4">
+                      <div className="flex items-center gap-2 text-sm text-slate-600">
+                        <Mail className="w-4 h-4 flex-shrink-0" />
+                        <span className="truncate">{member.email}</span>
+                      </div>
+                      {member.phone && (
+                        <div className="flex items-center gap-2 text-sm text-slate-600">
+                          <Phone className="w-4 h-4 flex-shrink-0" />
+                          <span>{member.phone}</span>
+                        </div>
+                      )}
+                      {member.date_of_joining && (
+                        <div className="flex items-center gap-2 text-sm text-slate-600">
+                          <Calendar className="w-4 h-4 flex-shrink-0" />
+                          <span>Joining: {new Date(member.date_of_joining).toLocaleDateString()}</span>
+                        </div>
+                      )}
+                      <div className="flex items-center gap-2 text-sm">
+                        <Badge variant={member.phone_verified ? 'default' : 'secondary'}>
+                          Phone: {member.phone_verified ? '✓ Verified' : '✗ Not verified'}
+                        </Badge>
+                        <Badge variant={member.email_verified ? 'default' : 'secondary'}>
+                          Email: {member.email_verified ? '✓ Verified' : '✗ Not verified'}
+                        </Badge>
+                      </div>
+                    </div>
+
+                    <div className="flex gap-2">
+                      <Button
+                        size="sm"
+                        className="flex-1 bg-green-600 hover:bg-green-700"
+                        onClick={() => handleValidateUser(member.id)}
+                      >
+                        Approve
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="flex-1 text-red-600 hover:bg-red-50"
+                        onClick={() => handleRejectUser(member.id)}
+                      >
+                        Reject
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Validated Team Members */}
+        <div>
+          <h2 className="text-lg font-semibold text-slate-900 mb-4">Team Members</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {users.map((member) => (
             <Card key={member.id} className="hover:shadow-lg transition-shadow">
               <CardContent className="p-6">
