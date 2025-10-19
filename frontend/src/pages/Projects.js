@@ -63,10 +63,23 @@ export default function Projects({ user, onLogout }) {
       await axios.post(`${API}/projects`, formData);
       toast.success('Project created successfully!');
       setOpen(false);
-      setFormData({ name: '', client_id: '', project_type: 'architectural', plot_dimensions: '', assigned_to: [] });
+      setFormData({ name: '', client_id: '', project_type: 'Architecture', address: '', city: '', assigned_to: [] });
       fetchData();
     } catch (error) {
       toast.error(error.response?.data?.detail || 'Failed to create project');
+    }
+  };
+
+  const handleCreateClient = async () => {
+    try {
+      const response = await axios.post(`${API}/clients`, newClient);
+      toast.success('Client created successfully!');
+      setShowClientForm(false);
+      setNewClient({ name: '', contact: '', email: '', first_call_date: new Date().toISOString().split('T')[0] });
+      await fetchData();
+      setFormData({ ...formData, client_id: response.data.id });
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Failed to create client');
     }
   };
 
