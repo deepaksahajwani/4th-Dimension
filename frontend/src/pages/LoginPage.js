@@ -79,18 +79,30 @@ export default function LoginPage({ onLogin }) {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 via-blue-50 to-slate-100 p-4">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-800 via-slate-700 to-slate-900 p-4">
       <div className="w-full max-w-md">
         <div className="text-center mb-8" data-testid="login-header">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-blue-600 rounded-2xl mb-4 shadow-lg">
-            <Building2 className="w-9 h-9 text-white" />
+          {/* 4th Dimension Logo */}
+          <div className="inline-flex items-center justify-center mb-4">
+            <div className="relative">
+              {/* Logo grid of squares */}
+              <div className="grid grid-cols-2 gap-2 w-20 h-20 mb-2">
+                <div className="bg-slate-300 rounded"></div>
+                <div className="bg-slate-300 rounded"></div>
+                <div className="bg-slate-300 rounded"></div>
+                <div className="bg-orange-500 rounded"></div>
+              </div>
+            </div>
           </div>
-          <h1 className="text-3xl font-bold text-slate-900 mb-2">4th Dimension</h1>
+          <h1 className="text-4xl font-bold text-white mb-2" style={{ fontFamily: 'Arial Black, sans-serif' }}>
+            <span className="text-orange-500">4</span> Dimension
+          </h1>
+          <p className="text-orange-400 text-sm font-medium">Architects & Interior Designers</p>
         </div>
 
-        <Card className="shadow-xl border-0">
+        <Card className="shadow-2xl border-0 bg-white/95 backdrop-blur">
           <CardHeader>
-            <CardTitle>{isLogin ? 'Welcome Back' : 'Register as Team Member'}</CardTitle>
+            <CardTitle className="text-slate-800">{isLogin ? 'Welcome Back' : 'Register as Team Member'}</CardTitle>
             <CardDescription>
               {isLogin ? 'Sign in to access your account' : 'Create an account to join the team'}
             </CardDescription>
