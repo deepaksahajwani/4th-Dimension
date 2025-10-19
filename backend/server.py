@@ -469,6 +469,132 @@ async def logout(credentials: HTTPAuthorizationCredentials = Depends(security)):
     return {"message": "Logged out successfully"}
 
 
+# ==================== SELF-REGISTRATION ROUTES ====================
+
+@api_router.post("/auth/self-register/request-otp")
+async def request_phone_otp(request: PhoneOTPRequest):
+    """Generate OTP for phone verification during self-registration"""
+    # Generate 6-digit OTP
+    otp_code = ''.join(random.choices(string.digits, k=6))
+    
+    # Store OTP in database
+    otp = OTP(
+        user_id="pending",  # No user ID yet
+        otp_code=otp_code,
+        action=f"phone_verify_{request.phone}",
+        expires_at=datetime.now(timezone.utc) + timedelta(minutes=10)
+    )
+    
+    otp_dict = otp.model_dump()
+    otp_dict['created_at'] = otp_dict['created_at'].isoformat()
+    otp_dict['expires_at'] = otp_dict['expires_at'].isoformat()
+    
+    await db.otps.insert_one(otp_dict)
+    
+    # In production, send OTP via SMS to phone number
+    # For demo, return it
+    return {
+        "message": "OTP sent to phone",
+        "otp_code": otp_code,  # Remove in production
+        "phone": request.phone
+    }
+
+@api_router.post("/auth/self-register")
+async def self_register(user_data: UserSelfRegister, phone_otp: str):
+    """Self-registration for new team members (requires phone OTP verification)"""
+    # Verify phone OTP
+    otp_doc = await db.otps.find_one({
+        "otp_code": phone_otp,
+        "action": f"phone_verify_{user_data.phone}",
+        "used": False
+    })
+    
+    if not otp_doc:
+        raise HTTPException(status_code=400, detail="Invalid or expired phone OTP")
+    
+    # Check expiry
+    expires_at = datetime.fromisoformat(otp_doc['expires_at']) if isinstance(otp_doc['expires_at'], str) else otp_doc['expires_at']
+    if expires_at < datetime.now(timezone.utc):
+        raise HTTPException(status_code=400, detail="OTP has expired")
+    
+    # Mark OTP as used
+    await db.otps.update_one({"id": otp_doc['id']}, {"$set": {"used": True}})
+    
+    # Check if user already exists
+    existing_user = await db.users.find_one({"email": user_data.email})
+    if existing_user:
+        raise HTTPException(status_code=400, detail="Email already registered")
+    
+    # Create user with pending validation status
+    user = User(
+        email=user_data.email,
+        name=user_data.name,
+        role=user_data.role,
+        phone=user_data.phone,
+        password_hash=get_password_hash(user_data.password),
+        is_validated=False,  # Pending validation
+        phone_verified=True,  # Phone verified via OTP
+        email_verified=False,  # Email verification pending
+        date_of_joining=datetime.fromisoformat(user_data.date_of_joining) if user_data.date_of_joining else None
+    )
+    
+    user_dict = user.model_dump()
+    user_dict['created_at'] = user_dict['created_at'].isoformat()
+    if user_dict['date_of_joining']:
+        user_dict['date_of_joining'] = user_dict['date_of_joining'].isoformat()
+    
+    await db.users.insert_one(user_dict)
+    
+    # Generate email verification token
+    email_token = str(uuid.uuid4())
+    email_verification = EmailVerificationToken(
+        user_id=user.id,
+        token=email_token,
+        expires_at=datetime.now(timezone.utc) + timedelta(days=7)
+    )
+    
+    email_dict = email_verification.model_dump()
+    email_dict['created_at'] = email_dict['created_at'].isoformat()
+    email_dict['expires_at'] = email_dict['expires_at'].isoformat()
+    
+    await db.email_verifications.insert_one(email_dict)
+    
+    # In production, send email with verification link
+    verification_link = f"{os.environ.get('FRONTEND_URL', 'http://localhost:3000')}/verify-email/{email_token}"
+    
+    return {
+        "message": "Registration successful! Please verify your email and wait for administrator approval.",
+        "user_id": user.id,
+        "verification_link": verification_link,  # Remove in production, send via email instead
+        "status": "pending_validation"
+    }
+
+@api_router.get("/auth/verify-email/{token}")
+async def verify_email(token: str):
+    """Verify email using token from email link"""
+    verification = await db.email_verifications.find_one({"token": token, "used": False})
+    
+    if not verification:
+        raise HTTPException(status_code=400, detail="Invalid or expired verification link")
+    
+    # Check expiry
+    expires_at = datetime.fromisoformat(verification['expires_at']) if isinstance(verification['expires_at'], str) else verification['expires_at']
+    if expires_at < datetime.now(timezone.utc):
+        raise HTTPException(status_code=400, detail="Verification link has expired")
+    
+    # Mark as used
+    await db.email_verifications.update_one({"id": verification['id']}, {"$set": {"used": True}})
+    
+    # Update user
+    await db.users.update_one(
+        {"id": verification['user_id']},
+        {"$set": {"email_verified": True}}
+    )
+    
+    return {"message": "Email verified successfully! Please wait for administrator approval."}
+
+
+
 # ==================== USER ROUTES ====================
 
 @api_router.get("/users", response_model=List[User])
