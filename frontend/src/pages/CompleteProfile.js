@@ -24,6 +24,7 @@ export default function CompleteProfile() {
     email: '',
     mobile: '',
     date_of_birth: '',
+    gender: 'male',
     marital_status: 'single',
     role: 'architect',
   });
