@@ -332,12 +332,12 @@ async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(s
         return User(**user_doc)
 
 async def require_owner(current_user: User = Depends(get_current_user)):
-    if current_user.role != "owner":
+    if not current_user.is_owner:
         raise HTTPException(status_code=403, detail="Only owner can perform this action")
     return current_user
 
 async def require_admin(current_user: User = Depends(get_current_user)):
-    if current_user.role != "owner" and not current_user.is_admin:
+    if not current_user.is_owner and not current_user.is_admin:
         raise HTTPException(status_code=403, detail="Only owner or administrator can perform this action")
     return current_user
 
