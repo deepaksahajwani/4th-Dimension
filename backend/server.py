@@ -258,6 +258,22 @@ class OTPVerify(BaseModel):
     action: str
     target_user_id: Optional[str] = None
 
+class PhoneOTPRequest(BaseModel):
+    phone: str
+    
+class EmailVerificationToken(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    user_id: str
+    token: str
+    expires_at: datetime
+    used: bool = False
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+class UpdateUserAdmin(BaseModel):
+    user_id: str
+    is_admin: bool
+
 
 # ==================== HELPER FUNCTIONS ====================
 
