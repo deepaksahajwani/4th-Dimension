@@ -49,7 +49,7 @@ export default function CompleteProfile() {
       toast.success('OTPs sent to your mobile and email!');
       setStep(2);
     } catch (error) {
-      toast.error(error.response?.data?.detail || 'Failed to send OTPs');
+      toast.error(formatErrorMessage(error, 'Failed to send OTPs'));
     } finally {
       setLoading(false);
     }
