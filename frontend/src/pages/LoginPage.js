@@ -229,7 +229,6 @@ export default function LoginPage({ onLogin }) {
                     </button>
                   </div>
                 </form>
-              </form>
             )}
           </CardContent>
         </Card>
