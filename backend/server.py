@@ -54,30 +54,34 @@ class User(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     email: EmailStr
     name: str
-    role: str  # owner, architect, interior_designer, visualizer, office_boy
+    postal_address: Optional[str] = None
+    mobile: Optional[str] = None
+    date_of_birth: Optional[datetime] = None
+    marital_status: Optional[str] = None  # single, married, divorced, widowed
+    role: str  # architect, interior_designer, landscape_designer, site_engineer, structural_engineer, site_supervisor, intern, administrator, office_staff
     password_hash: Optional[str] = None
     picture: Optional[str] = None
-    is_admin: bool = False  # Can validate new members
-    is_validated: bool = True  # For self-registered users pending validation
-    date_of_joining: Optional[datetime] = None
-    phone: Optional[str] = None
+    is_owner: bool = False  # Only for Deepak Sahajwani
+    is_admin: bool = False
+    is_validated: bool = False  # Pending owner/admin approval
+    mobile_verified: bool = False
     email_verified: bool = False
-    phone_verified: bool = False
+    registration_completed: bool = False  # Details form completed
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
-class UserCreate(BaseModel):
+class UserRegister(BaseModel):
     email: EmailStr
-    name: str
     password: str
-    role: str
+    name: str
 
-class UserSelfRegister(BaseModel):
+class CompleteProfile(BaseModel):
+    full_name: str
+    postal_address: str
     email: EmailStr
-    name: str
-    password: str
+    mobile: str
+    date_of_birth: str
+    marital_status: str
     role: str
-    phone: str
-    date_of_joining: str
 
 class UserLogin(BaseModel):
     email: EmailStr
