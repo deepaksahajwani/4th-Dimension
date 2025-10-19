@@ -34,9 +34,16 @@ export default function CompleteProfile() {
     e.preventDefault();
     setLoading(true);
     try {
-      await axios.post(`${API}/profile/complete`, formData);
-      toast.success('Profile completed! Waiting for admin approval.');
-      navigate('/pending-approval');
+      const response = await axios.post(`${API}/profile/complete`, formData);
+      
+      // Update user in localStorage to reflect validation
+      const updatedUser = JSON.parse(localStorage.getItem('user') || '{}');
+      updatedUser.is_validated = true;
+      updatedUser.registration_completed = true;
+      localStorage.setItem('user', JSON.stringify(updatedUser));
+      
+      toast.success('Profile completed! Welcome to 4th Dimension!');
+      navigate('/dashboard');
     } catch (error) {
       toast.error(formatErrorMessage(error, 'Failed to complete profile'));
     } finally {
