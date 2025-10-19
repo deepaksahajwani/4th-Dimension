@@ -27,8 +27,7 @@ export default function Layout({ children, user, onLogout }) {
               <Building2 className="w-6 h-6 text-white" />
             </div>
             <div>
-              <h1 className="text-lg font-bold text-slate-900">Architecture</h1>
-              <p className="text-xs text-slate-500">Firm Management</p>
+              <h1 className="text-lg font-bold text-slate-900">4th Dimension</h1>
             </div>
           </div>
 
