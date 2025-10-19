@@ -225,6 +225,25 @@ class DrawingTemplateCreate(BaseModel):
     order: int
     project_type: str
 
+class OTP(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    user_id: str
+    otp_code: str
+    action: str  # add_member, delete_member
+    expires_at: datetime
+    used: bool = False
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+class OTPRequest(BaseModel):
+    action: str  # add_member, delete_member
+    target_user_id: Optional[str] = None  # For delete action
+
+class OTPVerify(BaseModel):
+    otp_code: str
+    action: str
+    target_user_id: Optional[str] = None
+
 
 # ==================== HELPER FUNCTIONS ====================
 
