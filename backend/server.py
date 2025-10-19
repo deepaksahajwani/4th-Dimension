@@ -609,12 +609,12 @@ async def get_users(current_user: User = Depends(get_current_user)):
 @api_router.get("/users/pending")
 async def get_pending_users(current_user: User = Depends(require_admin)):
     """Get all users pending validation"""
-    users = await db.users.find({"is_validated": False}, {"_id": 0, "password_hash": 0}).to_list(1000)
+    users = await db.users.find({"is_validated": False, "registration_completed": True}, {"_id": 0, "password_hash": 0}).to_list(1000)
     for user in users:
         if isinstance(user.get('created_at'), str):
             user['created_at'] = datetime.fromisoformat(user['created_at'])
-        if user.get('date_of_joining') and isinstance(user['date_of_joining'], str):
-            user['date_of_joining'] = datetime.fromisoformat(user['date_of_joining'])
+        if user.get('date_of_birth') and isinstance(user['date_of_birth'], str):
+            user['date_of_birth'] = datetime.fromisoformat(user['date_of_birth'])
     return users
 
 @api_router.post("/users/{user_id}/validate")
@@ -650,24 +650,25 @@ async def reject_user(user_id: str, current_user: User = Depends(require_admin))
     
     return {"message": "User rejected and removed"}
 
-@api_router.post("/users/update-admin")
-async def update_admin_rights(request: UpdateUserAdmin, current_user: User = Depends(require_owner)):
-    """Grant or revoke administrator rights (owner only)"""
-    user = await db.users.find_one({"id": request.user_id})
+@api_router.post("/users/{user_id}/toggle-admin")
+async def toggle_admin_rights(user_id: str, current_user: User = Depends(require_owner)):
+    """Toggle administrator rights (owner only)"""
+    user = await db.users.find_one({"id": user_id})
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
     
-    if user['role'] == 'owner':
+    if user.get('is_owner'):
         raise HTTPException(status_code=400, detail="Cannot change admin rights for owner")
     
-    # Update admin status
+    # Toggle admin status
+    new_status = not user.get('is_admin', False)
     await db.users.update_one(
-        {"id": request.user_id},
-        {"$set": {"is_admin": request.is_admin}}
+        {"id": user_id},
+        {"$set": {"is_admin": new_status}}
     )
     
-    action = "granted" if request.is_admin else "revoked"
-    return {"message": f"Administrator rights {action} successfully"}
+    action = "granted" if new_status else "revoked"
+    return {"message": f"Administrator rights {action} successfully", "is_admin": new_status}
 
 @api_router.post("/users/generate-otp")
 async def generate_otp(request: OTPRequest, current_user: User = Depends(require_owner)):
