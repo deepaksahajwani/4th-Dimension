@@ -18,12 +18,20 @@ export default function Team({ user, onLogout }) {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState(false);
+  const [otpDialogOpen, setOtpDialogOpen] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [selectedUser, setSelectedUser] = useState(null);
+  const [otpCode, setOtpCode] = useState('');
+  const [generatedOtp, setGeneratedOtp] = useState('');
+  const [otpAction, setOtpAction] = useState('');
   const [formData, setFormData] = useState({
     name: '',
     email: '',
     password: '',
     role: 'architect',
   });
+
+  const isOwner = user?.role === 'owner';
 
   useEffect(() => {
     fetchUsers();
