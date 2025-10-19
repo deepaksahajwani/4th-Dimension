@@ -7,6 +7,8 @@ import { Toaster, toast } from 'sonner';
 // Components
 import LoginPage from './pages/LoginPage';
 import SelfRegister from './pages/SelfRegister';
+import CompleteProfile from './pages/CompleteProfile';
+import PendingApproval from './pages/PendingApproval';
 import Dashboard from './pages/Dashboard';
 import Projects from './pages/Projects';
 import ProjectDetail from './pages/ProjectDetail';
