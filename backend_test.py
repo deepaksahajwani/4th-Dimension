@@ -214,11 +214,10 @@ class BackendTester:
     def test_google_session(self):
         """Test Google OAuth session endpoint"""
         try:
-            # Test with mock session_id
+            # Test with mock session_id as query parameter
             mock_session_id = "mock_session_12345"
             
-            response = self.session.post(f"{BACKEND_URL}/auth/google/session", 
-                                       json={"session_id": mock_session_id})
+            response = self.session.post(f"{BACKEND_URL}/auth/google/session?session_id={mock_session_id}")
             
             # This will likely fail since it's a real external API call
             # But we're testing the endpoint structure
