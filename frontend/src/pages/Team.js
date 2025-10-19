@@ -16,6 +16,7 @@ const API = `${BACKEND_URL}/api`;
 
 export default function Team({ user, onLogout }) {
   const [users, setUsers] = useState([]);
+  const [pendingUsers, setPendingUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState(false);
   const [otpDialogOpen, setOtpDialogOpen] = useState(false);
@@ -32,6 +33,7 @@ export default function Team({ user, onLogout }) {
   });
 
   const isOwner = user?.role === 'owner';
+  const isAdmin = user?.is_admin || isOwner;
 
   useEffect(() => {
     fetchUsers();
