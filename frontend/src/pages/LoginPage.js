@@ -85,7 +85,7 @@ export default function LoginPage({ onLogin }) {
   };
 
   const handleGoogleLogin = () => {
-    const redirectUrl = encodeURIComponent(`${window.location.origin}/dashboard`);
+    const redirectUrl = encodeURIComponent(`${window.location.origin}/`);
     window.location.href = `https://auth.emergentagent.com/?redirect=${redirectUrl}`;
   };
 
