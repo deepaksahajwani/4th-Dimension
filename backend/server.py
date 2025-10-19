@@ -586,7 +586,7 @@ async def complete_profile(
     profile: CompleteProfile,
     current_user: User = Depends(get_current_user)
 ):
-    """Complete user profile without OTP verification"""
+    """Complete user profile and auto-validate"""
     
     # Update user profile directly
     dob = datetime.fromisoformat(profile.date_of_birth) if profile.date_of_birth else None
@@ -604,13 +604,14 @@ async def complete_profile(
             "role": profile.role,
             "mobile_verified": True,
             "email_verified": True,
-            "registration_completed": True
+            "registration_completed": True,
+            "is_validated": True  # Auto-validate user
         }}
     )
     
     return {
-        "message": "Profile completed successfully! Waiting for admin approval.",
-        "status": "pending_validation"
+        "message": "Profile completed successfully! You can now access the system.",
+        "status": "validated"
     }
 
 
