@@ -14,11 +14,7 @@ const API = `${BACKEND_URL}/api`;
 
 export default function CompleteProfile() {
   const navigate = useNavigate();
-  const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
-  const [mobileOtp, setMobileOtp] = useState('');
-  const [emailOtp, setEmailOtp] = useState('');
-  const [generatedOtps, setGeneratedOtps] = useState({ mobile: '', email: '' });
   
   // Get user data from localStorage
   const storedUser = JSON.parse(localStorage.getItem('user') || '{}');
@@ -34,35 +30,11 @@ export default function CompleteProfile() {
     role: 'architect',
   });
 
-  const handleRequestOtp = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    try {
-      const response = await axios.post(`${API}/profile/request-otp`, {
-        mobile: formData.mobile,
-        email: formData.email
-      });
-      setGeneratedOtps({
-        mobile: response.data.mobile_otp,
-        email: response.data.email_otp
-      });
-      toast.success('OTPs sent to your mobile and email!');
-      setStep(2);
-    } catch (error) {
-      toast.error(formatErrorMessage(error, 'Failed to send OTPs'));
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     try {
-      await axios.post(
-        `${API}/profile/complete?mobile_otp=${mobileOtp}&email_otp=${emailOtp}`,
-        formData
-      );
+      await axios.post(`${API}/profile/complete`, formData);
       toast.success('Profile completed! Waiting for admin approval.');
       navigate('/pending-approval');
     } catch (error) {
