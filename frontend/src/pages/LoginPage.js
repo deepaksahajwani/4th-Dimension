@@ -32,10 +32,8 @@ export default function LoginPage({ onLogin }) {
       
       if (response.data.requires_profile_completion) {
         navigate('/complete-profile');
-      } else if (response.data.user.is_validated) {
-        navigate('/dashboard');
       } else {
-        navigate('/pending-approval');
+        navigate('/dashboard');
       }
     } catch (error) {
       toast.error(formatErrorMessage(error, 'Login failed'));
