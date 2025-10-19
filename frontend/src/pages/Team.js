@@ -384,9 +384,17 @@ export default function Team({ user, onLogout }) {
                     </div>
                     <div className="flex-1 min-w-0">
                       <h3 className="font-semibold text-slate-900 text-lg truncate">{member.name}</h3>
-                      <Badge className={`${getRoleBadgeColor(member.role)} mt-2`}>
-                        {member.role.replace('_', ' ')}
-                      </Badge>
+                      <div className="flex flex-wrap gap-2 mt-2">
+                        <Badge className={`${getRoleBadgeColor(member.role)}`}>
+                          {member.role === 'owner' ? 'Owner' : member.role.replace('_', ' ')}
+                        </Badge>
+                        {member.is_admin && member.role !== 'owner' && (
+                          <Badge className="bg-purple-100 text-purple-800">
+                            <Shield className="w-3 h-3 mr-1" />
+                            Admin
+                          </Badge>
+                        )}
+                      </div>
                     </div>
                   </div>
                   {isOwner && member.id !== user.id && (
@@ -407,11 +415,28 @@ export default function Team({ user, onLogout }) {
                     <Mail className="w-4 h-4 flex-shrink-0" />
                     <span className="truncate">{member.email}</span>
                   </div>
-                  <div className="flex items-center gap-2 text-sm text-slate-500">
-                    <Calendar className="w-4 h-4 flex-shrink-0" />
-                    <span>Joined {new Date(member.created_at).toLocaleDateString()}</span>
-                  </div>
+                  {member.date_of_joining && (
+                    <div className="flex items-center gap-2 text-sm text-slate-500">
+                      <Calendar className="w-4 h-4 flex-shrink-0" />
+                      <span>Joined {new Date(member.date_of_joining).toLocaleDateString()}</span>
+                    </div>
+                  )}
                 </div>
+
+                {/* Admin Rights Toggle - Owner Only */}
+                {isOwner && member.role !== 'owner' && member.id !== user.id && (
+                  <div className="mt-4 pt-4 border-t border-slate-200">
+                    <Button
+                      size="sm"
+                      variant={member.is_admin ? 'outline' : 'default'}
+                      className="w-full"
+                      onClick={() => handleToggleAdmin(member.id, member.is_admin)}
+                    >
+                      <Shield className="w-4 h-4 mr-2" />
+                      {member.is_admin ? 'Revoke Admin Rights' : 'Grant Admin Rights'}
+                    </Button>
+                  </div>
+                )}
               </CardContent>
             </Card>
           ))}
