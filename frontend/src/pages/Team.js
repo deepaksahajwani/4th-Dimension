@@ -155,73 +155,81 @@ export default function Team({ user, onLogout }) {
           <div>
             <h1 className="text-3xl font-bold text-slate-900">Team</h1>
             <p className="text-slate-600 mt-1">{users.length} team members</p>
+            {isOwner && (
+              <div className="flex items-center gap-2 mt-2">
+                <Shield className="w-4 h-4 text-purple-600" />
+                <span className="text-sm font-medium text-purple-600">Owner Access</span>
+              </div>
+            )}
           </div>
-          <Dialog open={open} onOpenChange={setOpen}>
-            <DialogTrigger asChild>
-              <Button data-testid="add-team-member-btn">
-                <Plus className="w-4 h-4 mr-2" />
-                Add Team Member
-              </Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Add New Team Member</DialogTitle>
-              </DialogHeader>
-              <form onSubmit={handleSubmit} className="space-y-4" data-testid="team-member-form">
-                <div className="space-y-2">
-                  <Label htmlFor="name">Full Name</Label>
-                  <Input
-                    id="name"
-                    value={formData.name}
-                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                    required
-                    data-testid="team-name-input"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="email">Email</Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    value={formData.email}
-                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                    required
-                    data-testid="team-email-input"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="password">Password</Label>
-                  <Input
-                    id="password"
-                    type="password"
-                    value={formData.password}
-                    onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                    required
-                    minLength={6}
-                    data-testid="team-password-input"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="role">Role</Label>
-                  <select
-                    id="role"
-                    className="flex h-10 w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm ring-offset-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    value={formData.role}
-                    onChange={(e) => setFormData({ ...formData, role: e.target.value })}
-                    data-testid="team-role-select"
-                  >
-                    <option value="architect">Architect</option>
-                    <option value="interior_designer">Interior Designer</option>
-                    <option value="visualizer">3D Visualizer</option>
-                    <option value="office_boy">Office Assistant</option>
-                  </select>
-                </div>
-                <Button type="submit" className="w-full" data-testid="submit-team-member-btn">
+          {isOwner && (
+            <Dialog open={open} onOpenChange={setOpen}>
+              <DialogTrigger asChild>
+                <Button data-testid="add-team-member-btn">
+                  <Plus className="w-4 h-4 mr-2" />
                   Add Team Member
                 </Button>
-              </form>
-            </DialogContent>
-          </Dialog>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Add New Team Member</DialogTitle>
+                </DialogHeader>
+                <form onSubmit={handleSubmit} className="space-y-4" data-testid="team-member-form">
+                  <div className="space-y-2">
+                    <Label htmlFor="name">Full Name</Label>
+                    <Input
+                      id="name"
+                      value={formData.name}
+                      onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                      required
+                      data-testid="team-name-input"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="email">Email</Label>
+                    <Input
+                      id="email"
+                      type="email"
+                      value={formData.email}
+                      onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                      required
+                      data-testid="team-email-input"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="password">Password</Label>
+                    <Input
+                      id="password"
+                      type="password"
+                      value={formData.password}
+                      onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                      required
+                      minLength={6}
+                      data-testid="team-password-input"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="role">Role</Label>
+                    <select
+                      id="role"
+                      className="flex h-10 w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm ring-offset-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      value={formData.role}
+                      onChange={(e) => setFormData({ ...formData, role: e.target.value })}
+                      data-testid="team-role-select"
+                    >
+                      <option value="architect">Architect</option>
+                      <option value="interior_designer">Interior Designer</option>
+                      <option value="visualizer">3D Visualizer</option>
+                      <option value="office_boy">Office Assistant</option>
+                    </select>
+                  </div>
+                  <Button type="submit" className="w-full" data-testid="submit-team-member-btn">
+                    Generate OTP & Add Member
+                  </Button>
+                </form>
+              </DialogContent>
+            </Dialog>
+          )}
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
