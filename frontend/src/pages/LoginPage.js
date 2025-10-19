@@ -151,16 +151,15 @@ export default function LoginPage({ onLogin }) {
                   Sign in with Google
                 </Button>
                 
-                <div className="text-center mt-4">
+                <div className="text-center mt-6 pt-4 border-t border-slate-200">
                   <p className="text-sm text-slate-600">
-                    Don't have an account?{' '}
-                    <button
-                      type="button"
+                    New team member?{' '}
+                    <Link
+                      to="/register"
                       className="text-blue-600 hover:text-blue-800 font-medium"
-                      onClick={() => document.querySelector('[data-testid="register-tab"]').click()}
                     >
-                      Sign up here
-                    </button>
+                      Register here
+                    </Link>
                   </p>
                 </div>
               </TabsContent>
