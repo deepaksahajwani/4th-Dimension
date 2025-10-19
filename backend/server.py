@@ -80,6 +80,7 @@ class CompleteProfile(BaseModel):
     email: EmailStr
     mobile: str
     date_of_birth: str
+    gender: str
     marital_status: str
     role: str
 
