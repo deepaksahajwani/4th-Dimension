@@ -219,9 +219,9 @@ export default function CompleteProfile() {
                 </div>
               </div>
 
-              <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
-                <p className="text-sm text-amber-800">
-                  <strong>Note:</strong> After submitting, your registration will be reviewed by the owner or administrator before you can access the system.
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <p className="text-sm text-blue-800">
+                  <strong>Note:</strong> After submitting your details, you'll get immediate access to the system.
                 </p>
               </div>
 
