@@ -241,6 +241,23 @@ export default function Projects({ user, onLogout }) {
                     data-testid="project-address-input"
                   />
                 </div>
+                <div className="space-y-2">
+                  <Label htmlFor="team_leader">Team Leader</Label>
+                  <select
+                    id="team_leader"
+                    className="flex h-10 w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm"
+                    value={formData.team_leader}
+                    onChange={(e) => setFormData({ ...formData, team_leader: e.target.value })}
+                    data-testid="project-team-leader-select"
+                  >
+                    <option value="">Select team leader (optional)</option>
+                    {users.map((u) => (
+                      <option key={u.id} value={u.id}>
+                        {u.name} ({u.role.replace('_', ' ')})
+                      </option>
+                    ))}
+                  </select>
+                </div>
                 <Button type="submit" className="w-full" data-testid="submit-project-btn">
                   Create Project
                 </Button>
