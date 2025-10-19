@@ -26,6 +26,7 @@ export default function Projects({ user, onLogout }) {
     project_type: 'Architecture',
     address: '',
     city: '',
+    team_leader: '',
     assigned_to: [],
   });
   const [showClientForm, setShowClientForm] = useState(false);
