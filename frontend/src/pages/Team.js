@@ -236,26 +236,39 @@ export default function Team({ user, onLogout }) {
           {users.map((member) => (
             <Card key={member.id} className="hover:shadow-lg transition-shadow">
               <CardContent className="p-6">
-                <div className="flex items-start gap-4">
-                  <div className="w-16 h-16 bg-gradient-to-br from-blue-100 to-blue-200 rounded-full flex items-center justify-center flex-shrink-0">
-                    {member.picture ? (
-                      <img
-                        src={member.picture}
-                        alt={member.name}
-                        className="w-16 h-16 rounded-full object-cover"
-                      />
-                    ) : (
-                      <span className="text-2xl font-bold text-blue-600">
-                        {member.name.charAt(0).toUpperCase()}
-                      </span>
-                    )}
+                <div className="flex items-start justify-between mb-4">
+                  <div className="flex items-start gap-4">
+                    <div className="w-16 h-16 bg-gradient-to-br from-blue-100 to-blue-200 rounded-full flex items-center justify-center flex-shrink-0">
+                      {member.picture ? (
+                        <img
+                          src={member.picture}
+                          alt={member.name}
+                          className="w-16 h-16 rounded-full object-cover"
+                        />
+                      ) : (
+                        <span className="text-2xl font-bold text-blue-600">
+                          {member.name.charAt(0).toUpperCase()}
+                        </span>
+                      )}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <h3 className="font-semibold text-slate-900 text-lg truncate">{member.name}</h3>
+                      <Badge className={`${getRoleBadgeColor(member.role)} mt-2`}>
+                        {member.role.replace('_', ' ')}
+                      </Badge>
+                    </div>
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <h3 className="font-semibold text-slate-900 text-lg truncate">{member.name}</h3>
-                    <Badge className={`${getRoleBadgeColor(member.role)} mt-2`}>
-                      {member.role.replace('_', ' ')}
-                    </Badge>
-                  </div>
+                  {isOwner && member.id !== user.id && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                      onClick={() => handleDeleteClick(member)}
+                      data-testid={`delete-member-${member.id}`}
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
+                  )}
                 </div>
 
                 <div className="mt-4 space-y-2">
@@ -272,6 +285,80 @@ export default function Team({ user, onLogout }) {
             </Card>
           ))}
         </div>
+
+        {/* OTP Verification Dialog */}
+        <Dialog open={otpDialogOpen} onOpenChange={setOtpDialogOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Enter OTP</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4">
+              <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
+                <p className="text-sm text-amber-800">
+                  <strong>Security Verification Required</strong>
+                </p>
+                <p className="text-sm text-amber-700 mt-1">
+                  An OTP has been generated. Please enter it below to confirm this action.
+                </p>
+                <p className="text-xs text-amber-600 mt-2 font-mono">
+                  OTP: <strong>{generatedOtp}</strong>
+                </p>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="otp">Enter 6-digit OTP</Label>
+                <Input
+                  id="otp"
+                  placeholder="000000"
+                  maxLength={6}
+                  value={otpCode}
+                  onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, ''))}
+                  data-testid="otp-input"
+                />
+              </div>
+            </div>
+            <DialogFooter>
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setOtpDialogOpen(false);
+                  setOtpCode('');
+                }}
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={otpAction === 'add_member' ? handleOtpVerifyAndAdd : handleOtpVerifyAndDelete}
+                disabled={otpCode.length !== 6}
+                data-testid="verify-otp-btn"
+              >
+                Verify & {otpAction === 'add_member' ? 'Add' : 'Delete'}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* Delete Confirmation Dialog */}
+        <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Delete Team Member</AlertDialogTitle>
+              <AlertDialogDescription>
+                Are you sure you want to delete <strong>{selectedUser?.name}</strong>? This action cannot be undone.
+                An OTP will be required to complete this action.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={handleDeleteConfirm}
+                className="bg-red-600 hover:bg-red-700"
+                data-testid="confirm-delete-btn"
+              >
+                Continue
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
 
         {users.length === 0 && (
           <div className="text-center py-12">
