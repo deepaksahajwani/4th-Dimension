@@ -42,7 +42,19 @@ export default function Team({ user, onLogout }) {
   const fetchUsers = async () => {
     try {
       const response = await axios.get(`${API}/users`);
-      setUsers(response.data);
+      // Filter validated users
+      const validated = response.data.filter(u => u.is_validated);
+      setUsers(validated);
+      
+      // Fetch pending users if admin
+      if (isAdmin) {
+        try {
+          const pendingResponse = await axios.get(`${API}/users/pending`);
+          setPendingUsers(pendingResponse.data);
+        } catch (error) {
+          console.error('Error fetching pending users:', error);
+        }
+      }
     } catch (error) {
       toast.error('Failed to fetch team members');
     } finally {
