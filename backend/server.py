@@ -557,23 +557,18 @@ async def upload_drawing(
         if file_size > MAX_FILE_SIZE:
             raise HTTPException(status_code=413, detail=f"File size exceeds maximum allowed size")
         
-        # Upload to S3
+        # Save to local storage
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        file_key = f"drawings/{drawing['project_id']}/{drawing_id}_{timestamp}_{file.filename}"
+        project_dir = UPLOAD_DIR / "drawings" / drawing['project_id']
+        project_dir.mkdir(parents=True, exist_ok=True)
         
-        s3_client.upload_fileobj(
-            file.file,
-            S3_BUCKET_NAME,
-            file_key,
-            ExtraArgs={
-                'ContentType': file.content_type,
-                'Metadata': {
-                    'drawing_id': drawing_id,
-                    'project_id': drawing['project_id'],
-                    'uploaded_by': current_user.id
-                }
-            }
-        )
+        file_path = project_dir / f"{drawing_id}_{timestamp}_{file.filename}"
+        
+        with open(file_path, "wb") as f:
+            content = await file.read()
+            f.write(content)
+        
+        file_key = str(file_path.relative_to(UPLOAD_DIR))
         
         # Update drawing
         await db.drawings.update_one(
@@ -586,8 +581,8 @@ async def upload_drawing(
             "file_key": file_key
         }
     
-    except ClientError as e:
-        raise HTTPException(status_code=500, detail=f"S3 upload failed: {str(e)}")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Upload failed: {str(e)}")
 
 @api_router.post("/drawings/{drawing_id}/ai-review")
 async def ai_review_drawing(drawing_id: str, current_user: User = Depends(get_current_user)):
