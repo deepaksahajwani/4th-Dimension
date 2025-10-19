@@ -23,9 +23,17 @@ export default function Projects({ user, onLogout }) {
   const [formData, setFormData] = useState({
     name: '',
     client_id: '',
-    project_type: 'architectural',
-    plot_dimensions: '',
+    project_type: 'Architecture',
+    address: '',
+    city: '',
     assigned_to: [],
+  });
+  const [showClientForm, setShowClientForm] = useState(false);
+  const [newClient, setNewClient] = useState({
+    name: '',
+    contact: '',
+    email: '',
+    first_call_date: new Date().toISOString().split('T')[0],
   });
 
   useEffect(() => {
