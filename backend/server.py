@@ -57,6 +57,7 @@ class User(BaseModel):
     postal_address: Optional[str] = None
     mobile: Optional[str] = None
     date_of_birth: Optional[datetime] = None
+    gender: Optional[str] = None  # male, female, other
     marital_status: Optional[str] = None  # single, married, divorced, widowed
     role: str  # architect, interior_designer, landscape_designer, site_engineer, structural_engineer, site_supervisor, intern, administrator, office_staff
     password_hash: Optional[str] = None
