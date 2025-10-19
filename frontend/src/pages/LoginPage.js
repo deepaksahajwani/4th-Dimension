@@ -38,7 +38,7 @@ export default function LoginPage({ onLogin }) {
         navigate('/pending-approval');
       }
     } catch (error) {
-      toast.error(error.response?.data?.detail || 'Login failed');
+      toast.error(formatErrorMessage(error, 'Login failed'));
     } finally {
       setLoading(false);
     }
