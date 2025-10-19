@@ -484,129 +484,113 @@ async def logout(credentials: HTTPAuthorizationCredentials = Depends(security)):
     return {"message": "Logged out successfully"}
 
 
-# ==================== SELF-REGISTRATION ROUTES ====================
+# ==================== PROFILE COMPLETION & OTP ====================
 
-@api_router.post("/auth/self-register/request-otp")
-async def request_phone_otp(request: PhoneOTPRequest):
-    """Generate OTP for phone verification during self-registration"""
-    # Generate 6-digit OTP
-    otp_code = ''.join(random.choices(string.digits, k=6))
+@api_router.post("/profile/request-otp")
+async def request_verification_otp(mobile: str, email: str, current_user: User = Depends(get_current_user)):
+    """Generate OTPs for mobile and email verification"""
+    # Generate 6-digit OTPs
+    mobile_otp = ''.join(random.choices(string.digits, k=6))
+    email_otp = ''.join(random.choices(string.digits, k=6))
     
-    # Store OTP in database
-    otp = OTP(
-        user_id="pending",  # No user ID yet
-        otp_code=otp_code,
-        action=f"phone_verify_{request.phone}",
+    # Store mobile OTP
+    mobile_otp_doc = OTP(
+        user_id=current_user.id,
+        otp_code=mobile_otp,
+        action=f"verify_mobile_{mobile}",
         expires_at=datetime.now(timezone.utc) + timedelta(minutes=10)
     )
+    mobile_dict = mobile_otp_doc.model_dump()
+    mobile_dict['created_at'] = mobile_dict['created_at'].isoformat()
+    mobile_dict['expires_at'] = mobile_dict['expires_at'].isoformat()
+    await db.otps.insert_one(mobile_dict)
     
-    otp_dict = otp.model_dump()
-    otp_dict['created_at'] = otp_dict['created_at'].isoformat()
-    otp_dict['expires_at'] = otp_dict['expires_at'].isoformat()
+    # Store email OTP
+    email_otp_doc = OTP(
+        user_id=current_user.id,
+        otp_code=email_otp,
+        action=f"verify_email_{email}",
+        expires_at=datetime.now(timezone.utc) + timedelta(minutes=10)
+    )
+    email_dict = email_otp_doc.model_dump()
+    email_dict['created_at'] = email_dict['created_at'].isoformat()
+    email_dict['expires_at'] = email_dict['expires_at'].isoformat()
+    await db.otps.insert_one(email_dict)
     
-    await db.otps.insert_one(otp_dict)
-    
-    # In production, send OTP via SMS to phone number
-    # For demo, return it
+    # In production, send via SMS and email
     return {
-        "message": "OTP sent to phone",
-        "otp_code": otp_code,  # Remove in production
-        "phone": request.phone
+        "message": "OTPs sent successfully",
+        "mobile_otp": mobile_otp,  # Remove in production
+        "email_otp": email_otp,  # Remove in production
+        "mobile": mobile,
+        "email": email
     }
 
-@api_router.post("/auth/self-register")
-async def self_register(user_data: UserSelfRegister, phone_otp: str):
-    """Self-registration for new team members (requires phone OTP verification)"""
-    # Verify phone OTP
-    otp_doc = await db.otps.find_one({
-        "otp_code": phone_otp,
-        "action": f"phone_verify_{user_data.phone}",
+@api_router.post("/profile/complete")
+async def complete_profile(
+    profile: CompleteProfile,
+    mobile_otp: str,
+    email_otp: str,
+    current_user: User = Depends(get_current_user)
+):
+    """Complete user profile after OTP verification"""
+    
+    # Verify mobile OTP
+    mobile_otp_doc = await db.otps.find_one({
+        "user_id": current_user.id,
+        "otp_code": mobile_otp,
+        "action": f"verify_mobile_{profile.mobile}",
         "used": False
     })
     
-    if not otp_doc:
-        raise HTTPException(status_code=400, detail="Invalid or expired phone OTP")
+    if not mobile_otp_doc:
+        raise HTTPException(status_code=400, detail="Invalid mobile OTP")
     
-    # Check expiry
-    expires_at = datetime.fromisoformat(otp_doc['expires_at']) if isinstance(otp_doc['expires_at'], str) else otp_doc['expires_at']
-    if expires_at < datetime.now(timezone.utc):
+    # Verify email OTP
+    email_otp_doc = await db.otps.find_one({
+        "user_id": current_user.id,
+        "otp_code": email_otp,
+        "action": f"verify_email_{profile.email}",
+        "used": False
+    })
+    
+    if not email_otp_doc:
+        raise HTTPException(status_code=400, detail="Invalid email OTP")
+    
+    # Check OTP expiry
+    mobile_expires = datetime.fromisoformat(mobile_otp_doc['expires_at']) if isinstance(mobile_otp_doc['expires_at'], str) else mobile_otp_doc['expires_at']
+    email_expires = datetime.fromisoformat(email_otp_doc['expires_at']) if isinstance(email_otp_doc['expires_at'], str) else email_otp_doc['expires_at']
+    
+    if mobile_expires < datetime.now(timezone.utc) or email_expires < datetime.now(timezone.utc):
         raise HTTPException(status_code=400, detail="OTP has expired")
     
-    # Mark OTP as used
-    await db.otps.update_one({"id": otp_doc['id']}, {"$set": {"used": True}})
+    # Mark OTPs as used
+    await db.otps.update_one({"id": mobile_otp_doc['id']}, {"$set": {"used": True}})
+    await db.otps.update_one({"id": email_otp_doc['id']}, {"$set": {"used": True}})
     
-    # Check if user already exists
-    existing_user = await db.users.find_one({"email": user_data.email})
-    if existing_user:
-        raise HTTPException(status_code=400, detail="Email already registered")
+    # Update user profile
+    dob = datetime.fromisoformat(profile.date_of_birth) if profile.date_of_birth else None
     
-    # Create user with pending validation status
-    user = User(
-        email=user_data.email,
-        name=user_data.name,
-        role=user_data.role,
-        phone=user_data.phone,
-        password_hash=get_password_hash(user_data.password),
-        is_validated=False,  # Pending validation
-        phone_verified=True,  # Phone verified via OTP
-        email_verified=False,  # Email verification pending
-        date_of_joining=datetime.fromisoformat(user_data.date_of_joining) if user_data.date_of_joining else None
+    await db.users.update_one(
+        {"id": current_user.id},
+        {"$set": {
+            "name": profile.full_name,
+            "postal_address": profile.postal_address,
+            "email": profile.email,
+            "mobile": profile.mobile,
+            "date_of_birth": dob.isoformat() if dob else None,
+            "marital_status": profile.marital_status,
+            "role": profile.role,
+            "mobile_verified": True,
+            "email_verified": True,
+            "registration_completed": True
+        }}
     )
-    
-    user_dict = user.model_dump()
-    user_dict['created_at'] = user_dict['created_at'].isoformat()
-    if user_dict['date_of_joining']:
-        user_dict['date_of_joining'] = user_dict['date_of_joining'].isoformat()
-    
-    await db.users.insert_one(user_dict)
-    
-    # Generate email verification token
-    email_token = str(uuid.uuid4())
-    email_verification = EmailVerificationToken(
-        user_id=user.id,
-        token=email_token,
-        expires_at=datetime.now(timezone.utc) + timedelta(days=7)
-    )
-    
-    email_dict = email_verification.model_dump()
-    email_dict['created_at'] = email_dict['created_at'].isoformat()
-    email_dict['expires_at'] = email_dict['expires_at'].isoformat()
-    
-    await db.email_verifications.insert_one(email_dict)
-    
-    # In production, send email with verification link
-    verification_link = f"{os.environ.get('FRONTEND_URL', 'http://localhost:3000')}/verify-email/{email_token}"
     
     return {
-        "message": "Registration successful! Please verify your email and wait for administrator approval.",
-        "user_id": user.id,
-        "verification_link": verification_link,  # Remove in production, send via email instead
+        "message": "Profile completed successfully! Waiting for admin approval.",
         "status": "pending_validation"
     }
-
-@api_router.get("/auth/verify-email/{token}")
-async def verify_email(token: str):
-    """Verify email using token from email link"""
-    verification = await db.email_verifications.find_one({"token": token, "used": False})
-    
-    if not verification:
-        raise HTTPException(status_code=400, detail="Invalid or expired verification link")
-    
-    # Check expiry
-    expires_at = datetime.fromisoformat(verification['expires_at']) if isinstance(verification['expires_at'], str) else verification['expires_at']
-    if expires_at < datetime.now(timezone.utc):
-        raise HTTPException(status_code=400, detail="Verification link has expired")
-    
-    # Mark as used
-    await db.email_verifications.update_one({"id": verification['id']}, {"$set": {"used": True}})
-    
-    # Update user
-    await db.users.update_one(
-        {"id": verification['user_id']},
-        {"$set": {"email_verified": True}}
-    )
-    
-    return {"message": "Email verified successfully! Please wait for administrator approval."}
 
 
 
