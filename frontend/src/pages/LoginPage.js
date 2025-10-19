@@ -150,6 +150,19 @@ export default function LoginPage({ onLogin }) {
                   </svg>
                   Sign in with Google
                 </Button>
+                
+                <div className="text-center mt-4">
+                  <p className="text-sm text-slate-600">
+                    Don't have an account?{' '}
+                    <button
+                      type="button"
+                      className="text-blue-600 hover:text-blue-800 font-medium"
+                      onClick={() => document.querySelector('[data-testid="register-tab"]').click()}
+                    >
+                      Sign up here
+                    </button>
+                  </p>
+                </div>
               </TabsContent>
 
               <TabsContent value="register">
