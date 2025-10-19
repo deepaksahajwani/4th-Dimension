@@ -208,13 +208,13 @@ export default function LoginPage({ onLogin }) {
                     </button>
                   </div>
                 </div>
-                <Button type="submit" className="w-full" disabled={loading} data-testid="register-submit-btn">
+                <Button type="submit" className="w-full bg-orange-500 hover:bg-orange-600 text-white" disabled={loading} data-testid="register-submit-btn">
                   {loading ? 'Creating account...' : 'Register'}
                 </Button>
 
                 <div className="relative my-6">
                   <div className="absolute inset-0 flex items-center">
-                    <span className="w-full border-t" />
+                    <span className="w-full border-t border-slate-300" />
                   </div>
                   <div className="relative flex justify-center text-xs uppercase">
                     <span className="bg-white px-2 text-slate-500">Or continue with</span>
@@ -224,7 +224,7 @@ export default function LoginPage({ onLogin }) {
                 <Button
                   type="button"
                   variant="outline"
-                  className="w-full"
+                  className="w-full border-slate-300 hover:bg-slate-50"
                   onClick={handleGoogleLogin}
                   data-testid="google-login-btn"
                 >
