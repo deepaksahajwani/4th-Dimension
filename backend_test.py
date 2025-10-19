@@ -451,6 +451,211 @@ class BackendTester:
         except Exception as e:
             self.log_result("Complete Profile Invalid OTP", False, f"Exception: {str(e)}")
 
+    def test_complete_profile_missing_fields(self):
+        """Test profile completion with missing required fields"""
+        if not self.auth_token:
+            self.log_result("Complete Profile Missing Fields", False, "No auth token available")
+            return
+            
+        test_cases = [
+            {
+                "name": "Missing Full Name",
+                "payload": {
+                    "postal_address": "123 Test Street",
+                    "email": "test@example.com",
+                    "mobile": "+919876543210",
+                    "date_of_birth": "1990-01-15",
+                    "gender": "male",
+                    "marital_status": "single",
+                    "role": "architect"
+                }
+            },
+            {
+                "name": "Missing Email",
+                "payload": {
+                    "full_name": "John Doe",
+                    "postal_address": "123 Test Street",
+                    "mobile": "+919876543210",
+                    "date_of_birth": "1990-01-15",
+                    "gender": "male",
+                    "marital_status": "single",
+                    "role": "architect"
+                }
+            },
+            {
+                "name": "Missing Role",
+                "payload": {
+                    "full_name": "John Doe",
+                    "postal_address": "123 Test Street",
+                    "email": "test@example.com",
+                    "mobile": "+919876543210",
+                    "date_of_birth": "1990-01-15",
+                    "gender": "male",
+                    "marital_status": "single"
+                }
+            }
+        ]
+        
+        for case in test_cases:
+            try:
+                headers = {"Authorization": f"Bearer {self.auth_token}"}
+                response = self.session.post(f"{BACKEND_URL}/profile/complete", 
+                                           json=case["payload"], headers=headers)
+                
+                if response.status_code == 422:
+                    data = response.json()
+                    if "detail" in data:
+                        self.log_result(f"Complete Profile - {case['name']}", True, 
+                                      "Correctly rejected missing field")
+                    else:
+                        self.log_result(f"Complete Profile - {case['name']}", False, 
+                                      "Error response missing 'detail' field")
+                else:
+                    self.log_result(f"Complete Profile - {case['name']}", False, 
+                                  f"Expected 422, got {response.status_code}")
+                    
+            except Exception as e:
+                self.log_result(f"Complete Profile - {case['name']}", False, f"Exception: {str(e)}")
+
+    def test_complete_profile_invalid_date(self):
+        """Test profile completion with invalid date format"""
+        if not self.auth_token:
+            self.log_result("Complete Profile Invalid Date", False, "No auth token available")
+            return
+            
+        try:
+            headers = {"Authorization": f"Bearer {self.auth_token}"}
+            payload = {
+                "full_name": "John Doe Smith",
+                "postal_address": "123 Test Street, Test City, 12345",
+                "email": "test@example.com",
+                "mobile": "+919876543210",
+                "date_of_birth": "invalid-date-format",  # Invalid date
+                "gender": "male",
+                "marital_status": "single",
+                "role": "architect"
+            }
+            
+            response = self.session.post(f"{BACKEND_URL}/profile/complete", 
+                                       json=payload, headers=headers)
+            
+            if response.status_code in [400, 422]:
+                data = response.json()
+                if "detail" in data:
+                    self.log_result("Complete Profile Invalid Date", True, 
+                                  "Correctly rejected invalid date format")
+                else:
+                    self.log_result("Complete Profile Invalid Date", False, 
+                                  "Error response missing 'detail' field")
+            else:
+                self.log_result("Complete Profile Invalid Date", False, 
+                              f"Expected 400/422, got {response.status_code}")
+                
+        except Exception as e:
+            self.log_result("Complete Profile Invalid Date", False, f"Exception: {str(e)}")
+
+    def test_user_registration_completed_status(self):
+        """Test that user has registration_completed=True after profile completion"""
+        if not self.auth_token or not hasattr(self, 'profile_completed'):
+            self.log_result("User Registration Status", False, "Profile not completed or no auth token")
+            return
+            
+        try:
+            headers = {"Authorization": f"Bearer {self.auth_token}"}
+            response = self.session.get(f"{BACKEND_URL}/auth/me", headers=headers)
+            
+            if response.status_code == 200:
+                user_data = response.json()
+                if user_data.get('registration_completed') == True:
+                    self.log_result("User Registration Status", True, 
+                                  "User correctly marked as registration_completed=True")
+                else:
+                    self.log_result("User Registration Status", False, 
+                                  f"registration_completed is {user_data.get('registration_completed')}, expected True")
+            else:
+                self.log_result("User Registration Status", False, 
+                              f"Failed to get user data: {response.status_code}")
+                
+        except Exception as e:
+            self.log_result("User Registration Status", False, f"Exception: {str(e)}")
+
+    def test_new_user_complete_flow(self):
+        """Test complete new user registration flow without OTP"""
+        try:
+            # Create a new user for complete flow test
+            flow_email = f"flowtest_{uuid.uuid4().hex[:8]}@example.com"
+            
+            # Step 1: Register new user
+            register_payload = {
+                "email": flow_email,
+                "password": "FlowTest123!",
+                "name": "Flow Test User"
+            }
+            
+            register_response = self.session.post(f"{BACKEND_URL}/auth/register", json=register_payload)
+            if register_response.status_code != 200:
+                self.log_result("New User Complete Flow", False, "Failed to register new user")
+                return
+                
+            register_data = register_response.json()
+            flow_token = register_data["access_token"]
+            
+            # Verify requires_profile_completion is True
+            if not register_data.get("requires_profile_completion"):
+                self.log_result("New User Complete Flow", False, "New user should require profile completion")
+                return
+            
+            # Step 2: Complete profile WITHOUT OTP
+            headers = {"Authorization": f"Bearer {flow_token}"}
+            profile_payload = {
+                "full_name": "Sarah Johnson",
+                "postal_address": "456 Oak Avenue, Springfield, 67890",
+                "email": "sarah.johnson@example.com",
+                "mobile": "+919123456789",
+                "date_of_birth": "1985-03-22",
+                "gender": "female",
+                "marital_status": "married",
+                "role": "interior_designer"
+            }
+            
+            profile_response = self.session.post(f"{BACKEND_URL}/profile/complete", 
+                                               json=profile_payload, headers=headers)
+            
+            if profile_response.status_code != 200:
+                self.log_result("New User Complete Flow", False, 
+                              f"Profile completion failed: {profile_response.status_code}")
+                return
+            
+            # Step 3: Verify user status
+            me_response = self.session.get(f"{BACKEND_URL}/auth/me", headers=headers)
+            if me_response.status_code != 200:
+                self.log_result("New User Complete Flow", False, "Failed to get user data")
+                return
+                
+            user_data = me_response.json()
+            
+            # Verify all expected fields
+            checks = [
+                (user_data.get('registration_completed') == True, "registration_completed should be True"),
+                (user_data.get('is_validated') == False, "is_validated should remain False (pending admin approval)"),
+                (user_data.get('name') == "Sarah Johnson", "name should be updated"),
+                (user_data.get('role') == "interior_designer", "role should be updated"),
+                (user_data.get('mobile_verified') == True, "mobile_verified should be True"),
+                (user_data.get('email_verified') == True, "email_verified should be True")
+            ]
+            
+            failed_checks = [msg for check, msg in checks if not check]
+            
+            if not failed_checks:
+                self.log_result("New User Complete Flow", True, 
+                              "Complete registration flow working correctly")
+            else:
+                self.log_result("New User Complete Flow", False, 
+                              f"Failed checks: {'; '.join(failed_checks)}")
+                
+        except Exception as e:
+            self.log_result("New User Complete Flow", False, f"Exception: {str(e)}")
+
     def test_error_response_format(self):
         """Test that all error responses are properly formatted"""
         try:
