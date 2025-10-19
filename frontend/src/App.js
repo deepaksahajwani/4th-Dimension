@@ -126,95 +126,95 @@ function App() {
   return (
     <div className="App">
       <Toaster position="top-right" richColors />
-      {isProcessingOAuth ? (
-        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-800 via-slate-700 to-slate-900">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-orange-500 mx-auto mb-4"></div>
-            <p className="text-white text-lg">Processing authentication...</p>
+      <BrowserRouter>
+        {isProcessingOAuth ? (
+          <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-800 via-slate-700 to-slate-900">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-orange-500 mx-auto mb-4"></div>
+              <p className="text-white text-lg">Processing authentication...</p>
+            </div>
           </div>
-        </div>
-      ) : (
-        <BrowserRouter>
+        ) : (
           <Routes>
-          <Route path="/" element={<LoginPage onLogin={handleLogin} />} />
-          <Route path="/register" element={<SelfRegister />} />
-          <Route path="/complete-profile" element={<CompleteProfile />} />
-          <Route path="/pending-approval" element={<PendingApproval />} />
-          <Route
-            path="/dashboard"
-            element={
-              <ProtectedRoute>
-                <Dashboard user={user} onLogout={handleLogout} />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/projects"
-            element={
-              <ProtectedRoute>
-                <Projects user={user} onLogout={handleLogout} />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/projects/:projectId"
-            element={
-              <ProtectedRoute>
-                <ProjectDetail user={user} onLogout={handleLogout} />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/clients"
-            element={
-              <ProtectedRoute>
-                <Clients user={user} onLogout={handleLogout} />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/team"
-            element={
-              <ProtectedRoute>
-                <Team user={user} onLogout={handleLogout} />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/accounting"
-            element={
-              <ProtectedRoute>
-                <Accounting user={user} onLogout={handleLogout} />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/drawings"
-            element={
-              <ProtectedRoute>
-                <Drawings user={user} onLogout={handleLogout} />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/tasks"
-            element={
-              <ProtectedRoute>
-                <Tasks user={user} onLogout={handleLogout} />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/settings"
-            element={
-              <ProtectedRoute>
-                <Settings user={user} onLogout={handleLogout} />
-              </ProtectedRoute>
-            }
-          />
-        </Routes>
+            <Route path="/" element={<LoginPage onLogin={handleLogin} />} />
+            <Route path="/register" element={<SelfRegister />} />
+            <Route path="/complete-profile" element={<CompleteProfile />} />
+            <Route path="/pending-approval" element={<PendingApproval />} />
+            <Route
+              path="/dashboard"
+              element={
+                <ProtectedRoute>
+                  <Dashboard user={user} onLogout={handleLogout} />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/projects"
+              element={
+                <ProtectedRoute>
+                  <Projects user={user} onLogout={handleLogout} />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/projects/:projectId"
+              element={
+                <ProtectedRoute>
+                  <ProjectDetail user={user} onLogout={handleLogout} />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/clients"
+              element={
+                <ProtectedRoute>
+                  <Clients user={user} onLogout={handleLogout} />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/team"
+              element={
+                <ProtectedRoute>
+                  <Team user={user} onLogout={handleLogout} />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/accounting"
+              element={
+                <ProtectedRoute>
+                  <Accounting user={user} onLogout={handleLogout} />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/drawings"
+              element={
+                <ProtectedRoute>
+                  <Drawings user={user} onLogout={handleLogout} />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/tasks"
+              element={
+                <ProtectedRoute>
+                  <Tasks user={user} onLogout={handleLogout} />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/settings"
+              element={
+                <ProtectedRoute>
+                  <Settings user={user} onLogout={handleLogout} />
+                </ProtectedRoute>
+              }
+            />
+          </Routes>
+        )}
       </BrowserRouter>
-      )}
     </div>
   );
 }
