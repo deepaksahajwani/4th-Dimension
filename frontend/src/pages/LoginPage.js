@@ -90,12 +90,12 @@ export default function LoginPage({ onLogin }) {
                 <div className="bg-slate-300 rounded"></div>
                 <div className="bg-slate-300 rounded"></div>
                 <div className="bg-slate-300 rounded"></div>
-                <div className="bg-orange-500 rounded"></div>
+                <div className="bg-orange-500 rounded transform rotate-12"></div>
               </div>
             </div>
           </div>
           <h1 className="text-4xl font-bold text-white mb-2" style={{ fontFamily: 'Arial Black, sans-serif' }}>
-            <span className="text-orange-500">4</span> Dimension
+            <span className="text-orange-500">4th</span> Dimension
           </h1>
           <p className="text-orange-400 text-sm font-medium">Architects & Interior Designers</p>
         </div>
