@@ -64,8 +64,19 @@ export default function LoginPage({ onLogin }) {
         name: registerData.name
       });
       onLogin(response.data.user, response.data.access_token);
-      toast.success('Registration successful! Please complete your profile.');
-      navigate('/complete-profile');
+      
+      // Check if profile completion is required
+      if (response.data.requires_profile_completion) {
+        toast.success('Registration successful! Please complete your profile.');
+        navigate('/complete-profile');
+      } else if (response.data.user.is_validated) {
+        // Owner account - go straight to dashboard
+        toast.success('Welcome, Owner!');
+        navigate('/dashboard');
+      } else {
+        // Should not happen, but just in case
+        navigate('/pending-approval');
+      }
     } catch (error) {
       toast.error(error.response?.data?.detail || 'Registration failed');
     } finally {
