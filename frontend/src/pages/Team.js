@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { UserCircle2, Mail, Phone, Calendar, Shield, Trash2, CheckCircle, XCircle, MapPin, Heart, Cake } from 'lucide-react';
 import { toast } from 'sonner';
+import { formatErrorMessage } from '@/utils/errorHandler';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
