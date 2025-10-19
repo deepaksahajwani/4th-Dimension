@@ -69,7 +69,7 @@ export default function SelfRegister() {
         navigate('/');
       }, 3000);
     } catch (error) {
-      toast.error(error.response?.data?.detail || 'Registration failed');
+      toast.error(formatErrorMessage(error, 'Registration failed'));
     } finally {
       setLoading(false);
     }
