@@ -882,14 +882,16 @@ async def upload_file(
             raise HTTPException(status_code=413, detail="File size exceeds maximum")
         
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        file_key = f"files/{category}/{project_id or 'general'}/{timestamp}_{file.filename}"
+        category_dir = UPLOAD_DIR / "files" / category / (project_id or "general")
+        category_dir.mkdir(parents=True, exist_ok=True)
         
-        s3_client.upload_fileobj(
-            file.file,
-            S3_BUCKET_NAME,
-            file_key,
-            ExtraArgs={'ContentType': file.content_type}
-        )
+        file_path = category_dir / f"{timestamp}_{file.filename}"
+        
+        with open(file_path, "wb") as f:
+            content = await file.read()
+            f.write(content)
+        
+        file_key = str(file_path.relative_to(UPLOAD_DIR))
         
         return {
             "message": "File uploaded successfully",
@@ -897,19 +899,19 @@ async def upload_file(
             "size": file_size
         }
     
-    except ClientError as e:
+    except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
 @api_router.get("/files/download/{file_key:path}")
 async def download_file(file_key: str, current_user: User = Depends(get_current_user)):
     try:
-        url = s3_client.generate_presigned_url(
-            'get_object',
-            Params={'Bucket': S3_BUCKET_NAME, 'Key': file_key},
-            ExpiresIn=3600
-        )
-        return {"url": url}
-    except ClientError as e:
+        file_path = UPLOAD_DIR / file_key
+        if not file_path.exists():
+            raise HTTPException(status_code=404, detail="File not found")
+        
+        from fastapi.responses import FileResponse
+        return FileResponse(file_path)
+    except Exception as e:
         raise HTTPException(status_code=404, detail="File not found")
 
 
