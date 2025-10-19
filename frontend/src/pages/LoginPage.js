@@ -257,95 +257,17 @@ export default function LoginPage({ onLogin }) {
                   Sign in with Google
                 </Button>
                 
-                <div className="text-center mt-6 pt-4 border-t border-slate-200">
-                  <p className="text-sm text-slate-600">
-                    New team member?{' '}
-                    <Link
-                      to="/register"
-                      className="text-blue-600 hover:text-blue-800 font-medium"
-                    >
-                      Register here
-                    </Link>
-                  </p>
+                <div className="text-center mt-4">
+                  <button
+                    type="button"
+                    className="text-sm text-blue-600 hover:text-blue-800"
+                    onClick={() => setIsLogin(false)}
+                  >
+                    Don't have an account? Register here
+                  </button>
                 </div>
-              </TabsContent>
-
-              <TabsContent value="register">
-                <form onSubmit={handleRegister} className="space-y-4" data-testid="register-form">
-                  <div className="space-y-2">
-                    <Label htmlFor="register-name">Full Name</Label>
-                    <div className="relative">
-                      <User className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
-                      <Input
-                        id="register-name"
-                        type="text"
-                        placeholder="John Doe"
-                        className="pl-10"
-                        value={registerData.name}
-                        onChange={(e) => setRegisterData({ ...registerData, name: e.target.value })}
-                        required
-                        data-testid="register-name-input"
-                      />
-                    </div>
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="register-email">Email</Label>
-                    <div className="relative">
-                      <Mail className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
-                      <Input
-                        id="register-email"
-                        type="email"
-                        placeholder="your@email.com"
-                        className="pl-10"
-                        value={registerData.email}
-                        onChange={(e) => setRegisterData({ ...registerData, email: e.target.value })}
-                        required
-                        data-testid="register-email-input"
-                      />
-                    </div>
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="register-password">Password</Label>
-                    <div className="relative">
-                      <Lock className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
-                      <Input
-                        id="register-password"
-                        type="password"
-                        placeholder="••••••••"
-                        className="pl-10"
-                        value={registerData.password}
-                        onChange={(e) => setRegisterData({ ...registerData, password: e.target.value })}
-                        required
-                        minLength={6}
-                        data-testid="register-password-input"
-                      />
-                    </div>
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="register-role">Role</Label>
-                    <div className="relative">
-                      <Briefcase className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
-                      <select
-                        id="register-role"
-                        className="flex h-10 w-full rounded-md border border-slate-200 bg-white px-3 py-2 pl-10 text-sm ring-offset-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-                        value={registerData.role}
-                        onChange={(e) => setRegisterData({ ...registerData, role: e.target.value })}
-                        data-testid="register-role-select"
-                      >
-                        <option value="owner">Owner</option>
-                        <option value="architect">Architect</option>
-                        <option value="interior_designer">Interior Designer</option>
-                        <option value="visualizer">3D Visualizer</option>
-                        <option value="office_boy">Office Assistant</option>
-                      </select>
-                    </div>
-                  </div>
-                  <Button type="submit" className="w-full" disabled={loading} data-testid="register-submit-btn">
-                    {loading ? 'Creating account...' : 'Create Account'}
-                  </Button>
-                </form>
-              </TabsContent>
-            </Tabs>
+              </form>
+            )}
           </CardContent>
         </Card>
       </div>
