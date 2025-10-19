@@ -345,18 +345,24 @@ async def require_admin(current_user: User = Depends(get_current_user)):
 # ==================== AUTH ROUTES ====================
 
 @api_router.post("/auth/register")
-async def register(user_data: UserCreate):
+async def register(user_data: UserRegister):
     # Check if user exists
     existing_user = await db.users.find_one({"email": user_data.email})
     if existing_user:
         raise HTTPException(status_code=400, detail="Email already registered")
     
+    # Check if this is the owner (Deepak Sahajwani)
+    is_owner_email = user_data.email.lower() == "deepak@4thdimension.com" or user_data.name.lower() == "deepak sahajwani"
+    
     # Create user
     user = User(
         email=user_data.email,
         name=user_data.name,
-        role=user_data.role,
-        password_hash=get_password_hash(user_data.password)
+        role="pending",  # Will be set during profile completion
+        password_hash=get_password_hash(user_data.password),
+        is_owner=is_owner_email,
+        is_validated=is_owner_email,  # Owner is auto-validated
+        registration_completed=False
     )
     
     user_dict = user.model_dump()
@@ -374,8 +380,10 @@ async def register(user_data: UserCreate):
             "id": user.id,
             "email": user.email,
             "name": user.name,
-            "role": user.role
-        }
+            "is_owner": user.is_owner,
+            "registration_completed": user.registration_completed
+        },
+        "requires_profile_completion": True
     }
 
 @api_router.post("/auth/login")
@@ -399,8 +407,11 @@ async def login(credentials: UserLogin):
             "id": user_doc['id'],
             "email": user_doc['email'],
             "name": user_doc['name'],
-            "role": user_doc['role']
-        }
+            "is_owner": user_doc.get('is_owner', False),
+            "is_validated": user_doc.get('is_validated', False),
+            "registration_completed": user_doc.get('registration_completed', False)
+        },
+        "requires_profile_completion": not user_doc.get('registration_completed', False)
     }
 
 @api_router.post("/auth/google/session")
