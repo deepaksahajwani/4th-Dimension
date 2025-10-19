@@ -267,12 +267,12 @@ export default function Projects({ user, onLogout }) {
                       </div>
                     </div>
                     <div className="space-y-2">
-                      <Badge className={getStatusColor(project.status)}>
-                        {project.status.replace('_', ' ')}
-                      </Badge>
-                      <div className="flex items-center gap-2 text-sm text-slate-600">
-                        <Calendar className="w-4 h-4" />
-                        {new Date(project.created_at).toLocaleDateString()}
+                      <div className="text-sm text-slate-600">
+                        <span className="font-medium">Date of creation:</span>{' '}
+                        <span className="flex items-center gap-2 mt-1">
+                          <Calendar className="w-4 h-4" />
+                          {new Date(project.created_at).toLocaleDateString()}
+                        </span>
                       </div>
                       {project.assigned_to?.length > 0 && (
                         <div className="flex items-center gap-2 text-sm text-slate-600">
