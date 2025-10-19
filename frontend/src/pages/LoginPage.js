@@ -95,7 +95,9 @@ export default function LoginPage({ onLogin }) {
             </div>
           </div>
           <h1 className="text-4xl font-bold text-white mb-2" style={{ fontFamily: 'Arial Black, sans-serif' }}>
-            <span className="text-orange-500">4th</span> Dimension
+            <span className="text-orange-500">
+              4<sup className="text-2xl">th</sup>
+            </span> Dimension
           </h1>
           <p className="text-orange-400 text-sm font-medium">Architects & Interior Designers</p>
         </div>
