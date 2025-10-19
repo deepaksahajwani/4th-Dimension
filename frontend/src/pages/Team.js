@@ -55,7 +55,7 @@ export default function Team({ user, onLogout }) {
       );
       fetchUsers();
     } catch (error) {
-      toast.error(error.response?.data?.detail || 'Failed to update admin rights');
+      toast.error(formatErrorMessage(error, 'Failed to update admin rights'));
     }
   };
 
@@ -65,7 +65,7 @@ export default function Team({ user, onLogout }) {
       toast.success('User validated successfully!');
       fetchUsers();
     } catch (error) {
-      toast.error(error.response?.data?.detail || 'Failed to validate user');
+      toast.error(formatErrorMessage(error, 'Failed to validate user'));
     }
   };
 
@@ -75,7 +75,7 @@ export default function Team({ user, onLogout }) {
       toast.success('User rejected and removed');
       fetchUsers();
     } catch (error) {
-      toast.error(error.response?.data?.detail || 'Failed to reject user');
+      toast.error(formatErrorMessage(error, 'Failed to reject user'));
     }
   };
 
@@ -87,7 +87,7 @@ export default function Team({ user, onLogout }) {
       setSelectedUser(null);
       fetchUsers();
     } catch (error) {
-      toast.error(error.response?.data?.detail || 'Failed to delete team member');
+      toast.error(formatErrorMessage(error, 'Failed to delete team member'));
     }
   };
 
