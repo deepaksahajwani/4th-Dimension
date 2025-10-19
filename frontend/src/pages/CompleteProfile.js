@@ -117,13 +117,15 @@ export default function CompleteProfile() {
                       id="email"
                       type="email"
                       placeholder="your@email.com"
-                      className="pl-10"
+                      className="pl-10 bg-slate-50"
                       value={formData.email}
                       onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                       required
+                      readOnly
                       data-testid="email-input"
                     />
                   </div>
+                  <p className="text-xs text-slate-500">Email from your account</p>
                 </div>
 
                 <div className="space-y-2">
