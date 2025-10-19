@@ -50,14 +50,80 @@ export default function Team({ user, onLogout }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    // First generate OTP
+    setOtpAction('add_member');
     try {
+      const otpResponse = await axios.post(`${API}/users/generate-otp`, { action: 'add_member' });
+      setGeneratedOtp(otpResponse.data.otp_code);
+      setOtpDialogOpen(true);
+      toast.success(`OTP generated: ${otpResponse.data.otp_code}`);
+    } catch (error) {
+      toast.error('Failed to generate OTP');
+    }
+  };
+
+  const handleOtpVerifyAndAdd = async () => {
+    try {
+      // Verify OTP
+      await axios.post(`${API}/users/verify-otp`, {
+        otp_code: otpCode,
+        action: 'add_member'
+      });
+
+      // Add team member
       await axios.post(`${API}/auth/register`, formData);
       toast.success('Team member added successfully!');
+      setOtpDialogOpen(false);
       setOpen(false);
+      setOtpCode('');
       setFormData({ name: '', email: '', password: '', role: 'architect' });
       fetchUsers();
     } catch (error) {
       toast.error(error.response?.data?.detail || 'Failed to add team member');
+    }
+  };
+
+  const handleDeleteClick = (member) => {
+    setSelectedUser(member);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleDeleteConfirm = async () => {
+    setDeleteDialogOpen(false);
+    setOtpAction('delete_member');
+    
+    try {
+      // Generate OTP for deletion
+      const otpResponse = await axios.post(`${API}/users/generate-otp`, {
+        action: 'delete_member',
+        target_user_id: selectedUser.id
+      });
+      setGeneratedOtp(otpResponse.data.otp_code);
+      setOtpDialogOpen(true);
+      toast.success(`OTP generated: ${otpResponse.data.otp_code}`);
+    } catch (error) {
+      toast.error('Failed to generate OTP');
+    }
+  };
+
+  const handleOtpVerifyAndDelete = async () => {
+    try {
+      // Verify OTP
+      await axios.post(`${API}/users/verify-otp`, {
+        otp_code: otpCode,
+        action: 'delete_member',
+        target_user_id: selectedUser.id
+      });
+
+      // Delete user
+      await axios.delete(`${API}/users/${selectedUser.id}?otp_code=${otpCode}`);
+      toast.success('Team member deleted successfully!');
+      setOtpDialogOpen(false);
+      setOtpCode('');
+      setSelectedUser(null);
+      fetchUsers();
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Failed to delete team member');
     }
   };
 
