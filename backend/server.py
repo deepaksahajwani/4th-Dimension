@@ -584,46 +584,11 @@ async def request_verification_otp(mobile: str, email: str, current_user: User =
 @api_router.post("/profile/complete")
 async def complete_profile(
     profile: CompleteProfile,
-    mobile_otp: str,
-    email_otp: str,
     current_user: User = Depends(get_current_user)
 ):
-    """Complete user profile after OTP verification"""
+    """Complete user profile without OTP verification"""
     
-    # Verify mobile OTP
-    mobile_otp_doc = await db.otps.find_one({
-        "user_id": current_user.id,
-        "otp_code": mobile_otp,
-        "action": f"verify_mobile_{profile.mobile}",
-        "used": False
-    })
-    
-    if not mobile_otp_doc:
-        raise HTTPException(status_code=400, detail="Invalid mobile OTP")
-    
-    # Verify email OTP
-    email_otp_doc = await db.otps.find_one({
-        "user_id": current_user.id,
-        "otp_code": email_otp,
-        "action": f"verify_email_{profile.email}",
-        "used": False
-    })
-    
-    if not email_otp_doc:
-        raise HTTPException(status_code=400, detail="Invalid email OTP")
-    
-    # Check OTP expiry
-    mobile_expires = datetime.fromisoformat(mobile_otp_doc['expires_at']) if isinstance(mobile_otp_doc['expires_at'], str) else mobile_otp_doc['expires_at']
-    email_expires = datetime.fromisoformat(email_otp_doc['expires_at']) if isinstance(email_otp_doc['expires_at'], str) else email_otp_doc['expires_at']
-    
-    if mobile_expires < datetime.now(timezone.utc) or email_expires < datetime.now(timezone.utc):
-        raise HTTPException(status_code=400, detail="OTP has expired")
-    
-    # Mark OTPs as used
-    await db.otps.update_one({"id": mobile_otp_doc['id']}, {"$set": {"used": True}})
-    await db.otps.update_one({"id": email_otp_doc['id']}, {"$set": {"used": True}})
-    
-    # Update user profile
+    # Update user profile directly
     dob = datetime.fromisoformat(profile.date_of_birth) if profile.date_of_birth else None
     
     await db.users.update_one(
