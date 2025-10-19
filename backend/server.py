@@ -34,20 +34,10 @@ JWT_SECRET_KEY = os.environ.get('JWT_SECRET_KEY', 'your-secret-key')
 JWT_ALGORITHM = os.environ.get('JWT_ALGORITHM', 'HS256')
 JWT_EXPIRE_MINUTES = int(os.environ.get('JWT_EXPIRE_MINUTES', 10080))
 
-# AWS S3 settings
-AWS_ACCESS_KEY_ID = os.environ.get('AWS_ACCESS_KEY_ID')
-AWS_SECRET_ACCESS_KEY = os.environ.get('AWS_SECRET_ACCESS_KEY')
-AWS_REGION = os.environ.get('AWS_REGION', 'us-east-1')
-S3_BUCKET_NAME = os.environ.get('S3_BUCKET_NAME')
+# File storage settings
 MAX_FILE_SIZE = int(os.environ.get('MAX_FILE_SIZE', 524288000))
-
-# S3 Client
-s3_client = boto3.client(
-    's3',
-    aws_access_key_id=AWS_ACCESS_KEY_ID,
-    aws_secret_access_key=AWS_SECRET_ACCESS_KEY,
-    region_name=AWS_REGION
-)
+UPLOAD_DIR = Path("/app/uploads")
+UPLOAD_DIR.mkdir(exist_ok=True)
 
 # Create the main app without a prefix
 app = FastAPI(title="Architecture Firm Management System")
