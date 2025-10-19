@@ -579,8 +579,232 @@ class BackendTester:
         except Exception as e:
             self.log_result("User Registration Status", False, f"Exception: {str(e)}")
 
+    def test_complete_registration_flow_auto_validation(self):
+        """Test complete simplified registration flow with auto-validation as requested"""
+        try:
+            # Create a new user for complete flow test
+            flow_email = f"autovalidation_{uuid.uuid4().hex[:8]}@example.com"
+            
+            print(f"\n🔄 Testing Complete Registration Flow with Auto-Validation")
+            print(f"Test User Email: {flow_email}")
+            
+            # Step 1: Register New User
+            print("Step 1: Registering new user...")
+            register_payload = {
+                "email": flow_email,
+                "password": "AutoValidation123!",
+                "name": "Auto Validation Test User"
+            }
+            
+            register_response = self.session.post(f"{BACKEND_URL}/auth/register", json=register_payload)
+            if register_response.status_code != 200:
+                self.log_result("Complete Registration Flow - Auto Validation", False, 
+                              f"Step 1 failed - Registration: {register_response.status_code}")
+                return
+                
+            register_data = register_response.json()
+            flow_token = register_data["access_token"]
+            user_id = register_data["user"]["id"]
+            
+            # Verify requires_profile_completion is True
+            if not register_data.get("requires_profile_completion"):
+                self.log_result("Complete Registration Flow - Auto Validation", False, 
+                              "Step 1 failed - requires_profile_completion should be True")
+                return
+            
+            print(f"✅ Registration successful. User ID: {user_id}")
+            
+            # Step 2: Complete Profile (Auto-validation)
+            print("Step 2: Completing profile with auto-validation...")
+            headers = {"Authorization": f"Bearer {flow_token}"}
+            profile_payload = {
+                "full_name": "Test User",
+                "postal_address": "123 Test Street, Test City",
+                "email": flow_email,
+                "mobile": "+919876543210",
+                "date_of_birth": "1990-01-15",
+                "gender": "male",
+                "marital_status": "single",
+                "role": "architect"
+            }
+            
+            profile_response = self.session.post(f"{BACKEND_URL}/profile/complete", 
+                                               json=profile_payload, headers=headers)
+            
+            if profile_response.status_code != 200:
+                self.log_result("Complete Registration Flow - Auto Validation", False, 
+                              f"Step 2 failed - Profile completion: {profile_response.status_code}")
+                return
+            
+            profile_data = profile_response.json()
+            
+            # Verify response shows success and status is "validated"
+            if profile_data.get("status") != "validated":
+                self.log_result("Complete Registration Flow - Auto Validation", False, 
+                              f"Step 2 failed - Expected status 'validated', got '{profile_data.get('status')}'")
+                return
+            
+            print(f"✅ Profile completed successfully. Status: {profile_data.get('status')}")
+            
+            # Step 3: Verify User is Auto-Validated via /users endpoint
+            print("Step 3: Verifying user is auto-validated via /users endpoint...")
+            users_response = self.session.get(f"{BACKEND_URL}/users", headers=headers)
+            
+            if users_response.status_code != 200:
+                self.log_result("Complete Registration Flow - Auto Validation", False, 
+                              f"Step 3 failed - Get users: {users_response.status_code}")
+                return
+            
+            users_data = users_response.json()
+            
+            # Find the newly registered user
+            test_user = None
+            for user in users_data:
+                if user.get("id") == user_id:
+                    test_user = user
+                    break
+            
+            if not test_user:
+                self.log_result("Complete Registration Flow - Auto Validation", False, 
+                              "Step 3 failed - User not found in users list")
+                return
+            
+            # Verify user properties
+            validation_checks = [
+                (test_user.get('is_validated') == True, "is_validated should be True"),
+                (test_user.get('registration_completed') == True, "registration_completed should be True"),
+                (test_user.get('mobile_verified') == True, "mobile_verified should be True"),
+                (test_user.get('email_verified') == True, "email_verified should be True"),
+                (test_user.get('name') == "Test User", "name should be updated to 'Test User'"),
+                (test_user.get('role') == "architect", "role should be 'architect'")
+            ]
+            
+            failed_checks = [msg for check, msg in validation_checks if not check]
+            
+            if failed_checks:
+                self.log_result("Complete Registration Flow - Auto Validation", False, 
+                              f"Step 3 failed - Validation checks: {'; '.join(failed_checks)}")
+                return
+            
+            print(f"✅ User auto-validated successfully. is_validated: {test_user.get('is_validated')}")
+            
+            # Step 4: Login with Completed Profile
+            print("Step 4: Testing login with completed profile...")
+            login_payload = {
+                "email": flow_email,
+                "password": "AutoValidation123!"
+            }
+            
+            login_response = self.session.post(f"{BACKEND_URL}/auth/login", json=login_payload)
+            
+            if login_response.status_code != 200:
+                self.log_result("Complete Registration Flow - Auto Validation", False, 
+                              f"Step 4 failed - Login: {login_response.status_code}")
+                return
+            
+            login_data = login_response.json()
+            
+            # Verify login response
+            login_checks = [
+                (login_data.get("user", {}).get("is_validated") == True, "Login response should show is_validated=True"),
+                (login_data.get("requires_profile_completion") == False, "Login should show requires_profile_completion=False")
+            ]
+            
+            failed_login_checks = [msg for check, msg in login_checks if not check]
+            
+            if failed_login_checks:
+                self.log_result("Complete Registration Flow - Auto Validation", False, 
+                              f"Step 4 failed - Login checks: {'; '.join(failed_login_checks)}")
+                return
+            
+            print(f"✅ Login successful. requires_profile_completion: {login_data.get('requires_profile_completion')}")
+            
+            # All steps passed
+            self.log_result("Complete Registration Flow - Auto Validation", True, 
+                          "All steps passed: Registration → Profile Completion → Auto-Validation → Login")
+                
+        except Exception as e:
+            self.log_result("Complete Registration Flow - Auto Validation", False, f"Exception: {str(e)}")
+
+    def test_owner_registration_auto_validation(self):
+        """Test owner registration with auto-validation"""
+        try:
+            print(f"\n🔄 Testing Owner Registration with Auto-Validation")
+            
+            # Test with owner email
+            owner_email = "deepaksahajwani@gmail.com"
+            
+            # Step 1: Register owner
+            print("Step 1: Registering owner...")
+            register_payload = {
+                "email": owner_email,
+                "password": "OwnerTest123!",
+                "name": "Deepak Sahajwani"
+            }
+            
+            register_response = self.session.post(f"{BACKEND_URL}/auth/register", json=register_payload)
+            
+            # Owner might already exist, so check for both success and duplicate error
+            if register_response.status_code == 200:
+                register_data = register_response.json()
+                owner_token = register_data["access_token"]
+                
+                # Verify owner is auto-validated and has complete profile
+                owner_checks = [
+                    (register_data.get("user", {}).get("is_owner") == True, "Should be marked as owner"),
+                    (register_data.get("user", {}).get("is_validated") == True, "Should be auto-validated"),
+                    (register_data.get("user", {}).get("registration_completed") == True, "Should have complete profile"),
+                    (register_data.get("requires_profile_completion") == False, "Should not require profile completion")
+                ]
+                
+                failed_owner_checks = [msg for check, msg in owner_checks if not check]
+                
+                if not failed_owner_checks:
+                    self.log_result("Owner Registration Auto-Validation", True, 
+                                  "Owner auto-validated with complete profile")
+                else:
+                    self.log_result("Owner Registration Auto-Validation", False, 
+                                  f"Owner validation failed: {'; '.join(failed_owner_checks)}")
+                    
+            elif register_response.status_code == 400 and "already registered" in register_response.text:
+                # Owner already exists - test login instead
+                print("Owner already exists, testing login...")
+                login_payload = {
+                    "email": owner_email,
+                    "password": "OwnerTest123!"
+                }
+                
+                login_response = self.session.post(f"{BACKEND_URL}/auth/login", json=login_payload)
+                
+                if login_response.status_code == 200:
+                    login_data = login_response.json()
+                    
+                    owner_login_checks = [
+                        (login_data.get("user", {}).get("is_owner") == True, "Should be marked as owner"),
+                        (login_data.get("user", {}).get("is_validated") == True, "Should be validated"),
+                        (login_data.get("requires_profile_completion") == False, "Should not require profile completion")
+                    ]
+                    
+                    failed_login_checks = [msg for check, msg in owner_login_checks if not check]
+                    
+                    if not failed_login_checks:
+                        self.log_result("Owner Registration Auto-Validation", True, 
+                                      "Owner login successful with full validation")
+                    else:
+                        self.log_result("Owner Registration Auto-Validation", False, 
+                                      f"Owner login validation failed: {'; '.join(failed_login_checks)}")
+                else:
+                    self.log_result("Owner Registration Auto-Validation", False, 
+                                  f"Owner login failed: {login_response.status_code}")
+            else:
+                self.log_result("Owner Registration Auto-Validation", False, 
+                              f"Owner registration failed: {register_response.status_code}")
+                
+        except Exception as e:
+            self.log_result("Owner Registration Auto-Validation", False, f"Exception: {str(e)}")
+
     def test_new_user_complete_flow(self):
-        """Test complete new user registration flow without OTP"""
+        """Test complete new user registration flow without OTP (legacy test)"""
         try:
             # Create a new user for complete flow test
             flow_email = f"flowtest_{uuid.uuid4().hex[:8]}@example.com"
@@ -594,7 +818,7 @@ class BackendTester:
             
             register_response = self.session.post(f"{BACKEND_URL}/auth/register", json=register_payload)
             if register_response.status_code != 200:
-                self.log_result("New User Complete Flow", False, "Failed to register new user")
+                self.log_result("New User Complete Flow (Legacy)", False, "Failed to register new user")
                 return
                 
             register_data = register_response.json()
@@ -602,7 +826,7 @@ class BackendTester:
             
             # Verify requires_profile_completion is True
             if not register_data.get("requires_profile_completion"):
-                self.log_result("New User Complete Flow", False, "New user should require profile completion")
+                self.log_result("New User Complete Flow (Legacy)", False, "New user should require profile completion")
                 return
             
             # Step 2: Complete profile WITHOUT OTP
@@ -622,22 +846,22 @@ class BackendTester:
                                                json=profile_payload, headers=headers)
             
             if profile_response.status_code != 200:
-                self.log_result("New User Complete Flow", False, 
+                self.log_result("New User Complete Flow (Legacy)", False, 
                               f"Profile completion failed: {profile_response.status_code}")
                 return
             
             # Step 3: Verify user status
             me_response = self.session.get(f"{BACKEND_URL}/auth/me", headers=headers)
             if me_response.status_code != 200:
-                self.log_result("New User Complete Flow", False, "Failed to get user data")
+                self.log_result("New User Complete Flow (Legacy)", False, "Failed to get user data")
                 return
                 
             user_data = me_response.json()
             
-            # Verify all expected fields
+            # Updated checks for auto-validation
             checks = [
                 (user_data.get('registration_completed') == True, "registration_completed should be True"),
-                (user_data.get('is_validated') == False, "is_validated should remain False (pending admin approval)"),
+                (user_data.get('is_validated') == True, "is_validated should be True (auto-validated)"),
                 (user_data.get('name') == "Sarah Johnson", "name should be updated"),
                 (user_data.get('role') == "interior_designer", "role should be updated"),
                 (user_data.get('mobile_verified') == True, "mobile_verified should be True"),
@@ -647,14 +871,14 @@ class BackendTester:
             failed_checks = [msg for check, msg in checks if not check]
             
             if not failed_checks:
-                self.log_result("New User Complete Flow", True, 
-                              "Complete registration flow working correctly")
+                self.log_result("New User Complete Flow (Legacy)", True, 
+                              "Complete registration flow working correctly with auto-validation")
             else:
-                self.log_result("New User Complete Flow", False, 
+                self.log_result("New User Complete Flow (Legacy)", False, 
                               f"Failed checks: {'; '.join(failed_checks)}")
                 
         except Exception as e:
-            self.log_result("New User Complete Flow", False, f"Exception: {str(e)}")
+            self.log_result("New User Complete Flow (Legacy)", False, f"Exception: {str(e)}")
 
     def test_error_response_format(self):
         """Test that all error responses are properly formatted"""
