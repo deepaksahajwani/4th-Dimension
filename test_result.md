@@ -119,6 +119,9 @@ backend:
       - working: true
         agent: "testing"
         comment: "Comprehensive backend API testing completed successfully. All 17 authentication and registration tests passed (100% success rate). Tested: POST /api/auth/register (valid/invalid inputs, duplicate email), POST /api/auth/login (valid/invalid credentials), POST /api/auth/google/session (mock session handling), POST /api/profile/request-otp (valid/invalid formats), POST /api/profile/complete (valid profile completion and invalid OTP handling). Error response format validation confirmed - all endpoints return properly structured JSON with 'detail' field. Minor observation: OTP request endpoint accepts invalid mobile/email formats but still generates OTPs (not critical for functionality). All authentication flows working correctly."
+      - working: true
+        agent: "testing"
+        comment: "COMPLETE SIMPLIFIED REGISTRATION FLOW WITH AUTO-VALIDATION TESTED AND CONFIRMED WORKING: ✅ Step 1: POST /api/auth/register returns requires_profile_completion=True and access token. ✅ Step 2: POST /api/profile/complete with full profile data (no OTP required) returns status='validated' and auto-validates user. ✅ Step 3: GET /api/users confirms user has is_validated=True, registration_completed=True, mobile_verified=True, email_verified=True. ✅ Step 4: POST /api/auth/login returns is_validated=True and requires_profile_completion=False. ✅ Step 5: Owner registration auto-validation confirmed (owner already exists). All users are auto-validated after profile completion - no pending approval required. Users can immediately access the system after registration. Complete flow working perfectly as requested."
 
 frontend:
   - task: "Error Handling for API Responses"
