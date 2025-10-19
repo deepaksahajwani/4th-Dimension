@@ -79,7 +79,7 @@ export default function LoginPage({ onLogin }) {
         navigate('/pending-approval');
       }
     } catch (error) {
-      toast.error(error.response?.data?.detail || 'Registration failed');
+      toast.error(formatErrorMessage(error, 'Registration failed'));
     } finally {
       setLoading(false);
     }
