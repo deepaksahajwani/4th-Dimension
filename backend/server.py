@@ -453,15 +453,43 @@ async def process_google_session(session_id: str):
         user_doc = await db.users.find_one({"email": session_data['email']})
         
         if not user_doc:
-            # Create new user
-            user = User(
-                email=session_data['email'],
-                name=session_data['name'],
-                role="architect",  # Default role
-                picture=session_data.get('picture')
-            )
+            # Check if this is the owner
+            is_owner = session_data['email'].lower() in ["deepaksahajwani@gmail.com", "deepak@4thdimension.com"]
+            
+            if is_owner:
+                # Create owner with complete profile
+                user = User(
+                    email=session_data['email'],
+                    name="Deepak Shreechand Sahajwani",
+                    postal_address="",
+                    mobile="+919913899888",
+                    date_of_birth=datetime(1973, 9, 15),
+                    gender="male",
+                    marital_status="married",
+                    role="owner",
+                    picture=session_data.get('picture'),
+                    is_owner=True,
+                    is_validated=True,
+                    mobile_verified=True,
+                    email_verified=True,
+                    registration_completed=True
+                )
+            else:
+                # Create new user - needs profile completion
+                user = User(
+                    email=session_data['email'],
+                    name=session_data['name'],
+                    role="pending",
+                    picture=session_data.get('picture'),
+                    is_owner=False,
+                    is_validated=False,
+                    registration_completed=False
+                )
+            
             user_dict = user.model_dump()
             user_dict['created_at'] = user_dict['created_at'].isoformat()
+            if user_dict.get('date_of_birth'):
+                user_dict['date_of_birth'] = user_dict['date_of_birth'].isoformat()
             await db.users.insert_one(user_dict)
             user_id = user.id
         else:
@@ -489,9 +517,12 @@ async def process_google_session(session_id: str):
                 "id": user_doc['id'],
                 "email": user_doc['email'],
                 "name": user_doc['name'],
-                "role": user_doc['role'],
+                "is_owner": user_doc.get('is_owner', False),
+                "is_validated": user_doc.get('is_validated', False),
+                "registration_completed": user_doc.get('registration_completed', False),
                 "picture": user_doc.get('picture')
-            }
+            },
+            "requires_profile_completion": not user_doc.get('registration_completed', False)
         }
     
     except Exception as e:
