@@ -99,6 +99,7 @@ class Project(BaseModel):
     name: str
     address: Optional[str] = None
     city: Optional[str] = None
+    team_leader: Optional[str] = None  # User ID
     status: str  # consultation, layout_design, elevation_design, structural, execution, interior, completed
     assigned_to: List[str] = []  # User IDs
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
@@ -112,6 +113,7 @@ class ProjectCreate(BaseModel):
     name: str
     address: Optional[str] = None
     city: Optional[str] = None
+    team_leader: Optional[str] = None
     assigned_to: Optional[List[str]] = []
 
 class Drawing(BaseModel):
