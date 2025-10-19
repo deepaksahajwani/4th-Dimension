@@ -10,6 +10,7 @@ import { Badge } from '@/components/ui/badge';
 import { Plus, FolderOpen, Calendar, Users as UsersIcon } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { toast } from 'sonner';
+import { formatErrorMessage } from '@/utils/errorHandler';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
