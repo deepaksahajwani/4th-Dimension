@@ -15,8 +15,9 @@ const API = `${BACKEND_URL}/api`;
 export default function LoginPage({ onLogin }) {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
+  const [isLogin, setIsLogin] = useState(false);
   const [loginData, setLoginData] = useState({ email: '', password: '' });
-  const [registerData, setRegisterData] = useState({ email: '', password: '', name: '', role: 'architect' });
+  const [registerData, setRegisterData] = useState({ email: '', password: '', name: '' });
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -25,7 +26,14 @@ export default function LoginPage({ onLogin }) {
       const response = await axios.post(`${API}/auth/login`, loginData);
       onLogin(response.data.user, response.data.access_token);
       toast.success('Welcome back!');
-      navigate('/dashboard');
+      
+      if (response.data.requires_profile_completion) {
+        navigate('/complete-profile');
+      } else if (response.data.user.is_validated) {
+        navigate('/dashboard');
+      } else {
+        navigate('/pending-approval');
+      }
     } catch (error) {
       toast.error(error.response?.data?.detail || 'Login failed');
     } finally {
@@ -39,8 +47,8 @@ export default function LoginPage({ onLogin }) {
     try {
       const response = await axios.post(`${API}/auth/register`, registerData);
       onLogin(response.data.user, response.data.access_token);
-      toast.success('Account created successfully!');
-      navigate('/dashboard');
+      toast.success('Registration successful! Please complete your profile.');
+      navigate('/complete-profile');
     } catch (error) {
       toast.error(error.response?.data?.detail || 'Registration failed');
     } finally {
