@@ -16,8 +16,10 @@ export default function LoginPage({ onLogin }) {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [isLogin, setIsLogin] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loginData, setLoginData] = useState({ email: '', password: '' });
-  const [registerData, setRegisterData] = useState({ email: '', password: '', name: '' });
+  const [registerData, setRegisterData] = useState({ email: '', password: '', confirmPassword: '', name: '' });
 
   const handleLogin = async (e) => {
     e.preventDefault();
