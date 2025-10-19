@@ -56,6 +56,7 @@ function ProtectedRoute({ children }) {
 
 function App() {
   const [user, setUser] = useState(null);
+  const [isProcessingOAuth, setIsProcessingOAuth] = useState(false);
 
   useEffect(() => {
     const storedUser = localStorage.getItem('user');
@@ -66,6 +67,7 @@ function App() {
     // Check for Google OAuth session_id in URL fragment
     const hash = window.location.hash;
     if (hash.includes('session_id=')) {
+      setIsProcessingOAuth(true);
       const sessionId = hash.split('session_id=')[1].split('&')[0];
       handleGoogleAuth(sessionId);
     }
