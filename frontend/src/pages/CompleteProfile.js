@@ -66,7 +66,7 @@ export default function CompleteProfile() {
       toast.success('Profile completed! Waiting for admin approval.');
       navigate('/pending-approval');
     } catch (error) {
-      toast.error(error.response?.data?.detail || 'Failed to complete profile');
+      toast.error(formatErrorMessage(error, 'Failed to complete profile'));
     } finally {
       setLoading(false);
     }
