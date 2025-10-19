@@ -78,8 +78,18 @@ function App() {
       localStorage.setItem('user', JSON.stringify(response.data.user));
       setUser(response.data.user);
       window.location.hash = '';
-      window.location.href = '/dashboard';
-      toast.success('Logged in successfully!');
+      
+      // Check if profile completion is required
+      if (response.data.requires_profile_completion) {
+        toast.success('Please complete your profile!');
+        window.location.href = '/complete-profile';
+      } else if (response.data.user.is_validated) {
+        toast.success('Logged in successfully!');
+        window.location.href = '/dashboard';
+      } else {
+        toast.info('Your registration is pending approval');
+        window.location.href = '/pending-approval';
+      }
     } catch (error) {
       toast.error('Google authentication failed');
       console.error(error);
