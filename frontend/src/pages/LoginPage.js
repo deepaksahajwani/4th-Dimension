@@ -60,8 +60,7 @@ export default function LoginPage({ onLogin }) {
           <div className="inline-flex items-center justify-center w-16 h-16 bg-blue-600 rounded-2xl mb-4 shadow-lg">
             <Building2 className="w-9 h-9 text-white" />
           </div>
-          <h1 className="text-3xl font-bold text-slate-900 mb-2">Architecture Firm</h1>
-          <p className="text-slate-600">Project Management System</p>
+          <h1 className="text-3xl font-bold text-slate-900 mb-2">4th Dimension</h1>
         </div>
 
         <Card className="shadow-xl border-0">
