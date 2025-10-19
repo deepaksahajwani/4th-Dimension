@@ -18,11 +18,15 @@ export default function CompleteProfile() {
   const [mobileOtp, setMobileOtp] = useState('');
   const [emailOtp, setEmailOtp] = useState('');
   const [generatedOtps, setGeneratedOtps] = useState({ mobile: '', email: '' });
+  
+  // Get user data from localStorage
+  const storedUser = JSON.parse(localStorage.getItem('user') || '{}');
+  
   const [formData, setFormData] = useState({
-    full_name: '',
+    full_name: storedUser.name || '',
     postal_address: '',
-    email: '',
-    mobile: '',
+    email: storedUser.email || '',
+    mobile: '+91',
     date_of_birth: '',
     gender: 'male',
     marital_status: 'single',
