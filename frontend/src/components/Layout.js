@@ -33,9 +33,11 @@ export default function Layout({ children, user, onLogout }) {
 
           {/* User info */}
           <div className="px-6 py-4 border-b border-slate-100 bg-slate-50">
-            <p className="text-sm font-medium text-slate-900">{user?.name}</p>
+            <p className="text-sm font-medium text-slate-900 truncate" title={user?.name}>
+              {user?.name}
+            </p>
             <p className="text-xs text-slate-500 capitalize">
-              {user?.role === 'owner' ? 'Owner' : user?.role?.replace('_', ' ')}
+              {user?.is_owner ? 'Owner' : user?.is_admin ? 'Administrator' : user?.role?.replace('_', ' ')}
             </p>
           </div>
 
