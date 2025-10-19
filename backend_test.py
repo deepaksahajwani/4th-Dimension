@@ -939,8 +939,21 @@ class BackendTester:
         # OTP and profile completion tests
         self.test_request_otp_valid()
         self.test_request_otp_invalid()
+        self.test_complete_profile_without_otp()
         self.test_complete_profile_valid()
         self.test_complete_profile_invalid_otp()
+        self.test_complete_profile_missing_fields()
+        self.test_complete_profile_invalid_date()
+        
+        # User status verification
+        self.test_user_registration_completed_status()
+        
+        # Complete flow tests (NEW - as requested)
+        self.test_complete_registration_flow_auto_validation()
+        self.test_owner_registration_auto_validation()
+        
+        # Legacy flow test
+        self.test_new_user_complete_flow()
         
         # Error format test
         self.test_error_response_format()
