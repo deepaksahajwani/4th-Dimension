@@ -516,7 +516,7 @@ export default function Team({ user, onLogout }) {
           </AlertDialogContent>
         </AlertDialog>
 
-        {users.length === 0 && (
+        {users.length === 0 && pendingUsers.length === 0 && (
           <div className="text-center py-12">
             <UserCircle2 className="w-16 h-16 text-slate-300 mx-auto mb-4" />
             <h3 className="text-lg font-medium text-slate-900 mb-2">No team members yet</h3>
