@@ -90,9 +90,6 @@ function App() {
     localStorage.setItem('token', token);
     localStorage.setItem('user', JSON.stringify(userData));
     setUser(userData);
-    // Navigate to dashboard after successful login
-    window.location.href = '/dashboard';
-    toast.success('Logged in successfully!');
   };
 
   const handleLogout = async () => {
