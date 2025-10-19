@@ -471,7 +471,8 @@ async def create_project(project_data: ProjectCreate, current_user: User = Depen
         client_id=project_data.client_id,
         project_type=project_data.project_type,
         name=project_data.name,
-        plot_dimensions=project_data.plot_dimensions,
+        address=project_data.address,
+        city=project_data.city,
         assigned_to=project_data.assigned_to or [],
         status="consultation"
     )
@@ -481,9 +482,9 @@ async def create_project(project_data: ProjectCreate, current_user: User = Depen
     
     await db.projects.insert_one(project_dict)
     
-    # Create standardized drawing list
+    # Create standardized drawing list - support all project types
     templates = await db.drawing_templates.find(
-        {"project_type": {"$in": [project_data.project_type, "both"]}},
+        {"project_type": {"$in": [project_data.project_type, "both", "all"]}},
         {"_id": 0}
     ).to_list(1000)
     
