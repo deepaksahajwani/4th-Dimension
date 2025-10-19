@@ -316,10 +316,50 @@ class BackendTester:
             except Exception as e:
                 self.log_result(f"Request OTP Invalid - {case['name']}", False, f"Exception: {str(e)}")
 
+    def test_complete_profile_without_otp(self):
+        """Test profile completion WITHOUT OTP verification (simplified flow)"""
+        if not self.auth_token:
+            self.log_result("Complete Profile Without OTP", False, "No auth token available")
+            return
+            
+        try:
+            headers = {"Authorization": f"Bearer {self.auth_token}"}
+            payload = {
+                "full_name": "John Doe Smith",
+                "postal_address": "123 Test Street, Test City, 12345",
+                "email": "johndoe@example.com",
+                "mobile": "+919876543210",
+                "date_of_birth": "1990-01-15",
+                "gender": "male",
+                "marital_status": "single",
+                "role": "architect"
+            }
+            # NO OTP parameters - testing simplified flow
+            
+            response = self.session.post(f"{BACKEND_URL}/profile/complete", 
+                                       json=payload, headers=headers)
+            
+            if response.status_code == 200:
+                data = response.json()
+                if "message" in data and "status" in data:
+                    self.log_result("Complete Profile Without OTP", True, 
+                                  f"Profile completed successfully: {data['message']}")
+                    # Store for database verification
+                    self.profile_completed = True
+                else:
+                    self.log_result("Complete Profile Without OTP", False, 
+                                  "Missing response fields")
+            else:
+                self.log_result("Complete Profile Without OTP", False, 
+                              f"Status: {response.status_code}", response.text)
+                
+        except Exception as e:
+            self.log_result("Complete Profile Without OTP", False, f"Exception: {str(e)}")
+
     def test_complete_profile_valid(self):
-        """Test profile completion with valid data"""
+        """Test profile completion with valid data (legacy OTP flow for comparison)"""
         if not self.auth_token or not hasattr(self, 'mobile_otp') or not hasattr(self, 'email_otp'):
-            self.log_result("Complete Profile Valid", False, "Missing auth token or OTPs")
+            self.log_result("Complete Profile Valid (Legacy)", False, "Missing auth token or OTPs")
             return
             
         try:
@@ -345,17 +385,17 @@ class BackendTester:
             if response.status_code == 200:
                 data = response.json()
                 if "message" in data and "status" in data:
-                    self.log_result("Complete Profile Valid", True, 
+                    self.log_result("Complete Profile Valid (Legacy)", True, 
                                   f"Profile completed: {data['message']}")
                 else:
-                    self.log_result("Complete Profile Valid", False, 
+                    self.log_result("Complete Profile Valid (Legacy)", False, 
                                   "Missing response fields")
             else:
-                self.log_result("Complete Profile Valid", False, 
+                self.log_result("Complete Profile Valid (Legacy)", False, 
                               f"Status: {response.status_code}", response.text)
                 
         except Exception as e:
-            self.log_result("Complete Profile Valid", False, f"Exception: {str(e)}")
+            self.log_result("Complete Profile Valid (Legacy)", False, f"Exception: {str(e)}")
 
     def test_complete_profile_invalid_otp(self):
         """Test profile completion with invalid OTPs"""
