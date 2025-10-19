@@ -141,6 +141,41 @@ export default function Team({ user, onLogout }) {
     }
   };
 
+  const handleToggleAdmin = async (userId, currentStatus) => {
+    try {
+      await axios.post(`${API}/users/update-admin`, {
+        user_id: userId,
+        is_admin: !currentStatus
+      });
+      toast.success(
+        !currentStatus ? 'Administrator rights granted' : 'Administrator rights revoked'
+      );
+      fetchUsers();
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Failed to update admin rights');
+    }
+  };
+
+  const handleValidateUser = async (userId) => {
+    try {
+      await axios.post(`${API}/users/${userId}/validate`);
+      toast.success('User validated successfully!');
+      fetchUsers();
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Failed to validate user');
+    }
+  };
+
+  const handleRejectUser = async (userId) => {
+    try {
+      await axios.post(`${API}/users/${userId}/reject`);
+      toast.success('User rejected and removed');
+      fetchUsers();
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Failed to reject user');
+    }
+  };
+
   const getRoleBadgeColor = (role) => {
     const colors = {
       owner: 'bg-purple-100 text-purple-800',
