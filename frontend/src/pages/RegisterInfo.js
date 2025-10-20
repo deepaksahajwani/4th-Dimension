@@ -273,18 +273,102 @@ export default function RegisterInfo({ onLogin }) {
                 </div>
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="postal_address">Address *</Label>
-                <div className="relative">
-                  <MapPin className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
-                  <textarea
-                    id="postal_address"
-                    placeholder="Your complete address"
-                    className="flex min-h-[80px] w-full rounded-md border border-slate-200 bg-white px-3 py-2 pl-10 text-sm ring-offset-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-orange-500"
-                    value={formData.postal_address}
-                    onChange={(e) => setFormData({ ...formData, postal_address: e.target.value })}
-                    required
-                  />
+              {/* Address Fields */}
+              <div className="space-y-4">
+                <h3 className="text-sm font-medium text-slate-700">Address Details *</h3>
+                
+                <div className="grid md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="house_number">House/Flat Number *</Label>
+                    <div className="relative">
+                      <MapPin className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
+                      <Input
+                        id="house_number"
+                        placeholder="e.g., 123 or Flat 4B"
+                        className="pl-10"
+                        value={formData.house_number}
+                        onChange={(e) => setFormData({ ...formData, house_number: e.target.value })}
+                        required
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="street">Street/Area *</Label>
+                    <div className="relative">
+                      <MapPin className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
+                      <Input
+                        id="street"
+                        placeholder="Street name"
+                        className="pl-10"
+                        value={formData.street}
+                        onChange={(e) => setFormData({ ...formData, street: e.target.value })}
+                        required
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="landmark">Landmark (Optional)</Label>
+                  <div className="relative">
+                    <MapPin className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
+                    <Input
+                      id="landmark"
+                      placeholder="Nearby landmark"
+                      className="pl-10"
+                      value={formData.landmark}
+                      onChange={(e) => setFormData({ ...formData, landmark: e.target.value })}
+                    />
+                  </div>
+                </div>
+
+                <div className="grid md:grid-cols-3 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="city">City *</Label>
+                    <div className="relative">
+                      <MapPin className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
+                      <Input
+                        id="city"
+                        placeholder="City"
+                        className="pl-10"
+                        value={formData.city}
+                        onChange={(e) => setFormData({ ...formData, city: e.target.value })}
+                        required
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="state">State *</Label>
+                    <div className="relative">
+                      <MapPin className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
+                      <Input
+                        id="state"
+                        placeholder="State"
+                        className="pl-10"
+                        value={formData.state}
+                        onChange={(e) => setFormData({ ...formData, state: e.target.value })}
+                        required
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="pin_code">PIN Code *</Label>
+                    <div className="relative">
+                      <MapPin className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
+                      <Input
+                        id="pin_code"
+                        placeholder="6-digit PIN"
+                        className="pl-10"
+                        maxLength={6}
+                        value={formData.pin_code}
+                        onChange={(e) => setFormData({ ...formData, pin_code: e.target.value.replace(/\D/g, '') })}
+                        required
+                      />
+                    </div>
+                  </div>
                 </div>
               </div>
 
