@@ -105,6 +105,25 @@ class UserLogin(BaseModel):
     email: EmailStr
     password: str
 
+class UpdateTeamMember(BaseModel):
+    full_name: str
+    address_line_1: str
+    address_line_2: str
+    landmark: Optional[str] = None
+    city: str
+    state: str
+    pin_code: str
+    mobile: str
+    date_of_birth: str
+    date_of_joining: str
+    gender: str
+    marital_status: str
+    role: str
+    salary: Optional[float] = None
+    writeup: Optional[str] = None
+    passions: Optional[str] = None
+    contribution: Optional[str] = None
+
 class UserSession(BaseModel):
     model_config = ConfigDict(extra="ignore")
     user_id: str
