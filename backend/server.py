@@ -366,6 +366,7 @@ async def register(user_data: UserRegister):
             postal_address="",  # Can be updated later
             mobile="+919913899888",
             date_of_birth=datetime(1973, 9, 15),
+            date_of_joining=datetime(2010, 1, 1),  # Founder date
             gender="male",
             marital_status="married",
             role="owner",
