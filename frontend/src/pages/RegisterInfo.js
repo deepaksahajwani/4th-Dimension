@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { User, Mail, Phone, MapPin, Calendar, Heart, Briefcase, UserCircle } from 'lucide-react';
+import { User, Mail, Phone, MapPin, Calendar, Heart, Briefcase, UserCircle, Lock, Eye, EyeOff } from 'lucide-react';
 import { formatErrorMessage } from '@/utils/errorHandler';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
