@@ -92,15 +92,20 @@ export default function Team({ user, onLogout }) {
     }
   };
 
-  // Group members by role hierarchy
+  // Group members by role (each role gets its own row)
   const groupedMembers = teamMembers.reduce((acc, member) => {
-    const level = ROLE_HIERARCHY[member.role] || 99;
-    if (!acc[level]) {
-      acc[level] = [];
+    const role = member.role;
+    if (!acc[role]) {
+      acc[role] = [];
     }
-    acc[level].push(member);
+    acc[role].push(member);
     return acc;
   }, {});
+
+  // Sort role groups by hierarchy
+  const sortedRoleGroups = Object.keys(groupedMembers).sort((a, b) => {
+    return (ROLE_HIERARCHY[a] || 99) - (ROLE_HIERARCHY[b] || 99);
+  });
 
   const handleMemberClick = (memberId) => {
     navigate(`/team/${memberId}`);
