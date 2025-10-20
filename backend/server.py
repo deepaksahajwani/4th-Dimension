@@ -393,6 +393,8 @@ async def register(user_data: UserRegister):
     user_dict['created_at'] = user_dict['created_at'].isoformat()
     if user_dict.get('date_of_birth'):
         user_dict['date_of_birth'] = user_dict['date_of_birth'].isoformat()
+    if user_dict.get('date_of_joining'):
+        user_dict['date_of_joining'] = user_dict['date_of_joining'].isoformat()
     
     await db.users.insert_one(user_dict)
     
