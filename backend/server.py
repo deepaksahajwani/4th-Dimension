@@ -595,6 +595,7 @@ async def complete_profile(
     
     # Update user profile directly
     dob = datetime.fromisoformat(profile.date_of_birth) if profile.date_of_birth else None
+    doj = datetime.fromisoformat(profile.date_of_joining) if profile.date_of_joining else None
     
     await db.users.update_one(
         {"id": current_user.id},
@@ -604,6 +605,7 @@ async def complete_profile(
             "email": profile.email,
             "mobile": profile.mobile,
             "date_of_birth": dob.isoformat() if dob else None,
+            "date_of_joining": doj.isoformat() if doj else None,
             "gender": profile.gender,
             "marital_status": profile.marital_status,
             "role": profile.role,
