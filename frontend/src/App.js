@@ -84,9 +84,9 @@ function App() {
       
       // Check if profile completion is required
       if (response.data.requires_profile_completion) {
-        console.log('Redirecting to complete-profile');
-        toast.success('Please complete your profile!');
-        window.location.href = '/complete-profile';
+        console.log('Redirecting to register-info');
+        toast.success('Please complete your registration!');
+        window.location.href = '/register-info';
       } else {
         console.log('Redirecting to dashboard');
         toast.success('Logged in successfully!');
