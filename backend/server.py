@@ -772,15 +772,40 @@ async def delete_user(user_id: str, current_user: User = Depends(require_owner))
     # Delete user
     await db.users.delete_one({"id": user_id})
     
-    return {"message": "User deleted successfully"}
-    
-    # Delete user
-    await db.users.delete_one({"id": user_id})
-    
     # Delete user's sessions
     await db.user_sessions.delete_many({"user_id": user_id})
     
     return {"message": "Team member deleted successfully"}
+
+@api_router.put("/users/{user_id}")
+async def update_user(user_id: str, user_data: CompleteProfile, current_user: User = Depends(require_owner)):
+    """Update a team member's information (Owner only)"""
+    
+    # Check if user exists
+    user = await db.users.find_one({"id": user_id})
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    # Update user profile
+    dob = datetime.fromisoformat(user_data.date_of_birth) if user_data.date_of_birth else None
+    doj = datetime.fromisoformat(user_data.date_of_joining) if user_data.date_of_joining else None
+    
+    await db.users.update_one(
+        {"id": user_id},
+        {"$set": {
+            "name": user_data.full_name,
+            "postal_address": user_data.postal_address,
+            "email": user_data.email,
+            "mobile": user_data.mobile,
+            "date_of_birth": dob.isoformat() if dob else None,
+            "date_of_joining": doj.isoformat() if doj else None,
+            "gender": user_data.gender,
+            "marital_status": user_data.marital_status,
+            "role": user_data.role
+        }}
+    )
+    
+    return {"message": "User updated successfully"}
 
 
 # ==================== CLIENT ROUTES ====================
