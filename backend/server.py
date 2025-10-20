@@ -814,7 +814,12 @@ async def update_user(user_id: str, user_data: CompleteProfile, current_user: Us
         {"id": user_id},
         {"$set": {
             "name": user_data.full_name,
-            "postal_address": user_data.postal_address,
+            "house_number": user_data.house_number,
+            "street": user_data.street,
+            "landmark": user_data.landmark,
+            "city": user_data.city,
+            "state": user_data.state,
+            "pin_code": user_data.pin_code,
             "email": user_data.email,
             "mobile": user_data.mobile,
             "date_of_birth": dob.isoformat() if dob else None,
