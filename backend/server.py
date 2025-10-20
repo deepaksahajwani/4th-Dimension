@@ -54,8 +54,8 @@ class User(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     email: EmailStr
     name: str
-    house_number: Optional[str] = None
-    street: Optional[str] = None
+    address_line_1: Optional[str] = None
+    address_line_2: Optional[str] = None
     landmark: Optional[str] = None
     city: Optional[str] = None
     state: Optional[str] = None
