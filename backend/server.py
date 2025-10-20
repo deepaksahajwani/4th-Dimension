@@ -83,7 +83,12 @@ class UserRegister(BaseModel):
 
 class CompleteProfile(BaseModel):
     full_name: str
-    postal_address: str
+    house_number: str
+    street: str
+    landmark: Optional[str] = None
+    city: str
+    state: str
+    pin_code: str
     email: EmailStr
     mobile: str
     date_of_birth: str
