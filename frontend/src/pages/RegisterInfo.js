@@ -93,8 +93,8 @@ export default function RegisterInfo({ onLogin }) {
       // Step 2: Complete profile
       const profileData = {
         full_name: formData.full_name,
-        house_number: formData.house_number,
-        street: formData.street,
+        address_line_1: formData.address_line_1,
+        address_line_2: formData.address_line_2,
         landmark: formData.landmark,
         city: formData.city,
         state: formData.state,
