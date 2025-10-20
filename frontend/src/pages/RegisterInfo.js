@@ -279,30 +279,30 @@ export default function RegisterInfo({ onLogin }) {
                 
                 <div className="grid md:grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="house_number">House/Flat Number *</Label>
+                    <Label htmlFor="address_line_1">Address Line 1 *</Label>
                     <div className="relative">
                       <MapPin className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
                       <Input
-                        id="house_number"
-                        placeholder="e.g., 123 or Flat 4B"
+                        id="address_line_1"
+                        placeholder="House/Flat number, Building name"
                         className="pl-10"
-                        value={formData.house_number}
-                        onChange={(e) => setFormData({ ...formData, house_number: e.target.value })}
+                        value={formData.address_line_1}
+                        onChange={(e) => setFormData({ ...formData, address_line_1: e.target.value })}
                         required
                       />
                     </div>
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="street">Street/Area *</Label>
+                    <Label htmlFor="address_line_2">Address Line 2 *</Label>
                     <div className="relative">
                       <MapPin className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
                       <Input
-                        id="street"
-                        placeholder="Street name"
+                        id="address_line_2"
+                        placeholder="Street name, Area"
                         className="pl-10"
-                        value={formData.street}
-                        onChange={(e) => setFormData({ ...formData, street: e.target.value })}
+                        value={formData.address_line_2}
+                        onChange={(e) => setFormData({ ...formData, address_line_2: e.target.value })}
                         required
                       />
                     </div>
