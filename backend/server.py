@@ -373,8 +373,8 @@ async def register(user_data: UserRegister):
         user = User(
             email=user_data.email,
             name="Deepak Shreechand Sahajwani",  # Full name
-            house_number="",  # Can be updated later
-            street="",
+            address_line_1="",  # Can be updated later
+            address_line_2="",
             landmark="",
             city="",
             state="",
