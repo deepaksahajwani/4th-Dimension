@@ -814,8 +814,8 @@ async def update_user(user_id: str, user_data: CompleteProfile, current_user: Us
         {"id": user_id},
         {"$set": {
             "name": user_data.full_name,
-            "house_number": user_data.house_number,
-            "street": user_data.street,
+            "address_line_1": user_data.address_line_1,
+            "address_line_2": user_data.address_line_2,
             "landmark": user_data.landmark,
             "city": user_data.city,
             "state": user_data.state,
