@@ -92,20 +92,21 @@ export default function Team({ user, onLogout }) {
     }
   };
 
-  // Group members by role (each role gets its own row)
-  const groupedMembers = teamMembers.reduce((acc, member) => {
+  // Group members by role while preserving the sort order
+  const groupedMembers = {};
+  const roleOrder = []; // Track the order roles appear in the sorted list
+  
+  teamMembers.forEach(member => {
     const role = member.role;
-    if (!acc[role]) {
-      acc[role] = [];
+    if (!groupedMembers[role]) {
+      groupedMembers[role] = [];
+      roleOrder.push(role);
     }
-    acc[role].push(member);
-    return acc;
-  }, {});
-
-  // Sort role groups by hierarchy
-  const sortedRoleGroups = Object.keys(groupedMembers).sort((a, b) => {
-    return (ROLE_HIERARCHY[a] || 99) - (ROLE_HIERARCHY[b] || 99);
+    groupedMembers[role].push(member);
   });
+  
+  // Use roleOrder (which preserves the intended sort) instead of re-sorting by hierarchy
+  const sortedRoleGroups = roleOrder;
 
   const handleMemberClick = (memberId) => {
     navigate(`/team/${memberId}`);
