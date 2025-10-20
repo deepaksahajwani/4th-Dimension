@@ -10,24 +10,24 @@ import { toast } from 'sonner';
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
 
-// Role hierarchy for grouping
+// Role hierarchy for grouping and display order
 const ROLE_HIERARCHY = {
   owner: 0,
   senior_architect: 1,
-  senior_interior_designer: 1,
-  associate_architect: 2,
-  associate_interior_designer: 2,
-  junior_architect: 3,
-  junior_interior_designer: 3,
-  landscape_designer: 4,
-  '3d_visualizer': 4,
-  site_engineer: 5,
-  site_supervisor: 5,
-  intern: 6,
-  administrator: 7,
-  human_resource: 7,
-  accountant: 7,
-  office_staff: 8
+  junior_architect: 2,
+  '3d_visualizer': 3,
+  senior_interior_designer: 4,
+  junior_interior_designer: 5,
+  landscape_designer: 6,
+  associate_architect: 7,
+  associate_interior_designer: 7,
+  site_engineer: 8,
+  site_supervisor: 8,
+  intern: 9,
+  administrator: 10,
+  human_resource: 10,
+  accountant: 10,
+  office_staff: 11
 };
 
 const ROLE_LABELS = {
