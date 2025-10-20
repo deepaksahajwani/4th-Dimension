@@ -616,7 +616,12 @@ async def complete_profile(
         {"id": current_user.id},
         {"$set": {
             "name": profile.full_name,
-            "postal_address": profile.postal_address,
+            "house_number": profile.house_number,
+            "street": profile.street,
+            "landmark": profile.landmark,
+            "city": profile.city,
+            "state": profile.state,
+            "pin_code": profile.pin_code,
             "email": profile.email,
             "mobile": profile.mobile,
             "date_of_birth": dob.isoformat() if dob else None,
