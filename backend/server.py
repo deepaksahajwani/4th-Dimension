@@ -57,14 +57,15 @@ class User(BaseModel):
     postal_address: Optional[str] = None
     mobile: Optional[str] = None
     date_of_birth: Optional[datetime] = None
+    date_of_joining: Optional[datetime] = None  # Date of joining the firm
     gender: Optional[str] = None  # male, female, other
     marital_status: Optional[str] = None  # single, married, divorced, widowed
-    role: str  # architect, interior_designer, landscape_designer, site_engineer, structural_engineer, site_supervisor, intern, administrator, office_staff
+    role: str  # owner, junior_architect, senior_architect, associate_architect, junior_interior_designer, senior_interior_designer, associate_interior_designer, landscape_designer, site_engineer, site_supervisor, intern, administrator, human_resource, accountant, office_staff
     password_hash: Optional[str] = None
     picture: Optional[str] = None
     is_owner: bool = False  # Only for Deepak Sahajwani
     is_admin: bool = False
-    is_validated: bool = False  # Pending owner/admin approval
+    is_validated: bool = False  # All users auto-validated after registration
     mobile_verified: bool = False
     email_verified: bool = False
     registration_completed: bool = False  # Details form completed
