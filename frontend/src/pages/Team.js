@@ -144,11 +144,11 @@ export default function Team({ user, onLogout }) {
 
         {/* Team Members Grid */}
         <div className="space-y-8">
-          {Object.keys(groupedMembers)
-            .sort((a, b) => parseInt(a) - parseInt(b))
-            .map((level) => (
-              <div key={level} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                {groupedMembers[level].map((member) => (
+          {sortedRoleGroups.map((role) => (
+            <div key={role}>
+              {/* Role section header (optional - can be removed if you don't want section titles) */}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                {groupedMembers[role].map((member) => (
                   <Card
                     key={member.id}
                     className="cursor-pointer hover:shadow-lg transition-shadow"
@@ -168,7 +168,8 @@ export default function Team({ user, onLogout }) {
                   </Card>
                 ))}
               </div>
-            ))}
+            </div>
+          ))}
         </div>
 
         {teamMembers.length === 0 && (
