@@ -33,10 +33,17 @@ export default function RegisterInfo({ onLogin }) {
   const navigate = useNavigate();
   const location = useLocation();
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  
+  // Check if coming from login with credentials or fresh registration
+  const hasCredentials = location.state?.email && location.state?.password;
+  
   const [formData, setFormData] = useState({
     full_name: '',
     email: location.state?.email || '',
     password: location.state?.password || '',
+    confirmPassword: '',
     mobile: '+91',
     postal_address: '',
     date_of_birth: '',
