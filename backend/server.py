@@ -82,6 +82,7 @@ class CompleteProfile(BaseModel):
     email: EmailStr
     mobile: str
     date_of_birth: str
+    date_of_joining: str  # Date of joining the firm
     gender: str
     marital_status: str
     role: str
