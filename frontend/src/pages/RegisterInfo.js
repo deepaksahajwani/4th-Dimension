@@ -20,6 +20,7 @@ const TEAM_ROLES = [
   { value: 'senior_interior_designer', label: 'Senior Interior Designer' },
   { value: 'associate_interior_designer', label: 'Associate Interior Designer' },
   { value: 'landscape_designer', label: 'Landscape Designer' },
+  { value: '3d_visualizer', label: '3D Visualizer' },
   { value: 'site_engineer', label: 'Site Engineer' },
   { value: 'site_supervisor', label: 'Site Supervisor' },
   { value: 'intern', label: 'Intern' },
