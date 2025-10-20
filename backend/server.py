@@ -616,8 +616,8 @@ async def complete_profile(
         {"id": current_user.id},
         {"$set": {
             "name": profile.full_name,
-            "house_number": profile.house_number,
-            "street": profile.street,
+            "address_line_1": profile.address_line_1,
+            "address_line_2": profile.address_line_2,
             "landmark": profile.landmark,
             "city": profile.city,
             "state": profile.state,
