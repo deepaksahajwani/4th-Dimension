@@ -57,6 +57,20 @@ export default function RegisterInfo({ onLogin }) {
     e.preventDefault();
     setLoading(true);
     
+    // Validate passwords match if fresh registration
+    if (!hasCredentials) {
+      if (formData.password !== formData.confirmPassword) {
+        toast.error('Passwords do not match');
+        setLoading(false);
+        return;
+      }
+      if (formData.password.length < 8) {
+        toast.error('Password must be at least 8 characters long');
+        setLoading(false);
+        return;
+      }
+    }
+    
     try {
       // Step 1: Register user with email and password
       let token = localStorage.getItem('token');
