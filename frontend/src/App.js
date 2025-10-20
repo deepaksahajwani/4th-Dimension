@@ -177,6 +177,22 @@ function App() {
               }
             />
             <Route
+              path="/team/manage"
+              element={
+                <ProtectedRoute>
+                  <ManageTeam user={user} onLogout={handleLogout} />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/team/:memberId"
+              element={
+                <ProtectedRoute>
+                  <TeamMemberDetail user={user} onLogout={handleLogout} />
+                </ProtectedRoute>
+              }
+            />
+            <Route
               path="/accounting"
               element={
                 <ProtectedRoute>
