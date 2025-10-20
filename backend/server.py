@@ -757,18 +757,8 @@ async def verify_otp(request: OTPVerify, current_user: User = Depends(require_ow
     }
 
 @api_router.delete("/users/{user_id}")
-async def delete_user(user_id: str, otp_code: str, current_user: User = Depends(require_owner)):
-    """Delete a team member (requires OTP verification)"""
-    # Verify OTP
-    otp_doc = await db.otps.find_one({
-        "user_id": current_user.id,
-        "otp_code": otp_code,
-        "action": "delete_member",
-        "used": True  # Already verified by verify-otp endpoint
-    })
-    
-    if not otp_doc:
-        raise HTTPException(status_code=400, detail="OTP verification required")
+async def delete_user(user_id: str, current_user: User = Depends(require_owner)):
+    """Delete a team member (Owner only)"""
     
     # Don't allow deleting yourself
     if user_id == current_user.id:
@@ -778,6 +768,11 @@ async def delete_user(user_id: str, otp_code: str, current_user: User = Depends(
     user = await db.users.find_one({"id": user_id})
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
+    
+    # Delete user
+    await db.users.delete_one({"id": user_id})
+    
+    return {"message": "User deleted successfully"}
     
     # Delete user
     await db.users.delete_one({"id": user_id})
