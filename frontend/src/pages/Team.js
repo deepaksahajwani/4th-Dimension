@@ -61,13 +61,30 @@ export default function Team({ user, onLogout }) {
   const fetchTeamMembers = async () => {
     try {
       const response = await axios.get(`${API}/users`);
-      // Sort by date_of_joining (earliest first)
-      const sorted = response.data.sort((a, b) => {
+      
+      // Separate owner from other members
+      const owner = response.data.find(m => m.is_owner || m.email === 'deepaksahajwani@gmail.com');
+      const otherMembers = response.data.filter(m => !m.is_owner && m.email !== 'deepaksahajwani@gmail.com');
+      
+      // Sort other members: first by role hierarchy, then by joining date within each role
+      const sortedOthers = otherMembers.sort((a, b) => {
+        const roleA = ROLE_HIERARCHY[a.role] || 99;
+        const roleB = ROLE_HIERARCHY[b.role] || 99;
+        
+        // If different roles, sort by role hierarchy
+        if (roleA !== roleB) {
+          return roleA - roleB;
+        }
+        
+        // Same role - sort by joining date (earliest first)
         const dateA = new Date(a.date_of_joining || a.created_at);
         const dateB = new Date(b.date_of_joining || b.created_at);
         return dateA - dateB;
       });
-      setTeamMembers(sorted);
+      
+      // Put owner first, then others
+      const finalList = owner ? [owner, ...sortedOthers] : sortedOthers;
+      setTeamMembers(finalList);
     } catch (error) {
       toast.error('Failed to load team members');
     } finally {
