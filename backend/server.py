@@ -821,7 +821,7 @@ async def delete_user(user_id: str, current_user: User = Depends(require_owner))
     return {"message": "Team member deleted successfully"}
 
 @api_router.put("/users/{user_id}")
-async def update_user(user_id: str, user_data: CompleteProfile, current_user: User = Depends(require_owner)):
+async def update_user(user_id: str, user_data: UpdateTeamMember, current_user: User = Depends(require_owner)):
     """Update a team member's information (Owner only)"""
     
     # Check if user exists
@@ -843,13 +843,16 @@ async def update_user(user_id: str, user_data: CompleteProfile, current_user: Us
             "city": user_data.city,
             "state": user_data.state,
             "pin_code": user_data.pin_code,
-            "email": user_data.email,
             "mobile": user_data.mobile,
             "date_of_birth": dob.isoformat() if dob else None,
             "date_of_joining": doj.isoformat() if doj else None,
             "gender": user_data.gender,
             "marital_status": user_data.marital_status,
-            "role": user_data.role
+            "role": user_data.role,
+            "salary": user_data.salary,
+            "writeup": user_data.writeup,
+            "passions": user_data.passions,
+            "contribution": user_data.contribution
         }}
     )
     
