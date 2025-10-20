@@ -66,6 +66,10 @@ class User(BaseModel):
     gender: Optional[str] = None  # male, female, other
     marital_status: Optional[str] = None  # single, married, divorced, widowed
     role: str  # owner, junior_architect, senior_architect, associate_architect, junior_interior_designer, senior_interior_designer, associate_interior_designer, landscape_designer, site_engineer, site_supervisor, intern, administrator, human_resource, accountant, office_staff, 3d_visualizer
+    salary: Optional[float] = None  # Monthly salary (owner only can see/edit)
+    writeup: Optional[str] = None  # Brief writeup about the team member (owner sets)
+    passions: Optional[str] = None  # Passions and hobbies
+    contribution: Optional[str] = None  # Contribution to firm growth
     password_hash: Optional[str] = None
     picture: Optional[str] = None
     is_owner: bool = False  # Only for Deepak Sahajwani
