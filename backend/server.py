@@ -83,8 +83,8 @@ class UserRegister(BaseModel):
 
 class CompleteProfile(BaseModel):
     full_name: str
-    house_number: str
-    street: str
+    address_line_1: str
+    address_line_2: str
     landmark: Optional[str] = None
     city: str
     state: str
