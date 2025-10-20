@@ -373,7 +373,12 @@ async def register(user_data: UserRegister):
         user = User(
             email=user_data.email,
             name="Deepak Shreechand Sahajwani",  # Full name
-            postal_address="",  # Can be updated later
+            house_number="",  # Can be updated later
+            street="",
+            landmark="",
+            city="",
+            state="",
+            pin_code="",
             mobile="+919913899888",
             date_of_birth=datetime(1973, 9, 15),
             date_of_joining=datetime(2010, 1, 1),  # Founder date
