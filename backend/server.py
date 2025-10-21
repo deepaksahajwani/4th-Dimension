@@ -869,37 +869,94 @@ async def update_user(user_id: str, user_data: UpdateTeamMember, current_user: U
     return {"message": "User updated successfully"}
 
 
-# ==================== CLIENT ROUTES ====================
+# ==================== CLIENT ROUTES (NEW ARCHFLOW) ====================
 
 @api_router.post("/clients", response_model=Client)
 async def create_client(client_data: ClientCreate, current_user: User = Depends(get_current_user)):
     client = Client(
         name=client_data.name,
-        contact=client_data.contact,
+        contact_person=client_data.contact_person,
+        phone=client_data.phone,
         email=client_data.email,
-        referred_by=client_data.referred_by,
-        first_call_date=datetime.fromisoformat(client_data.first_call_date)
+        address=client_data.address,
+        notes=client_data.notes,
+        created_by_id=current_user.id,
+        owner_team_id=None  # Can be set later
     )
     
     client_dict = client.model_dump()
-    client_dict['first_call_date'] = client_dict['first_call_date'].isoformat()
     client_dict['created_at'] = client_dict['created_at'].isoformat()
+    client_dict['updated_at'] = client_dict['updated_at'].isoformat()
     
     await db.clients.insert_one(client_dict)
     return client
 
-@api_router.get("/clients", response_model=List[Client])
+@api_router.get("/clients")
 async def get_clients(current_user: User = Depends(get_current_user)):
-    clients = await db.clients.find({}, {"_id": 0}).to_list(1000)
+    clients = await db.clients.find({"deleted_at": None}, {"_id": 0}).to_list(1000)
+    
+    # Add project count for each client
     for client in clients:
-        if isinstance(client.get('first_call_date'), str):
-            client['first_call_date'] = datetime.fromisoformat(client['first_call_date'])
         if isinstance(client.get('created_at'), str):
             client['created_at'] = datetime.fromisoformat(client['created_at'])
+        if isinstance(client.get('updated_at'), str):
+            client['updated_at'] = datetime.fromisoformat(client['updated_at'])
+        
+        # Count projects for this client
+        project_count = await db.projects.count_documents({"client_id": client["id"], "deleted_at": None})
+        client['total_projects'] = project_count
+    
     return clients
 
-@api_router.get("/clients/{client_id}", response_model=Client)
+@api_router.get("/clients/{client_id}")
 async def get_client(client_id: str, current_user: User = Depends(get_current_user)):
+    client = await db.clients.find_one({"id": client_id, "deleted_at": None}, {"_id": 0})
+    if not client:
+        raise HTTPException(status_code=404, detail="Client not found")
+    
+    if isinstance(client.get('created_at'), str):
+        client['created_at'] = datetime.fromisoformat(client['created_at'])
+    if isinstance(client.get('updated_at'), str):
+        client['updated_at'] = datetime.fromisoformat(client['updated_at'])
+    
+    # Get related projects
+    projects = await db.projects.find({"client_id": client_id, "deleted_at": None}, {"_id": 0}).to_list(100)
+    client['projects'] = projects
+    
+    return client
+
+@api_router.put("/clients/{client_id}")
+async def update_client(client_id: str, client_data: ClientCreate, current_user: User = Depends(get_current_user)):
+    await db.clients.update_one(
+        {"id": client_id},
+        {"$set": {
+            "name": client_data.name,
+            "contact_person": client_data.contact_person,
+            "phone": client_data.phone,
+            "email": client_data.email,
+            "address": client_data.address,
+            "notes": client_data.notes,
+            "updated_at": datetime.now(timezone.utc).isoformat()
+        }}
+    )
+    return {"message": "Client updated successfully"}
+
+@api_router.delete("/clients/{client_id}")
+async def delete_client(client_id: str, current_user: User = Depends(require_owner)):
+    """Soft delete client and set client_id to null in related projects"""
+    # Soft delete the client
+    await db.clients.update_one(
+        {"id": client_id},
+        {"$set": {"deleted_at": datetime.now(timezone.utc).isoformat()}}
+    )
+    
+    # Set client_id to null in related projects (cascade)
+    await db.projects.update_many(
+        {"client_id": client_id},
+        {"$set": {"client_id": None}}
+    )
+    
+    return {"message": "Client deleted and projects updated"}
     client = await db.clients.find_one({"id": client_id}, {"_id": 0})
     if not client:
         raise HTTPException(status_code=404, detail="Client not found")
