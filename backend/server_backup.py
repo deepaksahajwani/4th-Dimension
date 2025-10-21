@@ -1,0 +1,1378 @@
+from fastapi import FastAPI, APIRouter, Depends, HTTPException, status, UploadFile, File
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from fastapi.responses import FileResponse
+from dotenv import load_dotenv
+from starlette.middleware.cors import CORSMiddleware
+from motor.motor_asyncio import AsyncIOMotorClient
+import os
+import logging
+from pathlib import Path
+from pydantic import BaseModel, Field, ConfigDict, EmailStr
+from typing import List, Optional
+import uuid
+from datetime import datetime, timezone, timedelta
+from passlib.context import CryptContext
+from jose import JWTError, jwt
+import httpx
+from emergentintegrations.llm.chat import LlmChat, UserMessage, FileContentWithMimeType
+import random
+import string
+
+ROOT_DIR = Path(__file__).parent
+load_dotenv(ROOT_DIR / '.env')
+
+# MongoDB connection
+mongo_url = os.environ['MONGO_URL']
+client = AsyncIOMotorClient(mongo_url)
+db = client[os.environ['DB_NAME']]
+
+# Security
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+security = HTTPBearer()
+
+# JWT settings
+JWT_SECRET_KEY = os.environ.get('JWT_SECRET_KEY', 'your-secret-key')
+JWT_ALGORITHM = os.environ.get('JWT_ALGORITHM', 'HS256')
+JWT_EXPIRE_MINUTES = int(os.environ.get('JWT_EXPIRE_MINUTES', 10080))
+
+# File storage settings
+MAX_FILE_SIZE = int(os.environ.get('MAX_FILE_SIZE', 524288000))
+UPLOAD_DIR = Path("/app/uploads")
+UPLOAD_DIR.mkdir(exist_ok=True)
+
+# Create the main app without a prefix
+app = FastAPI(title="Architecture Firm Management System")
+
+# Create a router with the /api prefix
+api_router = APIRouter(prefix="/api")
+
+
+# ==================== MODELS ====================
+
+class User(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    email: EmailStr
+    name: str
+    address_line_1: Optional[str] = None
+    address_line_2: Optional[str] = None
+    landmark: Optional[str] = None
+    city: Optional[str] = None
+    state: Optional[str] = None
+    pin_code: Optional[str] = None
+    mobile: Optional[str] = None
+    date_of_birth: Optional[datetime] = None
+    date_of_joining: Optional[datetime] = None  # Date of joining the firm
+    gender: Optional[str] = None  # male, female, other
+    marital_status: Optional[str] = None  # single, married, divorced, widowed
+    role: str  # owner, junior_architect, senior_architect, associate_architect, junior_interior_designer, senior_interior_designer, associate_interior_designer, landscape_designer, site_engineer, site_supervisor, intern, administrator, human_resource, accountant, office_staff, 3d_visualizer
+    salary: Optional[float] = None  # Monthly salary (owner only can see/edit)
+    writeup: Optional[str] = None  # Brief writeup about the team member (owner sets)
+    passions: Optional[str] = None  # Passions and hobbies
+    contribution: Optional[str] = None  # Contribution to firm growth
+    password_hash: Optional[str] = None
+    picture: Optional[str] = None
+    is_owner: bool = False  # Only for Deepak Sahajwani
+    is_admin: bool = False
+    is_validated: bool = False  # All users auto-validated after registration
+    mobile_verified: bool = False
+    email_verified: bool = False
+    registration_completed: bool = False  # Details form completed
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+class UserRegister(BaseModel):
+    email: EmailStr
+    password: str
+    name: str
+
+class CompleteProfile(BaseModel):
+    full_name: str
+    address_line_1: str
+    address_line_2: str
+    landmark: Optional[str] = None
+    city: str
+    state: str
+    pin_code: str
+    email: EmailStr
+    mobile: str
+    date_of_birth: str
+    date_of_joining: str  # Date of joining the firm
+    gender: str
+    marital_status: str
+    role: str
+
+class UserLogin(BaseModel):
+    email: EmailStr
+    password: str
+
+class UpdateTeamMember(BaseModel):
+    full_name: str
+    address_line_1: str
+    address_line_2: str
+    landmark: Optional[str] = None
+    city: str
+    state: str
+    pin_code: str
+    mobile: str
+    date_of_birth: str
+    date_of_joining: str
+    gender: str
+    marital_status: str
+    role: str
+    salary: Optional[float] = None
+    writeup: Optional[str] = None
+    passions: Optional[str] = None
+    contribution: Optional[str] = None
+
+class UserSession(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    user_id: str
+    session_token: str
+    expires_at: datetime
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+class Client(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    name: str
+    contact: Optional[str] = None
+    email: Optional[str] = None
+    referred_by: Optional[str] = None  # Client ID
+    first_call_date: datetime
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+class ClientCreate(BaseModel):
+    name: str
+    contact: Optional[str] = None
+    email: Optional[str] = None
+    referred_by: Optional[str] = None
+    first_call_date: str
+
+class Project(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    client_id: str
+    project_type: str  # Architecture, Interior, Planning, Landscape
+    name: str
+    address: Optional[str] = None
+    city: Optional[str] = None
+    team_leader: Optional[str] = None  # User ID
+    status: str  # consultation, layout_design, elevation_design, structural, execution, interior, completed
+    assigned_to: List[str] = []  # User IDs
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    plan_finalized: bool = False
+    plan_revisions: int = 0
+    first_advance_received: bool = False
+
+class ProjectCreate(BaseModel):
+    client_id: str
+    project_type: str
+    name: str
+    address: Optional[str] = None
+    city: Optional[str] = None
+    team_leader: Optional[str] = None
+    assigned_to: Optional[List[str]] = []
+
+class Drawing(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    project_id: str
+    category: str  # Architectural, Structural, Plumbing, Electrical, HVAC, Furniture, Ceiling, Kitchen, Landscape, Others
+    name: str
+    description: Optional[str] = None
+    order: int = 0
+    status: str  # pending, in_progress, review, issued, approved
+    s3_key: Optional[str] = None
+    issue_date: Optional[datetime] = None
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    ai_review: Optional[dict] = None
+
+class DrawingCreate(BaseModel):
+    project_id: str
+    category: str
+    name: str
+    description: Optional[str] = None
+    order: int = 0
+
+class Task(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    project_id: str
+    title: str
+    description: Optional[str] = None
+    assigned_to: Optional[str] = None  # User ID
+    due_date: Optional[datetime] = None
+    status: str  # open, in_progress, resolved, closed
+    priority: str  # low, medium, high, red_flag
+    created_by: str  # User ID
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    resolved_at: Optional[datetime] = None
+
+class TaskCreate(BaseModel):
+    project_id: str
+    title: str
+    description: Optional[str] = None
+    assigned_to: Optional[str] = None
+    due_date: Optional[str] = None
+    priority: str = "medium"
+
+class Reminder(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    project_id: Optional[str] = None
+    task_id: Optional[str] = None
+    drawing_id: Optional[str] = None
+    reminder_type: str
+    message: str
+    next_reminder_date: datetime
+    recurring: bool = False
+    recurring_days: Optional[int] = None
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+class Revision(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    project_id: str
+    revision_type: str  # layout, elevation, structural, interior
+    revision_number: int
+    description: str
+    date: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    s3_key: Optional[str] = None
+
+class RevisionCreate(BaseModel):
+    project_id: str
+    revision_type: str
+    description: str
+
+class Accounting(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    transaction_type: str  # receivable, payment, salary, expense
+    amount: float
+    project_id: Optional[str] = None
+    user_id: Optional[str] = None  # For salaries
+    description: str
+    category: Optional[str] = None
+    date: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    created_by: str
+
+class AccountingCreate(BaseModel):
+    transaction_type: str
+    amount: float
+    project_id: Optional[str] = None
+    user_id: Optional[str] = None
+    description: str
+    category: Optional[str] = None
+
+class DrawingTemplate(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    name: str
+    category: str
+    description: Optional[str] = None
+    order: int
+    project_type: str  # architectural, interior, both
+
+class DrawingTemplateCreate(BaseModel):
+    name: str
+    category: str
+    description: Optional[str] = None
+    order: int
+    project_type: str
+
+class OTP(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    user_id: str
+    otp_code: str
+    action: str  # add_member, delete_member
+    expires_at: datetime
+    used: bool = False
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+class OTPRequest(BaseModel):
+    action: str  # add_member, delete_member
+    target_user_id: Optional[str] = None  # For delete action
+
+class OTPVerify(BaseModel):
+    otp_code: str
+    action: str
+    target_user_id: Optional[str] = None
+
+class PhoneOTPRequest(BaseModel):
+    phone: str
+    
+class EmailVerificationToken(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    user_id: str
+    token: str
+    expires_at: datetime
+    used: bool = False
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+class UpdateUserAdmin(BaseModel):
+    user_id: str
+    is_admin: bool
+
+
+# ==================== HELPER FUNCTIONS ====================
+
+def create_access_token(data: dict):
+    to_encode = data.copy()
+    expire = datetime.now(timezone.utc) + timedelta(minutes=JWT_EXPIRE_MINUTES)
+    to_encode.update({"exp": expire})
+    encoded_jwt = jwt.encode(to_encode, JWT_SECRET_KEY, algorithm=JWT_ALGORITHM)
+    return encoded_jwt
+
+def verify_password(plain_password, hashed_password):
+    return pwd_context.verify(plain_password, hashed_password)
+
+def get_password_hash(password):
+    return pwd_context.hash(password)
+
+async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(security)):
+    token = credentials.credentials
+    
+    try:
+        # Check if it's a JWT token
+        payload = jwt.decode(token, JWT_SECRET_KEY, algorithms=[JWT_ALGORITHM])
+        email: str = payload.get("sub")
+        if email is None:
+            raise HTTPException(status_code=401, detail="Invalid authentication credentials")
+        
+        user_doc = await db.users.find_one({"email": email}, {"_id": 0})
+        if not user_doc:
+            raise HTTPException(status_code=401, detail="User not found")
+        
+        return User(**user_doc)
+    
+    except JWTError:
+        # Try Emergent session token
+        session = await db.user_sessions.find_one({"session_token": token})
+        if not session:
+            raise HTTPException(status_code=401, detail="Invalid authentication credentials")
+        
+        # Check expiry
+        if isinstance(session['expires_at'], str):
+            expires_at = datetime.fromisoformat(session['expires_at'])
+        else:
+            expires_at = session['expires_at']
+        
+        if expires_at < datetime.now(timezone.utc):
+            raise HTTPException(status_code=401, detail="Session expired")
+        
+        user_doc = await db.users.find_one({"id": session['user_id']}, {"_id": 0})
+        if not user_doc:
+            raise HTTPException(status_code=401, detail="User not found")
+        
+        return User(**user_doc)
+
+async def require_owner(current_user: User = Depends(get_current_user)):
+    if not current_user.is_owner:
+        raise HTTPException(status_code=403, detail="Only owner can perform this action")
+    return current_user
+
+async def require_admin(current_user: User = Depends(get_current_user)):
+    if not current_user.is_owner and not current_user.is_admin:
+        raise HTTPException(status_code=403, detail="Only owner or administrator can perform this action")
+    return current_user
+
+
+# ==================== AUTH ROUTES ====================
+
+@api_router.post("/auth/register")
+async def register(user_data: UserRegister):
+    # Check if user exists
+    existing_user = await db.users.find_one({"email": user_data.email})
+    if existing_user:
+        raise HTTPException(status_code=400, detail="Email already registered")
+    
+    # Check if this is the owner (Deepak Sahajwani)
+    is_owner_email = user_data.email.lower() in ["deepaksahajwani@gmail.com", "deepak@4thdimension.com"] or user_data.name.lower() == "deepak sahajwani"
+    
+    # If owner, create complete profile automatically
+    if is_owner_email:
+        user = User(
+            email=user_data.email,
+            name="Deepak Shreechand Sahajwani",  # Full name
+            address_line_1="",  # Can be updated later
+            address_line_2="",
+            landmark="",
+            city="",
+            state="",
+            pin_code="",
+            mobile="+919913899888",
+            date_of_birth=datetime(1973, 9, 15),
+            date_of_joining=datetime(2010, 1, 1),  # Founder date
+            gender="male",
+            marital_status="married",
+            role="owner",
+            password_hash=get_password_hash(user_data.password),
+            is_owner=True,
+            is_validated=True,
+            mobile_verified=True,
+            email_verified=True,
+            registration_completed=True  # Profile already complete
+        )
+    else:
+        # Regular user - needs profile completion
+        user = User(
+            email=user_data.email,
+            name=user_data.name,
+            role="pending",
+            password_hash=get_password_hash(user_data.password),
+            is_owner=False,
+            is_validated=False,
+            registration_completed=False
+        )
+    
+    user_dict = user.model_dump()
+    user_dict['created_at'] = user_dict['created_at'].isoformat()
+    if user_dict.get('date_of_birth'):
+        user_dict['date_of_birth'] = user_dict['date_of_birth'].isoformat()
+    if user_dict.get('date_of_joining'):
+        user_dict['date_of_joining'] = user_dict['date_of_joining'].isoformat()
+    
+    await db.users.insert_one(user_dict)
+    
+    # Create token
+    access_token = create_access_token(data={"sub": user.email})
+    
+    return {
+        "access_token": access_token,
+        "token_type": "bearer",
+        "user": {
+            "id": user.id,
+            "email": user.email,
+            "name": user.name,
+            "is_owner": user.is_owner,
+            "is_validated": user.is_validated,
+            "registration_completed": user.registration_completed
+        },
+        "requires_profile_completion": not user.registration_completed
+    }
+
+@api_router.post("/auth/login")
+async def login(credentials: UserLogin):
+    user_doc = await db.users.find_one({"email": credentials.email})
+    if not user_doc:
+        raise HTTPException(status_code=401, detail="Invalid email or password")
+    
+    if not user_doc.get('password_hash'):
+        raise HTTPException(status_code=401, detail="Please use Google login")
+    
+    if not verify_password(credentials.password, user_doc['password_hash']):
+        raise HTTPException(status_code=401, detail="Invalid email or password")
+    
+    access_token = create_access_token(data={"sub": credentials.email})
+    
+    return {
+        "access_token": access_token,
+        "token_type": "bearer",
+        "user": {
+            "id": user_doc['id'],
+            "email": user_doc['email'],
+            "name": user_doc['name'],
+            "is_owner": user_doc.get('is_owner', False),
+            "is_validated": user_doc.get('is_validated', False),
+            "registration_completed": user_doc.get('registration_completed', False)
+        },
+        "requires_profile_completion": not user_doc.get('registration_completed', False)
+    }
+
+@api_router.post("/auth/google/session")
+async def process_google_session(session_id: str):
+    try:
+        async with httpx.AsyncClient() as client:
+            response = await client.get(
+                "https://demobackend.emergentagent.com/auth/v1/env/oauth/session-data",
+                headers={"X-Session-ID": session_id}
+            )
+            response.raise_for_status()
+            session_data = response.json()
+        
+        # Check if user exists
+        user_doc = await db.users.find_one({"email": session_data['email']})
+        
+        if not user_doc:
+            # Check if this is the owner
+            is_owner = session_data['email'].lower() in ["deepaksahajwani@gmail.com", "deepak@4thdimension.com"]
+            
+            if is_owner:
+                # Create owner with complete profile
+                user = User(
+                    email=session_data['email'],
+                    name="Deepak Shreechand Sahajwani",
+                    postal_address="",
+                    mobile="+919913899888",
+                    date_of_birth=datetime(1973, 9, 15),
+                    gender="male",
+                    marital_status="married",
+                    role="owner",
+                    picture=session_data.get('picture'),
+                    is_owner=True,
+                    is_validated=True,
+                    mobile_verified=True,
+                    email_verified=True,
+                    registration_completed=True
+                )
+            else:
+                # Create new user - needs profile completion
+                user = User(
+                    email=session_data['email'],
+                    name=session_data['name'],
+                    role="pending",
+                    picture=session_data.get('picture'),
+                    is_owner=False,
+                    is_validated=False,
+                    registration_completed=False
+                )
+            
+            user_dict = user.model_dump()
+            user_dict['created_at'] = user_dict['created_at'].isoformat()
+            if user_dict.get('date_of_birth'):
+                user_dict['date_of_birth'] = user_dict['date_of_birth'].isoformat()
+            await db.users.insert_one(user_dict)
+            user_id = user.id
+        else:
+            user_id = user_doc['id']
+        
+        # Create session
+        session = UserSession(
+            user_id=user_id,
+            session_token=session_data['session_token'],
+            expires_at=datetime.now(timezone.utc) + timedelta(days=7)
+        )
+        
+        session_dict = session.model_dump()
+        session_dict['created_at'] = session_dict['created_at'].isoformat()
+        session_dict['expires_at'] = session_dict['expires_at'].isoformat()
+        
+        await db.user_sessions.insert_one(session_dict)
+        
+        # Get user data
+        user_doc = await db.users.find_one({"id": user_id}, {"_id": 0})
+        
+        return {
+            "session_token": session_data['session_token'],
+            "user": {
+                "id": user_doc['id'],
+                "email": user_doc['email'],
+                "name": user_doc['name'],
+                "is_owner": user_doc.get('is_owner', False),
+                "is_validated": user_doc.get('is_validated', False),
+                "registration_completed": user_doc.get('registration_completed', False),
+                "picture": user_doc.get('picture')
+            },
+            "requires_profile_completion": not user_doc.get('registration_completed', False)
+        }
+    
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+@api_router.get("/auth/me")
+async def get_me(current_user: User = Depends(get_current_user)):
+    return current_user
+
+@api_router.post("/auth/logout")
+async def logout(credentials: HTTPAuthorizationCredentials = Depends(security)):
+    token = credentials.credentials
+    await db.user_sessions.delete_one({"session_token": token})
+    return {"message": "Logged out successfully"}
+
+
+# ==================== PROFILE COMPLETION & OTP ====================
+
+@api_router.post("/profile/request-otp")
+async def request_verification_otp(mobile: str, email: str, current_user: User = Depends(get_current_user)):
+    """Generate OTPs for mobile and email verification"""
+    # Generate 6-digit OTPs
+    mobile_otp = ''.join(random.choices(string.digits, k=6))
+    email_otp = ''.join(random.choices(string.digits, k=6))
+    
+    # Store mobile OTP
+    mobile_otp_doc = OTP(
+        user_id=current_user.id,
+        otp_code=mobile_otp,
+        action=f"verify_mobile_{mobile}",
+        expires_at=datetime.now(timezone.utc) + timedelta(minutes=10)
+    )
+    mobile_dict = mobile_otp_doc.model_dump()
+    mobile_dict['created_at'] = mobile_dict['created_at'].isoformat()
+    mobile_dict['expires_at'] = mobile_dict['expires_at'].isoformat()
+    await db.otps.insert_one(mobile_dict)
+    
+    # Store email OTP
+    email_otp_doc = OTP(
+        user_id=current_user.id,
+        otp_code=email_otp,
+        action=f"verify_email_{email}",
+        expires_at=datetime.now(timezone.utc) + timedelta(minutes=10)
+    )
+    email_dict = email_otp_doc.model_dump()
+    email_dict['created_at'] = email_dict['created_at'].isoformat()
+    email_dict['expires_at'] = email_dict['expires_at'].isoformat()
+    await db.otps.insert_one(email_dict)
+    
+    # In production, send via SMS and email
+    return {
+        "message": "OTPs sent successfully",
+        "mobile_otp": mobile_otp,  # Remove in production
+        "email_otp": email_otp,  # Remove in production
+        "mobile": mobile,
+        "email": email
+    }
+
+@api_router.post("/profile/complete")
+async def complete_profile(
+    profile: CompleteProfile,
+    current_user: User = Depends(get_current_user)
+):
+    """Complete user profile and auto-validate"""
+    
+    # Update user profile directly
+    dob = datetime.fromisoformat(profile.date_of_birth) if profile.date_of_birth else None
+    doj = datetime.fromisoformat(profile.date_of_joining) if profile.date_of_joining else None
+    
+    await db.users.update_one(
+        {"id": current_user.id},
+        {"$set": {
+            "name": profile.full_name,
+            "address_line_1": profile.address_line_1,
+            "address_line_2": profile.address_line_2,
+            "landmark": profile.landmark,
+            "city": profile.city,
+            "state": profile.state,
+            "pin_code": profile.pin_code,
+            "email": profile.email,
+            "mobile": profile.mobile,
+            "date_of_birth": dob.isoformat() if dob else None,
+            "date_of_joining": doj.isoformat() if doj else None,
+            "gender": profile.gender,
+            "marital_status": profile.marital_status,
+            "role": profile.role,
+            "mobile_verified": True,
+            "email_verified": True,
+            "registration_completed": True,
+            "is_validated": True  # Auto-validate user
+        }}
+    )
+    
+    return {
+        "message": "Profile completed successfully! You can now access the system.",
+        "status": "validated"
+    }
+
+
+
+# ==================== USER ROUTES ====================
+
+@api_router.get("/users", response_model=List[User])
+async def get_users(current_user: User = Depends(get_current_user)):
+    users = await db.users.find({}, {"_id": 0, "password_hash": 0}).to_list(1000)
+    for user in users:
+        if isinstance(user.get('created_at'), str):
+            user['created_at'] = datetime.fromisoformat(user['created_at'])
+        if user.get('date_of_joining') and isinstance(user['date_of_joining'], str):
+            user['date_of_joining'] = datetime.fromisoformat(user['date_of_joining'])
+    return users
+
+@api_router.get("/users/pending")
+async def get_pending_users(current_user: User = Depends(require_admin)):
+    """Get all users pending validation"""
+    users = await db.users.find({"is_validated": False, "registration_completed": True}, {"_id": 0, "password_hash": 0}).to_list(1000)
+    for user in users:
+        if isinstance(user.get('created_at'), str):
+            user['created_at'] = datetime.fromisoformat(user['created_at'])
+        if user.get('date_of_birth') and isinstance(user['date_of_birth'], str):
+            user['date_of_birth'] = datetime.fromisoformat(user['date_of_birth'])
+    return users
+
+@api_router.post("/users/{user_id}/validate")
+async def validate_user(user_id: str, current_user: User = Depends(require_admin)):
+    """Approve a pending user (owner or admin only)"""
+    user = await db.users.find_one({"id": user_id})
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    if user['is_validated']:
+        raise HTTPException(status_code=400, detail="User already validated")
+    
+    # Update user
+    await db.users.update_one(
+        {"id": user_id},
+        {"$set": {"is_validated": True}}
+    )
+    
+    return {"message": "User validated successfully"}
+
+@api_router.post("/users/{user_id}/reject")
+async def reject_user(user_id: str, current_user: User = Depends(require_admin)):
+    """Reject a pending user (owner or admin only)"""
+    user = await db.users.find_one({"id": user_id})
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    if user['is_validated']:
+        raise HTTPException(status_code=400, detail="User already validated")
+    
+    # Delete user
+    await db.users.delete_one({"id": user_id})
+    
+    return {"message": "User rejected and removed"}
+
+@api_router.post("/users/{user_id}/toggle-admin")
+async def toggle_admin_rights(user_id: str, current_user: User = Depends(require_owner)):
+    """Toggle administrator rights (owner only)"""
+    user = await db.users.find_one({"id": user_id})
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    if user.get('is_owner'):
+        raise HTTPException(status_code=400, detail="Cannot change admin rights for owner")
+    
+    # Toggle admin status
+    new_status = not user.get('is_admin', False)
+    await db.users.update_one(
+        {"id": user_id},
+        {"$set": {"is_admin": new_status}}
+    )
+    
+    action = "granted" if new_status else "revoked"
+    return {"message": f"Administrator rights {action} successfully", "is_admin": new_status}
+
+@api_router.post("/users/generate-otp")
+async def generate_otp(request: OTPRequest, current_user: User = Depends(require_owner)):
+    """Generate OTP for sensitive operations (add/delete team members)"""
+    # Generate 6-digit OTP
+    otp_code = ''.join(random.choices(string.digits, k=6))
+    
+    # Store OTP in database
+    otp = OTP(
+        user_id=current_user.id,
+        otp_code=otp_code,
+        action=request.action,
+        expires_at=datetime.now(timezone.utc) + timedelta(minutes=5)
+    )
+    
+    otp_dict = otp.model_dump()
+    otp_dict['created_at'] = otp_dict['created_at'].isoformat()
+    otp_dict['expires_at'] = otp_dict['expires_at'].isoformat()
+    
+    await db.otps.insert_one(otp_dict)
+    
+    # In production, send OTP via email/SMS
+    # For now, return it in response for demo purposes
+    return {
+        "message": "OTP generated successfully",
+        "otp_code": otp_code,  # Remove this in production
+        "expires_in": 300  # 5 minutes
+    }
+
+@api_router.post("/users/verify-otp")
+async def verify_otp(request: OTPVerify, current_user: User = Depends(require_owner)):
+    """Verify OTP for sensitive operations"""
+    otp_doc = await db.otps.find_one({
+        "user_id": current_user.id,
+        "otp_code": request.otp_code,
+        "action": request.action,
+        "used": False
+    })
+    
+    if not otp_doc:
+        raise HTTPException(status_code=400, detail="Invalid or expired OTP")
+    
+    # Check expiry
+    expires_at = datetime.fromisoformat(otp_doc['expires_at']) if isinstance(otp_doc['expires_at'], str) else otp_doc['expires_at']
+    if expires_at < datetime.now(timezone.utc):
+        raise HTTPException(status_code=400, detail="OTP has expired")
+    
+    # Mark OTP as used
+    await db.otps.update_one(
+        {"id": otp_doc['id']},
+        {"$set": {"used": True}}
+    )
+    
+    return {
+        "message": "OTP verified successfully",
+        "verified": True
+    }
+
+@api_router.delete("/users/{user_id}")
+async def delete_user(user_id: str, current_user: User = Depends(require_owner)):
+    """Delete a team member (Owner only)"""
+    
+    # Don't allow deleting yourself
+    if user_id == current_user.id:
+        raise HTTPException(status_code=400, detail="Cannot delete your own account")
+    
+    # Check if user exists
+    user = await db.users.find_one({"id": user_id})
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    # Delete user
+    await db.users.delete_one({"id": user_id})
+    
+    # Delete user's sessions
+    await db.user_sessions.delete_many({"user_id": user_id})
+    
+    return {"message": "Team member deleted successfully"}
+
+@api_router.put("/users/{user_id}")
+async def update_user(user_id: str, user_data: UpdateTeamMember, current_user: User = Depends(require_owner)):
+    """Update a team member's information (Owner only)"""
+    
+    # Check if user exists
+    user = await db.users.find_one({"id": user_id})
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    # Update user profile
+    dob = datetime.fromisoformat(user_data.date_of_birth) if user_data.date_of_birth else None
+    doj = datetime.fromisoformat(user_data.date_of_joining) if user_data.date_of_joining else None
+    
+    await db.users.update_one(
+        {"id": user_id},
+        {"$set": {
+            "name": user_data.full_name,
+            "address_line_1": user_data.address_line_1,
+            "address_line_2": user_data.address_line_2,
+            "landmark": user_data.landmark,
+            "city": user_data.city,
+            "state": user_data.state,
+            "pin_code": user_data.pin_code,
+            "mobile": user_data.mobile,
+            "date_of_birth": dob.isoformat() if dob else None,
+            "date_of_joining": doj.isoformat() if doj else None,
+            "gender": user_data.gender,
+            "marital_status": user_data.marital_status,
+            "role": user_data.role,
+            "salary": user_data.salary,
+            "writeup": user_data.writeup,
+            "passions": user_data.passions,
+            "contribution": user_data.contribution
+        }}
+    )
+    
+    return {"message": "User updated successfully"}
+
+
+# ==================== CLIENT ROUTES ====================
+
+@api_router.post("/clients", response_model=Client)
+async def create_client(client_data: ClientCreate, current_user: User = Depends(get_current_user)):
+    client = Client(
+        name=client_data.name,
+        contact=client_data.contact,
+        email=client_data.email,
+        referred_by=client_data.referred_by,
+        first_call_date=datetime.fromisoformat(client_data.first_call_date)
+    )
+    
+    client_dict = client.model_dump()
+    client_dict['first_call_date'] = client_dict['first_call_date'].isoformat()
+    client_dict['created_at'] = client_dict['created_at'].isoformat()
+    
+    await db.clients.insert_one(client_dict)
+    return client
+
+@api_router.get("/clients", response_model=List[Client])
+async def get_clients(current_user: User = Depends(get_current_user)):
+    clients = await db.clients.find({}, {"_id": 0}).to_list(1000)
+    for client in clients:
+        if isinstance(client.get('first_call_date'), str):
+            client['first_call_date'] = datetime.fromisoformat(client['first_call_date'])
+        if isinstance(client.get('created_at'), str):
+            client['created_at'] = datetime.fromisoformat(client['created_at'])
+    return clients
+
+@api_router.get("/clients/{client_id}", response_model=Client)
+async def get_client(client_id: str, current_user: User = Depends(get_current_user)):
+    client = await db.clients.find_one({"id": client_id}, {"_id": 0})
+    if not client:
+        raise HTTPException(status_code=404, detail="Client not found")
+    if isinstance(client.get('first_call_date'), str):
+        client['first_call_date'] = datetime.fromisoformat(client['first_call_date'])
+    if isinstance(client.get('created_at'), str):
+        client['created_at'] = datetime.fromisoformat(client['created_at'])
+    return Client(**client)
+
+
+# ==================== PROJECT ROUTES ====================
+
+@api_router.post("/projects", response_model=Project)
+async def create_project(project_data: ProjectCreate, current_user: User = Depends(get_current_user)):
+    project = Project(
+        client_id=project_data.client_id,
+        project_type=project_data.project_type,
+        name=project_data.name,
+        address=project_data.address,
+        city=project_data.city,
+        team_leader=project_data.team_leader,
+        assigned_to=project_data.assigned_to or [],
+        status="consultation"
+    )
+    
+    project_dict = project.model_dump()
+    project_dict['created_at'] = project_dict['created_at'].isoformat()
+    
+    await db.projects.insert_one(project_dict)
+    
+    # Create standardized drawing list - support all project types
+    templates = await db.drawing_templates.find(
+        {"project_type": {"$in": [project_data.project_type, "both", "all"]}},
+        {"_id": 0}
+    ).to_list(1000)
+    
+    for template in templates:
+        drawing = Drawing(
+            project_id=project.id,
+            category=template['category'],
+            name=template['name'],
+            description=template.get('description'),
+            order=template['order'],
+            status="pending"
+        )
+        drawing_dict = drawing.model_dump()
+        drawing_dict['created_at'] = drawing_dict['created_at'].isoformat()
+        await db.drawings.insert_one(drawing_dict)
+    
+    return project
+
+@api_router.get("/projects", response_model=List[Project])
+async def get_projects(current_user: User = Depends(get_current_user)):
+    projects = await db.projects.find({}, {"_id": 0}).to_list(1000)
+    for project in projects:
+        if isinstance(project.get('created_at'), str):
+            project['created_at'] = datetime.fromisoformat(project['created_at'])
+    return projects
+
+@api_router.get("/projects/{project_id}", response_model=Project)
+async def get_project(project_id: str, current_user: User = Depends(get_current_user)):
+    project = await db.projects.find_one({"id": project_id}, {"_id": 0})
+    if not project:
+        raise HTTPException(status_code=404, detail="Project not found")
+    if isinstance(project.get('created_at'), str):
+        project['created_at'] = datetime.fromisoformat(project['created_at'])
+    return Project(**project)
+
+@api_router.patch("/projects/{project_id}")
+async def update_project(project_id: str, updates: dict, current_user: User = Depends(get_current_user)):
+    result = await db.projects.update_one({"id": project_id}, {"$set": updates})
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Project not found")
+    return {"message": "Project updated successfully"}
+
+
+# ==================== DRAWING ROUTES ====================
+
+@api_router.get("/projects/{project_id}/drawings", response_model=List[Drawing])
+async def get_project_drawings(project_id: str, current_user: User = Depends(get_current_user)):
+    drawings = await db.drawings.find({"project_id": project_id}, {"_id": 0}).sort("order", 1).to_list(1000)
+    for drawing in drawings:
+        if isinstance(drawing.get('created_at'), str):
+            drawing['created_at'] = datetime.fromisoformat(drawing['created_at'])
+        if drawing.get('issue_date') and isinstance(drawing['issue_date'], str):
+            drawing['issue_date'] = datetime.fromisoformat(drawing['issue_date'])
+    return drawings
+
+@api_router.post("/drawings/{drawing_id}/upload")
+async def upload_drawing(
+    drawing_id: str,
+    file: UploadFile = File(...),
+    current_user: User = Depends(get_current_user)
+):
+    drawing = await db.drawings.find_one({"id": drawing_id})
+    if not drawing:
+        raise HTTPException(status_code=404, detail="Drawing not found")
+    
+    try:
+        # Validate file size
+        file.file.seek(0, 2)
+        file_size = file.file.tell()
+        file.file.seek(0)
+        
+        if file_size > MAX_FILE_SIZE:
+            raise HTTPException(status_code=413, detail=f"File size exceeds maximum allowed size")
+        
+        # Save to local storage
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        project_dir = UPLOAD_DIR / "drawings" / drawing['project_id']
+        project_dir.mkdir(parents=True, exist_ok=True)
+        
+        file_path = project_dir / f"{drawing_id}_{timestamp}_{file.filename}"
+        
+        with open(file_path, "wb") as f:
+            content = await file.read()
+            f.write(content)
+        
+        file_key = str(file_path.relative_to(UPLOAD_DIR))
+        
+        # Update drawing
+        await db.drawings.update_one(
+            {"id": drawing_id},
+            {"$set": {"s3_key": file_key, "status": "review"}}
+        )
+        
+        return {
+            "message": "Drawing uploaded successfully",
+            "file_key": file_key
+        }
+    
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Upload failed: {str(e)}")
+
+@api_router.post("/drawings/{drawing_id}/ai-review")
+async def ai_review_drawing(drawing_id: str, current_user: User = Depends(get_current_user)):
+    drawing = await db.drawings.find_one({"id": drawing_id})
+    if not drawing:
+        raise HTTPException(status_code=404, detail="Drawing not found")
+    
+    if not drawing.get('s3_key'):
+        raise HTTPException(status_code=400, detail="No drawing file uploaded")
+    
+    try:
+        # Get file from local storage
+        file_path = UPLOAD_DIR / drawing['s3_key']
+        
+        if not file_path.exists():
+            raise HTTPException(status_code=404, detail="Drawing file not found")
+        
+        # AI Review using GPT-5
+        llm_key = os.environ.get('EMERGENT_LLM_KEY')
+        chat = LlmChat(
+            api_key=llm_key,
+            session_id=f"drawing_review_{drawing_id}",
+            system_message="You are an expert architectural drawing reviewer. Analyze the drawing and provide detailed feedback on compliance, quality, and potential issues."
+        ).with_model("openai", "gpt-5")
+        
+        file_content = FileContentWithMimeType(
+            file_path=str(file_path),
+            mime_type="application/pdf"
+        )
+        
+        message = UserMessage(
+            text=f"Please review this {drawing['category']} drawing named '{drawing['name']}'. Check for: 1) Technical accuracy 2) Compliance with standards 3) Clarity and completeness 4) Potential issues or improvements",
+            file_contents=[file_content]
+        )
+        
+        ai_response = await chat.send_message(message)
+        
+        # Update drawing with AI review
+        review_data = {
+            "review_text": ai_response,
+            "reviewed_at": datetime.now(timezone.utc).isoformat()
+        }
+        
+        await db.drawings.update_one(
+            {"id": drawing_id},
+            {"$set": {"ai_review": review_data}}
+        )
+        
+        return {
+            "message": "AI review completed",
+            "review": review_data
+        }
+    
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"AI review failed: {str(e)}")
+
+@api_router.patch("/drawings/{drawing_id}")
+async def update_drawing(drawing_id: str, updates: dict, current_user: User = Depends(get_current_user)):
+    if 'issue_date' in updates and updates['issue_date']:
+        updates['issue_date'] = datetime.now(timezone.utc).isoformat()
+    
+    result = await db.drawings.update_one({"id": drawing_id}, {"$set": updates})
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Drawing not found")
+    return {"message": "Drawing updated successfully"}
+
+
+# ==================== TASK ROUTES ====================
+
+@api_router.post("/tasks", response_model=Task)
+async def create_task(task_data: TaskCreate, current_user: User = Depends(get_current_user)):
+    task = Task(
+        project_id=task_data.project_id,
+        title=task_data.title,
+        description=task_data.description,
+        assigned_to=task_data.assigned_to,
+        due_date=datetime.fromisoformat(task_data.due_date) if task_data.due_date else None,
+        priority=task_data.priority,
+        status="open",
+        created_by=current_user.id
+    )
+    
+    task_dict = task.model_dump()
+    task_dict['created_at'] = task_dict['created_at'].isoformat()
+    if task_dict['due_date']:
+        task_dict['due_date'] = task_dict['due_date'].isoformat()
+    
+    await db.tasks.insert_one(task_dict)
+    return task
+
+@api_router.get("/projects/{project_id}/tasks", response_model=List[Task])
+async def get_project_tasks(project_id: str, current_user: User = Depends(get_current_user)):
+    tasks = await db.tasks.find({"project_id": project_id}, {"_id": 0}).to_list(1000)
+    for task in tasks:
+        if isinstance(task.get('created_at'), str):
+            task['created_at'] = datetime.fromisoformat(task['created_at'])
+        if task.get('due_date') and isinstance(task['due_date'], str):
+            task['due_date'] = datetime.fromisoformat(task['due_date'])
+        if task.get('resolved_at') and isinstance(task['resolved_at'], str):
+            task['resolved_at'] = datetime.fromisoformat(task['resolved_at'])
+    return tasks
+
+@api_router.get("/tasks", response_model=List[Task])
+async def get_all_tasks(current_user: User = Depends(get_current_user)):
+    tasks = await db.tasks.find({}, {"_id": 0}).to_list(1000)
+    for task in tasks:
+        if isinstance(task.get('created_at'), str):
+            task['created_at'] = datetime.fromisoformat(task['created_at'])
+        if task.get('due_date') and isinstance(task['due_date'], str):
+            task['due_date'] = datetime.fromisoformat(task['due_date'])
+        if task.get('resolved_at') and isinstance(task['resolved_at'], str):
+            task['resolved_at'] = datetime.fromisoformat(task['resolved_at'])
+    return tasks
+
+@api_router.patch("/tasks/{task_id}")
+async def update_task(task_id: str, updates: dict, current_user: User = Depends(get_current_user)):
+    if updates.get('status') == 'resolved':
+        updates['resolved_at'] = datetime.now(timezone.utc).isoformat()
+    
+    result = await db.tasks.update_one({"id": task_id}, {"$set": updates})
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Task not found")
+    return {"message": "Task updated successfully"}
+
+
+# ==================== REVISION ROUTES ====================
+
+@api_router.post("/revisions", response_model=Revision)
+async def create_revision(revision_data: RevisionCreate, current_user: User = Depends(get_current_user)):
+    # Get current revision count
+    count = await db.revisions.count_documents({"project_id": revision_data.project_id, "revision_type": revision_data.revision_type})
+    
+    revision = Revision(
+        project_id=revision_data.project_id,
+        revision_type=revision_data.revision_type,
+        revision_number=count + 1,
+        description=revision_data.description
+    )
+    
+    revision_dict = revision.model_dump()
+    revision_dict['date'] = revision_dict['date'].isoformat()
+    
+    await db.revisions.insert_one(revision_dict)
+    
+    # Update project revision count
+    if revision_data.revision_type == "layout":
+        await db.projects.update_one(
+            {"id": revision_data.project_id},
+            {"$inc": {"plan_revisions": 1}}
+        )
+    
+    return revision
+
+@api_router.get("/projects/{project_id}/revisions", response_model=List[Revision])
+async def get_project_revisions(project_id: str, current_user: User = Depends(get_current_user)):
+    revisions = await db.revisions.find({"project_id": project_id}, {"_id": 0}).sort("date", -1).to_list(1000)
+    for revision in revisions:
+        if isinstance(revision.get('date'), str):
+            revision['date'] = datetime.fromisoformat(revision['date'])
+    return revisions
+
+
+# ==================== ACCOUNTING ROUTES ====================
+
+@api_router.post("/accounting", response_model=Accounting)
+async def create_accounting_entry(entry_data: AccountingCreate, current_user: User = Depends(require_owner)):
+    entry = Accounting(
+        transaction_type=entry_data.transaction_type,
+        amount=entry_data.amount,
+        project_id=entry_data.project_id,
+        user_id=entry_data.user_id,
+        description=entry_data.description,
+        category=entry_data.category,
+        created_by=current_user.id
+    )
+    
+    entry_dict = entry.model_dump()
+    entry_dict['date'] = entry_dict['date'].isoformat()
+    
+    await db.accounting.insert_one(entry_dict)
+    return entry
+
+@api_router.get("/accounting", response_model=List[Accounting])
+async def get_accounting_entries(current_user: User = Depends(require_owner)):
+    entries = await db.accounting.find({}, {"_id": 0}).sort("date", -1).to_list(1000)
+    for entry in entries:
+        if isinstance(entry.get('date'), str):
+            entry['date'] = datetime.fromisoformat(entry['date'])
+    return entries
+
+@api_router.get("/accounting/summary")
+async def get_accounting_summary(current_user: User = Depends(require_owner)):
+    entries = await db.accounting.find({}, {"_id": 0}).to_list(10000)
+    
+    total_receivables = sum(e['amount'] for e in entries if e['transaction_type'] == 'receivable')
+    total_payments = sum(e['amount'] for e in entries if e['transaction_type'] == 'payment')
+    total_salaries = sum(e['amount'] for e in entries if e['transaction_type'] == 'salary')
+    total_expenses = sum(e['amount'] for e in entries if e['transaction_type'] == 'expense')
+    
+    return {
+        "total_receivables": total_receivables,
+        "total_payments": total_payments,
+        "total_salaries": total_salaries,
+        "total_expenses": total_expenses,
+        "net_income": total_receivables - (total_payments + total_salaries + total_expenses)
+    }
+
+
+# ==================== DRAWING TEMPLATE ROUTES ====================
+
+@api_router.post("/drawing-templates", response_model=DrawingTemplate)
+async def create_drawing_template(template_data: DrawingTemplateCreate, current_user: User = Depends(require_owner)):
+    template = DrawingTemplate(**template_data.model_dump())
+    template_dict = template.model_dump()
+    await db.drawing_templates.insert_one(template_dict)
+    return template
+
+@api_router.get("/drawing-templates", response_model=List[DrawingTemplate])
+async def get_drawing_templates(current_user: User = Depends(get_current_user)):
+    templates = await db.drawing_templates.find({}, {"_id": 0}).sort("order", 1).to_list(1000)
+    return templates
+
+@api_router.delete("/drawing-templates/{template_id}")
+async def delete_drawing_template(template_id: str, current_user: User = Depends(require_owner)):
+    result = await db.drawing_templates.delete_one({"id": template_id})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Template not found")
+    return {"message": "Template deleted successfully"}
+
+
+# ==================== DASHBOARD/STATS ROUTES ====================
+
+@api_router.get("/dashboard/stats")
+async def get_dashboard_stats(current_user: User = Depends(get_current_user)):
+    total_projects = await db.projects.count_documents({})
+    active_projects = await db.projects.count_documents({"status": {"$nin": ["completed"]}})
+    total_clients = await db.clients.count_documents({})
+    pending_tasks = await db.tasks.count_documents({"status": {"$in": ["open", "in_progress"]}})
+    red_flags = await db.tasks.count_documents({"priority": "red_flag", "status": {"$ne": "closed"}})
+    
+    return {
+        "total_projects": total_projects,
+        "active_projects": active_projects,
+        "total_clients": total_clients,
+        "pending_tasks": pending_tasks,
+        "red_flags": red_flags
+    }
+
+@api_router.get("/reminders/pending")
+async def get_pending_reminders(current_user: User = Depends(get_current_user)):
+    now = datetime.now(timezone.utc)
+    
+    # Get overdue tasks
+    overdue_tasks = await db.tasks.find({
+        "status": {"$in": ["open", "in_progress"]},
+        "due_date": {"$lt": now.isoformat()}
+    }, {"_id": 0}).to_list(100)
+    
+    # Get pending drawings
+    pending_drawings = await db.drawings.find({
+        "status": {"$in": ["pending", "in_progress"]}
+    }, {"_id": 0}).to_list(100)
+    
+    # Get projects needing attention
+    projects_needing_attention = await db.projects.find({
+        "plan_finalized": False,
+        "created_at": {"$lt": (now - timedelta(days=14)).isoformat()}
+    }, {"_id": 0}).to_list(100)
+    
+    return {
+        "overdue_tasks": len(overdue_tasks),
+        "pending_drawings": len(pending_drawings),
+        "projects_needing_attention": len(projects_needing_attention),
+        "details": {
+            "overdue_tasks": overdue_tasks[:5],
+            "pending_drawings": pending_drawings[:5],
+            "projects_needing_attention": projects_needing_attention[:5]
+        }
+    }
+
+
+# ==================== FILE MANAGEMENT ====================
+
+@api_router.post("/files/upload")
+async def upload_file(
+    file: UploadFile = File(...),
+    project_id: Optional[str] = None,
+    category: str = "general",
+    current_user: User = Depends(get_current_user)
+):
+    try:
+        file.file.seek(0, 2)
+        file_size = file.file.tell()
+        file.file.seek(0)
+        
+        if file_size > MAX_FILE_SIZE:
+            raise HTTPException(status_code=413, detail="File size exceeds maximum")
+        
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        category_dir = UPLOAD_DIR / "files" / category / (project_id or "general")
+        category_dir.mkdir(parents=True, exist_ok=True)
+        
+        file_path = category_dir / f"{timestamp}_{file.filename}"
+        
+        with open(file_path, "wb") as f:
+            content = await file.read()
+            f.write(content)
+        
+        file_key = str(file_path.relative_to(UPLOAD_DIR))
+        
+        return {
+            "message": "File uploaded successfully",
+            "file_key": file_key,
+            "size": file_size
+        }
+    
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@api_router.get("/files/download/{file_key:path}")
+async def download_file(file_key: str, current_user: User = Depends(get_current_user)):
+    try:
+        file_path = UPLOAD_DIR / file_key
+        if not file_path.exists():
+            raise HTTPException(status_code=404, detail="File not found")
+        
+        from fastapi.responses import FileResponse
+        return FileResponse(file_path)
+    except Exception as e:
+        raise HTTPException(status_code=404, detail="File not found")
+
+
+# Include the router in the main app
+app.include_router(api_router)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_credentials=True,
+    allow_origins=os.environ.get('CORS_ORIGINS', '*').split(','),
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
+logger = logging.getLogger(__name__)
+
+@app.on_event("shutdown")
+async def shutdown_db_client():
+    client.close()
