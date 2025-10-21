@@ -11,6 +11,7 @@ import Dashboard from './pages/Dashboard';
 import Projects from './pages/Projects';
 import ProjectDetail from './pages/ProjectDetail';
 import Clients from './pages/Clients';
+import ClientDetail from './pages/ClientDetail';
 import Team from './pages/Team';
 import TeamMemberDetail from './pages/TeamMemberDetail';
 import ManageTeam from './pages/ManageTeam';
