@@ -1324,18 +1324,26 @@ async def delete_drawing_template(template_id: str, current_user: User = Depends
 
 @api_router.get("/dashboard/stats")
 async def get_dashboard_stats(current_user: User = Depends(get_current_user)):
-    total_projects = await db.projects.count_documents({})
-    active_projects = await db.projects.count_documents({"status": {"$nin": ["completed"]}})
-    total_clients = await db.clients.count_documents({})
-    pending_tasks = await db.tasks.count_documents({"status": {"$in": ["open", "in_progress"]}})
-    red_flags = await db.tasks.count_documents({"priority": "red_flag", "status": {"$ne": "closed"}})
+    total_projects = await db.projects.count_documents({"deleted_at": None})
+    active_projects = await db.projects.count_documents({
+        "status": {"$nin": ["Closed"]},
+        "deleted_at": None
+    })
+    total_clients = await db.clients.count_documents({"deleted_at": None})
+    pending_tasks = await db.tasks.count_documents({
+        "status": {"$in": ["Open", "InProgress"]}
+    })
+    overdue_drawings = await db.project_drawings.count_documents({
+        "status": {"$in": ["Planned", "InProgress"]},
+        "due_date": {"$lt": datetime.now(timezone.utc).isoformat()}
+    })
     
     return {
         "total_projects": total_projects,
         "active_projects": active_projects,
         "total_clients": total_clients,
         "pending_tasks": pending_tasks,
-        "red_flags": red_flags
+        "overdue_drawings": overdue_drawings
     }
 
 @api_router.get("/reminders/pending")
