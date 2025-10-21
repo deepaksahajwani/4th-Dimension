@@ -1365,6 +1365,188 @@ async def download_file(file_key: str, current_user: User = Depends(get_current_
         raise HTTPException(status_code=404, detail="File not found")
 
 
+# ==================== NEW ARCHFLOW PROJECTS MODULE ====================
+
+# Consultants
+@api_router.post("/consultants", response_model=Consultant)
+async def create_consultant(consultant_data: ConsultantCreate, current_user: User = Depends(get_current_user)):
+    consultant = Consultant(**consultant_data.model_dump())
+    consultant_dict = consultant.model_dump()
+    consultant_dict['created_at'] = consultant_dict['created_at'].isoformat()
+    consultant_dict['updated_at'] = consultant_dict['updated_at'].isoformat()
+    await db.consultants.insert_one(consultant_dict)
+    return consultant
+
+@api_router.get("/consultants", response_model=List[Consultant])
+async def get_consultants(current_user: User = Depends(get_current_user)):
+    consultants = await db.consultants.find({"deleted_at": None}, {"_id": 0}).to_list(1000)
+    for c in consultants:
+        if isinstance(c.get('created_at'), str):
+            c['created_at'] = datetime.fromisoformat(c['created_at'])
+        if isinstance(c.get('updated_at'), str):
+            c['updated_at'] = datetime.fromisoformat(c['updated_at'])
+    return consultants
+
+# Checklist Presets
+@api_router.get("/checklist-presets", response_model=List[ChecklistPreset])
+async def get_checklist_presets(current_user: User = Depends(get_current_user)):
+    presets = await db.checklist_presets.find({}, {"_id": 0}).to_list(100)
+    return presets
+
+# Drawing Types
+@api_router.get("/drawing-types", response_model=List[DrawingType])
+async def get_drawing_types(current_user: User = Depends(get_current_user)):
+    types = await db.drawing_types.find({}, {"_id": 0}).to_list(1000)
+    return types
+
+# Project Drawings
+@api_router.get("/projects/{project_id}/drawings")
+async def get_project_drawings(project_id: str, current_user: User = Depends(get_current_user)):
+    drawings = await db.project_drawings.find({"project_id": project_id}, {"_id": 0}).to_list(1000)
+    for d in drawings:
+        if isinstance(d.get('created_at'), str):
+            d['created_at'] = datetime.fromisoformat(d['created_at'])
+        if isinstance(d.get('updated_at'), str):
+            d['updated_at'] = datetime.fromisoformat(d['updated_at'])
+        if isinstance(d.get('due_date'), str):
+            d['due_date'] = datetime.fromisoformat(d['due_date'])
+    return drawings
+
+@api_router.post("/projects/{project_id}/drawings", response_model=ProjectDrawing)
+async def create_project_drawing(project_id: str, drawing_data: ProjectDrawingCreate, current_user: User = Depends(get_current_user)):
+    drawing = ProjectDrawing(**drawing_data.model_dump())
+    drawing_dict = drawing.model_dump()
+    drawing_dict['created_at'] = drawing_dict['created_at'].isoformat()
+    drawing_dict['updated_at'] = drawing_dict['updated_at'].isoformat()
+    if drawing_dict.get('due_date'):
+        drawing_dict['due_date'] = drawing_dict['due_date'].isoformat()
+    await db.project_drawings.insert_one(drawing_dict)
+    return drawing
+
+@api_router.put("/drawings/{drawing_id}/status")
+async def update_drawing_status(drawing_id: str, status: DrawingStatus, current_user: User = Depends(get_current_user)):
+    await db.project_drawings.update_one(
+        {"id": drawing_id},
+        {"$set": {"status": status, "updated_at": datetime.now(timezone.utc).isoformat()}}
+    )
+    return {"message": "Status updated"}
+
+# Auto-generate drawings from preset
+@api_router.post("/projects/{project_id}/generate-from-preset")
+async def generate_drawings_from_preset(
+    project_id: str,
+    preset_id: str,
+    current_user: User = Depends(get_current_user)
+):
+    # Get preset and its checklist items
+    preset = await db.checklist_presets.find_one({"id": preset_id}, {"_id": 0})
+    if not preset:
+        raise HTTPException(status_code=404, detail="Preset not found")
+    
+    checklist_items = await db.checklist_items.find({"checklist_preset_id": preset_id}, {"_id": 0}).to_list(100)
+    
+    # Get drawing types
+    generated = []
+    today = datetime.now(timezone.utc)
+    
+    for item in checklist_items:
+        drawing_type = await db.drawing_types.find_one({"id": item["drawing_type_id"]}, {"_id": 0})
+        if drawing_type:
+            # Calculate staggered due date
+            stagger_days = item["sequence"] // 10
+            due_date = today + timedelta(days=drawing_type["default_due_offset_days"] + stagger_days)
+            
+            drawing = ProjectDrawing(
+                project_id=project_id,
+                drawing_type_id=drawing_type["id"],
+                sequence=item["sequence"],
+                status=DrawingStatus.PLANNED,
+                due_date=due_date
+            )
+            
+            drawing_dict = drawing.model_dump()
+            drawing_dict['created_at'] = drawing_dict['created_at'].isoformat()
+            drawing_dict['updated_at'] = drawing_dict['updated_at'].isoformat()
+            drawing_dict['due_date'] = drawing_dict['due_date'].isoformat()
+            
+            await db.project_drawings.insert_one(drawing_dict)
+            generated.append(drawing_dict)
+    
+    return {"message": f"Generated {len(generated)} drawings", "count": len(generated)}
+
+# Tasks
+@api_router.get("/projects/{project_id}/tasks")
+async def get_project_tasks(project_id: str, current_user: User = Depends(get_current_user)):
+    tasks = await db.tasks.find({"project_id": project_id}, {"_id": 0}).to_list(1000)
+    for t in tasks:
+        if isinstance(t.get('created_at'), str):
+            t['created_at'] = datetime.fromisoformat(t['created_at'])
+        if isinstance(t.get('updated_at'), str):
+            t['updated_at'] = datetime.fromisoformat(t['updated_at'])
+        if isinstance(t.get('due_date'), str):
+            t['due_date'] = datetime.fromisoformat(t['due_date'])
+    return tasks
+
+@api_router.post("/tasks", response_model=Task)
+async def create_task(task_data: TaskCreate, current_user: User = Depends(get_current_user)):
+    task = Task(**task_data.model_dump())
+    task_dict = task.model_dump()
+    task_dict['created_at'] = task_dict['created_at'].isoformat()
+    task_dict['updated_at'] = task_dict['updated_at'].isoformat()
+    if task_dict.get('due_date'):
+        task_dict['due_date'] = task_dict['due_date'].isoformat()
+    await db.tasks.insert_one(task_dict)
+    return task
+
+# Site Visits
+@api_router.post("/site-visits", response_model=SiteVisit)
+async def create_site_visit(visit_data: SiteVisitCreate, current_user: User = Depends(get_current_user)):
+    visit = SiteVisit(
+        project_id=visit_data.project_id,
+        visit_date=datetime.fromisoformat(visit_data.visit_date),
+        notes=visit_data.notes,
+        created_by_id=current_user.id
+    )
+    visit_dict = visit.model_dump()
+    visit_dict['visit_date'] = visit_dict['visit_date'].isoformat()
+    visit_dict['created_at'] = visit_dict['created_at'].isoformat()
+    await db.site_visits.insert_one(visit_dict)
+    return visit
+
+# Site Issues
+@api_router.get("/projects/{project_id}/issues")
+async def get_project_issues(project_id: str, current_user: User = Depends(get_current_user)):
+    issues = await db.site_issues.find({"project_id": project_id}, {"_id": 0}).to_list(1000)
+    for i in issues:
+        if isinstance(i.get('created_at'), str):
+            i['created_at'] = datetime.fromisoformat(i['created_at'])
+        if isinstance(i.get('updated_at'), str):
+            i['updated_at'] = datetime.fromisoformat(i['updated_at'])
+        if isinstance(i.get('due_date'), str):
+            i['due_date'] = datetime.fromisoformat(i['due_date'])
+    return issues
+
+@api_router.post("/issues", response_model=SiteIssue)
+async def create_site_issue(issue_data: SiteIssueCreate, current_user: User = Depends(get_current_user)):
+    issue = SiteIssue(**issue_data.model_dump())
+    issue_dict = issue.model_dump()
+    issue_dict['created_at'] = issue_dict['created_at'].isoformat()
+    issue_dict['updated_at'] = issue_dict['updated_at'].isoformat()
+    if issue_dict.get('due_date'):
+        issue_dict['due_date'] = issue_dict['due_date'].isoformat()
+    await db.site_issues.insert_one(issue_dict)
+    return issue
+
+# Notifications
+@api_router.get("/notifications")
+async def get_notifications(current_user: User = Depends(get_current_user), limit: int = 50):
+    notifications = await db.notifications.find({}, {"_id": 0}).sort("sent_at", -1).limit(limit).to_list(limit)
+    for n in notifications:
+        if isinstance(n.get('sent_at'), str):
+            n['sent_at'] = datetime.fromisoformat(n['sent_at'])
+    return notifications
+
+
 # Include the router in the main app
 app.include_router(api_router)
 
