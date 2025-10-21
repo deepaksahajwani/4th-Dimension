@@ -170,6 +170,14 @@ function App() {
               }
             />
             <Route
+              path="/clients/:clientId"
+              element={
+                <ProtectedRoute>
+                  <ClientDetail user={user} onLogout={handleLogout} />
+                </ProtectedRoute>
+              }
+            />
+            <Route
               path="/team"
               element={
                 <ProtectedRoute>
