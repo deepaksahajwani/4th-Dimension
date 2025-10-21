@@ -18,6 +18,16 @@ from emergentintegrations.llm.chat import LlmChat, UserMessage, FileContentWithM
 import random
 import string
 
+# Import new project models
+from models_projects import (
+    ProjectType, ProjectStatus, DrawingStatus, TaskCategory, TaskStatus, 
+    Priority, IssueStatus, ConsultantType, NotificationChannel,
+    Consultant, ConsultantCreate, ProjectDrawing, ProjectDrawingCreate,
+    DrawingRevision, Task, TaskCreate, SiteVisit, SiteVisitCreate,
+    SiteIssue, SiteIssueCreate, Notification, NotificationCreate,
+    ChecklistPreset, DrawingType
+)
+
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
 
