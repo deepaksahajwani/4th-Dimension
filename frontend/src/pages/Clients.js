@@ -256,7 +256,7 @@ export default function Clients({ user, onLogout }) {
             <form onSubmit={handleAddClient} className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div className="col-span-2">
-                  <Label>Company/Client Name *</Label>
+                  <Label>Project Name *</Label>
                   <Input
                     value={formData.name}
                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
