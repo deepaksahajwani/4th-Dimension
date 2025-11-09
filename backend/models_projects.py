@@ -116,7 +116,6 @@ class Client(BaseModel):
 
 class ClientUpdate(BaseModel):
     name: str
-    project_types: List[str] = []
     contact_person: Optional[str] = None
     phone: Optional[str] = None
     email: Optional[EmailStr] = None
