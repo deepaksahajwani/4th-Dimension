@@ -880,8 +880,9 @@ async def create_client(client_data: ClientCreate, current_user: User = Depends(
         email=client_data.email,
         address=client_data.address,
         notes=client_data.notes,
+        archived=False,
         created_by_id=current_user.id,
-        owner_team_id=None  # Can be set later
+        owner_team_id=None
     )
     
     client_dict = client.model_dump()
@@ -892,8 +893,16 @@ async def create_client(client_data: ClientCreate, current_user: User = Depends(
     return client
 
 @api_router.get("/clients")
-async def get_clients(current_user: User = Depends(get_current_user)):
-    clients = await db.clients.find({"deleted_at": None}, {"_id": 0}).to_list(1000)
+async def get_clients(
+    include_archived: bool = False,
+    current_user: User = Depends(get_current_user)
+):
+    # By default, only show non-archived clients
+    query = {"deleted_at": None}
+    if not include_archived:
+        query["archived"] = {"$ne": True}
+    
+    clients = await db.clients.find(query, {"_id": 0}).to_list(1000)
     
     # Add project count for each client
     for client in clients:
@@ -926,7 +935,7 @@ async def get_client(client_id: str, current_user: User = Depends(get_current_us
     return client
 
 @api_router.put("/clients/{client_id}")
-async def update_client(client_id: str, client_data: ClientCreate, current_user: User = Depends(get_current_user)):
+async def update_client(client_id: str, client_data: ClientUpdate, current_user: User = Depends(get_current_user)):
     await db.clients.update_one(
         {"id": client_id},
         {"$set": {
@@ -936,14 +945,28 @@ async def update_client(client_id: str, client_data: ClientCreate, current_user:
             "email": client_data.email,
             "address": client_data.address,
             "notes": client_data.notes,
+            "archived": client_data.archived,
             "updated_at": datetime.now(timezone.utc).isoformat()
         }}
     )
     return {"message": "Client updated successfully"}
 
+@api_router.put("/clients/{client_id}/archive")
+async def archive_client(client_id: str, archived: bool = True, current_user: User = Depends(get_current_user)):
+    """Archive or unarchive a client"""
+    await db.clients.update_one(
+        {"id": client_id},
+        {"$set": {
+            "archived": archived,
+            "updated_at": datetime.now(timezone.utc).isoformat()
+        }}
+    )
+    action = "archived" if archived else "unarchived"
+    return {"message": f"Client {action} successfully"}
+
 @api_router.delete("/clients/{client_id}")
 async def delete_client(client_id: str, current_user: User = Depends(require_owner)):
-    """Soft delete client and set client_id to null in related projects"""
+    """Permanently delete client (soft delete) and unlink from projects"""
     # Soft delete the client
     await db.clients.update_one(
         {"id": client_id},
@@ -956,7 +979,7 @@ async def delete_client(client_id: str, current_user: User = Depends(require_own
         {"$set": {"client_id": None}}
     )
     
-    return {"message": "Client deleted and projects updated"}
+    return {"message": "Client deleted and projects unlinked"}
     client = await db.clients.find_one({"id": client_id}, {"_id": 0})
     if not client:
         raise HTTPException(status_code=404, detail="Client not found")
