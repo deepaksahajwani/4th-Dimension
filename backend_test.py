@@ -982,44 +982,54 @@ class BackendTester:
     def test_client_api_with_project_types(self):
         """Test Client API endpoints with project_types field"""
         if not self.auth_token:
-            # Try to register/login as owner for client testing
+            # Create a regular user for client testing (clients don't require owner permissions)
             try:
-                owner_email = "deepaksahajwani@gmail.com"
-                owner_password = "OwnerTest123!"
+                test_email = f"clienttest_{uuid.uuid4().hex[:8]}@example.com"
+                test_password = "ClientTest123!"
                 
-                # First try to register owner
-                owner_register = {
-                    "email": owner_email,
-                    "password": owner_password,
-                    "name": "Deepak Sahajwani"
+                # Register test user
+                user_register = {
+                    "email": test_email,
+                    "password": test_password,
+                    "name": "Client Test User"
                 }
-                register_response = self.session.post(f"{BACKEND_URL}/auth/register", json=owner_register)
+                register_response = self.session.post(f"{BACKEND_URL}/auth/register", json=user_register)
                 
                 if register_response.status_code == 200:
-                    self.auth_token = register_response.json()["access_token"]
-                    self.log_result("Client API - Owner Registration", True, "Owner registered successfully")
-                elif register_response.status_code == 400 and "already registered" in register_response.text:
-                    # Owner exists, try to login
-                    owner_login = {
-                        "email": owner_email,
-                        "password": owner_password
-                    }
-                    login_response = self.session.post(f"{BACKEND_URL}/auth/login", json=owner_login)
-                    if login_response.status_code == 200:
-                        self.auth_token = login_response.json()["access_token"]
-                        self.log_result("Client API - Owner Login", True, "Owner login successful")
-                    else:
-                        # Try alternative owner email
-                        owner_login["email"] = "deepak@4thdimension.com"
-                        login_response = self.session.post(f"{BACKEND_URL}/auth/login", json=owner_login)
-                        if login_response.status_code == 200:
-                            self.auth_token = login_response.json()["access_token"]
-                            self.log_result("Client API - Owner Login Alt", True, "Owner login successful with alt email")
+                    register_data = register_response.json()
+                    self.auth_token = register_data["access_token"]
+                    
+                    # Complete profile if needed
+                    if register_data.get("requires_profile_completion"):
+                        headers = {"Authorization": f"Bearer {self.auth_token}"}
+                        profile_data = {
+                            "full_name": "Client Test User",
+                            "address_line_1": "123 Test Street",
+                            "address_line_2": "Test Area",
+                            "city": "Test City",
+                            "state": "Test State",
+                            "pin_code": "123456",
+                            "email": test_email,
+                            "mobile": "+919876543210",
+                            "date_of_birth": "1990-01-15",
+                            "date_of_joining": "2024-01-01",
+                            "gender": "male",
+                            "marital_status": "single",
+                            "role": "architect"
+                        }
+                        
+                        profile_response = self.session.post(f"{BACKEND_URL}/profile/complete", 
+                                                           json=profile_data, headers=headers)
+                        
+                        if profile_response.status_code == 200:
+                            self.log_result("Client API - User Setup", True, "Test user created and profile completed")
                         else:
-                            self.log_result("Client API - Authentication", False, "Could not authenticate as owner")
+                            self.log_result("Client API - User Setup", False, f"Profile completion failed: {profile_response.status_code}")
                             return
+                    else:
+                        self.log_result("Client API - User Setup", True, "Test user created successfully")
                 else:
-                    self.log_result("Client API - Authentication", False, f"Owner registration failed: {register_response.status_code}")
+                    self.log_result("Client API - Authentication", False, f"User registration failed: {register_response.status_code} - {register_response.text}")
                     return
             except Exception as e:
                 self.log_result("Client API - Authentication", False, f"Auth exception: {str(e)}")
