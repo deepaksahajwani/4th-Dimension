@@ -119,6 +119,21 @@ export default function Clients({ user, onLogout }) {
     setDeleteDialogOpen(true);
   };
 
+  const handleProjectTypeChange = (type) => {
+    const currentTypes = formData.project_types || [];
+    if (currentTypes.includes(type)) {
+      setFormData({ 
+        ...formData, 
+        project_types: currentTypes.filter(t => t !== type) 
+      });
+    } else {
+      setFormData({ 
+        ...formData, 
+        project_types: [...currentTypes, type] 
+      });
+    }
+  };
+
   if (loading) {
     return (
       <Layout user={user} onLogout={onLogout}>
