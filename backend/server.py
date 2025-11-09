@@ -968,14 +968,6 @@ async def delete_client(client_id: str, current_user: User = Depends(require_own
     )
     
     return {"message": "Client deleted and projects unlinked"}
-    client = await db.clients.find_one({"id": client_id}, {"_id": 0})
-    if not client:
-        raise HTTPException(status_code=404, detail="Client not found")
-    if isinstance(client.get('first_call_date'), str):
-        client['first_call_date'] = datetime.fromisoformat(client['first_call_date'])
-    if isinstance(client.get('created_at'), str):
-        client['created_at'] = datetime.fromisoformat(client['created_at'])
-    return Client(**client)
 
 
 # ==================== PROJECT ROUTES ====================
