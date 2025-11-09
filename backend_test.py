@@ -982,24 +982,45 @@ class BackendTester:
     def test_client_api_with_project_types(self):
         """Test Client API endpoints with project_types field"""
         if not self.auth_token:
-            # Get owner credentials for client testing
+            # Try to register/login as owner for client testing
             try:
-                owner_login = {
-                    "email": "deepaksahajwani@gmail.com",
-                    "password": "OwnerTest123!"
+                owner_email = "deepaksahajwani@gmail.com"
+                owner_password = "OwnerTest123!"
+                
+                # First try to register owner
+                owner_register = {
+                    "email": owner_email,
+                    "password": owner_password,
+                    "name": "Deepak Sahajwani"
                 }
-                login_response = self.session.post(f"{BACKEND_URL}/auth/login", json=owner_login)
-                if login_response.status_code == 200:
-                    self.auth_token = login_response.json()["access_token"]
-                else:
-                    # Try alternative owner email
-                    owner_login["email"] = "deepak@4thdimension.com"
+                register_response = self.session.post(f"{BACKEND_URL}/auth/register", json=owner_register)
+                
+                if register_response.status_code == 200:
+                    self.auth_token = register_response.json()["access_token"]
+                    self.log_result("Client API - Owner Registration", True, "Owner registered successfully")
+                elif register_response.status_code == 400 and "already registered" in register_response.text:
+                    # Owner exists, try to login
+                    owner_login = {
+                        "email": owner_email,
+                        "password": owner_password
+                    }
                     login_response = self.session.post(f"{BACKEND_URL}/auth/login", json=owner_login)
                     if login_response.status_code == 200:
                         self.auth_token = login_response.json()["access_token"]
+                        self.log_result("Client API - Owner Login", True, "Owner login successful")
                     else:
-                        self.log_result("Client API - Authentication", False, "Could not authenticate as owner")
-                        return
+                        # Try alternative owner email
+                        owner_login["email"] = "deepak@4thdimension.com"
+                        login_response = self.session.post(f"{BACKEND_URL}/auth/login", json=owner_login)
+                        if login_response.status_code == 200:
+                            self.auth_token = login_response.json()["access_token"]
+                            self.log_result("Client API - Owner Login Alt", True, "Owner login successful with alt email")
+                        else:
+                            self.log_result("Client API - Authentication", False, "Could not authenticate as owner")
+                            return
+                else:
+                    self.log_result("Client API - Authentication", False, f"Owner registration failed: {register_response.status_code}")
+                    return
             except Exception as e:
                 self.log_result("Client API - Authentication", False, f"Auth exception: {str(e)}")
                 return
