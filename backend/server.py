@@ -861,7 +861,6 @@ async def update_user(user_id: str, user_data: UpdateTeamMember, current_user: U
 async def create_client(client_data: NewClientCreate, current_user: User = Depends(get_current_user)):
     client = NewClient(
         name=client_data.name,
-        project_types=client_data.project_types,
         contact_person=client_data.contact_person,
         phone=client_data.phone,
         email=client_data.email,
