@@ -89,7 +89,11 @@ export default function ClientDetail({ user, onLogout }) {
                   </div>
                 </div>
               </div>
-              <Button variant="outline" size="sm">
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => navigate('/clients', { state: { editClientId: clientId } })}
+              >
                 <Edit className="w-4 h-4 mr-2" />
                 Edit
               </Button>
