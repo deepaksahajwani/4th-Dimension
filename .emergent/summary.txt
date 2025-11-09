@@ -1,98 +1,78 @@
 <analysis>
-The AI engineer iteratively developed a full-stack architecture firm management application based on detailed user feedback. Initially, it set up the basic React/FastAPI/MongoDB project structure, handled third-party integrations (LLMs, attempted S3), and developed core features like project and team management. A key decision was to defer AWS S3 integration due to user unfamiliarity, opting for local file storage. The AI consistently refined UI/UX, incorporating branding from a user-provided visiting card and fixing multiple bugs related to authentication flows, specifically Google OAuth and user registration redirects. It demonstrated a robust iterative development cycle, addressing specific user requests for UI elements, data fields, and complex authentication logic, including OTP and admin validation. The current task involves fixing a React rendering error in the  structure, specifically related to the loading state during profile registration.
+The AI engineer has demonstrated an iterative and responsive development process, effectively handling both bug fixes and significant feature expansions. Initially, the focus was on addressing a critical React rendering error stemming from unformatted Pydantic error objects, which was resolved by implementing a centralized error handling utility and applying it across the frontend. Subsequently, a major overhaul of the authentication and team management system was undertaken, driven by detailed user requirements for login flow, registration fields (including a complex address structure and dynamic team roles), and specific owner functionalities like team member management and custom sorting. The database was meticulously cleared and re-seeded multiple times to ensure a clean state for these changes. Most recently, the development pivoted to the comprehensive Projects module, starting with data model creation and seeding, and then focusing on the Client sub-module, which involved full CRUD, archive functionality, and detailed field requirements. The current task is to complete the integration of Project Type checkboxes within the client forms.
 </analysis>
 
 <product_requirements>
-The user, an architect running 4th Dimension, requires an internal application to manage firm operations across 50 projects in India. The app needs features for project creation, automated standardized work lists, user and site allocation, client referral tracking, revision tracking for designs (layouts, elevations, 3D renders), an integrated accounting system (fees, payments, salaries), reminder systems for pending finalization, and a customizable drawing issuance system with automated reminders and AI drawing checks. For interior design, it requires specific drawing categories. The app needs secure accounting accessible only to the owner. Initial requests included specific LLM (GPT-5), image generation, cloud storage (AWS S3 was initially requested but changed to local storage), and core functionalities for project management, task/drawing tracking, and basic accounting. Subsequent requests focused on app branding (4th Dimension app name, specific logo, orange color scheme), project type dropdown options (Architecture, Interior, Planning, Landscape), adding new clients, addressing fields (address, city), removing Firm Management tab, removing consultation status label, adding Date of creation label, a Team Leader field, a Team page for member management, owner-only permission for adding/deleting team members with OTP verification, admin rights management, self-registration with OTP and email verification, comprehensive personal details collection (Full Name, Address, Email, Mobile, DOB, Marital Status, Team Role, Gender), and social media login (Google).
+The user, an architect running 4th Dimension, requires an internal application to manage firm operations across 50 projects in India. Key features include project creation, automated work lists, user/site allocation, client referral tracking, design revision tracking, integrated accounting, reminder systems, and customizable AI-assisted drawing issuance. Initial requests included LLM/image generation and cloud storage (later changed to local). Subsequent major requirements focused on branding (4th Dimension, orange scheme), comprehensive login/registration (email/password, Google OAuth, OTP verification removed, no admin approval, full profile details including address, DOB, marital status, gender, specific Team Roles like '3D Visualizer', 'Date of Joining'), and a redesigned Team page (Owner at top, then grouped by role, sorted by joining date, owner-only Manage Team to edit/delete members, set salaries, and add write-ups). The latest major request is for a comprehensive Projects module, including detailed data models (Client, Project, DrawingCategory, DrawingType, ProjectDrawing, DrawingRevision, ChecklistPreset, ChecklistItem, Task, SiteVisit, SiteIssue, Notification), default data seeding for drawing libraries and presets, CRUD screens for all entities, Project Detail page with tabs, and various automations (checklist auto-generation, drawing reminders, status notifications, revision tracking, site visit/issue handling, owner reminders). The Client module specifically needs list/detail views, Add/Edit Client (with archive/delete), linking clients to projects, Dashboard stats, and a Project Type field with checkboxes (Architecture, Interior, Landscape, Planning).
 </product_requirements>
 
 <key_technical_concepts>
 - **Full-stack Architecture**: React (frontend), FastAPI (backend), MongoDB (database).
-- **Authentication**: JWT-based, username/password, Google OAuth, OTP verification (mobile/email).
-- **User Roles**: Owner, Administrator, Team Member (with varying permissions).
-- **UI/UX**: Shadcn UI components, Tailwind CSS, specific branding (logo, colors, fonts).
-- **LLM Integration**: Emergent LLM key for AI drawing review and generation.
-- **File Storage**: Initial plan for AWS S3, shifted to local file storage.
-- **Project Management**: Project creation, status tracking, team leader assignment.
+- **Authentication**: JWT, Google OAuth, username/password, OTP (initially used, then removed).
+- **Data Modeling**: Pydantic for FastAPI schemas, UUIDs for IDs (avoiding MongoDB ObjectIDs).
+- **UI/UX**: Shadcn UI, Tailwind CSS, custom branding.
+- **Error Handling**: Centralized frontend utility () for Pydantic validation errors.
+- **User Roles**: Owner, Admin, various Team Roles with specific permissions.
+- **File Storage**: Local file storage (AWS S3 deferred).
 </key_technical_concepts>
 
 <code_architecture>
 The application follows a standard full-stack architecture:
 
 
+
 **Detailed Directory Structure & Key Files:**
 
 - : FastAPI backend
-    - : Python dependencies (updated with , , , , ).
-    - : Main FastAPI application.
-        - **Importance**: Contains all backend API endpoints, database interactions, authentication logic, user and project models, and business logic.
-        - **Changes**:
-            - Initial setup for user authentication, project management, and team handling.
-            - Added models for , , , , .
-            - Implemented CRUD for projects, teams, and clients.
-            - Updated , ,  to support new registration flow, OTP, admin validation, and owner identification.
-            - Added endpoints for , , , , .
-            - Integrated  for LLM and potentially other services.
-            - Modified  model to include , , , .
-            - Updated Google OAuth handler to redirect based on .
-            - Pre-configured owner details for .
-    - : Environment variables (e.g., , , ).
+    - : Python dependencies.
+    - : Main FastAPI application, API endpoints, authentication, user/project/client models, business logic.
+        - **Importance**: Central backend logic.
+        - **Changes**: Major updates to  model (added , detailed  fields, , , updated  enum). Modified owner pre-registration and profile completion. Simplified  and added  for owner-only team management. Integrated new project-related endpoints and client CRUD, including archive/delete logic and  field for clients.
+    - : **NEW**. Contains comprehensive Pydantic models for , , , , , , , , , , , , along with their enums.
+        - **Importance**: Centralizes the new Projects module's data schemas.
+        - **Changes**: Added  field to  model, and  field (List of enums).
+    - : **NEW**. Script to populate default drawing categories, types, and checklist presets.
+        - **Importance**: Initializes core project setup data.
+    - : **NEW**. Script to create initial demo projects and related data.
+        - **Importance**: Provides sample data for testing the project module.
+    - : **NEW**. Script to create sample clients and link them to demo projects.
+        - **Importance**: Populates client data for testing.
+    - : Environment variables (e.g., , , , ).
         - **Importance**: Stores sensitive configuration.
-        - **Changes**: Added  and other necessary keys for authentication.
 
 - : React frontend
-    - : Node.js dependencies (updated with , , , , , ).
+    - : Node.js dependencies.
     - : React source code
-        - : Entry point.
         - : Main React component, handles global routing, context, and authentication state.
             - **Importance**: Central for application layout, routes, and authentication flow.
-            - **Changes**:
-                - Initial setup of  and .
-                - Defined routes for , , , , , , , , , , , , , , .
-                - Implemented  to process Google session tokens and redirect based on .
-                - Added  state to prevent UI flashes during Google auth.
-                - Modified  interceptor for token handling and error redirection.
-                - The last change involves fixing a React rendering error in  structure.
-        - : Global styles.
-            - **Importance**: Contains application-wide CSS.
-            - **Changes**: Updated for branding (colors, gradients, font families) based on user's visiting card.
+            - **Changes**: Updated for new routes: , , , , , . Simplified Google OAuth.
+        - : Global styles (branding).
         - : Page components
-            - : Handles user registration and login.
-                - **Importance**: Primary entry point for users.
-                - **Changes**:
-                    - Rebuilt to support combined login/registration with tabs, social media login (Google).
-                    - Updated to ask for username and password twice during registration.
-                    - Integrated OTP verification.
-                    - Applied branding (logo, colors, button styles).
-                    - Fixed Google OAuth redirect URL.
-                    - Added password visibility toggle.
-                    - Corrected  logic for redirection.
-                    - Corrected multiple JSX parsing errors and extra closing tags.
-            - : Displays project statistics and reminders.
-            - : Manages project creation and listing.
-                - **Importance**: Core project management interface.
-                - **Changes**: Added fields for  dropdown, , , . Removed Firm Management and consultation status, added Date of creation.
-            - : Manages team members.
-                - **Importance**: For user and role management.
-                - **Changes**:
-                    - Rebuilt to display pending members, handle admin rights, and validate new members.
-                    - Implemented OTP-protected add/delete for owner-only.
-                    - Added UI for long names and admin badge/toggle.
-                    - Corrected rendering issues.
-            - : Collects detailed user information after initial registration.
-                - **Importance**: Collects essential user details for new registrations.
-                - **Changes**:
-                    - Added fields for , , , .
-                    - Pre-filled email and set default country code (+91) for mobile number.
-                    - Made email field read-only.
-            - : Displays a message for users awaiting admin approval.
-            - : (Initially created, later replaced by combined LoginPage)
+            - : **REBUILT**. Handles user login (email/password, Google OAuth) and prompts for registration.
+                - **Importance**: Primary entry point.
+            - : **NEW**. Collects detailed user information (name, mobile, email, DOB, gender, address fields, marital status, date of joining, team role, password).
+                - **Importance**: New user registration form.
+            - : **REBUILT**. Displays a list of clients, allows adding new clients, editing existing ones, archiving, and deleting. Includes a  field with checkboxes.
+                - **Importance**: Core client management interface.
+                - **Changes**: Replaced Company/Client Name with Project Name label.
+            - : **NEW**. Displays details of a specific client and a list of associated projects.
+                - **Importance**: Detailed client view.
+            - : **REBUILT**. Displays team members, with owner at the top, then grouped by role and sorted by joining date.
+                - **Importance**: Team visualization and navigation to member details.
+            - : **NEW**. Displays individual team member details, including the owner's custom write-up.
+                - **Importance**: Detailed team member profiles.
+            - : **NEW**. Owner-only interface for managing team members (edit details, salary, write-up).
+                - **Importance**: Owner's administrative control over team.
+            - : Displays project statistics, reminders, and quick actions.
+                - **Importance**: Overview of firm operations.
+            - : Manages project creation and listing (initial version existed, but comprehensive project module UI is still pending).
         - : Reusable components
             - : Application layout, sidebar navigation.
-                - **Importance**: Defines the overall UI structure.
-                - **Changes**: Updated to show Owner title for Deepak Sahajwani and conditional rendering for Manage Team button based on role.
+                - **Importance**: Defines overall UI structure.
+                - **Changes**: Added Team and Clients links to sidebar, conditional rendering for Owner title and Manage Team button.
             - : Shadcn UI components.
-                - **Importance**: Provides a consistent and modern UI library.
+        - : **NEW**. Utility function to format complex error objects (e.g., Pydantic validation errors) into user-friendly strings for .
+            - **Importance**: Improves UI error messaging.
 </code_architecture>
 
 <pending_tasks>
@@ -100,16 +80,20 @@ The application follows a standard full-stack architecture:
 - Implement reminder system for plan finalization and drawing issuance.
 - Develop AI system for checking drawings.
 - Expand app scope to issue standardized drawings automatically.
-- Implement detailed drawing categorization (Structural, Architectural, Plumbing, Electrical, HVAC, Furniture, Ceiling, Kitchen, Landscape, others).
+- Implement detailed drawing categorization (beyond seeded types).
 - Add ability to add custom list of drawings for consultants.
 - Integrate site visit issue tracking and notification system.
-- Implement OTP verification on the backend for adding/deleting team members.
+- Complete the Projects module screens (CRUD for Projects, Project Drawings, Tasks, Issues, Site Visits, Consultants, Admin → Drawing Libraries / Presets, Notifications Center, My Work).
+- Implement all specified automations for the Projects module (Checklist Auto-Generation, Drawing Reminder System, Status-Change Notifications, Revision Tracking, SiteVisit + SiteIssue Handling, Owner Manual Reminders).
+- Seed demo projects with linked team, consultants, and overdue reminders as per the spec.
 </pending_tasks>
 
 <current_work>
-The AI engineer is currently addressing a React rendering error on the profile page () that occurs when a user clicks register. This issue was reported by the user after successfully navigating to the  page following Google registration. The error manifest as React rendering error in the loading state. The AI's last action was to identify the problem as a React rendering error in the loading state and planned to fix the structure. This suggests that the current focus is on debugging and correcting the frontend component structure or state management, specifically in , to ensure proper rendering during the profile completion flow. This is a critical bug as it prevents new users from completing their profiles.
+The AI engineer is currently in the process of implementing the Project Type field (Architecture, Interior, Landscape, Planning) as checkboxes within the client forms.
+On the **backend**, the  model (in ) has been updated to include . Corresponding  and  Pydantic schemas and client-related API routes in  have also been modified to handle this new field.
+On the **frontend**, the  component is being updated to display these Project Type checkboxes in the client creation and edit forms. This involves modifying the form's UI and ensuring the data is correctly sent to and received from the backend. The last action was an edit to  to incorporate the checkbox UI.
 </current_work>
 
 <optional_next_step>
-Fix the React rendering error in  related to the loading state on the profile page.
+Complete the frontend implementation of Project Type checkboxes in  and verify their functionality in the UI.
 </optional_next_step>
