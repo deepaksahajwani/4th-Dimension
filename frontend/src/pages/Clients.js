@@ -55,7 +55,7 @@ export default function Clients({ user, onLogout }) {
       await axios.post(`${API}/clients`, formData);
       toast.success('Client added successfully');
       setAddDialogOpen(false);
-      setFormData({ name: '', contact_person: '', phone: '', email: '', address: '', notes: '', archived: false });
+      setFormData({ name: '', project_types: [], contact_person: '', phone: '', email: '', address: '', notes: '', archived: false });
       fetchClients();
     } catch (error) {
       toast.error(formatErrorMessage(error, 'Failed to add client'));
