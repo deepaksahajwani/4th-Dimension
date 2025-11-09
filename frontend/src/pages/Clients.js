@@ -25,7 +25,6 @@ export default function Clients({ user, onLogout }) {
   const [selectedClient, setSelectedClient] = useState(null);
   const [formData, setFormData] = useState({
     name: '',
-    project_types: [],
     contact_person: '',
     phone: '',
     email: '',
