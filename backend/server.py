@@ -926,7 +926,6 @@ async def update_client(client_id: str, client_data: ClientUpdate, current_user:
         {"id": client_id},
         {"$set": {
             "name": client_data.name,
-            "project_types": client_data.project_types,
             "contact_person": client_data.contact_person,
             "phone": client_data.phone,
             "email": client_data.email,
