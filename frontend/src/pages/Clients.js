@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
 import Layout from '@/components/Layout';
 import { Button } from '@/components/ui/button';
@@ -17,6 +17,7 @@ const API = `${BACKEND_URL}/api`;
 
 export default function Clients({ user, onLogout }) {
   const navigate = useNavigate();
+  const location = useLocation();
   const [clients, setClients] = useState([]);
   const [loading, setLoading] = useState(true);
   const [addDialogOpen, setAddDialogOpen] = useState(false);
@@ -36,6 +37,18 @@ export default function Clients({ user, onLogout }) {
   useEffect(() => {
     fetchClients();
   }, []);
+
+  // Handle navigation from ClientDetail with edit intent
+  useEffect(() => {
+    if (location.state?.editClientId && clients.length > 0) {
+      const clientToEdit = clients.find(c => c.id === location.state.editClientId);
+      if (clientToEdit) {
+        openEditDialog(clientToEdit);
+        // Clear the state so it doesn't trigger again
+        navigate(location.pathname, { replace: true, state: {} });
+      }
+    }
+  }, [location.state, clients]);
 
   const fetchClients = async () => {
     try {
