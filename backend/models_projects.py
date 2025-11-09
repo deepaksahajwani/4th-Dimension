@@ -107,11 +107,21 @@ class Client(BaseModel):
     email: Optional[EmailStr] = None
     address: Optional[str] = None
     notes: Optional[str] = None
+    archived: bool = False  # For keeping list clean
     created_by_id: Optional[str] = None
     owner_team_id: Optional[str] = None
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     deleted_at: Optional[datetime] = None
+
+class ClientUpdate(BaseModel):
+    name: str
+    contact_person: Optional[str] = None
+    phone: Optional[str] = None
+    email: Optional[EmailStr] = None
+    address: Optional[str] = None
+    notes: Optional[str] = None
+    archived: bool = False
 
 class ClientCreate(BaseModel):
     name: str
