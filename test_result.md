@@ -181,6 +181,18 @@ test_plan:
   test_all: false
   test_priority: "high_first"
 
+  - task: "Project Type Checkboxes for Clients"
+    implemented: true
+    working: "NA"
+    file: "frontend/src/pages/Clients.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Implemented Project Type checkboxes (Architecture, Interior, Landscape, Planning) in both Add and Edit client forms. Updated openEditDialog to include project_types when loading client data. Added handleProjectTypeChange function to toggle checkbox selections. Added visual display of project types in client list view as orange badges. Backend already supports project_types field. Ready for testing."
+
 agent_communication:
   - agent: "main"
     message: "Fixed React rendering error caused by trying to render Pydantic validation error objects directly in toast messages. Created formatErrorMessage utility function that properly handles string errors, array errors (Pydantic validation), and object errors. Updated 6 files: errorHandler.js (new), CompleteProfile.js, LoginPage.js, Projects.js, Team.js, and SelfRegister.js. All error handlers now use the utility to format error messages before displaying. Frontend restarted successfully and homepage loads correctly. Ready for comprehensive E2E testing of registration flows."
@@ -188,3 +200,5 @@ agent_communication:
     message: "Backend authentication and registration APIs thoroughly tested and confirmed working. Created comprehensive test suite (backend_test.py) covering all authentication endpoints. All 17 tests passed with 100% success rate. Key findings: 1) All authentication flows (register, login, Google OAuth, OTP, profile completion) working correctly, 2) Error responses properly formatted and JSON serializable, 3) Validation working for required fields and duplicate emails, 4) JWT tokens generated and accepted properly, 5) OTP generation and verification working, 6) Profile completion flow functional. Minor observation: OTP endpoint accepts invalid mobile/email formats but this doesn't break functionality. Backend is solid and ready for frontend integration testing."
   - agent: "testing"
     message: "COMPLETE SIMPLIFIED REGISTRATION FLOW WITH AUTO-VALIDATION SUCCESSFULLY TESTED: Created focused test (focused_registration_test.py) that validates the exact requested flow. All 5 steps passed: 1) User registration with requires_profile_completion=True, 2) Profile completion returns status='validated' (auto-validation), 3) User verification shows is_validated=True + all verification flags set, 4) Login successful with requires_profile_completion=False, 5) Owner registration confirmed auto-validated. The simplified registration flow is working perfectly - users are auto-validated immediately after profile completion without requiring admin approval. Backend implementation is solid and ready for production use."
+  - agent: "main"
+    message: "Implemented Project Type checkboxes feature for Clients module. Changes: 1) Updated openEditDialog to include project_types when loading client for editing, 2) Added handleProjectTypeChange function to toggle checkbox selections, 3) Added Project Type checkboxes UI (Architecture, Interior, Landscape, Planning) to both Add Client and Edit Client forms, 4) Added visual badges to display selected project types in client list view. Backend already supports project_types field (List[str]). Now ready for backend testing to verify the full flow."
