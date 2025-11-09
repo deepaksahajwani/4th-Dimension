@@ -994,7 +994,7 @@ class BackendTester:
                 else:
                     # Try alternative owner email
                     owner_login["email"] = "deepak@4thdimension.com"
-                    login_response = self.session.post(f"{BACKEND_URL}/auth/login", json=login_response)
+                    login_response = self.session.post(f"{BACKEND_URL}/auth/login", json=owner_login)
                     if login_response.status_code == 200:
                         self.auth_token = login_response.json()["access_token"]
                     else:
