@@ -102,7 +102,6 @@ export default function Clients({ user, onLogout }) {
     setSelectedClient(client);
     setFormData({
       name: client.name,
-      project_types: client.project_types || [],
       contact_person: client.contact_person || '',
       phone: client.phone || '',
       email: client.email || '',
