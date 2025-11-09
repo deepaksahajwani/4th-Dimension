@@ -196,6 +196,24 @@ test_plan:
         agent: "testing"
         comment: "COMPREHENSIVE PROJECT TYPE CHECKBOXES TESTING COMPLETED SUCCESSFULLY: ✅ Registration and login flow working. ✅ Clients page loads correctly with existing clients showing project type badges (Architecture, Interior, Landscape, Planning in orange badges). ✅ Add Client dialog opens and displays all 4 project type checkboxes (Architecture, Interior, Landscape, Planning). ✅ Checkboxes are fully functional - can be checked/unchecked individually. ✅ Architecture and Interior checkboxes successfully checked during test. ✅ Form accepts client data with selected project types. ✅ Project type badges display correctly in client list view. ✅ Edit functionality accessible (edit buttons visible). ✅ handleProjectTypeChange function working correctly for toggling selections. ✅ Visual implementation matches requirements with orange badges for project types. All core functionality working as expected - users can successfully add clients with multiple project types and see them displayed as badges."
 
+  - task: "Backend Model Conflict Fix - first_call_date Error"
+    implemented: true
+    working: true
+    file: "backend/models_projects.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: false
+        agent: "user"
+        comment: "User reported 'first_call_date - field required' error when adding clients with project types. Backend model conflict between old Client model and NewClient model."
+      - working: true
+        agent: "main"
+        comment: "Fixed backend model conflict by removing old Client model with first_call_date field. Backend restarted with correct NewClient model from models_projects.py."
+      - working: true
+        agent: "testing"
+        comment: "BACKEND FIX VERIFICATION COMPLETED - FIRST_CALL_DATE ERROR RESOLVED: ✅ Tested client creation API directly via curl commands. ✅ Successfully registered new user and completed profile. ✅ Created client 'Test Architecture Firm' with project_types ['Architecture', 'Interior'] via POST /api/clients API. ✅ API returned 200 OK with complete client object including correct project_types. ✅ NO first_call_date error encountered - backend model conflict successfully resolved. ✅ Client appears in GET /api/clients list with correct project_types. ✅ Backend now using correct NewClient model without problematic first_call_date field. The main agent's fix has successfully resolved the validation error. Client creation with project types working correctly."
+
 agent_communication:
   - agent: "main"
     message: "Fixed React rendering error caused by trying to render Pydantic validation error objects directly in toast messages. Created formatErrorMessage utility function that properly handles string errors, array errors (Pydantic validation), and object errors. Updated 6 files: errorHandler.js (new), CompleteProfile.js, LoginPage.js, Projects.js, Team.js, and SelfRegister.js. All error handlers now use the utility to format error messages before displaying. Frontend restarted successfully and homepage loads correctly. Ready for comprehensive E2E testing of registration flows."
