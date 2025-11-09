@@ -171,16 +171,6 @@ export default function Clients({ user, onLogout }) {
                       </div>
                     </div>
                     
-                    {client.project_types && client.project_types.length > 0 && (
-                      <div className="flex flex-wrap gap-2 mb-3">
-                        {client.project_types.map((type) => (
-                          <span key={type} className="px-2 py-1 text-xs bg-orange-50 text-orange-700 rounded border border-orange-200">
-                            {type}
-                          </span>
-                        ))}
-                      </div>
-                    )}
-                    
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
                       {client.phone && (
                         <div className="flex items-center gap-2 text-slate-600">
