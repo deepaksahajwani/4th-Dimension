@@ -25,7 +25,7 @@ from models_projects import (
     Consultant, ConsultantCreate, ProjectDrawing, ProjectDrawingCreate,
     DrawingRevision, Task, TaskCreate, SiteVisit, SiteVisitCreate,
     SiteIssue, SiteIssueCreate, Notification, NotificationCreate,
-    ChecklistPreset, DrawingType
+    ChecklistPreset, DrawingType, ClientUpdate
 )
 
 ROOT_DIR = Path(__file__).parent
