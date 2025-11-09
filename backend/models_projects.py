@@ -102,7 +102,6 @@ class Client(BaseModel):
     model_config = ConfigDict(extra="ignore")
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     name: str
-    project_types: List[str] = []  # Architecture, Interior, Landscape, Planning
     contact_person: Optional[str] = None
     phone: Optional[str] = None
     email: Optional[EmailStr] = None
