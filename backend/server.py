@@ -142,22 +142,7 @@ class UserSession(BaseModel):
     expires_at: datetime
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
-class Client(BaseModel):
-    model_config = ConfigDict(extra="ignore")
-    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
-    name: str
-    contact: Optional[str] = None
-    email: Optional[str] = None
-    referred_by: Optional[str] = None  # Client ID
-    first_call_date: datetime
-    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
-
-class ClientCreate(BaseModel):
-    name: str
-    contact: Optional[str] = None
-    email: Optional[str] = None
-    referred_by: Optional[str] = None
-    first_call_date: str
+# Old Client and ClientCreate models removed - now using models from models_projects.py
 
 class Project(BaseModel):
     model_config = ConfigDict(extra="ignore")
