@@ -281,6 +281,22 @@ export default function Clients({ user, onLogout }) {
                     placeholder="ABC Constructions"
                   />
                 </div>
+                <div className="col-span-2">
+                  <Label>Project Type</Label>
+                  <div className="flex flex-wrap gap-4 mt-2">
+                    {['Architecture', 'Interior', 'Landscape', 'Planning'].map((type) => (
+                      <label key={type} className="flex items-center gap-2 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={formData.project_types.includes(type)}
+                          onChange={() => handleProjectTypeChange(type)}
+                          className="w-4 h-4 text-orange-500 border-slate-300 rounded focus:ring-orange-500"
+                        />
+                        <span className="text-sm text-slate-700">{type}</span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
                 <div>
                   <Label>Contact Person</Label>
                   <Input
