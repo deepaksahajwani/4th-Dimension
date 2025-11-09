@@ -979,7 +979,280 @@ class BackendTester:
         
         return passed == total
 
+    def test_client_api_with_project_types(self):
+        """Test Client API endpoints with project_types field"""
+        if not self.auth_token:
+            # Get owner credentials for client testing
+            try:
+                owner_login = {
+                    "email": "deepaksahajwani@gmail.com",
+                    "password": "OwnerTest123!"
+                }
+                login_response = self.session.post(f"{BACKEND_URL}/auth/login", json=owner_login)
+                if login_response.status_code == 200:
+                    self.auth_token = login_response.json()["access_token"]
+                else:
+                    # Try alternative owner email
+                    owner_login["email"] = "deepak@4thdimension.com"
+                    login_response = self.session.post(f"{BACKEND_URL}/auth/login", json=login_response)
+                    if login_response.status_code == 200:
+                        self.auth_token = login_response.json()["access_token"]
+                    else:
+                        self.log_result("Client API - Authentication", False, "Could not authenticate as owner")
+                        return
+            except Exception as e:
+                self.log_result("Client API - Authentication", False, f"Auth exception: {str(e)}")
+                return
+
+        headers = {"Authorization": f"Bearer {self.auth_token}"}
+        
+        # Test 1: POST /api/clients - Create client with multiple project_types
+        try:
+            client_data = {
+                "name": "Test Architecture Firm",
+                "project_types": ["Architecture", "Interior"],
+                "contact_person": "John Smith",
+                "phone": "+919876543210",
+                "email": "john@testfirm.com",
+                "address": "123 Test Street, Test City",
+                "notes": "Test client for project_types validation"
+            }
+            
+            create_response = self.session.post(f"{BACKEND_URL}/clients", json=client_data, headers=headers)
+            
+            if create_response.status_code == 200:
+                created_client = create_response.json()
+                
+                # Verify project_types field
+                if "project_types" in created_client and created_client["project_types"] == ["Architecture", "Interior"]:
+                    self.log_result("Client API - Create with project_types", True, 
+                                  f"Client created successfully with project_types: {created_client['project_types']}")
+                    self.test_client_id = created_client["id"]
+                else:
+                    self.log_result("Client API - Create with project_types", False, 
+                                  f"project_types field missing or incorrect: {created_client.get('project_types')}")
+                    return
+            else:
+                self.log_result("Client API - Create with project_types", False, 
+                              f"Create failed: {create_response.status_code} - {create_response.text}")
+                return
+                
+        except Exception as e:
+            self.log_result("Client API - Create with project_types", False, f"Exception: {str(e)}")
+            return
+
+        # Test 2: GET /api/clients - List all clients and verify project_types
+        try:
+            list_response = self.session.get(f"{BACKEND_URL}/clients", headers=headers)
+            
+            if list_response.status_code == 200:
+                clients = list_response.json()
+                
+                # Find our test client
+                test_client = None
+                for client in clients:
+                    if client.get("id") == self.test_client_id:
+                        test_client = client
+                        break
+                
+                if test_client and "project_types" in test_client:
+                    self.log_result("Client API - List clients with project_types", True, 
+                                  f"Client list includes project_types: {test_client['project_types']}")
+                else:
+                    self.log_result("Client API - List clients with project_types", False, 
+                                  "project_types field missing in client list")
+            else:
+                self.log_result("Client API - List clients with project_types", False, 
+                              f"List failed: {list_response.status_code}")
+                
+        except Exception as e:
+            self.log_result("Client API - List clients with project_types", False, f"Exception: {str(e)}")
+
+        # Test 3: GET /api/clients/{client_id} - Get specific client and verify project_types
+        try:
+            get_response = self.session.get(f"{BACKEND_URL}/clients/{self.test_client_id}", headers=headers)
+            
+            if get_response.status_code == 200:
+                client = get_response.json()
+                
+                if "project_types" in client and client["project_types"] == ["Architecture", "Interior"]:
+                    self.log_result("Client API - Get specific client with project_types", True, 
+                                  f"Individual client fetch includes project_types: {client['project_types']}")
+                else:
+                    self.log_result("Client API - Get specific client with project_types", False, 
+                                  f"project_types field missing or incorrect: {client.get('project_types')}")
+            else:
+                self.log_result("Client API - Get specific client with project_types", False, 
+                              f"Get client failed: {get_response.status_code}")
+                
+        except Exception as e:
+            self.log_result("Client API - Get specific client with project_types", False, f"Exception: {str(e)}")
+
+        # Test 4: PUT /api/clients/{client_id} - Update client and modify project_types
+        try:
+            update_data = {
+                "name": "Updated Architecture Firm",
+                "project_types": ["Architecture", "Landscape", "Planning"],  # Modified: added Landscape & Planning, removed Interior
+                "contact_person": "Jane Smith",
+                "phone": "+919876543210",
+                "email": "jane@testfirm.com",
+                "address": "456 Updated Street, Updated City",
+                "notes": "Updated client with modified project_types",
+                "archived": False
+            }
+            
+            update_response = self.session.put(f"{BACKEND_URL}/clients/{self.test_client_id}", 
+                                             json=update_data, headers=headers)
+            
+            if update_response.status_code == 200:
+                # Verify the update by fetching the client again
+                verify_response = self.session.get(f"{BACKEND_URL}/clients/{self.test_client_id}", headers=headers)
+                
+                if verify_response.status_code == 200:
+                    updated_client = verify_response.json()
+                    expected_types = ["Architecture", "Landscape", "Planning"]
+                    
+                    if updated_client.get("project_types") == expected_types:
+                        self.log_result("Client API - Update client project_types", True, 
+                                      f"Client updated successfully. New project_types: {updated_client['project_types']}")
+                    else:
+                        self.log_result("Client API - Update client project_types", False, 
+                                      f"Update failed. Expected: {expected_types}, Got: {updated_client.get('project_types')}")
+                else:
+                    self.log_result("Client API - Update client project_types", False, 
+                                  "Update succeeded but verification failed")
+            else:
+                self.log_result("Client API - Update client project_types", False, 
+                              f"Update failed: {update_response.status_code} - {update_response.text}")
+                
+        except Exception as e:
+            self.log_result("Client API - Update client project_types", False, f"Exception: {str(e)}")
+
+        # Test 5: Test project_types validation - empty list, single item, multiple items
+        try:
+            test_cases = [
+                {
+                    "name": "Empty project_types",
+                    "project_types": [],
+                    "expected_success": True
+                },
+                {
+                    "name": "Single project_type",
+                    "project_types": ["Interior"],
+                    "expected_success": True
+                },
+                {
+                    "name": "All valid project_types",
+                    "project_types": ["Architecture", "Interior", "Landscape", "Planning"],
+                    "expected_success": True
+                }
+            ]
+            
+            for case in test_cases:
+                test_client_data = {
+                    "name": f"Test Client - {case['name']}",
+                    "project_types": case["project_types"],
+                    "contact_person": "Test Contact",
+                    "phone": "+919876543210",
+                    "email": f"test_{case['name'].lower().replace(' ', '_')}@example.com"
+                }
+                
+                validation_response = self.session.post(f"{BACKEND_URL}/clients", 
+                                                      json=test_client_data, headers=headers)
+                
+                if case["expected_success"]:
+                    if validation_response.status_code == 200:
+                        response_data = validation_response.json()
+                        if response_data.get("project_types") == case["project_types"]:
+                            self.log_result(f"Client API - Validation {case['name']}", True, 
+                                          f"Correctly handled {case['name']}: {case['project_types']}")
+                        else:
+                            self.log_result(f"Client API - Validation {case['name']}", False, 
+                                          f"project_types mismatch. Expected: {case['project_types']}, Got: {response_data.get('project_types')}")
+                    else:
+                        self.log_result(f"Client API - Validation {case['name']}", False, 
+                                      f"Unexpected failure: {validation_response.status_code}")
+                        
+        except Exception as e:
+            self.log_result("Client API - project_types Validation", False, f"Exception: {str(e)}")
+
+        # Test 6: Test data persistence in database
+        try:
+            # Create a client and verify it persists correctly
+            persistence_client = {
+                "name": "Persistence Test Client",
+                "project_types": ["Architecture", "Interior"],
+                "contact_person": "Persistence Tester",
+                "email": "persistence@test.com"
+            }
+            
+            create_resp = self.session.post(f"{BACKEND_URL}/clients", json=persistence_client, headers=headers)
+            
+            if create_resp.status_code == 200:
+                created = create_resp.json()
+                persistence_client_id = created["id"]
+                
+                # Wait a moment then fetch again to ensure database persistence
+                import time
+                time.sleep(1)
+                
+                fetch_resp = self.session.get(f"{BACKEND_URL}/clients/{persistence_client_id}", headers=headers)
+                
+                if fetch_resp.status_code == 200:
+                    fetched = fetch_resp.json()
+                    if fetched.get("project_types") == ["Architecture", "Interior"]:
+                        self.log_result("Client API - Database Persistence", True, 
+                                      "project_types correctly persisted in database")
+                    else:
+                        self.log_result("Client API - Database Persistence", False, 
+                                      f"Persistence failed. Expected: ['Architecture', 'Interior'], Got: {fetched.get('project_types')}")
+                else:
+                    self.log_result("Client API - Database Persistence", False, 
+                                  "Failed to fetch client after creation")
+            else:
+                self.log_result("Client API - Database Persistence", False, 
+                              "Failed to create client for persistence test")
+                
+        except Exception as e:
+            self.log_result("Client API - Database Persistence", False, f"Exception: {str(e)}")
+
+    def run_client_project_types_tests(self):
+        """Run only the client project_types tests"""
+        print(f"🚀 Starting Client API project_types Tests")
+        print(f"Backend URL: {BACKEND_URL}")
+        print("=" * 60)
+        
+        self.test_client_api_with_project_types()
+        
+        # Summary
+        print("=" * 60)
+        print("📊 CLIENT API TEST SUMMARY")
+        print("=" * 60)
+        
+        client_tests = [result for result in self.test_results if "Client API" in result["test"]]
+        passed = sum(1 for result in client_tests if result["success"])
+        total = len(client_tests)
+        
+        print(f"Client API Tests: {total}")
+        print(f"Passed: {passed}")
+        print(f"Failed: {total - passed}")
+        print(f"Success Rate: {(passed/total)*100:.1f}%" if total > 0 else "No tests run")
+        
+        if total - passed > 0:
+            print("\n❌ FAILED CLIENT API TESTS:")
+            for result in client_tests:
+                if not result["success"]:
+                    print(f"  - {result['test']}: {result['details']}")
+        
+        return passed == total if total > 0 else False
+
 if __name__ == "__main__":
     tester = BackendTester()
-    success = tester.run_all_tests()
+    
+    # Check if we should run only client tests
+    if len(sys.argv) > 1 and sys.argv[1] == "client":
+        success = tester.run_client_project_types_tests()
+    else:
+        success = tester.run_all_tests()
+    
     sys.exit(0 if success else 1)
