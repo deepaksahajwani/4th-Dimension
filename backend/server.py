@@ -872,9 +872,9 @@ async def update_user(user_id: str, user_data: UpdateTeamMember, current_user: U
 
 # ==================== CLIENT ROUTES (NEW ARCHFLOW) ====================
 
-@api_router.post("/clients", response_model=Client)
-async def create_client(client_data: ClientCreate, current_user: User = Depends(get_current_user)):
-    client = Client(
+@api_router.post("/clients", response_model=NewClient)
+async def create_client(client_data: NewClientCreate, current_user: User = Depends(get_current_user)):
+    client = NewClient(
         name=client_data.name,
         project_types=client_data.project_types,
         contact_person=client_data.contact_person,
