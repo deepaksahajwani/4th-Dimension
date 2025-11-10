@@ -260,11 +260,11 @@ class ProjectCreate(BaseModel):
     start_date: Optional[str] = None
     end_date: Optional[str] = None
     site_address: Optional[str] = None
-    plot_dimensions: Optional[str] = None
     notes: Optional[str] = None
     
     # Contractors/Consultants/Suppliers
     civil_contractor: Optional[ContactInfo] = None
+    structural_consultant: Optional[ContactInfo] = None
     tile_marble_contractor: Optional[ContactInfo] = None
     furniture_contractor: Optional[ContactInfo] = None
     electrical_contractor: Optional[ContactInfo] = None
@@ -281,7 +281,8 @@ class ProjectCreate(BaseModel):
     automation_consultant: Optional[ContactInfo] = None
     readymade_furniture_supplier: Optional[ContactInfo] = None
     lights_supplier: Optional[ContactInfo] = None
-    other_contacts: List[ContactInfo] = []
+    
+    custom_contacts: dict = {}
     
     brands: List[BrandCategory] = []
     checklist_preset_id: Optional[str] = None
