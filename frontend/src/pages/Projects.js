@@ -109,6 +109,38 @@ export default function Projects({ user, onLogout }) {
     });
   };
 
+  const updateCustomContactField = (typeId, field, value) => {
+    setFormData({
+      ...formData,
+      custom_contacts: {
+        ...formData.custom_contacts,
+        [typeId]: {
+          ...formData.custom_contacts[typeId],
+          [field]: value
+        }
+      }
+    });
+  };
+
+  const handleAddContactType = async () => {
+    if (!newContactTypeName.trim()) {
+      toast.error('Please enter a contact type name');
+      return;
+    }
+    
+    try {
+      await axios.post(`${API}/contact-types`, { type_name: newContactTypeName });
+      toast.success('Contact type added successfully!');
+      setNewContactTypeName('');
+      setShowAddContactType(false);
+      // Refresh contact types
+      const contactTypesRes = await axios.get(`${API}/contact-types`);
+      setContactTypes(contactTypesRes.data);
+    } catch (error) {
+      toast.error(formatErrorMessage(error, 'Failed to add contact type'));
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
