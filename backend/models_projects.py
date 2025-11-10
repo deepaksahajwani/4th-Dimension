@@ -219,17 +219,73 @@ class Project(BaseModel):
 class ProjectCreate(BaseModel):
     code: str
     title: str
-    type: ProjectType
+    project_types: List[str] = []
     status: ProjectStatus = ProjectStatus.LEAD
     client_id: str
     lead_architect_id: Optional[str] = None
     project_manager_id: Optional[str] = None
     start_date: Optional[str] = None
-    expected_finish: Optional[str] = None
+    end_date: Optional[str] = None
     site_address: Optional[str] = None
     plot_dimensions: Optional[str] = None
     notes: Optional[str] = None
-    checklist_preset_id: Optional[str] = None  # For auto-generation
+    
+    # Contractors/Consultants/Suppliers
+    civil_contractor: Optional[ContactInfo] = None
+    tile_marble_contractor: Optional[ContactInfo] = None
+    furniture_contractor: Optional[ContactInfo] = None
+    electrical_contractor: Optional[ContactInfo] = None
+    electrical_consultant: Optional[ContactInfo] = None
+    plumbing_consultant: Optional[ContactInfo] = None
+    plumbing_contractor: Optional[ContactInfo] = None
+    false_ceiling_contractor: Optional[ContactInfo] = None
+    furniture_material_supplier: Optional[ContactInfo] = None
+    kitchen_contractor: Optional[ContactInfo] = None
+    modular_contractor: Optional[ContactInfo] = None
+    color_contractor: Optional[ContactInfo] = None
+    landscape_consultant: Optional[ContactInfo] = None
+    landscape_contractor: Optional[ContactInfo] = None
+    automation_consultant: Optional[ContactInfo] = None
+    readymade_furniture_supplier: Optional[ContactInfo] = None
+    lights_supplier: Optional[ContactInfo] = None
+    other_contacts: List[ContactInfo] = []
+    
+    brands: List[BrandCategory] = []
+    checklist_preset_id: Optional[str] = None
+
+class ProjectUpdate(BaseModel):
+    title: Optional[str] = None
+    project_types: Optional[List[str]] = None
+    status: Optional[ProjectStatus] = None
+    lead_architect_id: Optional[str] = None
+    project_manager_id: Optional[str] = None
+    start_date: Optional[str] = None
+    end_date: Optional[str] = None
+    archived: Optional[bool] = None
+    site_address: Optional[str] = None
+    plot_dimensions: Optional[str] = None
+    notes: Optional[str] = None
+    
+    civil_contractor: Optional[ContactInfo] = None
+    tile_marble_contractor: Optional[ContactInfo] = None
+    furniture_contractor: Optional[ContactInfo] = None
+    electrical_contractor: Optional[ContactInfo] = None
+    electrical_consultant: Optional[ContactInfo] = None
+    plumbing_consultant: Optional[ContactInfo] = None
+    plumbing_contractor: Optional[ContactInfo] = None
+    false_ceiling_contractor: Optional[ContactInfo] = None
+    furniture_material_supplier: Optional[ContactInfo] = None
+    kitchen_contractor: Optional[ContactInfo] = None
+    modular_contractor: Optional[ContactInfo] = None
+    color_contractor: Optional[ContactInfo] = None
+    landscape_consultant: Optional[ContactInfo] = None
+    landscape_contractor: Optional[ContactInfo] = None
+    automation_consultant: Optional[ContactInfo] = None
+    readymade_furniture_supplier: Optional[ContactInfo] = None
+    lights_supplier: Optional[ContactInfo] = None
+    other_contacts: Optional[List[ContactInfo]] = None
+    
+    brands: Optional[List[BrandCategory]] = None
 
 class DrawingCategory(BaseModel):
     model_config = ConfigDict(extra="ignore")
