@@ -297,10 +297,10 @@ class ProjectUpdate(BaseModel):
     end_date: Optional[str] = None
     archived: Optional[bool] = None
     site_address: Optional[str] = None
-    plot_dimensions: Optional[str] = None
     notes: Optional[str] = None
     
     civil_contractor: Optional[ContactInfo] = None
+    structural_consultant: Optional[ContactInfo] = None
     tile_marble_contractor: Optional[ContactInfo] = None
     furniture_contractor: Optional[ContactInfo] = None
     electrical_contractor: Optional[ContactInfo] = None
@@ -317,7 +317,8 @@ class ProjectUpdate(BaseModel):
     automation_consultant: Optional[ContactInfo] = None
     readymade_furniture_supplier: Optional[ContactInfo] = None
     lights_supplier: Optional[ContactInfo] = None
-    other_contacts: Optional[List[ContactInfo]] = None
+    
+    custom_contacts: Optional[dict] = None
     
     brands: Optional[List[BrandCategory]] = None
 
