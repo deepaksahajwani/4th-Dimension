@@ -26,7 +26,9 @@ from models_projects import (
     DrawingRevision, Task, TaskCreate, SiteVisit, SiteVisitCreate,
     SiteIssue, SiteIssueCreate, Notification, NotificationCreate,
     ChecklistPreset, DrawingType, ClientUpdate,
-    Client as NewClient, ClientCreate as NewClientCreate
+    Client as NewClient, ClientCreate as NewClientCreate,
+    Project as NewProject, ProjectCreate as NewProjectCreate, ProjectUpdate as NewProjectUpdate,
+    ContactInfo, BrandCategory, BrandCategoryMaster, BrandCategoryMasterCreate, BrandCategoryMasterUpdate
 )
 
 ROOT_DIR = Path(__file__).parent
