@@ -166,6 +166,20 @@ class ContactInfo(BaseModel):
     email: Optional[str] = None
     phone: Optional[str] = None
 
+class ContactTypeMaster(BaseModel):
+    """Master list of contact types that can be used across projects"""
+    model_config = ConfigDict(extra="ignore")
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    type_name: str  # e.g., "Structural Consultant", "MEP Consultant"
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+class ContactTypeMasterCreate(BaseModel):
+    type_name: str
+
+class ContactTypeMasterUpdate(BaseModel):
+    type_name: Optional[str] = None
+
 class BrandCategory(BaseModel):
     category_name: str
     brands: List[str] = []
