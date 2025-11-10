@@ -161,21 +161,55 @@ class ConsultantCreate(BaseModel):
     email: Optional[EmailStr] = None
     notes: Optional[str] = None
 
+class ContactInfo(BaseModel):
+    name: Optional[str] = None
+    email: Optional[str] = None
+    phone: Optional[str] = None
+
+class BrandCategory(BaseModel):
+    category_name: str
+    brands: List[str] = []
+
 class Project(BaseModel):
     model_config = ConfigDict(extra="ignore")
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     code: str  # Unique project code
     title: str
-    type: ProjectType
+    project_types: List[str] = []  # Multiple types: Architecture, Interior, Landscape, Planning
     status: ProjectStatus = ProjectStatus.LEAD
     client_id: str
     lead_architect_id: Optional[str] = None  # TeamMember ID
     project_manager_id: Optional[str] = None  # TeamMember ID
     start_date: Optional[datetime] = None
-    expected_finish: Optional[datetime] = None
+    end_date: Optional[datetime] = None  # When set, project auto-archives
+    archived: bool = False
     site_address: Optional[str] = None
     plot_dimensions: Optional[str] = None
     notes: Optional[str] = None
+    
+    # Contractors/Consultants/Suppliers
+    civil_contractor: Optional[ContactInfo] = None
+    tile_marble_contractor: Optional[ContactInfo] = None
+    furniture_contractor: Optional[ContactInfo] = None
+    electrical_contractor: Optional[ContactInfo] = None
+    electrical_consultant: Optional[ContactInfo] = None
+    plumbing_consultant: Optional[ContactInfo] = None
+    plumbing_contractor: Optional[ContactInfo] = None
+    false_ceiling_contractor: Optional[ContactInfo] = None
+    furniture_material_supplier: Optional[ContactInfo] = None
+    kitchen_contractor: Optional[ContactInfo] = None
+    modular_contractor: Optional[ContactInfo] = None
+    color_contractor: Optional[ContactInfo] = None
+    landscape_consultant: Optional[ContactInfo] = None
+    landscape_contractor: Optional[ContactInfo] = None
+    automation_consultant: Optional[ContactInfo] = None
+    readymade_furniture_supplier: Optional[ContactInfo] = None
+    lights_supplier: Optional[ContactInfo] = None
+    other_contacts: List[ContactInfo] = []  # For additional contacts
+    
+    # Brands used in project
+    brands: List[BrandCategory] = []
+    
     created_by_id: Optional[str] = None
     owner_team_id: Optional[str] = None
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
