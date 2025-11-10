@@ -170,6 +170,23 @@ class BrandCategory(BaseModel):
     category_name: str
     brands: List[str] = []
 
+class BrandCategoryMaster(BaseModel):
+    """Master list of brand categories that can be used across projects"""
+    model_config = ConfigDict(extra="ignore")
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    category_name: str
+    suggested_brands: List[str] = []  # Suggested brand names
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+class BrandCategoryMasterCreate(BaseModel):
+    category_name: str
+    suggested_brands: List[str] = []
+
+class BrandCategoryMasterUpdate(BaseModel):
+    category_name: Optional[str] = None
+    suggested_brands: Optional[List[str]] = None
+
 class Project(BaseModel):
     model_config = ConfigDict(extra="ignore")
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
