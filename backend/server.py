@@ -1116,7 +1116,7 @@ async def create_project(project_data: NewProjectCreate, current_user: User = De
         automation_consultant=project_data.automation_consultant,
         readymade_furniture_supplier=project_data.readymade_furniture_supplier,
         lights_supplier=project_data.lights_supplier,
-        other_contacts=project_data.other_contacts,
+        custom_contacts=project_data.custom_contacts,
         brands=project_data.brands,
         created_by_id=current_user.id
     )
