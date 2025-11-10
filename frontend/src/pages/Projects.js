@@ -34,10 +34,10 @@ export default function Projects({ user, onLogout }) {
     start_date: '',
     end_date: '',
     site_address: '',
-    plot_dimensions: '',
     notes: '',
-    // Contractors/Consultants/Suppliers
+    // Fixed Contractors/Consultants/Suppliers
     civil_contractor: { name: '', email: '', phone: '' },
+    structural_consultant: { name: '', email: '', phone: '' },
     tile_marble_contractor: { name: '', email: '', phone: '' },
     furniture_contractor: { name: '', email: '', phone: '' },
     electrical_contractor: { name: '', email: '', phone: '' },
@@ -54,9 +54,14 @@ export default function Projects({ user, onLogout }) {
     automation_consultant: { name: '', email: '', phone: '' },
     readymade_furniture_supplier: { name: '', email: '', phone: '' },
     lights_supplier: { name: '', email: '', phone: '' },
-    other_contacts: [],
+    // Custom contacts
+    custom_contacts: {},
     brands: []
   });
+
+  const [contactTypes, setContactTypes] = useState([]);
+  const [showAddContactType, setShowAddContactType] = useState(false);
+  const [newContactTypeName, setNewContactTypeName] = useState('');
 
   useEffect(() => {
     fetchData();
