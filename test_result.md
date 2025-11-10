@@ -216,9 +216,9 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Profile Registration Flow"
-    - "Error Handling for API Responses"
-    - "Google OAuth Registration"
+    - "Projects Page Updates - Remove Plot Dimensions Field"
+    - "Projects Page Updates - Add Structural Consultant to Contacts"
+    - "Projects Page Updates - Custom Contact Type System"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
