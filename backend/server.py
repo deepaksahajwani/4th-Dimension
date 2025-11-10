@@ -1127,15 +1127,56 @@ async def get_project(project_id: str, current_user: User = Depends(get_current_
     # Convert ISO strings to datetime
     for field in ['created_at', 'updated_at', 'start_date', 'end_date']:
         if isinstance(project.get(field), str):
-        project['created_at'] = datetime.fromisoformat(project['created_at'])
-    return Project(**project)
+            project[field] = datetime.fromisoformat(project[field])
+    
+    # Get project drawings count
+    drawings_count = await db.project_drawings.count_documents({"project_id": project_id, "deleted_at": None})
+    project['drawings_count'] = drawings_count
+    
+    return project
 
-@api_router.patch("/projects/{project_id}")
-async def update_project(project_id: str, updates: dict, current_user: User = Depends(get_current_user)):
-    result = await db.projects.update_one({"id": project_id}, {"$set": updates})
+@api_router.put("/projects/{project_id}")
+async def update_project(
+    project_id: str, 
+    project_data: NewProjectUpdate, 
+    current_user: User = Depends(get_current_user)
+):
+    """Update project details"""
+    update_dict = {k: v for k, v in project_data.model_dump().items() if v is not None}
+    
+    # Auto-archive if end_date is being set
+    if update_dict.get('end_date'):
+        update_dict['archived'] = True
+        if isinstance(update_dict['end_date'], str):
+            update_dict['end_date'] = datetime.fromisoformat(update_dict['end_date']).isoformat()
+    
+    # Convert start_date if provided
+    if update_dict.get('start_date') and isinstance(update_dict['start_date'], str):
+        update_dict['start_date'] = datetime.fromisoformat(update_dict['start_date']).isoformat()
+    
+    update_dict['updated_at'] = datetime.now(timezone.utc).isoformat()
+    
+    result = await db.projects.update_one(
+        {"id": project_id},
+        {"$set": update_dict}
+    )
+    
     if result.matched_count == 0:
         raise HTTPException(status_code=404, detail="Project not found")
+    
     return {"message": "Project updated successfully"}
+
+@api_router.delete("/projects/{project_id}")
+async def delete_project(
+    project_id: str,
+    current_user: User = Depends(require_owner)
+):
+    """Soft delete project (owner only)"""
+    await db.projects.update_one(
+        {"id": project_id},
+        {"$set": {"deleted_at": datetime.now(timezone.utc).isoformat()}}
+    )
+    return {"message": "Project deleted successfully"}
 
 
 # ==================== DRAWING ROUTES ====================
