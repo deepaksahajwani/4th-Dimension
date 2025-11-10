@@ -1025,59 +1025,108 @@ async def delete_brand_category(
 
 # ==================== PROJECT ROUTES ====================
 
-@api_router.post("/projects", response_model=Project)
-async def create_project(project_data: ProjectCreate, current_user: User = Depends(get_current_user)):
-    project = Project(
+@api_router.post("/projects", response_model=NewProject)
+async def create_project(project_data: NewProjectCreate, current_user: User = Depends(get_current_user)):
+    """Create a new project with comprehensive details"""
+    # Auto-archive if end_date is provided
+    archived = False
+    if project_data.end_date:
+        archived = True
+    
+    project = NewProject(
+        code=project_data.code,
+        title=project_data.title,
+        project_types=project_data.project_types,
+        status=project_data.status,
         client_id=project_data.client_id,
-        project_type=project_data.project_type,
-        name=project_data.name,
-        address=project_data.address,
-        city=project_data.city,
-        team_leader=project_data.team_leader,
-        assigned_to=project_data.assigned_to or [],
-        status="consultation"
+        lead_architect_id=project_data.lead_architect_id,
+        project_manager_id=project_data.project_manager_id,
+        start_date=datetime.fromisoformat(project_data.start_date) if project_data.start_date else None,
+        end_date=datetime.fromisoformat(project_data.end_date) if project_data.end_date else None,
+        archived=archived,
+        site_address=project_data.site_address,
+        plot_dimensions=project_data.plot_dimensions,
+        notes=project_data.notes,
+        civil_contractor=project_data.civil_contractor,
+        tile_marble_contractor=project_data.tile_marble_contractor,
+        furniture_contractor=project_data.furniture_contractor,
+        electrical_contractor=project_data.electrical_contractor,
+        electrical_consultant=project_data.electrical_consultant,
+        plumbing_consultant=project_data.plumbing_consultant,
+        plumbing_contractor=project_data.plumbing_contractor,
+        false_ceiling_contractor=project_data.false_ceiling_contractor,
+        furniture_material_supplier=project_data.furniture_material_supplier,
+        kitchen_contractor=project_data.kitchen_contractor,
+        modular_contractor=project_data.modular_contractor,
+        color_contractor=project_data.color_contractor,
+        landscape_consultant=project_data.landscape_consultant,
+        landscape_contractor=project_data.landscape_contractor,
+        automation_consultant=project_data.automation_consultant,
+        readymade_furniture_supplier=project_data.readymade_furniture_supplier,
+        lights_supplier=project_data.lights_supplier,
+        other_contacts=project_data.other_contacts,
+        brands=project_data.brands,
+        created_by_id=current_user.id
     )
     
     project_dict = project.model_dump()
-    project_dict['created_at'] = project_dict['created_at'].isoformat()
+    # Convert datetimes to ISO strings
+    for field in ['created_at', 'updated_at', 'start_date', 'end_date']:
+        if project_dict.get(field):
+            project_dict[field] = project_dict[field].isoformat() if isinstance(project_dict[field], datetime) else project_dict[field]
     
     await db.projects.insert_one(project_dict)
     
-    # Create standardized drawing list - support all project types
-    templates = await db.drawing_templates.find(
-        {"project_type": {"$in": [project_data.project_type, "both", "all"]}},
-        {"_id": 0}
-    ).to_list(1000)
-    
-    for template in templates:
-        drawing = Drawing(
-            project_id=project.id,
-            category=template['category'],
-            name=template['name'],
-            description=template.get('description'),
-            order=template['order'],
-            status="pending"
-        )
-        drawing_dict = drawing.model_dump()
-        drawing_dict['created_at'] = drawing_dict['created_at'].isoformat()
-        await db.drawings.insert_one(drawing_dict)
+    # Auto-generate drawings from presets if preset_id provided
+    if project_data.checklist_preset_id:
+        preset = await db.checklist_presets.find_one({"id": project_data.checklist_preset_id}, {"_id": 0})
+        if preset:
+            for item in preset.get('items', []):
+                drawing = ProjectDrawing(
+                    project_id=project.id,
+                    category=item['category'],
+                    name=item['name'],
+                    status=DrawingStatus.PLANNED,
+                    due_date=datetime.now(timezone.utc) if not project.start_date else project.start_date,
+                    is_issued=False,
+                    revision_count=0
+                )
+                drawing_dict = drawing.model_dump()
+                for field in ['created_at', 'updated_at', 'due_date', 'issued_date']:
+                    if drawing_dict.get(field):
+                        drawing_dict[field] = drawing_dict[field].isoformat() if isinstance(drawing_dict[field], datetime) else drawing_dict[field]
+                await db.project_drawings.insert_one(drawing_dict)
     
     return project
 
-@api_router.get("/projects", response_model=List[Project])
-async def get_projects(current_user: User = Depends(get_current_user)):
-    projects = await db.projects.find({}, {"_id": 0}).to_list(1000)
+@api_router.get("/projects")
+async def get_projects(
+    include_archived: bool = False,
+    current_user: User = Depends(get_current_user)
+):
+    """Get all projects"""
+    query = {"deleted_at": None}
+    if not include_archived:
+        query["archived"] = {"$ne": True}
+    
+    projects = await db.projects.find(query, {"_id": 0}).to_list(1000)
     for project in projects:
-        if isinstance(project.get('created_at'), str):
-            project['created_at'] = datetime.fromisoformat(project['created_at'])
+        # Convert ISO strings to datetime for proper serialization
+        for field in ['created_at', 'updated_at', 'start_date', 'end_date']:
+            if isinstance(project.get(field), str):
+                project[field] = datetime.fromisoformat(project[field])
     return projects
 
-@api_router.get("/projects/{project_id}", response_model=Project)
+@api_router.get("/projects/{project_id}")
 async def get_project(project_id: str, current_user: User = Depends(get_current_user)):
-    project = await db.projects.find_one({"id": project_id}, {"_id": 0})
+    """Get project details"""
+    project = await db.projects.find_one({"id": project_id, "deleted_at": None}, {"_id": 0})
     if not project:
         raise HTTPException(status_code=404, detail="Project not found")
-    if isinstance(project.get('created_at'), str):
+    
+    # Convert ISO strings to datetime
+    for field in ['created_at', 'updated_at', 'start_date', 'end_date']:
+        if isinstance(project.get(field), str):
         project['created_at'] = datetime.fromisoformat(project['created_at'])
     return Project(**project)
 
