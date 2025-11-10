@@ -1,41 +1,61 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import Layout from '@/components/Layout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Badge } from '@/components/ui/badge';
-import { Plus, FolderOpen, Calendar, Users as UsersIcon } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Plus, FolderOpen, Calendar, Archive } from 'lucide-react';
 import { toast } from 'sonner';
 import { formatErrorMessage } from '@/utils/errorHandler';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
 
+const PROJECT_TYPES = ['Architecture', 'Interior', 'Landscape', 'Planning'];
+
 export default function Projects({ user, onLogout }) {
+  const navigate = useNavigate();
   const [projects, setProjects] = useState([]);
   const [clients, setClients] = useState([]);
-  const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [open, setOpen] = useState(false);
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState('basic');
+  
   const [formData, setFormData] = useState({
-    name: '',
+    code: '',
+    title: '',
+    project_types: [],
+    status: 'Lead',
     client_id: '',
-    project_type: 'Architecture',
-    address: '',
-    city: '',
-    team_leader: '',
-    assigned_to: [],
-  });
-  const [showClientForm, setShowClientForm] = useState(false);
-  const [newClient, setNewClient] = useState({
-    name: '',
-    contact: '',
-    email: '',
-    first_call_date: new Date().toISOString().split('T')[0],
+    start_date: '',
+    end_date: '',
+    site_address: '',
+    plot_dimensions: '',
+    notes: '',
+    // Contractors/Consultants/Suppliers
+    civil_contractor: { name: '', email: '', phone: '' },
+    tile_marble_contractor: { name: '', email: '', phone: '' },
+    furniture_contractor: { name: '', email: '', phone: '' },
+    electrical_contractor: { name: '', email: '', phone: '' },
+    electrical_consultant: { name: '', email: '', phone: '' },
+    plumbing_consultant: { name: '', email: '', phone: '' },
+    plumbing_contractor: { name: '', email: '', phone: '' },
+    false_ceiling_contractor: { name: '', email: '', phone: '' },
+    furniture_material_supplier: { name: '', email: '', phone: '' },
+    kitchen_contractor: { name: '', email: '', phone: '' },
+    modular_contractor: { name: '', email: '', phone: '' },
+    color_contractor: { name: '', email: '', phone: '' },
+    landscape_consultant: { name: '', email: '', phone: '' },
+    landscape_contractor: { name: '', email: '', phone: '' },
+    automation_consultant: { name: '', email: '', phone: '' },
+    readymade_furniture_supplier: { name: '', email: '', phone: '' },
+    lights_supplier: { name: '', email: '', phone: '' },
+    other_contacts: [],
+    brands: []
   });
 
   useEffect(() => {
@@ -44,14 +64,12 @@ export default function Projects({ user, onLogout }) {
 
   const fetchData = async () => {
     try {
-      const [projectsRes, clientsRes, usersRes] = await Promise.all([
+      const [projectsRes, clientsRes] = await Promise.all([
         axios.get(`${API}/projects`),
-        axios.get(`${API}/clients`),
-        axios.get(`${API}/users`),
+        axios.get(`${API}/clients`)
       ]);
       setProjects(projectsRes.data);
       setClients(clientsRes.data);
-      setUsers(usersRes.data);
     } catch (error) {
       toast.error('Failed to fetch data');
     } finally {
@@ -59,50 +77,128 @@ export default function Projects({ user, onLogout }) {
     }
   };
 
+  const handleProjectTypeToggle = (type) => {
+    const currentTypes = formData.project_types || [];
+    if (currentTypes.includes(type)) {
+      setFormData({ 
+        ...formData, 
+        project_types: currentTypes.filter(t => t !== type) 
+      });
+    } else {
+      setFormData({ 
+        ...formData, 
+        project_types: [...currentTypes, type] 
+      });
+    }
+  };
+
+  const updateContactField = (contactType, field, value) => {
+    setFormData({
+      ...formData,
+      [contactType]: {
+        ...formData[contactType],
+        [field]: value
+      }
+    });
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await axios.post(`${API}/projects`, formData);
+      // Clean up empty contacts
+      const cleanedData = { ...formData };
+      
+      // Remove empty contact objects
+      const contactFields = [
+        'civil_contractor', 'tile_marble_contractor', 'furniture_contractor',
+        'electrical_contractor', 'electrical_consultant', 'plumbing_consultant',
+        'plumbing_contractor', 'false_ceiling_contractor', 'furniture_material_supplier',
+        'kitchen_contractor', 'modular_contractor', 'color_contractor',
+        'landscape_consultant', 'landscape_contractor', 'automation_consultant',
+        'readymade_furniture_supplier', 'lights_supplier'
+      ];
+
+      contactFields.forEach(field => {
+        const contact = cleanedData[field];
+        if (!contact.name && !contact.email && !contact.phone) {
+          cleanedData[field] = null;
+        }
+      });
+
+      await axios.post(`${API}/projects`, cleanedData);
       toast.success('Project created successfully!');
-      setOpen(false);
-      setFormData({ name: '', client_id: '', project_type: 'Architecture', address: '', city: '', team_leader: '', assigned_to: [] });
+      setDialogOpen(false);
+      resetForm();
       fetchData();
     } catch (error) {
       toast.error(formatErrorMessage(error, 'Failed to create project'));
     }
   };
 
-  const handleCreateClient = async () => {
-    try {
-      const response = await axios.post(`${API}/clients`, newClient);
-      toast.success('Client created successfully!');
-      setShowClientForm(false);
-      setNewClient({ name: '', contact: '', email: '', first_call_date: new Date().toISOString().split('T')[0] });
-      await fetchData();
-      setFormData({ ...formData, client_id: response.data.id });
-    } catch (error) {
-      toast.error(formatErrorMessage(error, 'Failed to create client'));
-    }
+  const resetForm = () => {
+    setFormData({
+      code: '',
+      title: '',
+      project_types: [],
+      status: 'Lead',
+      client_id: '',
+      start_date: '',
+      end_date: '',
+      site_address: '',
+      plot_dimensions: '',
+      notes: '',
+      civil_contractor: { name: '', email: '', phone: '' },
+      tile_marble_contractor: { name: '', email: '', phone: '' },
+      furniture_contractor: { name: '', email: '', phone: '' },
+      electrical_contractor: { name: '', email: '', phone: '' },
+      electrical_consultant: { name: '', email: '', phone: '' },
+      plumbing_consultant: { name: '', email: '', phone: '' },
+      plumbing_contractor: { name: '', email: '', phone: '' },
+      false_ceiling_contractor: { name: '', email: '', phone: '' },
+      furniture_material_supplier: { name: '', email: '', phone: '' },
+      kitchen_contractor: { name: '', email: '', phone: '' },
+      modular_contractor: { name: '', email: '', phone: '' },
+      color_contractor: { name: '', email: '', phone: '' },
+      landscape_consultant: { name: '', email: '', phone: '' },
+      landscape_contractor: { name: '', email: '', phone: '' },
+      automation_consultant: { name: '', email: '', phone: '' },
+      readymade_furniture_supplier: { name: '', email: '', phone: '' },
+      lights_supplier: { name: '', email: '', phone: '' },
+      other_contacts: [],
+      brands: []
+    });
+    setActiveTab('basic');
   };
 
-  const getStatusColor = (status) => {
-    const colors = {
-      consultation: 'bg-gray-100 text-gray-800',
-      layout_design: 'bg-blue-100 text-blue-800',
-      elevation_design: 'bg-purple-100 text-purple-800',
-      structural: 'bg-yellow-100 text-yellow-800',
-      execution: 'bg-orange-100 text-orange-800',
-      interior: 'bg-pink-100 text-pink-800',
-      completed: 'bg-green-100 text-green-800',
-    };
-    return colors[status] || 'bg-gray-100 text-gray-800';
-  };
+  const ContactSection = ({ title, fieldName }) => (
+    <div className="p-4 border border-slate-200 rounded-lg bg-slate-50">
+      <h4 className="font-medium text-sm text-slate-900 mb-3">{title}</h4>
+      <div className="grid grid-cols-3 gap-3">
+        <Input
+          placeholder="Name"
+          value={formData[fieldName]?.name || ''}
+          onChange={(e) => updateContactField(fieldName, 'name', e.target.value)}
+        />
+        <Input
+          placeholder="Email"
+          type="email"
+          value={formData[fieldName]?.email || ''}
+          onChange={(e) => updateContactField(fieldName, 'email', e.target.value)}
+        />
+        <Input
+          placeholder="Phone"
+          value={formData[fieldName]?.phone || ''}
+          onChange={(e) => updateContactField(fieldName, 'phone', e.target.value)}
+        />
+      </div>
+    </div>
+  );
 
   if (loading) {
     return (
       <Layout user={user} onLogout={onLogout}>
         <div className="flex items-center justify-center h-64">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-600"></div>
         </div>
       </Layout>
     );
@@ -110,199 +206,86 @@ export default function Projects({ user, onLogout }) {
 
   return (
     <Layout user={user} onLogout={onLogout}>
-      <div data-testid="projects-page">
+      <div className="max-w-7xl mx-auto">
+        {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <div>
             <h1 className="text-3xl font-bold text-slate-900">Projects</h1>
             <p className="text-slate-600 mt-1">{projects.length} total projects</p>
           </div>
-          <Dialog open={open} onOpenChange={setOpen}>
-            <DialogTrigger asChild>
-              <Button data-testid="create-project-btn">
-                <Plus className="w-4 h-4 mr-2" />
-                New Project
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="max-w-2xl">
-              <DialogHeader>
-                <DialogTitle>Create New Project</DialogTitle>
-              </DialogHeader>
-              <form onSubmit={handleSubmit} className="space-y-4" data-testid="project-form">
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="name">Project Name</Label>
-                    <Input
-                      id="name"
-                      value={formData.name}
-                      onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                      required
-                      data-testid="project-name-input"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="client">Client</Label>
-                    {!showClientForm ? (
-                      <div className="space-y-2">
-                        <select
-                          id="client"
-                          className="flex h-10 w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm"
-                          value={formData.client_id}
-                          onChange={(e) => {
-                            if (e.target.value === 'add_new') {
-                              setShowClientForm(true);
-                            } else {
-                              setFormData({ ...formData, client_id: e.target.value });
-                            }
-                          }}
-                          required
-                          data-testid="project-client-select"
-                        >
-                          <option value="">Select client</option>
-                          {clients.map((client) => (
-                            <option key={client.id} value={client.id}>
-                              {client.name}
-                            </option>
-                          ))}
-                          <option value="add_new" className="text-blue-600 font-medium">+ Add New Client</option>
-                        </select>
-                      </div>
-                    ) : (
-                      <div className="space-y-2 p-3 border border-blue-200 rounded-lg bg-blue-50">
-                        <Input
-                          placeholder="Client Name"
-                          value={newClient.name}
-                          onChange={(e) => setNewClient({ ...newClient, name: e.target.value })}
-                          required
-                        />
-                        <Input
-                          placeholder="Contact Number"
-                          value={newClient.contact}
-                          onChange={(e) => setNewClient({ ...newClient, contact: e.target.value })}
-                        />
-                        <Input
-                          placeholder="Email"
-                          type="email"
-                          value={newClient.email}
-                          onChange={(e) => setNewClient({ ...newClient, email: e.target.value })}
-                        />
-                        <div className="flex gap-2">
-                          <Button
-                            type="button"
-                            size="sm"
-                            onClick={handleCreateClient}
-                            className="flex-1"
-                          >
-                            Create Client
-                          </Button>
-                          <Button
-                            type="button"
-                            size="sm"
-                            variant="outline"
-                            onClick={() => setShowClientForm(false)}
-                          >
-                            Cancel
-                          </Button>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="type">Project Type</Label>
-                    <select
-                      id="type"
-                      className="flex h-10 w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm"
-                      value={formData.project_type}
-                      onChange={(e) => setFormData({ ...formData, project_type: e.target.value })}
-                      data-testid="project-type-select"
-                    >
-                      <option value="Architecture">Architecture</option>
-                      <option value="Interior">Interior</option>
-                      <option value="Planning">Planning</option>
-                      <option value="Landscape">Landscape</option>
-                    </select>
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="city">City</Label>
-                    <Input
-                      id="city"
-                      placeholder="e.g., Mumbai"
-                      value={formData.city}
-                      onChange={(e) => setFormData({ ...formData, city: e.target.value })}
-                      data-testid="project-city-input"
-                    />
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="address">Address</Label>
-                  <Input
-                    id="address"
-                    placeholder="e.g., 123 Main Street, Area Name"
-                    value={formData.address}
-                    onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                    data-testid="project-address-input"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="team_leader">Team Leader</Label>
-                  <select
-                    id="team_leader"
-                    className="flex h-10 w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm"
-                    value={formData.team_leader}
-                    onChange={(e) => setFormData({ ...formData, team_leader: e.target.value })}
-                    data-testid="project-team-leader-select"
-                  >
-                    <option value="">Select team leader (optional)</option>
-                    {users.map((u) => (
-                      <option key={u.id} value={u.id}>
-                        {u.name} ({u.role.replace('_', ' ')})
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                <Button type="submit" className="w-full" data-testid="submit-project-btn">
-                  Create Project
-                </Button>
-              </form>
-            </DialogContent>
-          </Dialog>
+          <Button 
+            onClick={() => setDialogOpen(true)}
+            className="bg-orange-500 hover:bg-orange-600"
+          >
+            <Plus className="w-4 h-4 mr-2" />
+            New Project
+          </Button>
         </div>
 
+        {/* Projects Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {projects.map((project) => {
             const client = clients.find((c) => c.id === project.client_id);
             return (
-              <Link key={project.id} to={`/projects/${project.id}`}>
-                <Card className="hover:shadow-lg transition-shadow cursor-pointer h-full">
-                  <CardContent className="p-6">
-                    <div className="flex items-start justify-between mb-4">
-                      <div className="flex items-center gap-3">
-                        <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-                          <FolderOpen className="w-6 h-6 text-blue-600" />
-                        </div>
-                        <div>
-                          <h3 className="font-semibold text-slate-900">{project.name}</h3>
-                          <p className="text-sm text-slate-500">{client?.name}</p>
-                        </div>
+              <Card 
+                key={project.id} 
+                className="hover:shadow-lg transition-shadow cursor-pointer"
+                onClick={() => navigate(`/projects/${project.id}`)}
+              >
+                <CardContent className="p-6">
+                  <div className="flex items-start justify-between mb-4">
+                    <div className="flex items-center gap-3 flex-1">
+                      <div className="w-12 h-12 bg-gradient-to-br from-orange-400 to-orange-600 rounded-lg flex items-center justify-center text-white font-bold">
+                        {project.code || project.title?.charAt(0) || 'P'}
+                      </div>
+                      <div className="flex-1">
+                        <h3 className="font-semibold text-slate-900">{project.title}</h3>
+                        {client && (
+                          <p className="text-sm text-slate-500">{client.name}</p>
+                        )}
                       </div>
                     </div>
-                    <div className="space-y-2">
-                      <div className="text-sm text-slate-600">
-                        <span className="font-medium">Date of creation:</span>{' '}
-                        <span className="flex items-center gap-2 mt-1">
-                          <Calendar className="w-4 h-4" />
-                          {new Date(project.created_at).toLocaleDateString()}
+                    {project.archived && (
+                      <Archive className="w-5 h-5 text-amber-500" />
+                    )}
+                  </div>
+                  
+                  {/* Project Types */}
+                  {project.project_types && project.project_types.length > 0 && (
+                    <div className="flex flex-wrap gap-2 mb-3">
+                      {project.project_types.map((type) => (
+                        <span 
+                          key={type} 
+                          className="px-2 py-1 text-xs bg-orange-50 text-orange-700 rounded border border-orange-200"
+                        >
+                          {type}
                         </span>
-                      </div>
-                      {project.assigned_to?.length > 0 && (
-                        <div className="flex items-center gap-2 text-sm text-slate-600">
-                          <UsersIcon className="w-4 h-4" />
-                          {project.assigned_to.length} team members
-                        </div>
-                      )}
+                      ))}
                     </div>
-                  </CardContent>
-                </Card>
-              </Link>
+                  )}
+
+                  <div className="space-y-2 text-sm">
+                    {project.start_date && (
+                      <div className="flex items-center gap-2 text-slate-600">
+                        <Calendar className="w-4 h-4" />
+                        <span>Started: {new Date(project.start_date).toLocaleDateString()}</span>
+                      </div>
+                    )}
+                    {project.end_date && (
+                      <div className="flex items-center gap-2 text-slate-600">
+                        <Calendar className="w-4 h-4" />
+                        <span>Ended: {new Date(project.end_date).toLocaleDateString()}</span>
+                      </div>
+                    )}
+                    {!project.start_date && !project.end_date && (
+                      <div className="flex items-center gap-2 text-slate-600">
+                        <Calendar className="w-4 h-4" />
+                        <span>Created: {new Date(project.created_at).toLocaleDateString()}</span>
+                      </div>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
             );
           })}
         </div>
@@ -312,8 +295,208 @@ export default function Projects({ user, onLogout }) {
             <FolderOpen className="w-16 h-16 text-slate-300 mx-auto mb-4" />
             <h3 className="text-lg font-medium text-slate-900 mb-2">No projects yet</h3>
             <p className="text-slate-500 mb-4">Create your first project to get started</p>
+            <Button 
+              onClick={() => setDialogOpen(true)}
+              className="bg-orange-500 hover:bg-orange-600"
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              Create Project
+            </Button>
           </div>
         )}
+
+        {/* Create Project Dialog */}
+        <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>Create New Project</DialogTitle>
+            </DialogHeader>
+            
+            <form onSubmit={handleSubmit}>
+              <Tabs value={activeTab} onValueChange={setActiveTab}>
+                <TabsList className="grid grid-cols-3 w-full">
+                  <TabsTrigger value="basic">Basic Info</TabsTrigger>
+                  <TabsTrigger value="contacts">Contacts</TabsTrigger>
+                  <TabsTrigger value="brands">Brands</TabsTrigger>
+                </TabsList>
+
+                {/* Basic Info Tab */}
+                <TabsContent value="basic" className="space-y-4 mt-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label>Project Code *</Label>
+                      <Input
+                        value={formData.code}
+                        onChange={(e) => setFormData({ ...formData, code: e.target.value })}
+                        placeholder="e.g., PRJ-2024-001"
+                        required
+                      />
+                    </div>
+                    <div>
+                      <Label>Project Title *</Label>
+                      <Input
+                        value={formData.title}
+                        onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                        placeholder="e.g., Residence at Bandra"
+                        required
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <Label>Project Types *</Label>
+                    <div className="flex flex-wrap gap-3 mt-2">
+                      {PROJECT_TYPES.map((type) => (
+                        <label key={type} className="flex items-center gap-2 cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={formData.project_types.includes(type)}
+                            onChange={() => handleProjectTypeToggle(type)}
+                            className="w-4 h-4 text-orange-500 border-slate-300 rounded focus:ring-orange-500"
+                          />
+                          <span className="text-sm text-slate-700">{type}</span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label>Client *</Label>
+                      <select
+                        className="flex h-10 w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm"
+                        value={formData.client_id}
+                        onChange={(e) => setFormData({ ...formData, client_id: e.target.value })}
+                        required
+                      >
+                        <option value="">Select client</option>
+                        {clients.map((client) => (
+                          <option key={client.id} value={client.id}>
+                            {client.name}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    <div>
+                      <Label>Status</Label>
+                      <select
+                        className="flex h-10 w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm"
+                        value={formData.status}
+                        onChange={(e) => setFormData({ ...formData, status: e.target.value })}
+                      >
+                        <option value="Lead">Lead</option>
+                        <option value="Concept">Concept</option>
+                        <option value="Layout_Dev">Layout Development</option>
+                        <option value="Elevation_3D">Elevation & 3D</option>
+                        <option value="Structural_Coord">Structural Coordination</option>
+                        <option value="Working_Drawings">Working Drawings</option>
+                        <option value="Execution">Execution</option>
+                        <option value="OnHold">On Hold</option>
+                        <option value="Closed">Closed</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label>Start Date</Label>
+                      <Input
+                        type="date"
+                        value={formData.start_date}
+                        onChange={(e) => setFormData({ ...formData, start_date: e.target.value })}
+                      />
+                    </div>
+                    <div>
+                      <Label>End Date <span className="text-xs text-slate-500">(Auto-archives project)</span></Label>
+                      <Input
+                        type="date"
+                        value={formData.end_date}
+                        onChange={(e) => setFormData({ ...formData, end_date: e.target.value })}
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <Label>Site Address</Label>
+                    <Input
+                      value={formData.site_address}
+                      onChange={(e) => setFormData({ ...formData, site_address: e.target.value })}
+                      placeholder="Complete site address"
+                    />
+                  </div>
+
+                  <div>
+                    <Label>Plot Dimensions</Label>
+                    <Input
+                      value={formData.plot_dimensions}
+                      onChange={(e) => setFormData({ ...formData, plot_dimensions: e.target.value })}
+                      placeholder="e.g., 50' x 80'"
+                    />
+                  </div>
+
+                  <div>
+                    <Label>Notes</Label>
+                    <textarea
+                      className="flex min-h-[80px] w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm"
+                      value={formData.notes}
+                      onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+                      placeholder="Additional project notes"
+                    />
+                  </div>
+                </TabsContent>
+
+                {/* Contacts Tab */}
+                <TabsContent value="contacts" className="space-y-4 mt-4">
+                  <div className="space-y-3">
+                    <ContactSection title="Civil Contractor" fieldName="civil_contractor" />
+                    <ContactSection title="Tile & Marble Contractor" fieldName="tile_marble_contractor" />
+                    <ContactSection title="Furniture Contractor" fieldName="furniture_contractor" />
+                    <ContactSection title="Electrical Contractor" fieldName="electrical_contractor" />
+                    <ContactSection title="Electrical Consultant" fieldName="electrical_consultant" />
+                    <ContactSection title="Plumbing Consultant" fieldName="plumbing_consultant" />
+                    <ContactSection title="Plumbing Contractor" fieldName="plumbing_contractor" />
+                    <ContactSection title="False Ceiling Contractor" fieldName="false_ceiling_contractor" />
+                    <ContactSection title="Furniture Material Supplier" fieldName="furniture_material_supplier" />
+                    <ContactSection title="Kitchen Contractor" fieldName="kitchen_contractor" />
+                    <ContactSection title="Modular Contractor" fieldName="modular_contractor" />
+                    <ContactSection title="Color Contractor" fieldName="color_contractor" />
+                    <ContactSection title="Landscape Consultant" fieldName="landscape_consultant" />
+                    <ContactSection title="Landscape Contractor" fieldName="landscape_contractor" />
+                    <ContactSection title="Automation Consultant" fieldName="automation_consultant" />
+                    <ContactSection title="Readymade Furniture Supplier" fieldName="readymade_furniture_supplier" />
+                    <ContactSection title="Lights Supplier" fieldName="lights_supplier" />
+                  </div>
+                </TabsContent>
+
+                {/* Brands Tab */}
+                <TabsContent value="brands" className="space-y-4 mt-4">
+                  <p className="text-sm text-slate-600">
+                    Brands can be added and managed after creating the project.
+                  </p>
+                </TabsContent>
+              </Tabs>
+
+              <div className="flex justify-end gap-3 mt-6 pt-6 border-t">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => {
+                    setDialogOpen(false);
+                    resetForm();
+                  }}
+                >
+                  Cancel
+                </Button>
+                <Button 
+                  type="submit" 
+                  className="bg-orange-500 hover:bg-orange-600"
+                >
+                  Create Project
+                </Button>
+              </div>
+            </form>
+          </DialogContent>
+        </Dialog>
       </div>
     </Layout>
   );
