@@ -218,8 +218,9 @@ class Project(BaseModel):
     plot_dimensions: Optional[str] = None
     notes: Optional[str] = None
     
-    # Contractors/Consultants/Suppliers
+    # Contractors/Consultants/Suppliers - Fixed contacts
     civil_contractor: Optional[ContactInfo] = None
+    structural_consultant: Optional[ContactInfo] = None
     tile_marble_contractor: Optional[ContactInfo] = None
     furniture_contractor: Optional[ContactInfo] = None
     electrical_contractor: Optional[ContactInfo] = None
@@ -236,7 +237,9 @@ class Project(BaseModel):
     automation_consultant: Optional[ContactInfo] = None
     readymade_furniture_supplier: Optional[ContactInfo] = None
     lights_supplier: Optional[ContactInfo] = None
-    other_contacts: List[ContactInfo] = []  # For additional contacts
+    
+    # Custom contacts (dynamic based on user-defined contact types)
+    custom_contacts: dict = {}  # {contact_type_id: ContactInfo}
     
     # Brands used in project
     brands: List[BrandCategory] = []
