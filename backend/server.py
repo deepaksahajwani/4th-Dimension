@@ -1024,6 +1024,57 @@ async def delete_brand_category(
     return {"message": "Brand category deleted successfully"}
 
 
+# ==================== CONTACT TYPE ROUTES ====================
+
+@api_router.get("/contact-types")
+async def get_contact_types(current_user: User = Depends(get_current_user)):
+    """Get all contact types"""
+    types = await db.contact_types.find({}, {"_id": 0}).to_list(1000)
+    return types
+
+@api_router.post("/contact-types", response_model=ContactTypeMaster)
+async def create_contact_type(
+    type_data: ContactTypeMasterCreate, 
+    current_user: User = Depends(get_current_user)
+):
+    """Create a new contact type"""
+    contact_type = ContactTypeMaster(
+        type_name=type_data.type_name
+    )
+    
+    type_dict = contact_type.model_dump()
+    type_dict['created_at'] = type_dict['created_at'].isoformat()
+    type_dict['updated_at'] = type_dict['updated_at'].isoformat()
+    
+    await db.contact_types.insert_one(type_dict)
+    return contact_type
+
+@api_router.put("/contact-types/{type_id}")
+async def update_contact_type(
+    type_id: str,
+    type_data: ContactTypeMasterUpdate,
+    current_user: User = Depends(require_owner)
+):
+    """Update a contact type (owner only)"""
+    update_data = {k: v for k, v in type_data.model_dump().items() if v is not None}
+    update_data['updated_at'] = datetime.now(timezone.utc).isoformat()
+    
+    await db.contact_types.update_one(
+        {"id": type_id},
+        {"$set": update_data}
+    )
+    return {"message": "Contact type updated successfully"}
+
+@api_router.delete("/contact-types/{type_id}")
+async def delete_contact_type(
+    type_id: str,
+    current_user: User = Depends(require_owner)
+):
+    """Delete a contact type (owner only)"""
+    await db.contact_types.delete_one({"id": type_id})
+    return {"message": "Contact type deleted successfully"}
+
+
 # ==================== PROJECT ROUTES ====================
 
 @api_router.post("/projects", response_model=NewProject)
