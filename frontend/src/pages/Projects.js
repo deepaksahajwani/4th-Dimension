@@ -149,7 +149,7 @@ export default function Projects({ user, onLogout }) {
       
       // Remove empty contact objects
       const contactFields = [
-        'civil_contractor', 'tile_marble_contractor', 'furniture_contractor',
+        'civil_contractor', 'structural_consultant', 'tile_marble_contractor', 'furniture_contractor',
         'electrical_contractor', 'electrical_consultant', 'plumbing_consultant',
         'plumbing_contractor', 'false_ceiling_contractor', 'furniture_material_supplier',
         'kitchen_contractor', 'modular_contractor', 'color_contractor',
@@ -163,6 +163,15 @@ export default function Projects({ user, onLogout }) {
           cleanedData[field] = null;
         }
       });
+
+      // Clean up empty custom contacts
+      const customContacts = {};
+      Object.entries(cleanedData.custom_contacts || {}).forEach(([typeId, contact]) => {
+        if (contact.name || contact.email || contact.phone) {
+          customContacts[typeId] = contact;
+        }
+      });
+      cleanedData.custom_contacts = customContacts;
 
       await axios.post(`${API}/projects`, cleanedData);
       toast.success('Project created successfully!');
