@@ -970,6 +970,59 @@ async def delete_client(client_id: str, current_user: User = Depends(require_own
     return {"message": "Client deleted and projects unlinked"}
 
 
+
+# ==================== BRAND CATEGORY ROUTES ====================
+
+@api_router.get("/brand-categories")
+async def get_brand_categories(current_user: User = Depends(get_current_user)):
+    """Get all brand categories"""
+    categories = await db.brand_categories.find({}, {"_id": 0}).to_list(1000)
+    return categories
+
+@api_router.post("/brand-categories", response_model=BrandCategoryMaster)
+async def create_brand_category(
+    category_data: BrandCategoryMasterCreate, 
+    current_user: User = Depends(require_owner)
+):
+    """Create a new brand category (owner only)"""
+    category = BrandCategoryMaster(
+        category_name=category_data.category_name,
+        suggested_brands=category_data.suggested_brands
+    )
+    
+    category_dict = category.model_dump()
+    category_dict['created_at'] = category_dict['created_at'].isoformat()
+    category_dict['updated_at'] = category_dict['updated_at'].isoformat()
+    
+    await db.brand_categories.insert_one(category_dict)
+    return category
+
+@api_router.put("/brand-categories/{category_id}")
+async def update_brand_category(
+    category_id: str,
+    category_data: BrandCategoryMasterUpdate,
+    current_user: User = Depends(require_owner)
+):
+    """Update a brand category (owner only)"""
+    update_data = {k: v for k, v in category_data.model_dump().items() if v is not None}
+    update_data['updated_at'] = datetime.now(timezone.utc).isoformat()
+    
+    await db.brand_categories.update_one(
+        {"id": category_id},
+        {"$set": update_data}
+    )
+    return {"message": "Brand category updated successfully"}
+
+@api_router.delete("/brand-categories/{category_id}")
+async def delete_brand_category(
+    category_id: str,
+    current_user: User = Depends(require_owner)
+):
+    """Delete a brand category (owner only)"""
+    await db.brand_categories.delete_one({"id": category_id})
+    return {"message": "Brand category deleted successfully"}
+
+
 # ==================== PROJECT ROUTES ====================
 
 @api_router.post("/projects", response_model=Project)
