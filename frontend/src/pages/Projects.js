@@ -474,15 +474,6 @@ export default function Projects({ user, onLogout }) {
                   </div>
 
                   <div>
-                    <Label>Plot Dimensions</Label>
-                    <Input
-                      value={formData.plot_dimensions}
-                      onChange={(e) => setFormData({ ...formData, plot_dimensions: e.target.value })}
-                      placeholder="e.g., 50' x 80'"
-                    />
-                  </div>
-
-                  <div>
                     <Label>Notes</Label>
                     <textarea
                       className="flex min-h-[80px] w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm"
