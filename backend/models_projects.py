@@ -215,7 +215,6 @@ class Project(BaseModel):
     end_date: Optional[datetime] = None  # When set, project auto-archives
     archived: bool = False
     site_address: Optional[str] = None
-    plot_dimensions: Optional[str] = None
     notes: Optional[str] = None
     
     # Contractors/Consultants/Suppliers - Fixed contacts
