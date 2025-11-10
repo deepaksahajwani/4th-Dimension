@@ -28,7 +28,8 @@ from models_projects import (
     ChecklistPreset, DrawingType, ClientUpdate,
     Client as NewClient, ClientCreate as NewClientCreate,
     Project as NewProject, ProjectCreate as NewProjectCreate, ProjectUpdate as NewProjectUpdate,
-    ContactInfo, BrandCategory, BrandCategoryMaster, BrandCategoryMasterCreate, BrandCategoryMasterUpdate
+    ContactInfo, BrandCategory, BrandCategoryMaster, BrandCategoryMasterCreate, BrandCategoryMasterUpdate,
+    ContactTypeMaster, ContactTypeMasterCreate, ContactTypeMasterUpdate
 )
 
 ROOT_DIR = Path(__file__).parent
