@@ -69,12 +69,14 @@ export default function Projects({ user, onLogout }) {
 
   const fetchData = async () => {
     try {
-      const [projectsRes, clientsRes] = await Promise.all([
+      const [projectsRes, clientsRes, contactTypesRes] = await Promise.all([
         axios.get(`${API}/projects`),
-        axios.get(`${API}/clients`)
+        axios.get(`${API}/clients`),
+        axios.get(`${API}/contact-types`)
       ]);
       setProjects(projectsRes.data);
       setClients(clientsRes.data);
+      setContactTypes(contactTypesRes.data);
     } catch (error) {
       toast.error('Failed to fetch data');
     } finally {
