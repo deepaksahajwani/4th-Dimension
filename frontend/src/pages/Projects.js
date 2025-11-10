@@ -496,7 +496,9 @@ export default function Projects({ user, onLogout }) {
                 {/* Contacts Tab */}
                 <TabsContent value="contacts" className="space-y-4 mt-4">
                   <div className="space-y-3">
+                    <h3 className="font-semibold text-slate-900 mb-2">Standard Contacts</h3>
                     <ContactSection title="Civil Contractor" fieldName="civil_contractor" />
+                    <ContactSection title="Structural Consultant" fieldName="structural_consultant" />
                     <ContactSection title="Tile & Marble Contractor" fieldName="tile_marble_contractor" />
                     <ContactSection title="Furniture Contractor" fieldName="furniture_contractor" />
                     <ContactSection title="Electrical Contractor" fieldName="electrical_contractor" />
@@ -513,6 +515,79 @@ export default function Projects({ user, onLogout }) {
                     <ContactSection title="Automation Consultant" fieldName="automation_consultant" />
                     <ContactSection title="Readymade Furniture Supplier" fieldName="readymade_furniture_supplier" />
                     <ContactSection title="Lights Supplier" fieldName="lights_supplier" />
+                    
+                    {/* Custom Contact Types */}
+                    {contactTypes.length > 0 && (
+                      <>
+                        <h3 className="font-semibold text-slate-900 mt-6 mb-2">Custom Contacts</h3>
+                        {contactTypes.map((type) => (
+                          <div key={type.id} className="p-4 border border-slate-200 rounded-lg bg-slate-50">
+                            <h4 className="font-medium text-sm text-slate-900 mb-3">{type.type_name}</h4>
+                            <div className="grid grid-cols-3 gap-3">
+                              <Input
+                                placeholder="Name"
+                                value={formData.custom_contacts[type.id]?.name || ''}
+                                onChange={(e) => updateCustomContactField(type.id, 'name', e.target.value)}
+                              />
+                              <Input
+                                placeholder="Email"
+                                type="email"
+                                value={formData.custom_contacts[type.id]?.email || ''}
+                                onChange={(e) => updateCustomContactField(type.id, 'email', e.target.value)}
+                              />
+                              <Input
+                                placeholder="Phone"
+                                value={formData.custom_contacts[type.id]?.phone || ''}
+                                onChange={(e) => updateCustomContactField(type.id, 'phone', e.target.value)}
+                              />
+                            </div>
+                          </div>
+                        ))}
+                      </>
+                    )}
+
+                    {/* Add New Contact Type */}
+                    <div className="pt-4 border-t mt-4">
+                      {!showAddContactType ? (
+                        <Button
+                          type="button"
+                          variant="outline"
+                          onClick={() => setShowAddContactType(true)}
+                          className="w-full"
+                        >
+                          <Plus className="w-4 h-4 mr-2" />
+                          Add Custom Contact Type
+                        </Button>
+                      ) : (
+                        <div className="space-y-3 p-4 border border-orange-200 rounded-lg bg-orange-50">
+                          <Label>New Contact Type Name</Label>
+                          <Input
+                            value={newContactTypeName}
+                            onChange={(e) => setNewContactTypeName(e.target.value)}
+                            placeholder="e.g., MEP Consultant, HVAC Contractor"
+                          />
+                          <div className="flex gap-2">
+                            <Button
+                              type="button"
+                              onClick={handleAddContactType}
+                              className="flex-1 bg-orange-500 hover:bg-orange-600"
+                            >
+                              Add Contact Type
+                            </Button>
+                            <Button
+                              type="button"
+                              variant="outline"
+                              onClick={() => {
+                                setShowAddContactType(false);
+                                setNewContactTypeName('');
+                              }}
+                            >
+                              Cancel
+                            </Button>
+                          </div>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </TabsContent>
 
