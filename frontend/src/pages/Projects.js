@@ -212,7 +212,7 @@ export default function Projects({ user, onLogout }) {
       automation_consultant: { name: '', email: '', phone: '' },
       readymade_furniture_supplier: { name: '', email: '', phone: '' },
       lights_supplier: { name: '', email: '', phone: '' },
-      other_contacts: [],
+      custom_contacts: {},
       brands: []
     });
     setActiveTab('basic');
