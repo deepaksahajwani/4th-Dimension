@@ -1247,6 +1247,405 @@ class BackendTester:
         except Exception as e:
             self.log_result("Client API - Database Persistence", False, f"Exception: {str(e)}")
 
+    def test_drawing_management_api(self):
+        """Test Drawing Management API endpoints as requested"""
+        if not self.auth_token:
+            # Create a user for drawing testing
+            try:
+                test_email = f"drawingtest_{uuid.uuid4().hex[:8]}@example.com"
+                test_password = "DrawingTest123!"
+                
+                # Register test user
+                user_register = {
+                    "email": test_email,
+                    "password": test_password,
+                    "name": "Drawing Test User"
+                }
+                register_response = self.session.post(f"{BACKEND_URL}/auth/register", json=user_register)
+                
+                if register_response.status_code == 200:
+                    register_data = register_response.json()
+                    self.auth_token = register_data["access_token"]
+                    
+                    # Complete profile if needed
+                    if register_data.get("requires_profile_completion"):
+                        headers = {"Authorization": f"Bearer {self.auth_token}"}
+                        profile_data = {
+                            "full_name": "Drawing Test User",
+                            "address_line_1": "123 Drawing Street",
+                            "address_line_2": "Test Area",
+                            "city": "Test City",
+                            "state": "Test State",
+                            "pin_code": "123456",
+                            "email": test_email,
+                            "mobile": "+919876543210",
+                            "date_of_birth": "1990-01-15",
+                            "date_of_joining": "2024-01-01",
+                            "gender": "male",
+                            "marital_status": "single",
+                            "role": "architect"
+                        }
+                        
+                        profile_response = self.session.post(f"{BACKEND_URL}/profile/complete", 
+                                                           json=profile_data, headers=headers)
+                        
+                        if profile_response.status_code == 200:
+                            self.log_result("Drawing API - User Setup", True, "Test user created and profile completed")
+                        else:
+                            self.log_result("Drawing API - User Setup", False, f"Profile completion failed: {profile_response.status_code}")
+                            return
+                    else:
+                        self.log_result("Drawing API - User Setup", True, "Test user created successfully")
+                else:
+                    self.log_result("Drawing API - Authentication", False, f"User registration failed: {register_response.status_code}")
+                    return
+            except Exception as e:
+                self.log_result("Drawing API - Authentication", False, f"Auth exception: {str(e)}")
+                return
+
+        headers = {"Authorization": f"Bearer {self.auth_token}"}
+        
+        # Step 1: Create a Test Project First
+        try:
+            print(f"\n🔄 Testing Drawing Management API Flow")
+            print("Step 1: Creating test project...")
+            
+            # First create a client for the project
+            client_data = {
+                "name": "Drawing Test Client",
+                "contact_person": "Test Contact",
+                "phone": "+919876543210",
+                "email": "drawingclient@test.com",
+                "address": "123 Client Street, Test City"
+            }
+            
+            client_response = self.session.post(f"{BACKEND_URL}/clients", json=client_data, headers=headers)
+            
+            if client_response.status_code != 200:
+                self.log_result("Drawing API - Create Test Client", False, f"Client creation failed: {client_response.status_code}")
+                return
+            
+            client_id = client_response.json()["id"]
+            
+            # Create project with required project_types
+            project_data = {
+                "code": "DRAW-TEST-001",
+                "title": "Drawing Management Test Project",
+                "project_types": ["Architecture", "Interior"],
+                "status": "Active",
+                "client_id": client_id,
+                "start_date": "2024-01-01",
+                "site_address": "123 Test Site, Test City",
+                "notes": "Test project for drawing management API testing"
+            }
+            
+            project_response = self.session.post(f"{BACKEND_URL}/projects", json=project_data, headers=headers)
+            
+            if project_response.status_code == 200:
+                project = project_response.json()
+                self.test_project_id = project["id"]
+                self.log_result("Drawing API - Create Test Project", True, 
+                              f"Project created successfully. ID: {self.test_project_id}")
+                print(f"✅ Project created: {self.test_project_id}")
+            else:
+                self.log_result("Drawing API - Create Test Project", False, 
+                              f"Project creation failed: {project_response.status_code} - {project_response.text}")
+                return
+                
+        except Exception as e:
+            self.log_result("Drawing API - Create Test Project", False, f"Exception: {str(e)}")
+            return
+
+        # Step 2: Create Drawings
+        try:
+            print("Step 2: Creating drawings...")
+            
+            # Create first drawing - Architecture
+            drawing1_data = {
+                "category": "Architecture",
+                "name": "Ground Floor Plan",
+                "due_date": "2024-12-31"
+            }
+            
+            drawing1_response = self.session.post(f"{BACKEND_URL}/projects/{self.test_project_id}/drawings", 
+                                                json=drawing1_data, headers=headers)
+            
+            if drawing1_response.status_code == 200:
+                drawing1 = drawing1_response.json()
+                self.test_drawing1_id = drawing1["id"]
+                self.log_result("Drawing API - Create Architecture Drawing", True, 
+                              f"Architecture drawing created: {drawing1['name']}")
+                print(f"✅ Drawing 1 created: {drawing1['name']} (ID: {self.test_drawing1_id})")
+            else:
+                self.log_result("Drawing API - Create Architecture Drawing", False, 
+                              f"Drawing creation failed: {drawing1_response.status_code} - {drawing1_response.text}")
+                return
+            
+            # Create second drawing - Interior
+            drawing2_data = {
+                "category": "Interior",
+                "name": "Living Room Layout",
+                "due_date": "2024-12-15"
+            }
+            
+            drawing2_response = self.session.post(f"{BACKEND_URL}/projects/{self.test_project_id}/drawings", 
+                                                json=drawing2_data, headers=headers)
+            
+            if drawing2_response.status_code == 200:
+                drawing2 = drawing2_response.json()
+                self.test_drawing2_id = drawing2["id"]
+                self.log_result("Drawing API - Create Interior Drawing", True, 
+                              f"Interior drawing created: {drawing2['name']}")
+                print(f"✅ Drawing 2 created: {drawing2['name']} (ID: {self.test_drawing2_id})")
+            else:
+                self.log_result("Drawing API - Create Interior Drawing", False, 
+                              f"Drawing creation failed: {drawing2_response.status_code} - {drawing2_response.text}")
+                return
+                
+        except Exception as e:
+            self.log_result("Drawing API - Create Drawings", False, f"Exception: {str(e)}")
+            return
+
+        # Step 3: Get Project Drawings
+        try:
+            print("Step 3: Getting project drawings...")
+            
+            drawings_response = self.session.get(f"{BACKEND_URL}/projects/{self.test_project_id}/drawings", 
+                                               headers=headers)
+            
+            if drawings_response.status_code == 200:
+                drawings = drawings_response.json()
+                
+                # Verify both drawings are returned
+                if len(drawings) >= 2:
+                    # Check initial states
+                    drawing_checks = []
+                    for drawing in drawings:
+                        if drawing["id"] in [self.test_drawing1_id, self.test_drawing2_id]:
+                            checks = [
+                                (drawing.get("is_issued") == False, f"is_issued should be False for {drawing['name']}"),
+                                (drawing.get("has_pending_revision") == False, f"has_pending_revision should be False for {drawing['name']}"),
+                                (drawing.get("revision_count") == 0, f"revision_count should be 0 for {drawing['name']}")
+                            ]
+                            drawing_checks.extend(checks)
+                    
+                    failed_checks = [msg for check, msg in drawing_checks if not check]
+                    
+                    if not failed_checks:
+                        self.log_result("Drawing API - Get Project Drawings", True, 
+                                      f"Retrieved {len(drawings)} drawings with correct initial states")
+                        print(f"✅ Retrieved {len(drawings)} drawings with correct initial states")
+                    else:
+                        self.log_result("Drawing API - Get Project Drawings", False, 
+                                      f"Initial state checks failed: {'; '.join(failed_checks)}")
+                        return
+                else:
+                    self.log_result("Drawing API - Get Project Drawings", False, 
+                                  f"Expected at least 2 drawings, got {len(drawings)}")
+                    return
+            else:
+                self.log_result("Drawing API - Get Project Drawings", False, 
+                              f"Get drawings failed: {drawings_response.status_code}")
+                return
+                
+        except Exception as e:
+            self.log_result("Drawing API - Get Project Drawings", False, f"Exception: {str(e)}")
+            return
+
+        # Step 4: Mark Drawing as Issued
+        try:
+            print("Step 4: Marking drawing as issued...")
+            
+            issue_data = {"is_issued": True}
+            
+            issue_response = self.session.put(f"{BACKEND_URL}/drawings/{self.test_drawing1_id}", 
+                                            json=issue_data, headers=headers)
+            
+            if issue_response.status_code == 200:
+                # Verify issued_date is set by getting the drawing again
+                verify_response = self.session.get(f"{BACKEND_URL}/projects/{self.test_project_id}/drawings", 
+                                                 headers=headers)
+                
+                if verify_response.status_code == 200:
+                    drawings = verify_response.json()
+                    issued_drawing = None
+                    
+                    for drawing in drawings:
+                        if drawing["id"] == self.test_drawing1_id:
+                            issued_drawing = drawing
+                            break
+                    
+                    if issued_drawing and issued_drawing.get("is_issued") == True and issued_drawing.get("issued_date"):
+                        self.log_result("Drawing API - Mark Drawing as Issued", True, 
+                                      f"Drawing marked as issued with issued_date: {issued_drawing['issued_date']}")
+                        print(f"✅ Drawing marked as issued with issued_date set")
+                    else:
+                        self.log_result("Drawing API - Mark Drawing as Issued", False, 
+                                      "Drawing not properly marked as issued or issued_date not set")
+                        return
+                else:
+                    self.log_result("Drawing API - Mark Drawing as Issued", False, 
+                                  "Failed to verify issued status")
+                    return
+            else:
+                self.log_result("Drawing API - Mark Drawing as Issued", False, 
+                              f"Issue drawing failed: {issue_response.status_code} - {issue_response.text}")
+                return
+                
+        except Exception as e:
+            self.log_result("Drawing API - Mark Drawing as Issued", False, f"Exception: {str(e)}")
+            return
+
+        # Step 5: Request Revision
+        try:
+            print("Step 5: Requesting revision...")
+            
+            revision_data = {"has_pending_revision": True}
+            
+            revision_response = self.session.put(f"{BACKEND_URL}/drawings/{self.test_drawing1_id}", 
+                                               json=revision_data, headers=headers)
+            
+            if revision_response.status_code == 200:
+                # Verify is_issued is set back to false and has_pending_revision is true
+                verify_response = self.session.get(f"{BACKEND_URL}/projects/{self.test_project_id}/drawings", 
+                                                 headers=headers)
+                
+                if verify_response.status_code == 200:
+                    drawings = verify_response.json()
+                    revision_drawing = None
+                    
+                    for drawing in drawings:
+                        if drawing["id"] == self.test_drawing1_id:
+                            revision_drawing = drawing
+                            break
+                    
+                    revision_checks = [
+                        (revision_drawing.get("is_issued") == False, "is_issued should be reset to False"),
+                        (revision_drawing.get("has_pending_revision") == True, "has_pending_revision should be True")
+                    ]
+                    
+                    failed_revision_checks = [msg for check, msg in revision_checks if not check]
+                    
+                    if not failed_revision_checks:
+                        self.log_result("Drawing API - Request Revision", True, 
+                                      "Revision requested successfully - is_issued reset to False, has_pending_revision set to True")
+                        print(f"✅ Revision requested - is_issued reset, has_pending_revision set")
+                    else:
+                        self.log_result("Drawing API - Request Revision", False, 
+                                      f"Revision request checks failed: {'; '.join(failed_revision_checks)}")
+                        return
+                else:
+                    self.log_result("Drawing API - Request Revision", False, 
+                                  "Failed to verify revision status")
+                    return
+            else:
+                self.log_result("Drawing API - Request Revision", False, 
+                              f"Request revision failed: {revision_response.status_code} - {revision_response.text}")
+                return
+                
+        except Exception as e:
+            self.log_result("Drawing API - Request Revision", False, f"Exception: {str(e)}")
+            return
+
+        # Step 6: Resolve Revision
+        try:
+            print("Step 6: Resolving revision...")
+            
+            resolve_data = {"has_pending_revision": False}
+            
+            resolve_response = self.session.put(f"{BACKEND_URL}/drawings/{self.test_drawing1_id}", 
+                                              json=resolve_data, headers=headers)
+            
+            if resolve_response.status_code == 200:
+                # Verify revision_count is incremented and has_pending_revision is false
+                verify_response = self.session.get(f"{BACKEND_URL}/projects/{self.test_project_id}/drawings", 
+                                                 headers=headers)
+                
+                if verify_response.status_code == 200:
+                    drawings = verify_response.json()
+                    resolved_drawing = None
+                    
+                    for drawing in drawings:
+                        if drawing["id"] == self.test_drawing1_id:
+                            resolved_drawing = drawing
+                            break
+                    
+                    resolve_checks = [
+                        (resolved_drawing.get("revision_count") == 1, "revision_count should be incremented to 1"),
+                        (resolved_drawing.get("has_pending_revision") == False, "has_pending_revision should be False")
+                    ]
+                    
+                    failed_resolve_checks = [msg for check, msg in resolve_checks if not check]
+                    
+                    if not failed_resolve_checks:
+                        self.log_result("Drawing API - Resolve Revision", True, 
+                                      f"Revision resolved successfully - revision_count: {resolved_drawing.get('revision_count')}")
+                        print(f"✅ Revision resolved - revision_count incremented to {resolved_drawing.get('revision_count')}")
+                    else:
+                        self.log_result("Drawing API - Resolve Revision", False, 
+                                      f"Revision resolve checks failed: {'; '.join(failed_resolve_checks)}")
+                        return
+                else:
+                    self.log_result("Drawing API - Resolve Revision", False, 
+                                  "Failed to verify resolve status")
+                    return
+            else:
+                self.log_result("Drawing API - Resolve Revision", False, 
+                              f"Resolve revision failed: {resolve_response.status_code} - {resolve_response.text}")
+                return
+                
+        except Exception as e:
+            self.log_result("Drawing API - Resolve Revision", False, f"Exception: {str(e)}")
+            return
+
+        # Step 7: Delete Drawing (Soft Delete)
+        try:
+            print("Step 7: Deleting drawing (soft delete)...")
+            
+            delete_response = self.session.delete(f"{BACKEND_URL}/drawings/{self.test_drawing2_id}", 
+                                                headers=headers)
+            
+            if delete_response.status_code == 200:
+                # Verify it's soft deleted (deleted_at is set) and not in the list
+                verify_response = self.session.get(f"{BACKEND_URL}/projects/{self.test_project_id}/drawings", 
+                                                 headers=headers)
+                
+                if verify_response.status_code == 200:
+                    drawings = verify_response.json()
+                    
+                    # Check that the deleted drawing is not in the list
+                    deleted_drawing_found = False
+                    for drawing in drawings:
+                        if drawing["id"] == self.test_drawing2_id:
+                            deleted_drawing_found = True
+                            break
+                    
+                    if not deleted_drawing_found:
+                        self.log_result("Drawing API - Delete Drawing", True, 
+                                      "Drawing soft deleted successfully - not visible in drawings list")
+                        print(f"✅ Drawing soft deleted - no longer appears in drawings list")
+                    else:
+                        self.log_result("Drawing API - Delete Drawing", False, 
+                                      "Deleted drawing still appears in drawings list")
+                        return
+                else:
+                    self.log_result("Drawing API - Delete Drawing", False, 
+                                  "Failed to verify delete status")
+                    return
+            else:
+                self.log_result("Drawing API - Delete Drawing", False, 
+                              f"Delete drawing failed: {delete_response.status_code} - {delete_response.text}")
+                return
+                
+        except Exception as e:
+            self.log_result("Drawing API - Delete Drawing", False, f"Exception: {str(e)}")
+            return
+
+        # All steps completed successfully
+        self.log_result("Drawing API - Complete Workflow", True, 
+                      "All drawing management workflow steps completed successfully: Create Project → Create Drawings → Get Drawings → Mark as Issued → Request Revision → Resolve Revision → Delete Drawing")
+        print(f"✅ Complete Drawing Management API workflow tested successfully!")
+
     def run_client_project_types_tests(self):
         """Run only the client project_types tests"""
         print(f"🚀 Starting Client API project_types Tests")
@@ -1272,6 +1671,36 @@ class BackendTester:
         if total - passed > 0:
             print("\n❌ FAILED CLIENT API TESTS:")
             for result in client_tests:
+                if not result["success"]:
+                    print(f"  - {result['test']}: {result['details']}")
+        
+        return passed == total if total > 0 else False
+
+    def run_drawing_management_tests(self):
+        """Run only the drawing management tests"""
+        print(f"🚀 Starting Drawing Management API Tests")
+        print(f"Backend URL: {BACKEND_URL}")
+        print("=" * 60)
+        
+        self.test_drawing_management_api()
+        
+        # Summary
+        print("=" * 60)
+        print("📊 DRAWING MANAGEMENT API TEST SUMMARY")
+        print("=" * 60)
+        
+        drawing_tests = [result for result in self.test_results if "Drawing API" in result["test"]]
+        passed = sum(1 for result in drawing_tests if result["success"])
+        total = len(drawing_tests)
+        
+        print(f"Drawing Management Tests: {total}")
+        print(f"Passed: {passed}")
+        print(f"Failed: {total - passed}")
+        print(f"Success Rate: {(passed/total)*100:.1f}%" if total > 0 else "No tests run")
+        
+        if total - passed > 0:
+            print("\n❌ FAILED DRAWING MANAGEMENT TESTS:")
+            for result in drawing_tests:
                 if not result["success"]:
                     print(f"  - {result['test']}: {result['details']}")
         
