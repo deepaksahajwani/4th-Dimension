@@ -1249,6 +1249,80 @@ async def get_project_drawings(project_id: str, current_user: User = Depends(get
             drawing['issue_date'] = datetime.fromisoformat(drawing['issue_date'])
     return drawings
 
+
+@api_router.post("/projects/{project_id}/drawings")
+async def create_drawing(
+    project_id: str,
+    drawing_data: ProjectDrawingCreate,
+    current_user: User = Depends(get_current_user)
+):
+    """Create a new drawing for a project"""
+    from models_projects import ProjectDrawing
+    
+    drawing = ProjectDrawing(
+        project_id=project_id,
+        category=drawing_data.category,
+        name=drawing_data.name,
+        due_date=datetime.fromisoformat(drawing_data.due_date) if drawing_data.due_date else None,
+        notes=drawing_data.notes
+    )
+    
+    drawing_dict = drawing.model_dump()
+    for field in ['created_at', 'updated_at', 'issued_date', 'due_date']:
+        if drawing_dict.get(field):
+            drawing_dict[field] = drawing_dict[field].isoformat() if isinstance(drawing_dict[field], datetime) else drawing_dict[field]
+    
+    await db.project_drawings.insert_one(drawing_dict)
+    return drawing_dict
+
+@api_router.put("/drawings/{drawing_id}")
+async def update_drawing(
+    drawing_id: str,
+    drawing_data: ProjectDrawingUpdate,
+    current_user: User = Depends(get_current_user)
+):
+    """Update a drawing"""
+    update_dict = {k: v for k, v in drawing_data.model_dump().items() if v is not None}
+    
+    # If marking as issued, set issued_date
+    if update_dict.get('is_issued') == True:
+        update_dict['issued_date'] = datetime.now(timezone.utc).isoformat()
+    
+    # If marking has_pending_revision as False (resolved), keep track
+    if update_dict.get('has_pending_revision') == False:
+        # Increment revision count
+        drawing = await db.project_drawings.find_one({"id": drawing_id})
+        if drawing:
+            update_dict['revision_count'] = drawing.get('revision_count', 0) + 1
+    
+    # If marking has_pending_revision as True, reset is_issued
+    if update_dict.get('has_pending_revision') == True:
+        update_dict['is_issued'] = False
+    
+    if update_dict.get('due_date') and isinstance(update_dict['due_date'], str):
+        update_dict['due_date'] = datetime.fromisoformat(update_dict['due_date']).isoformat()
+    
+    update_dict['updated_at'] = datetime.now(timezone.utc).isoformat()
+    
+    await db.project_drawings.update_one(
+        {"id": drawing_id},
+        {"$set": update_dict}
+    )
+    return {"message": "Drawing updated successfully"}
+
+@api_router.delete("/drawings/{drawing_id}")
+async def delete_drawing(
+    drawing_id: str,
+    current_user: User = Depends(get_current_user)
+):
+    """Soft delete a drawing"""
+    await db.project_drawings.update_one(
+        {"id": drawing_id},
+        {"$set": {"deleted_at": datetime.now(timezone.utc).isoformat()}}
+    )
+    return {"message": "Drawing deleted successfully"}
+
+
 @api_router.post("/drawings/{drawing_id}/upload")
 async def upload_drawing(
     drawing_id: str,
