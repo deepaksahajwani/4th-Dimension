@@ -29,7 +29,8 @@ from models_projects import (
     Client as NewClient, ClientCreate as NewClientCreate,
     Project as NewProject, ProjectCreate as NewProjectCreate, ProjectUpdate as NewProjectUpdate,
     ContactInfo, BrandCategory, BrandCategoryMaster, BrandCategoryMasterCreate, BrandCategoryMasterUpdate,
-    ContactTypeMaster, ContactTypeMasterCreate, ContactTypeMasterUpdate
+    ContactTypeMaster, ContactTypeMasterCreate, ContactTypeMasterUpdate,
+    ProjectDrawingCreate, ProjectDrawingUpdate
 )
 
 ROOT_DIR = Path(__file__).parent
