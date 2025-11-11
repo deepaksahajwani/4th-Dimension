@@ -349,17 +349,18 @@ class ProjectDrawing(BaseModel):
     model_config = ConfigDict(extra="ignore")
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     project_id: str
-    drawing_type_id: str
-    title_override: Optional[str] = None
-    sequence: int
-    status: DrawingStatus = DrawingStatus.PLANNED
-    assigned_to_id: Optional[str] = None  # TeamMember ID
-    consultant_id: Optional[str] = None  # Consultant ID
+    category: str  # Architecture, Interior, Landscape, Planning
+    name: str  # Drawing name/title
+    is_issued: bool = False  # Whether drawing has been issued
+    issued_date: Optional[datetime] = None
+    revision_count: int = 0  # Number of revisions
+    has_pending_revision: bool = False  # True if there's a revision needed
     due_date: Optional[datetime] = None
-    file_latest: Optional[str] = None
-    version: int = 1
+    reminder_sent: bool = False
+    notes: Optional[str] = None
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    deleted_at: Optional[datetime] = None
 
 class ProjectDrawingCreate(BaseModel):
     project_id: str
