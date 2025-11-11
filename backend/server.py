@@ -1234,9 +1234,14 @@ async def delete_project(
 
 # ==================== DRAWING ROUTES ====================
 
-@api_router.get("/projects/{project_id}/drawings", response_model=List[Drawing])
+@api_router.get("/projects/{project_id}/drawings")
 async def get_project_drawings(project_id: str, current_user: User = Depends(get_current_user)):
-    drawings = await db.drawings.find({"project_id": project_id}, {"_id": 0}).sort("order", 1).to_list(1000)
+    """Get all drawings for a project"""
+    drawings = await db.project_drawings.find(
+        {"project_id": project_id, "deleted_at": None}, 
+        {"_id": 0}
+    ).to_list(1000)
+    
     for drawing in drawings:
         if isinstance(drawing.get('created_at'), str):
             drawing['created_at'] = datetime.fromisoformat(drawing['created_at'])
