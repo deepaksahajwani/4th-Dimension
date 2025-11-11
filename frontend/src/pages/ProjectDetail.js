@@ -105,16 +105,48 @@ export default function ProjectDetail({ user, onLogout }) {
     }
   };
 
-  const handleToggleRevision = async (drawing) => {
+  const handleOpenRevisionDialog = (drawing) => {
+    setSelectedDrawing(drawing);
+    setRevisionFormData({
+      revision_notes: '',
+      revision_due_date: ''
+    });
+    setRevisionDialogOpen(true);
+  };
+
+  const handleRequestRevision = async (e) => {
+    e.preventDefault();
     try {
-      await axios.put(`${API}/drawings/${drawing.id}`, {
-        has_pending_revision: !drawing.has_pending_revision
+      await axios.put(`${API}/drawings/${selectedDrawing.id}`, {
+        has_pending_revision: true,
+        revision_notes: revisionFormData.revision_notes,
+        revision_due_date: revisionFormData.revision_due_date
       });
-      toast.success(drawing.has_pending_revision ? 'Revision resolved' : 'Revision marked as needed');
+      toast.success('Revision requested successfully!');
+      setRevisionDialogOpen(false);
       fetchProjectData();
     } catch (error) {
-      toast.error(formatErrorMessage(error, 'Failed to update drawing'));
+      toast.error(formatErrorMessage(error, 'Failed to request revision'));
     }
+  };
+
+  const handleResolveRevision = async (drawing) => {
+    if (!window.confirm('Mark this revision as resolved?')) return;
+    
+    try {
+      await axios.put(`${API}/drawings/${drawing.id}`, {
+        has_pending_revision: false
+      });
+      toast.success('Revision resolved!');
+      fetchProjectData();
+    } catch (error) {
+      toast.error(formatErrorMessage(error, 'Failed to resolve revision'));
+    }
+  };
+
+  const handleShowHistory = (drawing) => {
+    setSelectedDrawing(drawing);
+    setHistoryDialogOpen(true);
   };
 
   const handleDeleteDrawing = async (drawingId) => {
