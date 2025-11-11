@@ -545,6 +545,147 @@ export default function ProjectDetail({ user, onLogout }) {
             </form>
           </DialogContent>
         </Dialog>
+
+        {/* Request Revision Dialog */}
+        <Dialog open={revisionDialogOpen} onOpenChange={setRevisionDialogOpen}>
+          <DialogContent className="max-w-2xl">
+            <DialogHeader>
+              <DialogTitle>Request Revision</DialogTitle>
+            </DialogHeader>
+            <form onSubmit={handleRequestRevision} className="space-y-4">
+              <div>
+                <Label className="text-slate-600 mb-2 block">Drawing</Label>
+                <p className="text-slate-900 font-medium">{selectedDrawing?.name}</p>
+              </div>
+
+              <div>
+                <Label>What revisions are required? *</Label>
+                <textarea
+                  className="flex min-h-[120px] w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm"
+                  value={revisionFormData.revision_notes}
+                  onChange={(e) => setRevisionFormData({ ...revisionFormData, revision_notes: e.target.value })}
+                  placeholder="Describe the revisions needed in detail..."
+                  required
+                />
+              </div>
+
+              <div>
+                <Label>Revised Drawing Due Date *</Label>
+                <Input
+                  type="date"
+                  value={revisionFormData.revision_due_date}
+                  onChange={(e) => setRevisionFormData({ ...revisionFormData, revision_due_date: e.target.value })}
+                  required
+                />
+              </div>
+
+              <DialogFooter>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setRevisionDialogOpen(false)}
+                >
+                  Cancel
+                </Button>
+                <Button type="submit" className="bg-amber-500 hover:bg-amber-600">
+                  Request Revision
+                </Button>
+              </DialogFooter>
+            </form>
+          </DialogContent>
+        </Dialog>
+
+        {/* Revision History Dialog */}
+        <Dialog open={historyDialogOpen} onOpenChange={setHistoryDialogOpen}>
+          <DialogContent className="max-w-3xl">
+            <DialogHeader>
+              <DialogTitle>Revision History: {selectedDrawing?.name}</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4 max-h-[60vh] overflow-y-auto">
+              {selectedDrawing?.revision_history && selectedDrawing.revision_history.length > 0 ? (
+                selectedDrawing.revision_history.map((revision, index) => (
+                  <Card key={index} className="border-l-4 border-l-blue-500">
+                    <CardContent className="p-4">
+                      <div className="flex items-center gap-2 mb-3">
+                        <span className="px-2 py-1 text-xs bg-blue-100 text-blue-700 rounded font-medium">
+                          Revision {index + 1}
+                        </span>
+                        {revision.resolved_date && (
+                          <span className="px-2 py-1 text-xs bg-green-100 text-green-700 rounded">
+                            Resolved
+                          </span>
+                        )}
+                        {!revision.resolved_date && (
+                          <span className="px-2 py-1 text-xs bg-amber-100 text-amber-700 rounded">
+                            Pending
+                          </span>
+                        )}
+                      </div>
+
+                      <div className="space-y-2 text-sm">
+                        <div className="flex items-start gap-2">
+                          <CheckCircle2 className="w-4 h-4 text-green-500 mt-0.5" />
+                          <div>
+                            <span className="font-medium text-slate-700">Issued:</span>
+                            <span className="text-slate-600 ml-2">
+                              {new Date(revision.issued_date).toLocaleDateString()} at {new Date(revision.issued_date).toLocaleTimeString()}
+                            </span>
+                          </div>
+                        </div>
+
+                        {revision.revision_requested_date && (
+                          <>
+                            <div className="flex items-start gap-2">
+                              <AlertCircle className="w-4 h-4 text-amber-500 mt-0.5" />
+                              <div className="flex-1">
+                                <div>
+                                  <span className="font-medium text-slate-700">Revision Requested:</span>
+                                  <span className="text-slate-600 ml-2">
+                                    {new Date(revision.revision_requested_date).toLocaleDateString()} at {new Date(revision.revision_requested_date).toLocaleTimeString()}
+                                  </span>
+                                </div>
+                                {revision.revision_notes && (
+                                  <div className="mt-2 p-2 bg-amber-50 rounded text-slate-700">
+                                    <span className="font-medium">Revision Notes:</span>
+                                    <p className="mt-1">{revision.revision_notes}</p>
+                                  </div>
+                                )}
+                                {revision.revision_due_date && (
+                                  <div className="mt-1 text-slate-600">
+                                    <span className="font-medium">Due:</span> {new Date(revision.revision_due_date).toLocaleDateString()}
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          </>
+                        )}
+
+                        {revision.resolved_date && (
+                          <div className="flex items-start gap-2">
+                            <CheckCircle2 className="w-4 h-4 text-green-500 mt-0.5" />
+                            <div>
+                              <span className="font-medium text-slate-700">Resolved:</span>
+                              <span className="text-slate-600 ml-2">
+                                {new Date(revision.resolved_date).toLocaleDateString()} at {new Date(revision.resolved_date).toLocaleTimeString()}
+                              </span>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))
+              ) : (
+                <p className="text-center text-slate-500 py-8">No revision history yet</p>
+              )}
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setHistoryDialogOpen(false)}>
+                Close
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
     </Layout>
   );
