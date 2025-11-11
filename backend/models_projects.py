@@ -384,6 +384,8 @@ class ProjectDrawingUpdate(BaseModel):
     name: Optional[str] = None
     is_issued: Optional[bool] = None
     has_pending_revision: Optional[bool] = None
+    revision_notes: Optional[str] = None  # What revisions are needed
+    revision_due_date: Optional[str] = None  # When revised drawing is due
     due_date: Optional[str] = None
     notes: Optional[str] = None
 
