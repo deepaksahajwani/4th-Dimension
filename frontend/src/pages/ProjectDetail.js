@@ -236,15 +236,25 @@ export default function ProjectDetail({ user, onLogout }) {
             >
               {drawing.is_issued ? "Unissue" : "Issue"}
             </Button>
-            {drawing.is_issued && (
+            {(drawing.is_issued || drawing.has_pending_revision) && (
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => handleToggleRevision(drawing)}
+                onClick={() => drawing.has_pending_revision ? handleResolveRevision(drawing) : handleOpenRevisionDialog(drawing)}
                 className={drawing.has_pending_revision ? "border-green-500 text-green-600" : "border-amber-500 text-amber-600"}
                 title={drawing.has_pending_revision ? "Mark Revision Complete" : "Request Revision"}
               >
                 {drawing.has_pending_revision ? "Resolve" : "Revise"}
+              </Button>
+            )}
+            {drawing.revision_history && drawing.revision_history.length > 0 && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => handleShowHistory(drawing)}
+                title="View Revision History"
+              >
+                History
               </Button>
             )}
             <Button
