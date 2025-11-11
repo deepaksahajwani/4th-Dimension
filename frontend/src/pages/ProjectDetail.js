@@ -498,11 +498,12 @@ export default function ProjectDetail({ user, onLogout }) {
                   </select>
                 </div>
                 <div>
-                  <Label>Due Date</Label>
+                  <Label>Due Date *</Label>
                   <Input
                     type="date"
                     value={drawingFormData.due_date}
                     onChange={(e) => setDrawingFormData({ ...drawingFormData, due_date: e.target.value })}
+                    required
                   />
                 </div>
               </div>
