@@ -1384,6 +1384,7 @@ class BackendTester:
             
             # Create second drawing - Interior
             drawing2_data = {
+                "project_id": self.test_project_id,
                 "category": "Interior",
                 "name": "Living Room Layout",
                 "due_date": "2024-12-15"
