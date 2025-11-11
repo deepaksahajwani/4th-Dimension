@@ -1273,7 +1273,9 @@ async def create_drawing(
             drawing_dict[field] = drawing_dict[field].isoformat() if isinstance(drawing_dict[field], datetime) else drawing_dict[field]
     
     await db.project_drawings.insert_one(drawing_dict)
-    return drawing_dict
+    
+    # Return without _id
+    return {k: v for k, v in drawing_dict.items() if k != '_id'}
 
 @api_router.put("/drawings/{drawing_id}")
 async def update_drawing(
