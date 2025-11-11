@@ -1286,20 +1286,61 @@ async def update_drawing(
     """Update a drawing"""
     update_dict = {k: v for k, v in drawing_data.model_dump().items() if v is not None}
     
+    # Get current drawing state
+    drawing = await db.project_drawings.find_one({"id": drawing_id})
+    if not drawing:
+        raise HTTPException(status_code=404, detail="Drawing not found")
+    
     # If marking as issued, set issued_date
     if update_dict.get('is_issued') == True:
         update_dict['issued_date'] = datetime.now(timezone.utc).isoformat()
     
-    # If marking has_pending_revision as False (resolved), keep track
-    if update_dict.get('has_pending_revision') == False:
-        # Increment revision count
-        drawing = await db.project_drawings.find_one({"id": drawing_id})
-        if drawing:
-            update_dict['revision_count'] = drawing.get('revision_count', 0) + 1
-    
-    # If marking has_pending_revision as True, reset is_issued
+    # If marking has_pending_revision as True (requesting revision)
     if update_dict.get('has_pending_revision') == True:
         update_dict['is_issued'] = False
+        update_dict['current_revision_notes'] = update_dict.pop('revision_notes', None)
+        
+        # Handle revision due date
+        if update_dict.get('revision_due_date'):
+            update_dict['current_revision_due_date'] = datetime.fromisoformat(update_dict.pop('revision_due_date')).isoformat()
+        
+        # Update the current revision history item if drawing was issued
+        if drawing.get('issued_date'):
+            revision_history = drawing.get('revision_history', [])
+            
+            # Create or update the latest history item
+            if revision_history and not revision_history[-1].get('resolved_date'):
+                # Update existing pending revision
+                revision_history[-1]['revision_requested_date'] = datetime.now(timezone.utc).isoformat()
+                revision_history[-1]['revision_notes'] = update_dict.get('current_revision_notes')
+                revision_history[-1]['revision_due_date'] = update_dict.get('current_revision_due_date')
+            else:
+                # Create new revision history item
+                new_history = {
+                    'issued_date': drawing.get('issued_date'),
+                    'revision_requested_date': datetime.now(timezone.utc).isoformat(),
+                    'revision_notes': update_dict.get('current_revision_notes'),
+                    'revision_due_date': update_dict.get('current_revision_due_date'),
+                    'resolved_date': None
+                }
+                revision_history.append(new_history)
+            
+            update_dict['revision_history'] = revision_history
+    
+    # If marking has_pending_revision as False (resolving revision)
+    if update_dict.get('has_pending_revision') == False:
+        # Increment revision count
+        update_dict['revision_count'] = drawing.get('revision_count', 0) + 1
+        
+        # Update revision history - mark as resolved
+        revision_history = drawing.get('revision_history', [])
+        if revision_history and not revision_history[-1].get('resolved_date'):
+            revision_history[-1]['resolved_date'] = datetime.now(timezone.utc).isoformat()
+            update_dict['revision_history'] = revision_history
+        
+        # Clear current revision fields
+        update_dict['current_revision_notes'] = None
+        update_dict['current_revision_due_date'] = None
     
     if update_dict.get('due_date') and isinstance(update_dict['due_date'], str):
         update_dict['due_date'] = datetime.fromisoformat(update_dict['due_date']).isoformat()
