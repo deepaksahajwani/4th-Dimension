@@ -345,6 +345,14 @@ class DrawingTypeCreate(BaseModel):
     default_due_offset_days: int = 7
     auto_send: bool = False
 
+class RevisionHistoryItem(BaseModel):
+    """Individual revision cycle"""
+    issued_date: datetime
+    revision_requested_date: Optional[datetime] = None
+    revision_notes: Optional[str] = None  # What revisions are needed
+    revision_due_date: Optional[datetime] = None
+    resolved_date: Optional[datetime] = None
+
 class ProjectDrawing(BaseModel):
     model_config = ConfigDict(extra="ignore")
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
@@ -355,7 +363,10 @@ class ProjectDrawing(BaseModel):
     issued_date: Optional[datetime] = None
     revision_count: int = 0  # Number of revisions
     has_pending_revision: bool = False  # True if there's a revision needed
-    due_date: Optional[datetime] = None
+    current_revision_notes: Optional[str] = None  # Current pending revision notes
+    current_revision_due_date: Optional[datetime] = None  # Due date for current revision
+    due_date: Optional[datetime] = None  # Original due date
+    revision_history: List[RevisionHistoryItem] = []  # Complete revision history
     reminder_sent: bool = False
     notes: Optional[str] = None
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
