@@ -228,9 +228,7 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Projects Page Updates - Remove Plot Dimensions Field"
-    - "Projects Page Updates - Add Structural Consultant to Contacts"
-    - "Projects Page Updates - Custom Contact Type System"
+    - "Drawing Management API"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
