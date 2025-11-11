@@ -1709,9 +1709,14 @@ class BackendTester:
 if __name__ == "__main__":
     tester = BackendTester()
     
-    # Check if we should run only client tests
-    if len(sys.argv) > 1 and sys.argv[1] == "client":
-        success = tester.run_client_project_types_tests()
+    # Check which tests to run
+    if len(sys.argv) > 1:
+        if sys.argv[1] == "client":
+            success = tester.run_client_project_types_tests()
+        elif sys.argv[1] == "drawing":
+            success = tester.run_drawing_management_tests()
+        else:
+            success = tester.run_all_tests()
     else:
         success = tester.run_all_tests()
     
