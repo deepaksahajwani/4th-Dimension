@@ -228,7 +228,7 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Drawing Management API"
+    - "Revision Tracking System Frontend UI"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
