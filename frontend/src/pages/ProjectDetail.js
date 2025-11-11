@@ -33,12 +33,19 @@ export default function ProjectDetail({ user, onLogout }) {
   
   // Drawing dialog states
   const [drawingDialogOpen, setDrawingDialogOpen] = useState(false);
+  const [revisionDialogOpen, setRevisionDialogOpen] = useState(false);
+  const [historyDialogOpen, setHistoryDialogOpen] = useState(false);
+  const [selectedDrawing, setSelectedDrawing] = useState(null);
   const [editingDrawing, setEditingDrawing] = useState(null);
   const [drawingFormData, setDrawingFormData] = useState({
     category: 'Architecture',
     name: '',
     due_date: '',
     notes: ''
+  });
+  const [revisionFormData, setRevisionFormData] = useState({
+    revision_notes: '',
+    revision_due_date: ''
   });
 
   useEffect(() => {
