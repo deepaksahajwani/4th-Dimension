@@ -1332,7 +1332,7 @@ class BackendTester:
                 "code": "DRAW-TEST-001",
                 "title": "Drawing Management Test Project",
                 "project_types": ["Architecture", "Interior"],
-                "status": "Active",
+                "status": "Concept",
                 "client_id": client_id,
                 "start_date": "2024-01-01",
                 "site_address": "123 Test Site, Test City",
