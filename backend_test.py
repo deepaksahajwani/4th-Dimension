@@ -1362,6 +1362,7 @@ class BackendTester:
             
             # Create first drawing - Architecture
             drawing1_data = {
+                "project_id": self.test_project_id,
                 "category": "Architecture",
                 "name": "Ground Floor Plan",
                 "due_date": "2024-12-31"
