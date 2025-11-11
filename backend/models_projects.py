@@ -364,12 +364,17 @@ class ProjectDrawing(BaseModel):
 
 class ProjectDrawingCreate(BaseModel):
     project_id: str
-    drawing_type_id: str
-    title_override: Optional[str] = None
-    sequence: int
-    assigned_to_id: Optional[str] = None
-    consultant_id: Optional[str] = None
+    category: str  # Architecture, Interior, Landscape, Planning
+    name: str
     due_date: Optional[str] = None
+    notes: Optional[str] = None
+
+class ProjectDrawingUpdate(BaseModel):
+    name: Optional[str] = None
+    is_issued: Optional[bool] = None
+    has_pending_revision: Optional[bool] = None
+    due_date: Optional[str] = None
+    notes: Optional[str] = None
 
 class DrawingRevision(BaseModel):
     model_config = ConfigDict(extra="ignore")
