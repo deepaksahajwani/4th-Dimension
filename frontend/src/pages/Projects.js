@@ -430,6 +430,24 @@ export default function Projects({ user, onLogout }) {
                       </select>
                     </div>
                     <div>
+                      <Label>Team Leader</Label>
+                      <select
+                        className="flex h-10 w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm"
+                        value={formData.lead_architect_id}
+                        onChange={(e) => setFormData({ ...formData, lead_architect_id: e.target.value })}
+                      >
+                        <option value="">Select team leader (optional)</option>
+                        {teamMembers.map((member) => (
+                          <option key={member.id} value={member.id}>
+                            {member.name} {member.role ? `(${member.role.replace(/_/g, ' ')})` : ''}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
                       <Label>Status</Label>
                       <select
                         className="flex h-10 w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm"
@@ -447,6 +465,7 @@ export default function Projects({ user, onLogout }) {
                         <option value="Closed">Closed</option>
                       </select>
                     </div>
+                    <div></div>
                   </div>
 
                   <div className="grid grid-cols-2 gap-4">
