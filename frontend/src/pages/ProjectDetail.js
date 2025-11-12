@@ -375,24 +375,25 @@ export default function ProjectDetail({ user, onLogout }) {
 
         {/* Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid grid-cols-3 w-full max-w-md">
-            <TabsTrigger value="drawings">Drawings</TabsTrigger>
-            <TabsTrigger value="info">Project Info</TabsTrigger>
-            <TabsTrigger value="brands">Brands</TabsTrigger>
+          <TabsList className="grid grid-cols-3 w-full">
+            <TabsTrigger value="drawings" className="text-xs sm:text-sm">Drawings</TabsTrigger>
+            <TabsTrigger value="info" className="text-xs sm:text-sm">Info</TabsTrigger>
+            <TabsTrigger value="brands" className="text-xs sm:text-sm">Brands</TabsTrigger>
           </TabsList>
 
           {/* Drawings Tab */}
-          <TabsContent value="drawings" className="mt-6">
-            <div className="flex items-center justify-between mb-6">
-              <div>
-                <h2 className="text-2xl font-bold text-slate-900">Project Drawings</h2>
-                <p className="text-slate-600">
-                  {drawings.length} total drawings • {drawings.filter(d => d.is_issued).length} issued • {drawings.filter(d => d.has_pending_revision).length} revisions pending
+          <TabsContent value="drawings" className="mt-4 sm:mt-6">
+            <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-4 sm:mb-6">
+              <div className="flex-1 min-w-0">
+                <h2 className="text-lg sm:text-xl lg:text-2xl font-bold text-slate-900">Project Drawings</h2>
+                <p className="text-xs sm:text-sm text-slate-600 mt-1">
+                  {drawings.length} total • {drawings.filter(d => d.is_issued).length} issued • {drawings.filter(d => d.has_pending_revision).length} revisions
                 </p>
               </div>
               <Button 
                 onClick={() => setDrawingDialogOpen(true)}
-                className="bg-orange-500 hover:bg-orange-600"
+                className="bg-orange-500 hover:bg-orange-600 w-full sm:w-auto"
+                size="sm"
               >
                 <Plus className="w-4 h-4 mr-2" />
                 Add Drawing
