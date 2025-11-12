@@ -434,8 +434,9 @@ export default function ProjectDetail({ user, onLogout }) {
 
         {/* Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid grid-cols-3 w-full">
-            <TabsTrigger value="drawings" className="text-xs sm:text-sm">Drawings</TabsTrigger>
+          <TabsList className="grid grid-cols-4 w-full">
+            <TabsTrigger value="urgent" className="text-xs sm:text-sm">Urgent</TabsTrigger>
+            <TabsTrigger value="drawings" className="text-xs sm:text-sm">All</TabsTrigger>
             <TabsTrigger value="info" className="text-xs sm:text-sm">Info</TabsTrigger>
             <TabsTrigger value="brands" className="text-xs sm:text-sm">Brands</TabsTrigger>
           </TabsList>
