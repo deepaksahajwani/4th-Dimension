@@ -147,9 +147,14 @@ export default function Projects({ user, onLogout }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    try {
+    try:
       // Clean up empty contacts
       const cleanedData = { ...formData };
+      
+      // Convert empty string lead_architect_id to null
+      if (cleanedData.lead_architect_id === '') {
+        cleanedData.lead_architect_id = null;
+      }
       
       // Remove empty contact objects
       const contactFields = [
