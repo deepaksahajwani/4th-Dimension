@@ -305,11 +305,11 @@ export default function Projects({ user, onLogout }) {
                   
                   {/* Project Types */}
                   {project.project_types && project.project_types.length > 0 && (
-                    <div className="flex flex-wrap gap-2 mb-3">
+                    <div className="flex flex-wrap gap-1.5 sm:gap-2 mb-2 sm:mb-3">
                       {project.project_types.map((type) => (
                         <span 
                           key={type} 
-                          className="px-2 py-1 text-xs bg-orange-50 text-orange-700 rounded border border-orange-200"
+                          className="px-2 py-0.5 sm:py-1 text-[10px] sm:text-xs bg-orange-50 text-orange-700 rounded border border-orange-200"
                         >
                           {type}
                         </span>
@@ -317,23 +317,23 @@ export default function Projects({ user, onLogout }) {
                     </div>
                   )}
 
-                  <div className="space-y-2 text-sm">
+                  <div className="space-y-1.5 sm:space-y-2 text-xs sm:text-sm">
                     {project.start_date && (
-                      <div className="flex items-center gap-2 text-slate-600">
-                        <Calendar className="w-4 h-4" />
-                        <span>Started: {new Date(project.start_date).toLocaleDateString()}</span>
+                      <div className="flex items-center gap-1.5 sm:gap-2 text-slate-600">
+                        <Calendar className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
+                        <span className="truncate">Started: {new Date(project.start_date).toLocaleDateString()}</span>
                       </div>
                     )}
                     {project.end_date && (
-                      <div className="flex items-center gap-2 text-slate-600">
-                        <Calendar className="w-4 h-4" />
-                        <span>Ended: {new Date(project.end_date).toLocaleDateString()}</span>
+                      <div className="flex items-center gap-1.5 sm:gap-2 text-slate-600">
+                        <Calendar className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
+                        <span className="truncate">Ended: {new Date(project.end_date).toLocaleDateString()}</span>
                       </div>
                     )}
                     {!project.start_date && !project.end_date && (
-                      <div className="flex items-center gap-2 text-slate-600">
-                        <Calendar className="w-4 h-4" />
-                        <span>Created: {new Date(project.created_at).toLocaleDateString()}</span>
+                      <div className="flex items-center gap-1.5 sm:gap-2 text-slate-600">
+                        <Calendar className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
+                        <span className="truncate">Created: {new Date(project.created_at).toLocaleDateString()}</span>
                       </div>
                     )}
                   </div>
