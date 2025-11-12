@@ -164,16 +164,12 @@ function App() {
                 </ProtectedRoute>
               }
             />
-
             <Route
-              path="/my-work"
+              path="/assign-targets"
               element={
                 <ProtectedRoute>
-                  <MyWork user={user} onLogout={handleLogout} />
+                  <AssignTargets user={user} onLogout={handleLogout} />
                 </ProtectedRoute>
-              }
-            />
-
               }
             />
 
