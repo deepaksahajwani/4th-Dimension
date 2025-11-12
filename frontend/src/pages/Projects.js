@@ -147,7 +147,7 @@ export default function Projects({ user, onLogout }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    try:
+    try {
       // Clean up empty contacts
       const cleanedData = { ...formData };
       
