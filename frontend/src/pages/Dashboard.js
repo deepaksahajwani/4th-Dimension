@@ -57,22 +57,32 @@ export default function Dashboard({ user, onLogout }) {
         setTeamRatings(responses[4].data);
       }
       
-      // Fetch pending drawings for team leader projects
+      // Fetch only urgent drawings (due within 3 days) for team leader projects
       if (user && !user.is_owner && responses[3].data) {
         const leaderProjects = responses[3].data.filter(p => p.lead_architect_id === user.id);
         const allDrawings = [];
+        const today = new Date();
+        const threeDaysFromNow = new Date(today);
+        threeDaysFromNow.setDate(today.getDate() + 3);
         
         for (const project of leaderProjects) {
           try {
             const drawingsRes = await axios.get(`${API}/projects/${project.id}/drawings`);
-            const pendingDrawings = drawingsRes.data.filter(d => !d.is_issued || d.has_pending_revision);
-            allDrawings.push(...pendingDrawings.map(d => ({ ...d, project })));
+            // Only get urgent drawings (due within 3 days or overdue)
+            const urgentDrawings = drawingsRes.data.filter(d => {
+              if (d.is_issued && !d.has_pending_revision) return false;
+              if (!d.due_date) return false;
+              
+              const dueDate = new Date(d.due_date);
+              return dueDate <= threeDaysFromNow;
+            });
+            allDrawings.push(...urgentDrawings.map(d => ({ ...d, project })));
           } catch (error) {
             console.error(`Failed to fetch drawings for project ${project.id}:`, error);
           }
         }
         
-        // Sort by due date
+        // Sort by due date (most urgent first)
         allDrawings.sort((a, b) => {
           if (!a.due_date) return 1;
           if (!b.due_date) return -1;
