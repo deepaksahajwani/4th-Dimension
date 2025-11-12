@@ -199,40 +199,44 @@ export default function ProjectDetail({ user, onLogout }) {
 
   const DrawingCard = ({ drawing }) => (
     <Card className="hover:shadow-md transition-shadow">
-      <CardContent className="p-4">
-        <div className="flex items-start justify-between">
-          <div className="flex items-start gap-3 flex-1">
-            {getDrawingStatusIcon(drawing)}
-            <div className="flex-1">
-              <h4 className="font-medium text-slate-900">{drawing.name}</h4>
-              <div className="flex flex-wrap gap-2 mt-2">
-                <span className={`px-2 py-1 text-xs rounded border ${getDrawingStatusColor(drawing)}`}>
+      <CardContent className="p-3 sm:p-4">
+        <div className="flex flex-col sm:flex-row sm:items-start gap-3">
+          <div className="flex items-start gap-2 sm:gap-3 flex-1 min-w-0">
+            <div className="flex-shrink-0 mt-0.5">
+              {getDrawingStatusIcon(drawing)}
+            </div>
+            <div className="flex-1 min-w-0">
+              <h4 className="font-medium text-sm sm:text-base text-slate-900 break-words">{drawing.name}</h4>
+              <div className="flex flex-wrap gap-1.5 sm:gap-2 mt-2">
+                <span className={`px-2 py-0.5 text-[10px] sm:text-xs rounded border ${getDrawingStatusColor(drawing)}`}>
                   {getDrawingStatusText(drawing)}
                 </span>
                 {drawing.revision_count > 0 && (
-                  <span className="px-2 py-1 text-xs bg-blue-50 text-blue-700 rounded border border-blue-200">
+                  <span className="px-2 py-0.5 text-[10px] sm:text-xs bg-blue-50 text-blue-700 rounded border border-blue-200">
                     R{drawing.revision_count}
                   </span>
                 )}
                 {drawing.due_date && (
-                  <span className="px-2 py-1 text-xs bg-slate-100 text-slate-600 rounded border border-slate-200 flex items-center gap-1">
+                  <span className="px-2 py-0.5 text-[10px] sm:text-xs bg-slate-100 text-slate-600 rounded border border-slate-200 flex items-center gap-1">
                     <Calendar className="w-3 h-3" />
-                    {new Date(drawing.due_date).toLocaleDateString()}
+                    <span className="hidden sm:inline">{new Date(drawing.due_date).toLocaleDateString()}</span>
+                    <span className="sm:hidden">{new Date(drawing.due_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>
                   </span>
                 )}
               </div>
               {drawing.notes && (
-                <p className="text-sm text-slate-600 mt-2">{drawing.notes}</p>
+                <p className="text-xs sm:text-sm text-slate-600 mt-2 line-clamp-2">{drawing.notes}</p>
               )}
             </div>
           </div>
           
-          <div className="flex gap-2 ml-4">
+          <div className="flex flex-wrap sm:flex-nowrap gap-1.5 sm:gap-2 sm:ml-4">
             <Button
               variant="outline"
               size="sm"
               onClick={() => handleToggleIssued(drawing)}
               title={drawing.is_issued ? "Mark as Pending" : "Mark as Issued"}
+              className="flex-1 sm:flex-none text-xs h-8"
             >
               {drawing.is_issued ? "Unissue" : "Issue"}
             </Button>
@@ -241,7 +245,7 @@ export default function ProjectDetail({ user, onLogout }) {
                 variant="outline"
                 size="sm"
                 onClick={() => drawing.has_pending_revision ? handleResolveRevision(drawing) : handleOpenRevisionDialog(drawing)}
-                className={drawing.has_pending_revision ? "border-green-500 text-green-600" : "border-amber-500 text-amber-600"}
+                className={`flex-1 sm:flex-none text-xs h-8 ${drawing.has_pending_revision ? "border-green-500 text-green-600" : "border-amber-500 text-amber-600"}`}
                 title={drawing.has_pending_revision ? "Mark Revision Complete" : "Request Revision"}
               >
                 {drawing.has_pending_revision ? "Resolve" : "Revise"}
@@ -253,6 +257,7 @@ export default function ProjectDetail({ user, onLogout }) {
                 size="sm"
                 onClick={() => handleShowHistory(drawing)}
                 title="View Revision History"
+                className="flex-1 sm:flex-none text-xs h-8"
               >
                 History
               </Button>
@@ -261,9 +266,9 @@ export default function ProjectDetail({ user, onLogout }) {
               variant="outline"
               size="sm"
               onClick={() => handleDeleteDrawing(drawing.id)}
-              className="text-red-600 hover:text-red-700"
+              className="text-red-600 hover:text-red-700 text-xs h-8 px-2 sm:px-3"
             >
-              <Trash2 className="w-4 h-4" />
+              <Trash2 className="w-3 h-3 sm:w-4 sm:h-4" />
             </Button>
           </div>
         </div>
