@@ -10,7 +10,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { 
   ArrowLeft, Plus, CheckCircle2, Circle, AlertCircle, 
-  Calendar, Edit, Trash2, FileText
+  Calendar, Edit, Trash2, FileText, Users, Clock
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { formatErrorMessage } from '@/utils/errorHandler';
