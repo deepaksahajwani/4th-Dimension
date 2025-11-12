@@ -186,6 +186,36 @@ export default function ProjectDetail({ user, onLogout }) {
     return drawings.filter(d => d.category === category);
   };
 
+  const getPendingDrawingsSortedByUrgency = () => {
+    const pending = drawings.filter(d => !d.is_issued || d.has_pending_revision);
+    return pending.sort((a, b) => {
+      if (!a.due_date) return 1;
+      if (!b.due_date) return -1;
+      return new Date(a.due_date) - new Date(b.due_date);
+    });
+  };
+
+  const getCompletedDrawings = () => {
+    return drawings.filter(d => d.is_issued && !d.has_pending_revision);
+  };
+
+  const getDaysUntilDue = (dueDate) => {
+    if (!dueDate) return null;
+    const today = new Date();
+    const due = new Date(dueDate);
+    const diffTime = due - today;
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    return diffDays;
+  };
+
+  const getUrgencyColor = (daysUntil) => {
+    if (daysUntil === null) return 'bg-slate-100 text-slate-600';
+    if (daysUntil < 0) return 'bg-red-100 text-red-700';
+    if (daysUntil <= 3) return 'bg-red-100 text-red-700';
+    if (daysUntil <= 7) return 'bg-amber-100 text-amber-700';
+    return 'bg-green-100 text-green-700';
+  };
+
   const getDrawingStatusIcon = (drawing) => {
     if (drawing.has_pending_revision) {
       return <AlertCircle className="w-5 h-5 text-amber-500" />;
