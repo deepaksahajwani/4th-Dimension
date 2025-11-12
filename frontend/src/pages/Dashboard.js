@@ -177,10 +177,10 @@ export default function Dashboard({ user, onLogout }) {
         {/* Header */}
         <div className="mb-4 sm:mb-6">
           <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-slate-900">
-            {user?.is_owner ? 'Team Dashboard' : 'My Dashboard'}
+            {user?.is_owner ? 'Team Dashboard' : "Today's Focus"}
           </h1>
           <p className="text-sm sm:text-base text-slate-600 mt-1">
-            {new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+            {user?.is_owner ? 'Overview of team performance and activities' : `What needs your attention today - ${new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })}`}
           </p>
         </div>
 
