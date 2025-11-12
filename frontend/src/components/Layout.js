@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Building2, LayoutDashboard, FolderOpen, Users, DollarSign, FileText, CheckSquare, Settings, LogOut, Menu, X } from 'lucide-react';
+import { Building2, LayoutDashboard, FolderOpen, Users, DollarSign, FileText, CheckSquare, Settings, LogOut, Menu, X, Target } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 export default function Layout({ children, user, onLogout }) {
