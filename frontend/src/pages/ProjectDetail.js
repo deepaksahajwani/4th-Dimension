@@ -40,6 +40,12 @@ export default function ProjectDetail({ user, onLogout }) {
   const [historyDialogOpen, setHistoryDialogOpen] = useState(false);
   const [selectedDrawing, setSelectedDrawing] = useState(null);
   const [editingDrawing, setEditingDrawing] = useState(null);
+  
+  // Project action dialog states
+  const [editProjectDialogOpen, setEditProjectDialogOpen] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [archiveDialogOpen, setArchiveDialogOpen] = useState(false);
+  const [archiveDate, setArchiveDate] = useState('');
   const [drawingFormData, setDrawingFormData] = useState({
     category: 'Architecture',
     name: '',
