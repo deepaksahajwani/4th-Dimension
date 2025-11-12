@@ -2,16 +2,22 @@ import { useState, useEffect } from 'react';
 import axios from 'axios';
 import Layout from '@/components/Layout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { FolderOpen, Users, AlertCircle, CheckSquare, TrendingUp } from 'lucide-react';
-import { Link } from 'react-router-dom';
-import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { 
+  FolderOpen, Users, CheckCircle2, Target, Star, 
+  Calendar, TrendingUp, Clock, Award, Bell
+} from 'lucide-react';
+import { toast } from 'sonner';
+import { formatErrorMessage } from '@/utils/errorHandler';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
 
 export default function Dashboard({ user, onLogout }) {
-  const [stats, setStats] = useState(null);
-  const [reminders, setReminders] = useState(null);
+  const [dailyTasks, setDailyTasks] = useState([]);
+  const [weeklyTargets, setWeeklyTargets] = useState([]);
+  const [weeklyRating, setWeeklyRating] = useState(null);
+  const [teamRatings, setTeamRatings] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -20,24 +26,107 @@ export default function Dashboard({ user, onLogout }) {
 
   const fetchData = async () => {
     try {
-      const [statsRes, remindersRes] = await Promise.all([
-        axios.get(`${API}/dashboard/stats`),
-        axios.get(`${API}/reminders/pending`),
-      ]);
-      setStats(statsRes.data);
-      setReminders(remindersRes.data);
+      const today = new Date().toISOString().split('T')[0];
+      
+      const requests = [
+        axios.get(`${API}/daily-tasks?date=${today}`),
+        axios.get(`${API}/weekly-targets`),
+        axios.get(`${API}/weekly-ratings`)
+      ];
+
+      // If owner, get team ratings
+      if (user?.is_owner) {
+        requests.push(axios.get(`${API}/weekly-ratings`));
+      }
+
+      const responses = await Promise.all(requests);
+      
+      setDailyTasks(responses[0].data);
+      setWeeklyTargets(responses[1].data);
+      
+      const ratings = responses[2].data;
+      if (ratings.length > 0) {
+        setWeeklyRating(ratings[0]); // Most recent rating
+      }
+
+      if (user?.is_owner && responses[3]) {
+        setTeamRatings(responses[3].data);
+      }
     } catch (error) {
       console.error('Error fetching dashboard data:', error);
+      toast.error('Failed to load dashboard data');
     } finally {
       setLoading(false);
     }
   };
 
+  const handleCompleteTask = async (taskId) => {
+    try {
+      await axios.put(`${API}/daily-tasks/${taskId}`, {
+        completed: true
+      });
+      toast.success('Task completed! 🎉');
+      fetchData(); // Refresh data
+    } catch (error) {
+      toast.error(formatErrorMessage(error, 'Failed to complete task'));
+    }
+  };
+
+  const getCurrentWeekProgress = () => {
+    if (weeklyTargets.length === 0) return { total: 0, completed: 0, percentage: 0 };
+    
+    const currentWeek = weeklyTargets.find(t => {
+      const start = new Date(t.week_start_date);
+      const end = new Date(t.week_end_date);
+      const today = new Date();
+      return today >= start && today <= end;
+    });
+
+    if (!currentWeek) return { total: 0, completed: 0, percentage: 0 };
+
+    const percentage = currentWeek.target_quantity > 0 
+      ? (currentWeek.completed_quantity / currentWeek.target_quantity) * 100 
+      : 0;
+
+    return {
+      total: currentWeek.target_quantity,
+      completed: currentWeek.completed_quantity,
+      percentage: Math.round(percentage)
+    };
+  };
+
+  const renderStars = (rating) => {
+    const fullStars = Math.floor(rating);
+    const hasHalfStar = rating % 1 >= 0.5;
+    
+    return (
+      <div className="flex items-center gap-1">
+        {[...Array(5)].map((_, i) => (
+          <Star 
+            key={i}
+            className={`w-4 h-4 ${
+              i < fullStars 
+                ? 'fill-amber-400 text-amber-400' 
+                : i === fullStars && hasHalfStar 
+                  ? 'fill-amber-200 text-amber-400'
+                  : 'text-slate-300'
+            }`}
+          />
+        ))}
+        <span className="text-sm font-medium text-slate-700 ml-1">{rating.toFixed(1)}</span>
+      </div>
+    );
+  };
+
+  const weekProgress = getCurrentWeekProgress();
+  const todayCompleted = dailyTasks.filter(t => t.completed).length;
+  const todayTotal = dailyTasks.length;
+
   if (loading) {
     return (
       <Layout user={user} onLogout={onLogout}>
         <div className="flex items-center justify-center h-64">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-600"></div>
         </div>
       </Layout>
     );
@@ -45,132 +134,306 @@ export default function Dashboard({ user, onLogout }) {
 
   return (
     <Layout user={user} onLogout={onLogout}>
-      <div data-testid="dashboard-page">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-slate-900">Dashboard</h1>
-          <p className="text-slate-600 mt-1">Welcome back, {user?.name}</p>
+      <div>
+        {/* Header */}
+        <div className="mb-4 sm:mb-6">
+          <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-slate-900">
+            {user?.is_owner ? 'Team Dashboard' : 'My Dashboard'}
+          </h1>
+          <p className="text-sm sm:text-base text-slate-600 mt-1">
+            {new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+          </p>
         </div>
 
         {/* Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-6 mb-4 sm:mb-6">
+          {/* Today's Progress */}
           <Card>
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-slate-600">Total Projects</CardTitle>
-              <FolderOpen className="w-5 h-5 text-blue-600" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold text-slate-900">{stats?.total_projects || 0}</div>
-              <p className="text-xs text-slate-500 mt-1">{stats?.active_projects || 0} active</p>
+            <CardContent className="p-3 sm:p-4 lg:p-6">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-xs sm:text-sm text-slate-600">Today's Tasks</span>
+                <CheckCircle2 className="w-4 h-4 sm:w-5 sm:h-5 text-green-600" />
+              </div>
+              <div className="text-xl sm:text-2xl lg:text-3xl font-bold text-slate-900">
+                {todayCompleted}/{todayTotal}
+              </div>
+              <div className="mt-2 w-full bg-slate-200 rounded-full h-1.5 sm:h-2">
+                <div 
+                  className="bg-green-500 h-1.5 sm:h-2 rounded-full transition-all"
+                  style={{ width: `${todayTotal > 0 ? (todayCompleted / todayTotal) * 100 : 0}%` }}
+                />
+              </div>
             </CardContent>
           </Card>
 
+          {/* Weekly Progress */}
           <Card>
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-slate-600">Clients</CardTitle>
-              <Users className="w-5 h-5 text-green-600" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold text-slate-900">{stats?.total_clients || 0}</div>
-              <p className="text-xs text-slate-500 mt-1">Total registered</p>
+            <CardContent className="p-3 sm:p-4 lg:p-6">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-xs sm:text-sm text-slate-600">Week Progress</span>
+                <Target className="w-4 h-4 sm:w-5 sm:h-5 text-orange-600" />
+              </div>
+              <div className="text-xl sm:text-2xl lg:text-3xl font-bold text-slate-900">
+                {weekProgress.percentage}%
+              </div>
+              <div className="mt-2 w-full bg-slate-200 rounded-full h-1.5 sm:h-2">
+                <div 
+                  className="bg-orange-500 h-1.5 sm:h-2 rounded-full transition-all"
+                  style={{ width: `${weekProgress.percentage}%` }}
+                />
+              </div>
             </CardContent>
           </Card>
 
+          {/* Last Rating */}
           <Card>
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-slate-600">Pending Tasks</CardTitle>
-              <CheckSquare className="w-5 h-5 text-amber-600" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold text-slate-900">{stats?.pending_tasks || 0}</div>
-              <p className="text-xs text-slate-500 mt-1">Requires attention</p>
+            <CardContent className="p-3 sm:p-4 lg:p-6">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-xs sm:text-sm text-slate-600">Last Week</span>
+                <Award className="w-4 h-4 sm:w-5 sm:h-5 text-amber-600" />
+              </div>
+              {weeklyRating ? (
+                <div className="mt-1">
+                  {renderStars(weeklyRating.rating)}
+                  <p className="text-xs text-slate-500 mt-1">
+                    {weeklyRating.completion_percentage.toFixed(0)}% complete
+                  </p>
+                </div>
+              ) : (
+                <div className="text-xl sm:text-2xl lg:text-3xl font-bold text-slate-400">
+                  N/A
+                </div>
+              )}
             </CardContent>
           </Card>
 
+          {/* Pending Items */}
           <Card>
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-slate-600">Red Flags</CardTitle>
-              <AlertCircle className="w-5 h-5 text-red-600" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold text-slate-900">{stats?.red_flags || 0}</div>
-              <p className="text-xs text-slate-500 mt-1">Critical issues</p>
+            <CardContent className="p-3 sm:p-4 lg:p-6">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-xs sm:text-sm text-slate-600">Pending</span>
+                <Clock className="w-4 h-4 sm:w-5 sm:h-5 text-slate-600" />
+              </div>
+              <div className="text-xl sm:text-2xl lg:text-3xl font-bold text-slate-900">
+                {todayTotal - todayCompleted}
+              </div>
+              <p className="text-[10px] sm:text-xs text-slate-500 mt-1">Tasks remaining</p>
             </CardContent>
           </Card>
         </div>
 
-        {/* Reminders */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Pending Reminders</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <div className="flex items-center justify-between p-3 bg-amber-50 rounded-lg">
-                  <div>
-                    <p className="text-sm font-medium text-slate-900">Overdue Tasks</p>
-                    <p className="text-xs text-slate-500">Tasks past their due date</p>
-                  </div>
-                  <Badge variant="destructive">{reminders?.overdue_tasks || 0}</Badge>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
+          {/* Today's Tasks - Takes 2 columns on large screens */}
+          <div className="lg:col-span-2">
+            <Card>
+              <CardHeader className="pb-3 sm:pb-4">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                  <CardTitle className="text-base sm:text-lg flex items-center gap-2">
+                    <Calendar className="w-4 h-4 sm:w-5 sm:h-5 text-orange-600" />
+                    Today's Tasks
+                  </CardTitle>
+                  <span className="text-xs sm:text-sm text-slate-500">
+                    {new Date().toLocaleDateString('en-US', { weekday: 'long' })}
+                  </span>
                 </div>
-                <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
-                  <div>
-                    <p className="text-sm font-medium text-slate-900">Pending Drawings</p>
-                    <p className="text-xs text-slate-500">Drawings awaiting issuance</p>
+              </CardHeader>
+              <CardContent className="p-3 sm:p-6">
+                {dailyTasks.length === 0 ? (
+                  <div className="text-center py-8 sm:py-12">
+                    <CheckCircle2 className="w-12 h-12 sm:w-16 sm:h-16 text-green-300 mx-auto mb-3 sm:mb-4" />
+                    <p className="text-sm sm:text-base text-slate-500">
+                      No tasks for today! Enjoy your day 🎉
+                    </p>
                   </div>
-                  <Badge>{reminders?.pending_drawings || 0}</Badge>
-                </div>
-                <div className="flex items-center justify-between p-3 bg-purple-50 rounded-lg">
-                  <div>
-                    <p className="text-sm font-medium text-slate-900">Projects Need Attention</p>
-                    <p className="text-xs text-slate-500">Plans pending finalization</p>
+                ) : (
+                  <div className="space-y-2 sm:space-y-3">
+                    {dailyTasks.map((task) => (
+                      <div 
+                        key={task.id} 
+                        className={`p-3 sm:p-4 rounded-lg border-2 transition-all ${
+                          task.completed 
+                            ? 'bg-green-50 border-green-200' 
+                            : 'bg-white border-slate-200 hover:border-orange-300'
+                        }`}
+                      >
+                        <div className="flex items-start gap-2 sm:gap-3">
+                          <button
+                            onClick={() => !task.completed && handleCompleteTask(task.id)}
+                            disabled={task.completed}
+                            className={`mt-0.5 flex-shrink-0 w-5 h-5 sm:w-6 sm:h-6 rounded-full border-2 flex items-center justify-center transition-colors ${
+                              task.completed
+                                ? 'bg-green-500 border-green-500'
+                                : 'border-slate-300 hover:border-orange-500'
+                            }`}
+                          >
+                            {task.completed && (
+                              <CheckCircle2 className="w-3 h-3 sm:w-4 sm:h-4 text-white" />
+                            )}
+                          </button>
+                          <div className="flex-1 min-w-0">
+                            <p className={`text-sm sm:text-base font-medium ${
+                              task.completed ? 'text-green-700 line-through' : 'text-slate-900'
+                            }`}>
+                              {task.task_description}
+                            </p>
+                            <div className="flex flex-wrap items-center gap-2 mt-1 sm:mt-2">
+                              <span className="text-[10px] sm:text-xs text-slate-500">
+                                Quantity: {task.task_quantity}
+                              </span>
+                              {task.project_id && (
+                                <span className="px-2 py-0.5 text-[10px] sm:text-xs bg-orange-100 text-orange-700 rounded">
+                                  Project Task
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
                   </div>
-                  <Badge variant="outline">{reminders?.projects_needing_attention || 0}</Badge>
-                </div>
-              </div>
-              <Link to="/tasks" className="block mt-4">
-                <button className="w-full text-sm text-blue-600 hover:text-blue-700 font-medium">View All Tasks →</button>
-              </Link>
-            </CardContent>
-          </Card>
+                )}
+              </CardContent>
+            </Card>
+          </div>
 
-          <Card>
+          {/* Weekly Targets & Ratings */}
+          <div className="space-y-4 sm:space-y-6">
+            {/* This Week's Target */}
+            <Card>
+              <CardHeader className="pb-3 sm:pb-4">
+                <CardTitle className="text-base sm:text-lg flex items-center gap-2">
+                  <Target className="w-4 h-4 sm:w-5 sm:h-5 text-orange-600" />
+                  This Week's Target
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-3 sm:p-6">
+                {weeklyTargets.length > 0 ? (
+                  <div className="space-y-3 sm:space-y-4">
+                    {weeklyTargets.filter(t => {
+                      const start = new Date(t.week_start_date);
+                      const end = new Date(t.week_end_date);
+                      const today = new Date();
+                      return today >= start && today <= end;
+                    }).map((target) => (
+                      <div key={target.id} className="space-y-2">
+                        <div className="flex items-start justify-between gap-2">
+                          <p className="text-xs sm:text-sm font-medium text-slate-900 flex-1">
+                            {target.target_description}
+                          </p>
+                          <span className="text-xs sm:text-sm font-bold text-orange-600 flex-shrink-0">
+                            {target.completed_quantity}/{target.target_quantity}
+                          </span>
+                        </div>
+                        <div className="w-full bg-slate-200 rounded-full h-2">
+                          <div 
+                            className="bg-orange-500 h-2 rounded-full transition-all"
+                            style={{ 
+                              width: `${(target.completed_quantity / target.target_quantity) * 100}%` 
+                            }}
+                          />
+                        </div>
+                        <p className="text-[10px] sm:text-xs text-slate-500">
+                          Type: {target.target_type}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-6 sm:py-8">
+                    <Target className="w-10 h-10 sm:w-12 sm:h-12 text-slate-300 mx-auto mb-2 sm:mb-3" />
+                    <p className="text-xs sm:text-sm text-slate-500">
+                      No targets assigned yet
+                    </p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Recent Ratings */}
+            {weeklyRating && (
+              <Card>
+                <CardHeader className="pb-3 sm:pb-4">
+                  <CardTitle className="text-base sm:text-lg flex items-center gap-2">
+                    <Star className="w-4 h-4 sm:w-5 sm:h-5 text-amber-600" />
+                    Last Week's Performance
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="p-3 sm:p-6">
+                  <div className="space-y-3 sm:space-y-4">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs sm:text-sm text-slate-600">Rating</span>
+                      {renderStars(weeklyRating.rating)}
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs sm:text-sm text-slate-600">Completion</span>
+                      <span className="text-sm sm:text-base font-bold text-slate-900">
+                        {weeklyRating.completion_percentage.toFixed(0)}%
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs sm:text-sm text-slate-600">Completed</span>
+                      <span className="text-sm sm:text-base font-medium text-slate-900">
+                        {weeklyRating.completed_targets}/{weeklyRating.total_targets}
+                      </span>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* WhatsApp Notifications Placeholder */}
+            <Card className="bg-gradient-to-br from-green-50 to-green-100 border-green-200">
+              <CardContent className="p-3 sm:p-4">
+                <div className="flex items-center gap-2 sm:gap-3">
+                  <Bell className="w-4 h-4 sm:w-5 sm:h-5 text-green-600" />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs sm:text-sm font-medium text-green-900">
+                      WhatsApp Reminders
+                    </p>
+                    <p className="text-[10px] sm:text-xs text-green-700 mt-0.5">
+                      Coming soon! Daily task notifications
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+
+        {/* Owner View - Team Performance */}
+        {user?.is_owner && teamRatings.length > 0 && (
+          <Card className="mt-4 sm:mt-6">
             <CardHeader>
-              <CardTitle>Quick Actions</CardTitle>
+              <CardTitle className="text-base sm:text-lg flex items-center gap-2">
+                <TrendingUp className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
+                Team Performance
+              </CardTitle>
             </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                <Link to="/projects">
-                  <button className="w-full flex items-center gap-3 p-3 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors text-left">
-                    <FolderOpen className="w-5 h-5 text-blue-600" />
-                    <div>
-                      <p className="text-sm font-medium text-slate-900">Create New Project</p>
-                      <p className="text-xs text-slate-500">Start a new project</p>
+            <CardContent className="p-3 sm:p-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4">
+                {teamRatings.slice(0, 8).map((rating) => (
+                  <div 
+                    key={rating.id} 
+                    className="p-3 sm:p-4 border border-slate-200 rounded-lg hover:border-orange-300 transition-colors"
+                  >
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="w-8 h-8 sm:w-10 sm:h-10 bg-orange-100 rounded-full flex items-center justify-center">
+                        <Users className="w-4 h-4 sm:w-5 sm:h-5 text-orange-600" />
+                      </div>
+                      {renderStars(rating.rating)}
                     </div>
-                  </button>
-                </Link>
-                <Link to="/clients">
-                  <button className="w-full flex items-center gap-3 p-3 bg-green-50 hover:bg-green-100 rounded-lg transition-colors text-left">
-                    <Users className="w-5 h-5 text-green-600" />
-                    <div>
-                      <p className="text-sm font-medium text-slate-900">Add New Client</p>
-                      <p className="text-xs text-slate-500">Register a new client</p>
-                    </div>
-                  </button>
-                </Link>
-                <Link to="/tasks">
-                  <button className="w-full flex items-center gap-3 p-3 bg-amber-50 hover:bg-amber-100 rounded-lg transition-colors text-left">
-                    <CheckSquare className="w-5 h-5 text-amber-600" />
-                    <div>
-                      <p className="text-sm font-medium text-slate-900">Create Task</p>
-                      <p className="text-xs text-slate-500">Add a new task or issue</p>
-                    </div>
-                  </button>
-                </Link>
+                    <p className="text-xs sm:text-sm font-medium text-slate-900 truncate">
+                      Team Member
+                    </p>
+                    <p className="text-[10px] sm:text-xs text-slate-500 mt-1">
+                      {rating.completion_percentage.toFixed(0)}% completion
+                    </p>
+                  </div>
+                ))}
               </div>
             </CardContent>
           </Card>
-        </div>
+        )}
       </div>
     </Layout>
   );
