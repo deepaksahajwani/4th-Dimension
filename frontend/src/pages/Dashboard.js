@@ -388,13 +388,13 @@ export default function Dashboard({ user, onLogout }) {
               </CardContent>
             </Card>
 
-            {/* Pending Drawings (Team Leaders Only) */}
+            {/* Urgent Drawings (Team Leaders Only) */}
             {!user?.is_owner && pendingDrawings.length > 0 && (
               <Card>
                 <CardHeader className="pb-3 sm:pb-4">
                   <CardTitle className="text-base sm:text-lg flex items-center gap-2">
-                    <FileText className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
-                    Pending Drawings
+                    <FileText className="w-4 h-4 sm:w-5 sm:h-5 text-red-600" />
+                    Urgent Drawings (Due within 3 days)
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="p-3 sm:p-6">
