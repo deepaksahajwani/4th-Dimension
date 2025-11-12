@@ -1276,12 +1276,25 @@ async def delete_project(
 # ==================== DRAWING ROUTES ====================
 
 @api_router.get("/projects/{project_id}/drawings")
-async def get_project_drawings(project_id: str, current_user: User = Depends(get_current_user)):
-    """Get all drawings for a project"""
+async def get_project_drawings(
+    project_id: str, 
+    active_only: bool = False,
+    current_user: User = Depends(get_current_user)
+):
+    """Get all drawings for a project, optionally filter to active only"""
+    query = {"project_id": project_id, "deleted_at": None}
+    
+    # If active_only is True, only return active drawings in the sequence
+    if active_only:
+        query["is_active"] = True
+    
     drawings = await db.project_drawings.find(
-        {"project_id": project_id, "deleted_at": None}, 
+        query, 
         {"_id": 0}
     ).to_list(1000)
+    
+    # Sort by sequence_number if available, otherwise by created_at
+    drawings.sort(key=lambda x: (x.get('sequence_number') or 999999, x.get('created_at', '')))
     
     for drawing in drawings:
         if isinstance(drawing.get('created_at'), str):
