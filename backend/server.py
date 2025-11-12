@@ -1167,8 +1167,14 @@ async def get_projects(
     for project in projects:
         # Convert ISO strings to datetime for proper serialization
         for field in ['created_at', 'updated_at', 'start_date', 'end_date']:
-            if isinstance(project.get(field), str):
-                project[field] = datetime.fromisoformat(project[field])
+            if isinstance(project.get(field), str) and project.get(field):
+                try:
+                    project[field] = datetime.fromisoformat(project[field])
+                except ValueError:
+                    # Handle invalid date strings
+                    project[field] = None
+            elif project.get(field) == '':
+                project[field] = None
     return projects
 
 @api_router.get("/projects/{project_id}")
