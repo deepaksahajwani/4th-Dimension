@@ -197,14 +197,87 @@ export default function Projects({ user, onLogout }) {
       });
       cleanedData.custom_contacts = customContacts;
 
-      await axios.post(`${API}/projects`, cleanedData);
-      toast.success('Project created successfully!');
+      if (editingProject) {
+        // Check if end date was added during edit
+        const wasArchived = editingProject.archived;
+        const hasNewEndDate = cleanedData.end_date && !editingProject.end_date;
+        
+        if (hasNewEndDate && !wasArchived) {
+          // Show confirmation dialog for archiving
+          setArchiveConfirmOpen(true);
+          return;
+        }
+        
+        await axios.put(`${API}/projects/${editingProject.id}`, cleanedData);
+        toast.success('Project updated successfully!');
+      } else {
+        await axios.post(`${API}/projects`, cleanedData);
+        toast.success('Project created successfully!');
+      }
+      
       setDialogOpen(false);
+      setArchiveConfirmOpen(false);
       resetForm();
+      setEditingProject(null);
       fetchData();
     } catch (error) {
-      toast.error(formatErrorMessage(error, 'Failed to create project'));
+      toast.error(formatErrorMessage(error, editingProject ? 'Failed to update project' : 'Failed to create project'));
     }
+  };
+
+  const handleArchiveConfirm = async () => {
+    try {
+      const cleanedData = { ...formData };
+      cleanedData.archived = true;
+      
+      await axios.put(`${API}/projects/${editingProject.id}`, cleanedData);
+      toast.success('Project updated and archived successfully!');
+      
+      setDialogOpen(false);
+      setArchiveConfirmOpen(false);
+      resetForm();
+      setEditingProject(null);
+      fetchData();
+    } catch (error) {
+      toast.error(formatErrorMessage(error, 'Failed to update project'));
+    }
+  };
+
+  const openEditDialog = (project) => {
+    setEditingProject(project);
+    setFormData({
+      code: project.code || '',
+      title: project.title || '',
+      project_types: project.project_types || [],
+      status: project.status || 'Lead',
+      client_id: project.client_id || '',
+      lead_architect_id: project.lead_architect_id || '',
+      start_date: project.start_date ? project.start_date.split('T')[0] : '',
+      end_date: project.end_date ? project.end_date.split('T')[0] : '',
+      site_address: project.site_address || '',
+      notes: project.notes || '',
+      civil_contractor: project.civil_contractor || { name: '', email: '', phone: '' },
+      structural_consultant: project.structural_consultant || { name: '', email: '', phone: '' },
+      tile_marble_contractor: project.tile_marble_contractor || { name: '', email: '', phone: '' },
+      furniture_contractor: project.furniture_contractor || { name: '', email: '', phone: '' },
+      electrical_contractor: project.electrical_contractor || { name: '', email: '', phone: '' },
+      electrical_consultant: project.electrical_consultant || { name: '', email: '', phone: '' },
+      plumbing_consultant: project.plumbing_consultant || { name: '', email: '', phone: '' },
+      plumbing_contractor: project.plumbing_contractor || { name: '', email: '', phone: '' },
+      false_ceiling_contractor: project.false_ceiling_contractor || { name: '', email: '', phone: '' },
+      furniture_material_supplier: project.furniture_material_supplier || { name: '', email: '', phone: '' },
+      kitchen_contractor: project.kitchen_contractor || { name: '', email: '', phone: '' },
+      modular_contractor: project.modular_contractor || { name: '', email: '', phone: '' },
+      color_contractor: project.color_contractor || { name: '', email: '', phone: '' },
+      landscape_consultant: project.landscape_consultant || { name: '', email: '', phone: '' },
+      landscape_contractor: project.landscape_contractor || { name: '', email: '', phone: '' },
+      automation_consultant: project.automation_consultant || { name: '', email: '', phone: '' },
+      readymade_furniture_supplier: project.readymade_furniture_supplier || { name: '', email: '', phone: '' },
+      lights_supplier: project.lights_supplier || { name: '', email: '', phone: '' },
+      custom_contacts: project.custom_contacts || {},
+      brands: project.brands || []
+    });
+    setDialogOpen(true);
   };
 
   const resetForm = () => {
