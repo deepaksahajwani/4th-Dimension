@@ -1339,6 +1339,38 @@ async def update_drawing(
             
             update_dict['revision_history'] = revision_history
     
+    # If resolving revision
+    if update_dict.get('has_pending_revision') == False and drawing.get('has_pending_revision') == True:
+        update_dict['current_revision_notes'] = None
+        update_dict['current_revision_due_date'] = None
+        update_dict['revision_count'] = drawing.get('revision_count', 0) + 1
+        
+        # Update revision history
+        revision_history = drawing.get('revision_history', [])
+        if revision_history and not revision_history[-1].get('resolved_date'):
+            revision_history[-1]['resolved_date'] = datetime.now(timezone.utc).isoformat()
+            update_dict['revision_history'] = revision_history
+    
+    # Update the drawing
+    update_dict['updated_at'] = datetime.now(timezone.utc).isoformat()
+    
+    await db.project_drawings.update_one(
+        {"id": drawing_id},
+        {"$set": update_dict}
+    )
+    
+    # Fetch and return updated drawing
+    updated_drawing = await db.project_drawings.find_one({"id": drawing_id}, {"_id": 0})
+    
+    # Convert ISO strings to datetime for serialization
+    for field in ['created_at', 'updated_at', 'due_date', 'issued_date', 'current_revision_due_date']:
+        if isinstance(updated_drawing.get(field), str) and updated_drawing.get(field):
+            try:
+                updated_drawing[field] = datetime.fromisoformat(updated_drawing[field])
+            except ValueError:
+                updated_drawing[field] = None
+    
+    return updated_drawing
 
 
 # ==================== TASK MANAGEMENT ROUTES ====================
