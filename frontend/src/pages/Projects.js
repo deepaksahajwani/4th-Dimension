@@ -282,24 +282,24 @@ export default function Projects({ user, onLogout }) {
             return (
               <Card 
                 key={project.id} 
-                className="hover:shadow-lg transition-shadow cursor-pointer"
+                className="hover:shadow-lg transition-shadow cursor-pointer active:scale-[0.98]"
                 onClick={() => navigate(`/projects/${project.id}`)}
               >
-                <CardContent className="p-6">
-                  <div className="flex items-start justify-between mb-4">
-                    <div className="flex items-center gap-3 flex-1">
-                      <div className="w-12 h-12 bg-gradient-to-br from-orange-400 to-orange-600 rounded-lg flex items-center justify-center text-white font-bold">
+                <CardContent className="p-4 sm:p-6">
+                  <div className="flex items-start justify-between mb-3 sm:mb-4">
+                    <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0">
+                      <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-orange-400 to-orange-600 rounded-lg flex items-center justify-center text-white font-bold text-sm sm:text-base flex-shrink-0">
                         {project.code || project.title?.charAt(0) || 'P'}
                       </div>
-                      <div className="flex-1">
-                        <h3 className="font-semibold text-slate-900">{project.title}</h3>
+                      <div className="flex-1 min-w-0">
+                        <h3 className="font-semibold text-slate-900 text-sm sm:text-base truncate">{project.title}</h3>
                         {client && (
-                          <p className="text-sm text-slate-500">{client.name}</p>
+                          <p className="text-xs sm:text-sm text-slate-500 truncate">{client.name}</p>
                         )}
                       </div>
                     </div>
                     {project.archived && (
-                      <Archive className="w-5 h-5 text-amber-500" />
+                      <Archive className="w-4 h-4 sm:w-5 sm:h-5 text-amber-500 flex-shrink-0" />
                     )}
                   </div>
                   
