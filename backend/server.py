@@ -1380,6 +1380,31 @@ async def update_drawing(
             revision_history[-1]['resolved_date'] = datetime.now(timezone.utc).isoformat()
             update_dict['revision_history'] = revision_history
     
+    # If drawing is being issued, activate next drawing in sequence
+    if update_dict.get('is_issued') == True and drawing.get('is_issued') == False:
+        update_dict['issued_date'] = datetime.now(timezone.utc).isoformat()
+        
+        # Find and activate next drawing in sequence
+        if drawing.get('sequence_number'):
+            next_sequence = drawing.get('sequence_number') + 1
+            next_drawing = await db.project_drawings.find_one({
+                "project_id": drawing.get('project_id'),
+                "category": drawing.get('category'),
+                "sequence_number": next_sequence,
+                "deleted_at": None
+            }, {"_id": 0})
+            
+            if next_drawing:
+                # Activate next drawing and mark as pending
+                await db.project_drawings.update_one(
+                    {"id": next_drawing['id']},
+                    {"$set": {
+                        "is_active": True,
+                        "status": "Pending",
+                        "updated_at": datetime.now(timezone.utc).isoformat()
+                    }}
+                )
+    
     # Update the drawing
     update_dict['updated_at'] = datetime.now(timezone.utc).isoformat()
     
