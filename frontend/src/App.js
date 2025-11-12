@@ -147,6 +147,15 @@ function App() {
               }
             />
             <Route
+              path="/work-tracker"
+              element={
+                <ProtectedRoute>
+                  <WorkTracker user={user} onLogout={handleLogout} />
+                </ProtectedRoute>
+              }
+            />
+
+            <Route
               path="/projects"
               element={
                 <ProtectedRoute>
