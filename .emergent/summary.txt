@@ -1,99 +1,179 @@
-<analysis>
-The AI engineer has demonstrated an iterative and responsive development process, effectively handling both bug fixes and significant feature expansions. Initially, the focus was on addressing a critical React rendering error stemming from unformatted Pydantic error objects, which was resolved by implementing a centralized error handling utility and applying it across the frontend. Subsequently, a major overhaul of the authentication and team management system was undertaken, driven by detailed user requirements for login flow, registration fields (including a complex address structure and dynamic team roles), and specific owner functionalities like team member management and custom sorting. The database was meticulously cleared and re-seeded multiple times to ensure a clean state for these changes. Most recently, the development pivoted to the comprehensive Projects module, starting with data model creation and seeding, and then focusing on the Client sub-module, which involved full CRUD, archive functionality, and detailed field requirements. The current task is to complete the integration of Project Type checkboxes within the client forms.
-</analysis>
+<analysis>An analysis of the user's request and the work done so far.
 
-<product_requirements>
-The user, an architect running 4th Dimension, requires an internal application to manage firm operations across 50 projects in India. Key features include project creation, automated work lists, user/site allocation, client referral tracking, design revision tracking, integrated accounting, reminder systems, and customizable AI-assisted drawing issuance. Initial requests included LLM/image generation and cloud storage (later changed to local). Subsequent major requirements focused on branding (4th Dimension, orange scheme), comprehensive login/registration (email/password, Google OAuth, OTP verification removed, no admin approval, full profile details including address, DOB, marital status, gender, specific Team Roles like '3D Visualizer', 'Date of Joining'), and a redesigned Team page (Owner at top, then grouped by role, sorted by joining date, owner-only Manage Team to edit/delete members, set salaries, and add write-ups). The latest major request is for a comprehensive Projects module, including detailed data models (Client, Project, DrawingCategory, DrawingType, ProjectDrawing, DrawingRevision, ChecklistPreset, ChecklistItem, Task, SiteVisit, SiteIssue, Notification), default data seeding for drawing libraries and presets, CRUD screens for all entities, Project Detail page with tabs, and various automations (checklist auto-generation, drawing reminders, status notifications, revision tracking, site visit/issue handling, owner reminders). The Client module specifically needs list/detail views, Add/Edit Client (with archive/delete), linking clients to projects, Dashboard stats, and a Project Type field with checkboxes (Architecture, Interior, Landscape, Planning).
-</product_requirements>
+**original_problem_statement:** 
+The user, an architect, requires a comprehensive internal project management application for their firm, 4th Dimension. The application needs to manage projects, clients, and team members.
 
-<key_technical_concepts>
-- **Full-stack Architecture**: React (frontend), FastAPI (backend), MongoDB (database).
-- **Authentication**: JWT, Google OAuth, username/password, OTP (initially used, then removed).
-- **Data Modeling**: Pydantic for FastAPI schemas, UUIDs for IDs (avoiding MongoDB ObjectIDs).
-- **UI/UX**: Shadcn UI, Tailwind CSS, custom branding.
-- **Error Handling**: Centralized frontend utility () for Pydantic validation errors.
-- **User Roles**: Owner, Admin, various Team Roles with specific permissions.
-- **File Storage**: Local file storage (AWS S3 deferred).
-</key_technical_concepts>
+**PRODUCT REQUIREMENTS:**
+-   **Project Management:**
+    -   Project creation with fields for Project Type (multi-select checkboxes), start/end dates.
+    -   Automatic archiving of projects when an end date is entered.
+    -   Detailed project information, including a comprehensive list of contacts (e.g., Civil Contractor, Electrical Consultant) with the ability to add custom contact types.
+    -   A section to specify brands used for various material categories (e.g., Faucets, Plywood), with a master system to manage these categories.
+    -   A Team Leader dropdown from existing team members to be assigned to each project.
+-   **Drawing Management:**
+    -   A list of drawings for each project, categorized by Architecture, Interior, etc.
+    s-   Ability to mark drawings as issued.
+    -   A revision tracking system: when a drawing is revised, it should prompt for revision notes and a new due date. The drawing status should revert to pending.
+    -   A complete history of all issuance, revision, and resolution dates for each drawing.
+    -   The due date for a drawing must be a mandatory field.
+-   **Task Management & Accountability:**
+    -   Automated daily and weekly task allotment to team members.
+    -   Weekly drawing completion targets should appear on team members' dashboards every Monday.
+    -   Daily targets should be sent via WhatsApp to the team member and the owner.
+    -   A weekly performance rating system to be displayed every Saturday.
+-   **Role-Based Views:**
+    -   **Owner View:** Should be ableto see all pending tasks across all projects and team leaders. Should have a Work Tracker to filter work by project or by team leader.
+    -   **Team Leader View:** Should have a My Work page showing all pending drawings for projects they are leading, sorted from most to least urgent based on the due date. The Team Leader should be able to add/remove team members from their projects.
+-   **UI/UX:**
+    -   The application must be fully responsive and mobile-friendly, as it will be used frequently on mobile devices.
 
-<code_architecture>
-The application follows a standard full-stack architecture:
+**what currently exists?**
+The application is a full-stack React/FastAPI/MongoDB solution. Key implemented features include:
+-   A comprehensive user authentication system with roles (Owner, Team Member).
+-   Modules for managing Clients and Projects.
+-   The Project module supports detailed contact lists (with a master list for contact types), brand specifications (with a master list for brand categories), and the assignment of a Team Leader.
+-   A complete drawing management system within each project, featuring status tracking (Pending, Issued, Revision), a mandatory due date, and a detailed revision history log.
+-   A mobile-responsive UI for the main pages (, , , ).
+-   Dedicated pages for role-based views:  for Owners and  for Team Leaders.
+-   Backend models and API endpoints for a new task and weekly target management system.
+-   A new page, , has been created for owners to set weekly tasks.
+
+**Last working item**:
+-   Last item agent was working: The agent just started **Phase 4A: Team Management & Task Assignment**. The immediate task was creating the frontend interface for owners to assign weekly drawing completion targets to team members. The file  was created, and its route was added to .
+-   Status: **IN PROGRESS**
+-   Agent Testing Done: N
+-   Which testing method agent to use? Both. Frontend testing agent to verify the UI for assigning targets, and backend testing agent to test the API endpoints that save these targets.
+-   User Testing Done: N
+
+**All Pending/In progress Issue list**:
+There are no pending issues. All bugs reported by the user in this session have been resolved.
+
+**In progress Task List**:
+
+-   **Task 1: (P0) Implement the Assign Targets owner interface**
+    -   **Where to resume**: Build out the UI in . This should include:
+        -   Dropdowns to select a team member and a week.
+        -   An input field to set the number of drawings to be completed.
+        -   A button to submit the target to the backend API ().
+        -   A view to see previously set targets.
+    -   **What will be achieved with this?**: Owners will have a functional tool to set and track weekly performance goals for their team.
+    -   **Status**: IN PROGRESS
+    -   **Should Test frontend/backend/both after fix?**: Both
+    -   **Blocked on something**: None
+
+**Upcoming and Future Tasks**
+
+-   **Upcoming Tasks (Phase 4):**
+    -   **(P0) Implement Team Member Dashboard ():** Display the daily and weekly drawing targets assigned by the owner.
+    -   **(P1) Implement Automated Task Generation:** Create the backend scheduler/logic that automatically generates  items from  goals.
+    -   **(P1) Implement WhatsApp Notifications:** Integrate a WhatsApp service to send daily target reminders to team members and the owner. The user has deferred providing credentials.
+    -   **(P2) Implement Weekly Performance Rating:** Create the system that generates and displays a performance rating every Saturday based on target achievement.
+    -   **(P2) Complete  and :** Flesh out these pages with live data and filtering capabilities as per the user's requirements.
+
+-   **Future Tasks:**
+    -   **(P3) Integrate Accounting System:** Build modules for tracking fees, payments, and salaries.
+    -   **(P3) AI Drawing Checker:** Develop an AI-assisted system for checking drawings.
+
+**Completed work in this session**
+-   **Mobile-First UI Redesign:** Made the core application layout and pages (, , ) fully responsive.
+-   **Advanced Project & Drawing Management:**
+    -   Implemented a full drawing revision history system with notes and dates ().
+    -   Made the drawing 'due date' a mandatory field.
+    -   Refactored  out of the Client model.
+    -   Added a dynamic contact management system with a master list for contact types.
+    -   Added a brand management system with seed data for brand categories.
+    -   Added a Team Leader dropdown to the Add Project form.
+-   **Role-Based Dashboards & Tracking:**
+    -   Created  page for owners to get a high-level overview.
+    -   Created  page for team leaders to see their specific tasks.
+    -   Added an Urgent view for drawings in , sorted by due date.
+-   **Task Management Backend:** Created backend models (, ) and API endpoints for the new task assignment system.
+-   **Bug Fixes:**
+    -   Resolved a critical bug where an old  model in  caused validation errors ().
+    -   Fixed a non-functional Edit button on the  page.
+    -   Fixed a JSX syntax error in  that was breaking the frontend.
+
+**Earlier issues found/mentioned but not fixed**
+None. All identified issues were addressed.
+
+**Known issue recurrence from previous fork**
+-   There are no known recurring issues from the previous fork. A new issue arose from having duplicate Pydantic models in , which the agent resolved by removing the outdated model. This highlights a potential risk area.
+
+**Code Architecture**
 
 
+**Key Technical Concepts**
+-   **Frameworks**: React (frontend), FastAPI (backend).
+-   **Database**: MongoDB.
+-   **UI**: Shadcn UI, Tailwind CSS, built with a mobile-first, responsive design approach.
+-   **Data Validation**: Pydantic models on the backend.
+-   **Authentication**: JWT-based with role-based access control (Owner, Team Member).
+-   **Architecture**: Single Page Application (SPA) with a RESTful API backend.
 
-**Detailed Directory Structure & Key Files:**
+**key DB schema**
+-   : 
+-   : 
+-   : 
+-   : 
+-   : 
 
-- : FastAPI backend
-    - : Python dependencies.
-    - : Main FastAPI application, API endpoints, authentication, user/project/client models, business logic.
-        - **Importance**: Central backend logic.
-        - **Changes**: Major updates to  model (added , detailed  fields, , , updated  enum). Modified owner pre-registration and profile completion. Simplified  and added  for owner-only team management. Integrated new project-related endpoints and client CRUD, including archive/delete logic and  field for clients.
-    - : **NEW**. Contains comprehensive Pydantic models for , , , , , , , , , , , , along with their enums.
-        - **Importance**: Centralizes the new Projects module's data schemas.
-        - **Changes**: Added  field to  model, and  field (List of enums).
-    - : **NEW**. Script to populate default drawing categories, types, and checklist presets.
-        - **Importance**: Initializes core project setup data.
-    - : **NEW**. Script to create initial demo projects and related data.
-        - **Importance**: Provides sample data for testing the project module.
-    - : **NEW**. Script to create sample clients and link them to demo projects.
-        - **Importance**: Populates client data for testing.
-    - : Environment variables (e.g., , , , ).
-        - **Importance**: Stores sensitive configuration.
+**changes in tech stack**
+-   No changes to the core tech stack.
 
-- : React frontend
-    - : Node.js dependencies.
-    - : React source code
-        - : Main React component, handles global routing, context, and authentication state.
-            - **Importance**: Central for application layout, routes, and authentication flow.
-            - **Changes**: Updated for new routes: , , , , , . Simplified Google OAuth.
-        - : Global styles (branding).
-        - : Page components
-            - : **REBUILT**. Handles user login (email/password, Google OAuth) and prompts for registration.
-                - **Importance**: Primary entry point.
-            - : **NEW**. Collects detailed user information (name, mobile, email, DOB, gender, address fields, marital status, date of joining, team role, password).
-                - **Importance**: New user registration form.
-            - : **REBUILT**. Displays a list of clients, allows adding new clients, editing existing ones, archiving, and deleting. Includes a  field with checkboxes.
-                - **Importance**: Core client management interface.
-                - **Changes**: Replaced Company/Client Name with Project Name label.
-            - : **NEW**. Displays details of a specific client and a list of associated projects.
-                - **Importance**: Detailed client view.
-            - : **REBUILT**. Displays team members, with owner at the top, then grouped by role and sorted by joining date.
-                - **Importance**: Team visualization and navigation to member details.
-            - : **NEW**. Displays individual team member details, including the owner's custom write-up.
-                - **Importance**: Detailed team member profiles.
-            - : **NEW**. Owner-only interface for managing team members (edit details, salary, write-up).
-                - **Importance**: Owner's administrative control over team.
-            - : Displays project statistics, reminders, and quick actions.
-                - **Importance**: Overview of firm operations.
-            - : Manages project creation and listing (initial version existed, but comprehensive project module UI is still pending).
-        - : Reusable components
-            - : Application layout, sidebar navigation.
-                - **Importance**: Defines overall UI structure.
-                - **Changes**: Added Team and Clients links to sidebar, conditional rendering for Owner title and Manage Team button.
-            - : Shadcn UI components.
-        - : **NEW**. Utility function to format complex error objects (e.g., Pydantic validation errors) into user-friendly strings for .
-            - **Importance**: Improves UI error messaging.
-</code_architecture>
+**All files**
+-   ****: Heavily modified. Added CRUD APIs for Brand Categories, Contact Types, Drawings (with revisions), and Weekly Targets. Updated Project APIs to support new fields.
+-   ****: Heavily modified. Updated  and  models. Added , , , , and  models.
+-   ****: New file to populate default brand categories.
+-   ****: Rebuilt to be a multi-tabbed, responsive form for creating/editing projects with contacts and brands.
+-   ****: Rebuilt to include drawing management, revision history, and team member management, all in a responsive layout.
+-   ****: Rebuilt as a placeholder for the new task management dashboard.
+-   ****: Modified to be mobile-responsive with a hamburger menu.
+-   **, , **: New placeholder pages created for owner/team-leader views and task assignment.
+-   ****: Updated with new routes for , , and .
 
-<pending_tasks>
-- Integrate an accounting system for fees, payments, salaries.
-- Implement reminder system for plan finalization and drawing issuance.
-- Develop AI system for checking drawings.
-- Expand app scope to issue standardized drawings automatically.
-- Implement detailed drawing categorization (beyond seeded types).
-- Add ability to add custom list of drawings for consultants.
-- Integrate site visit issue tracking and notification system.
-- Complete the Projects module screens (CRUD for Projects, Project Drawings, Tasks, Issues, Site Visits, Consultants, Admin → Drawing Libraries / Presets, Notifications Center, My Work).
-- Implement all specified automations for the Projects module (Checklist Auto-Generation, Drawing Reminder System, Status-Change Notifications, Revision Tracking, SiteVisit + SiteIssue Handling, Owner Manual Reminders).
-- Seed demo projects with linked team, consultants, and overdue reminders as per the spec.
-</pending_tasks>
+**Areas that need refactoring**:
+-    has grown very large. API endpoints for projects, drawings, tasks, and brand/contact masters should be broken out into separate FastAPI  files for better maintainability.
+-   The frontend components  and  are monolithic. They should be broken down into smaller, reusable sub-components (e.g., , , ).
 
-<current_work>
-The AI engineer is currently in the process of implementing the Project Type field (Architecture, Interior, Landscape, Planning) as checkboxes within the client forms.
-On the **backend**, the  model (in ) has been updated to include . Corresponding  and  Pydantic schemas and client-related API routes in  have also been modified to handle this new field.
-On the **frontend**, the  component is being updated to display these Project Type checkboxes in the client creation and edit forms. This involves modifying the form's UI and ensuring the data is correctly sent to and received from the backend. The last action was an edit to  to incorporate the checkbox UI.
-</current_work>
+**key api endpoints**
+-   : (POST, GET, PUT, DELETE) Comprehensive CRUD for projects.
+-   : (POST, GET, PUT, DELETE) Full CRUD for drawings and their revisions.
+-   : (GET, POST, DELETE) Manage master brand categories.
+-   : (GET, POST, DELETE) Manage master contact types.
+-   : (POST, GET) Create and retrieve weekly targets.
+-   : (GET) Fetches the list of all team members.
 
-<optional_next_step>
-Complete the frontend implementation of Project Type checkboxes in  and verify their functionality in the UI.
-</optional_next_step>
+**Critical Info for New Agent**
+-   The user is highly engaged and provides detailed, evolving requirements. Always break down large requests into phases and confirm the plan before executing.
+-   **The  file is a risk area for bugs due to historical, unused model definitions co-existing with new ones imported from . Always ensure you are using the correct, most recent models from  for all new development.**
+-   All new UI development must be mobile-responsive.
+-   WhatsApp integration is a deferred task. The backend models contain placeholders, but implementation should wait until the user provides credentials.
+
+**Last 5 User Messages and any pending user messages**
+1.  **User Message:** The preview is showing error. Please check everything from your end.
+    -   **Status:** **Completed**. Agent found and fixed a JSX syntax error in .
+2.  **User Message:** What is the next development phase from your part?
+    -   **Status:** **Completed**. Agent outlined a multi-phase plan for task management and accounting.
+3.  **User Message:** Proceed to the next phase as recommended by you
+    -   **Status:** **Acknowledged**. User gave approval to start Phase 4A (Team Management & Task Assignment).
+4.  **User Message:** Proceed
+    -   **Status:** **Acknowledged**. User confirmation to continue after the  page was created.
+5.  **User Message:** Proceed
+    -   **Status:** **Acknowledged**. User confirmation to continue after the  page was created.
+
+**Project Health Check:**
+-   **Broken:** None. The application is in a stable, functional state.
+-   **Mocked:** WhatsApp notifications are mocked/placeholder in the backend logic.
+
+**Testing status**
+-   Testing agent used after significant changes: YES. The backend testing agent was used to validate the new/updated API endpoints for clients, projects, and drawings.
+-   Troubleshoot agent used after agent stuck in loop: NO.
+-   Test files created: None. The testing agent runs its own tests without creating persistent files.
+-   Known regressions: None.
+
+**Credentials to test flow:**
+-   **Owner Login:** Email  (password is likely  or a common default).
+-   **Team Member Login:** Register a new user. They will be a standard team member by default.
+
+**What agent forgot to execute**
+-   The agent did not forget any explicit steps but has created several placeholder pages (, , , ) that now require full implementation. The immediate next step is to build the UI for , which is the current in-progress task. The broader forgotten work is to flesh out the functionality of all these newly created pages.</analysis>

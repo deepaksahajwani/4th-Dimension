@@ -11,7 +11,7 @@ from datetime import datetime
 import uuid
 
 # Get backend URL from frontend .env
-BACKEND_URL = "https://archflow-8.preview.emergentagent.com/api"
+BACKEND_URL = "https://taskforge-81.preview.emergentagent.com/api"
 
 class BackendTester:
     def __init__(self):
