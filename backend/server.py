@@ -1132,7 +1132,35 @@ async def create_project(project_data: NewProjectCreate, current_user: User = De
     
     await db.projects.insert_one(project_dict)
     
-    # Auto-generate drawings from presets if preset_id provided
+    # Auto-generate sequential drawings from templates based on project types
+    for project_type in project_data.project_types:
+        template_drawings = get_template_drawings(project_type)
+        if template_drawings:
+            for sequence_num, drawing_name in enumerate(template_drawings, start=1):
+                # Calculate due date (7 days after project start or today)
+                base_date = project.start_date if project.start_date else datetime.now(timezone.utc)
+                due_date = base_date + timedelta(days=7 * sequence_num)
+                
+                drawing = ProjectDrawing(
+                    project_id=project.id,
+                    category=project_type,
+                    name=drawing_name,
+                    status=DrawingStatus.PLANNED if sequence_num > 1 else DrawingStatus.PENDING,
+                    due_date=due_date,
+                    is_issued=False,
+                    revision_count=0,
+                    sequence_number=sequence_num,
+                    is_active=True if sequence_num == 1 else False  # Only first drawing is active
+                )
+                drawing_dict = drawing.model_dump()
+                # Convert datetimes to ISO strings
+                for field in ['created_at', 'updated_at', 'due_date', 'issued_date']:
+                    if drawing_dict.get(field):
+                        drawing_dict[field] = drawing_dict[field].isoformat() if isinstance(drawing_dict[field], datetime) else drawing_dict[field]
+                
+                await db.project_drawings.insert_one(drawing_dict)
+    
+    # Auto-generate drawings from presets if preset_id provided (legacy support)
     if project_data.checklist_preset_id:
         preset = await db.checklist_presets.find_one({"id": project_data.checklist_preset_id}, {"_id": 0})
         if preset:
