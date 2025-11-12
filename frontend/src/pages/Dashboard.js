@@ -449,7 +449,12 @@ export default function Dashboard({ user, onLogout }) {
                   </div>
                   {pendingDrawings.length > 10 && (
                     <p className="text-xs text-slate-500 text-center mt-3">
-                      Showing 10 of {pendingDrawings.length} pending drawings
+                      Showing 10 of {pendingDrawings.length} urgent drawings. View all in "My Work" →
+                    </p>
+                  )}
+                  {pendingDrawings.length <= 10 && pendingDrawings.length > 0 && (
+                    <p className="text-xs text-slate-500 text-center mt-3">
+                      For complete workload view, check "My Work" page →
                     </p>
                   )}
                 </CardContent>
