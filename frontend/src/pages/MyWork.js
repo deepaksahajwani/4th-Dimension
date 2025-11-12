@@ -26,19 +26,15 @@ export default function MyWork({ user, onLogout }) {
 
   const fetchData = async () => {
     try {
-      const today = new Date().toISOString().split('T')[0];
-      
-      const [projectsRes, targetsRes, tasksRes] = await Promise.all([
+      const [projectsRes, targetsRes] = await Promise.all([
         axios.get(`${API}/projects`),
-        axios.get(`${API}/weekly-targets`),
-        axios.get(`${API}/daily-tasks?date=${today}`)
+        axios.get(`${API}/weekly-targets`)
       ]);
       
       // Filter projects where user is team leader
       const leaderProjects = projectsRes.data.filter(p => p.lead_architect_id === user.id);
       setMyProjects(leaderProjects);
       setWeeklyTargets(targetsRes.data);
-      setDailyTasks(tasksRes.data);
 
       // Fetch drawings for my projects only
       if (leaderProjects.length > 0) {
