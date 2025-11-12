@@ -369,6 +369,8 @@ class ProjectDrawing(BaseModel):
     revision_history: List[RevisionHistoryItem] = []  # Complete revision history
     reminder_sent: bool = False
     notes: Optional[str] = None
+    sequence_number: Optional[int] = None  # Order in the sequential workflow
+    is_active: bool = True  # True if this drawing is currently active/pending in sequence
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     deleted_at: Optional[datetime] = None
