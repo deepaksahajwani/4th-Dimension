@@ -1200,6 +1200,386 @@ class BackendTester:
 
         print("✅ Weekly Targets feature testing completed")
 
+    def test_drawing_issue_and_revision_functionality(self):
+        """Test drawing issue and revision functionality as requested in review"""
+        print(f"\n🎨 Testing Drawing Issue and Revision Functionality")
+        print("=" * 60)
+        
+        # Step 1: Login as owner
+        try:
+            print("Step 1: Logging in as owner...")
+            owner_credentials = {
+                "email": "owner@test.com",
+                "password": "testpassword"
+            }
+            
+            login_response = self.session.post(f"{BACKEND_URL}/auth/login", json=owner_credentials)
+            
+            if login_response.status_code == 200:
+                login_data = login_response.json()
+                
+                if login_data.get("user", {}).get("is_owner") == True:
+                    self.owner_token = login_data["access_token"]
+                    self.log_result("Drawing Issue/Revision - Owner Login", True, 
+                                  "Owner successfully authenticated")
+                else:
+                    self.log_result("Drawing Issue/Revision - Owner Login", False, 
+                                  "User is not marked as owner")
+                    return
+            else:
+                self.log_result("Drawing Issue/Revision - Owner Login", False, 
+                              f"Owner login failed: {login_response.status_code} - {login_response.text}")
+                return
+                
+        except Exception as e:
+            self.log_result("Drawing Issue/Revision - Owner Login", False, f"Exception: {str(e)}")
+            return
+
+        owner_headers = {"Authorization": f"Bearer {self.owner_token}"}
+        
+        # Step 2: Get list of projects
+        try:
+            print("Step 2: Getting list of projects...")
+            projects_response = self.session.get(f"{BACKEND_URL}/projects", headers=owner_headers)
+            
+            if projects_response.status_code == 200:
+                projects_data = projects_response.json()
+                
+                if len(projects_data) > 0:
+                    self.test_project = projects_data[0]  # Use first project
+                    self.log_result("Drawing Issue/Revision - Get Projects", True, 
+                                  f"Found {len(projects_data)} projects. Using project: {self.test_project.get('title', 'N/A')}")
+                else:
+                    # Create a test project if none exist
+                    print("No projects found, creating test project...")
+                    project_data = {
+                        "code": "TEST-DRAW-001",
+                        "title": "Test Drawing Project",
+                        "project_types": ["Architecture"],
+                        "status": "active",
+                        "client_id": None,
+                        "site_address": "Test Site Address",
+                        "notes": "Test project for drawing functionality"
+                    }
+                    
+                    create_project_response = self.session.post(f"{BACKEND_URL}/projects", 
+                                                              json=project_data, headers=owner_headers)
+                    
+                    if create_project_response.status_code == 200:
+                        self.test_project = create_project_response.json()
+                        self.log_result("Drawing Issue/Revision - Create Test Project", True, 
+                                      f"Created test project: {self.test_project.get('title')}")
+                    else:
+                        self.log_result("Drawing Issue/Revision - Create Test Project", False, 
+                                      f"Failed to create project: {create_project_response.status_code}")
+                        return
+            else:
+                self.log_result("Drawing Issue/Revision - Get Projects", False, 
+                              f"Failed to get projects: {projects_response.status_code}")
+                return
+                
+        except Exception as e:
+            self.log_result("Drawing Issue/Revision - Get Projects", False, f"Exception: {str(e)}")
+            return
+
+        project_id = self.test_project["id"]
+        
+        # Step 3: Get drawings for the project
+        try:
+            print("Step 3: Getting drawings for the project...")
+            drawings_response = self.session.get(f"{BACKEND_URL}/projects/{project_id}/drawings", 
+                                               headers=owner_headers)
+            
+            if drawings_response.status_code == 200:
+                drawings_data = drawings_response.json()
+                
+                if len(drawings_data) > 0:
+                    # Find a pending drawing (is_issued = false)
+                    pending_drawing = None
+                    for drawing in drawings_data:
+                        if not drawing.get('is_issued', False):
+                            pending_drawing = drawing
+                            break
+                    
+                    if pending_drawing:
+                        self.test_drawing = pending_drawing
+                        self.log_result("Drawing Issue/Revision - Get Drawings", True, 
+                                      f"Found {len(drawings_data)} drawings. Using pending drawing: {self.test_drawing.get('name')}")
+                    else:
+                        # All drawings are issued, use the first one for testing
+                        self.test_drawing = drawings_data[0]
+                        self.log_result("Drawing Issue/Revision - Get Drawings", True, 
+                                      f"Found {len(drawings_data)} drawings. Using drawing: {self.test_drawing.get('name')} (already issued)")
+                else:
+                    # Create a test drawing if none exist
+                    print("No drawings found, creating test drawing...")
+                    drawing_data = {
+                        "category": "Architecture",
+                        "name": "Test Floor Plan",
+                        "due_date": "2024-12-31",
+                        "notes": "Test drawing for issue/revision functionality"
+                    }
+                    
+                    create_drawing_response = self.session.post(f"{BACKEND_URL}/projects/{project_id}/drawings", 
+                                                              json=drawing_data, headers=owner_headers)
+                    
+                    if create_drawing_response.status_code == 200:
+                        self.test_drawing = create_drawing_response.json()
+                        self.log_result("Drawing Issue/Revision - Create Test Drawing", True, 
+                                      f"Created test drawing: {self.test_drawing.get('name')}")
+                    else:
+                        self.log_result("Drawing Issue/Revision - Create Test Drawing", False, 
+                                      f"Failed to create drawing: {create_drawing_response.status_code}")
+                        return
+            else:
+                self.log_result("Drawing Issue/Revision - Get Drawings", False, 
+                              f"Failed to get drawings: {drawings_response.status_code}")
+                return
+                
+        except Exception as e:
+            self.log_result("Drawing Issue/Revision - Get Drawings", False, f"Exception: {str(e)}")
+            return
+
+        drawing_id = self.test_drawing["id"]
+        
+        # Step 4: Test Drawing Issue Flow
+        try:
+            print("Step 4: Testing drawing issue flow...")
+            
+            # Update drawing to issued status
+            issue_data = {"is_issued": True}
+            
+            issue_response = self.session.put(f"{BACKEND_URL}/drawings/{drawing_id}", 
+                                            json=issue_data, headers=owner_headers)
+            
+            if issue_response.status_code == 200:
+                issued_drawing = issue_response.json()
+                
+                # Verify the API response shows is_issued = true
+                if issued_drawing.get('is_issued') == True:
+                    # Check if issued_date was set
+                    if issued_drawing.get('issued_date'):
+                        self.log_result("Drawing Issue/Revision - Issue Drawing", True, 
+                                      f"Drawing successfully issued. is_issued: {issued_drawing.get('is_issued')}, issued_date: {issued_drawing.get('issued_date')}")
+                    else:
+                        self.log_result("Drawing Issue/Revision - Issue Drawing", False, 
+                                      "Drawing marked as issued but issued_date not set")
+                        return
+                else:
+                    self.log_result("Drawing Issue/Revision - Issue Drawing", False, 
+                                  f"Drawing not marked as issued. is_issued: {issued_drawing.get('is_issued')}")
+                    return
+            else:
+                self.log_result("Drawing Issue/Revision - Issue Drawing", False, 
+                              f"Failed to issue drawing: {issue_response.status_code} - {issue_response.text}")
+                return
+                
+        except Exception as e:
+            self.log_result("Drawing Issue/Revision - Issue Drawing", False, f"Exception: {str(e)}")
+            return
+
+        # Step 5: Verify the change persisted by fetching drawings again
+        try:
+            print("Step 5: Verifying drawing issue status persisted...")
+            
+            verify_response = self.session.get(f"{BACKEND_URL}/projects/{project_id}/drawings", 
+                                             headers=owner_headers)
+            
+            if verify_response.status_code == 200:
+                updated_drawings = verify_response.json()
+                
+                # Find our drawing in the list
+                our_drawing = None
+                for drawing in updated_drawings:
+                    if drawing.get('id') == drawing_id:
+                        our_drawing = drawing
+                        break
+                
+                if our_drawing and our_drawing.get('is_issued') == True:
+                    self.log_result("Drawing Issue/Revision - Verify Issue Persistence", True, 
+                                  "Drawing issue status correctly persisted in database")
+                else:
+                    self.log_result("Drawing Issue/Revision - Verify Issue Persistence", False, 
+                                  f"Drawing issue status not persisted. Current is_issued: {our_drawing.get('is_issued') if our_drawing else 'Drawing not found'}")
+                    return
+            else:
+                self.log_result("Drawing Issue/Revision - Verify Issue Persistence", False, 
+                              f"Failed to verify persistence: {verify_response.status_code}")
+                return
+                
+        except Exception as e:
+            self.log_result("Drawing Issue/Revision - Verify Issue Persistence", False, f"Exception: {str(e)}")
+            return
+
+        # Step 6: Test Drawing Revision Flow
+        try:
+            print("Step 6: Testing drawing revision flow...")
+            
+            # Request revision
+            revision_data = {
+                "has_pending_revision": True,
+                "revision_notes": "Test revision - Need to update room dimensions and add window details",
+                "revision_due_date": "2025-01-15"
+            }
+            
+            revision_response = self.session.put(f"{BACKEND_URL}/drawings/{drawing_id}", 
+                                               json=revision_data, headers=owner_headers)
+            
+            if revision_response.status_code == 200:
+                revised_drawing = revision_response.json()
+                
+                # Verify the API response shows correct revision state
+                revision_checks = [
+                    (revised_drawing.get('has_pending_revision') == True, "has_pending_revision should be True"),
+                    (revised_drawing.get('is_issued') == False, "is_issued should be reset to False"),
+                    (revised_drawing.get('current_revision_notes') is not None, "revision_notes should be saved"),
+                    (revised_drawing.get('current_revision_due_date') is not None, "revision_due_date should be saved")
+                ]
+                
+                failed_revision_checks = [msg for check, msg in revision_checks if not check]
+                
+                if not failed_revision_checks:
+                    self.log_result("Drawing Issue/Revision - Request Revision", True, 
+                                  f"Revision requested successfully. has_pending_revision: {revised_drawing.get('has_pending_revision')}, is_issued: {revised_drawing.get('is_issued')}")
+                else:
+                    self.log_result("Drawing Issue/Revision - Request Revision", False, 
+                                  f"Revision request failed checks: {'; '.join(failed_revision_checks)}")
+                    return
+            else:
+                self.log_result("Drawing Issue/Revision - Request Revision", False, 
+                              f"Failed to request revision: {revision_response.status_code} - {revision_response.text}")
+                return
+                
+        except Exception as e:
+            self.log_result("Drawing Issue/Revision - Request Revision", False, f"Exception: {str(e)}")
+            return
+
+        # Step 7: Verify revision state persisted
+        try:
+            print("Step 7: Verifying revision state persisted...")
+            
+            verify_revision_response = self.session.get(f"{BACKEND_URL}/projects/{project_id}/drawings", 
+                                                      headers=owner_headers)
+            
+            if verify_revision_response.status_code == 200:
+                revision_drawings = verify_revision_response.json()
+                
+                # Find our drawing
+                our_revised_drawing = None
+                for drawing in revision_drawings:
+                    if drawing.get('id') == drawing_id:
+                        our_revised_drawing = drawing
+                        break
+                
+                if our_revised_drawing:
+                    revision_persistence_checks = [
+                        (our_revised_drawing.get('has_pending_revision') == True, "has_pending_revision should persist as True"),
+                        (our_revised_drawing.get('is_issued') == False, "is_issued should persist as False"),
+                        (our_revised_drawing.get('current_revision_notes') is not None, "revision_notes should persist")
+                    ]
+                    
+                    failed_persistence_checks = [msg for check, msg in revision_persistence_checks if not check]
+                    
+                    if not failed_persistence_checks:
+                        self.log_result("Drawing Issue/Revision - Verify Revision Persistence", True, 
+                                      "Revision state correctly persisted in database")
+                    else:
+                        self.log_result("Drawing Issue/Revision - Verify Revision Persistence", False, 
+                                      f"Revision persistence failed: {'; '.join(failed_persistence_checks)}")
+                        return
+                else:
+                    self.log_result("Drawing Issue/Revision - Verify Revision Persistence", False, 
+                                  "Drawing not found after revision request")
+                    return
+            else:
+                self.log_result("Drawing Issue/Revision - Verify Revision Persistence", False, 
+                              f"Failed to verify revision persistence: {verify_revision_response.status_code}")
+                return
+                
+        except Exception as e:
+            self.log_result("Drawing Issue/Revision - Verify Revision Persistence", False, f"Exception: {str(e)}")
+            return
+
+        # Step 8: Test Resolve Revision
+        try:
+            print("Step 8: Testing resolve revision...")
+            
+            # Resolve the revision
+            resolve_data = {"has_pending_revision": False}
+            
+            resolve_response = self.session.put(f"{BACKEND_URL}/drawings/{drawing_id}", 
+                                              json=resolve_data, headers=owner_headers)
+            
+            if resolve_response.status_code == 200:
+                resolved_drawing = resolve_response.json()
+                
+                # Verify revision resolution
+                resolve_checks = [
+                    (resolved_drawing.get('has_pending_revision') == False, "has_pending_revision should be False"),
+                    (resolved_drawing.get('revision_count', 0) > 0, "revision_count should be incremented")
+                ]
+                
+                failed_resolve_checks = [msg for check, msg in resolve_checks if not check]
+                
+                if not failed_resolve_checks:
+                    self.log_result("Drawing Issue/Revision - Resolve Revision", True, 
+                                  f"Revision resolved successfully. revision_count: {resolved_drawing.get('revision_count')}, has_pending_revision: {resolved_drawing.get('has_pending_revision')}")
+                else:
+                    self.log_result("Drawing Issue/Revision - Resolve Revision", False, 
+                                  f"Revision resolution failed: {'; '.join(failed_resolve_checks)}")
+                    return
+            else:
+                self.log_result("Drawing Issue/Revision - Resolve Revision", False, 
+                              f"Failed to resolve revision: {resolve_response.status_code} - {resolve_response.text}")
+                return
+                
+        except Exception as e:
+            self.log_result("Drawing Issue/Revision - Resolve Revision", False, f"Exception: {str(e)}")
+            return
+
+        # Step 9: Final verification of resolved state
+        try:
+            print("Step 9: Final verification of resolved state...")
+            
+            final_verify_response = self.session.get(f"{BACKEND_URL}/projects/{project_id}/drawings", 
+                                                   headers=owner_headers)
+            
+            if final_verify_response.status_code == 200:
+                final_drawings = final_verify_response.json()
+                
+                # Find our drawing
+                final_drawing = None
+                for drawing in final_drawings:
+                    if drawing.get('id') == drawing_id:
+                        final_drawing = drawing
+                        break
+                
+                if final_drawing:
+                    final_checks = [
+                        (final_drawing.get('has_pending_revision') == False, "has_pending_revision should be False"),
+                        (final_drawing.get('revision_count', 0) > 0, "revision_count should be greater than 0")
+                    ]
+                    
+                    failed_final_checks = [msg for check, msg in final_checks if not check]
+                    
+                    if not failed_final_checks:
+                        self.log_result("Drawing Issue/Revision - Final Verification", True, 
+                                      f"All drawing issue and revision functionality working correctly. Final revision_count: {final_drawing.get('revision_count')}")
+                    else:
+                        self.log_result("Drawing Issue/Revision - Final Verification", False, 
+                                      f"Final verification failed: {'; '.join(failed_final_checks)}")
+                else:
+                    self.log_result("Drawing Issue/Revision - Final Verification", False, 
+                                  "Drawing not found in final verification")
+            else:
+                self.log_result("Drawing Issue/Revision - Final Verification", False, 
+                              f"Failed final verification: {final_verify_response.status_code}")
+                
+        except Exception as e:
+            self.log_result("Drawing Issue/Revision - Final Verification", False, f"Exception: {str(e)}")
+
+        print("✅ Drawing Issue and Revision functionality testing completed")
+
     def run_all_tests(self):
         """Run all authentication tests"""
         print(f"🚀 Starting Backend Authentication Tests")
@@ -1264,6 +1644,39 @@ class BackendTester:
                     print(f"  - {result['test']}: {result['details']}")
         
         return passed == total
+
+    def run_drawing_tests_only(self):
+        """Run only the drawing issue and revision tests"""
+        print(f"🎨 Starting Drawing Issue and Revision Tests")
+        print(f"Backend URL: {BACKEND_URL}")
+        print("=" * 60)
+        
+        # Run the specific drawing tests
+        self.test_drawing_issue_and_revision_functionality()
+        
+        # Summary
+        print("=" * 60)
+        print("📊 DRAWING TESTS SUMMARY")
+        print("=" * 60)
+        
+        # Filter results to only drawing-related tests
+        drawing_results = [r for r in self.test_results if "Drawing Issue/Revision" in r["test"]]
+        
+        passed = sum(1 for result in drawing_results if result["success"])
+        total = len(drawing_results)
+        
+        print(f"Total Drawing Tests: {total}")
+        print(f"Passed: {passed}")
+        print(f"Failed: {total - passed}")
+        print(f"Success Rate: {(passed/total)*100:.1f}%" if total > 0 else "No tests run")
+        
+        if total - passed > 0:
+            print("\n❌ FAILED DRAWING TESTS:")
+            for result in drawing_results:
+                if not result["success"]:
+                    print(f"  - {result['test']}: {result['details']}")
+        
+        return passed == total if total > 0 else False
 
     def test_client_api_with_project_types(self):
         """Test Client API endpoints with project_types field"""
