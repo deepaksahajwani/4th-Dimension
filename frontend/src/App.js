@@ -8,6 +8,7 @@ import { Toaster, toast } from 'sonner';
 import LoginPage from './pages/LoginPage';
 import RegisterInfo from './pages/RegisterInfo';
 import Dashboard from './pages/Dashboard';
+import WorkTracker from './pages/WorkTracker';
 import Projects from './pages/Projects';
 import ProjectDetail from './pages/ProjectDetail';
 import Clients from './pages/Clients';
