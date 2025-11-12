@@ -18,6 +18,8 @@ export default function Dashboard({ user, onLogout }) {
   const [weeklyTargets, setWeeklyTargets] = useState([]);
   const [weeklyRating, setWeeklyRating] = useState(null);
   const [teamRatings, setTeamRatings] = useState([]);
+  const [pendingDrawings, setPendingDrawings] = useState([]);
+  const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
