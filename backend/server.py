@@ -30,7 +30,8 @@ from models_projects import (
     Project as NewProject, ProjectCreate as NewProjectCreate, ProjectUpdate as NewProjectUpdate,
     ContactInfo, BrandCategory, BrandCategoryMaster, BrandCategoryMasterCreate, BrandCategoryMasterUpdate,
     ContactTypeMaster, ContactTypeMasterCreate, ContactTypeMasterUpdate,
-    ProjectDrawingCreate, ProjectDrawingUpdate
+    ProjectDrawingCreate, ProjectDrawingUpdate,
+    WeeklyTarget, DailyTask, WeeklyRating, WeeklyTargetCreate, DailyTaskCreate, DailyTaskUpdate
 )
 
 ROOT_DIR = Path(__file__).parent
