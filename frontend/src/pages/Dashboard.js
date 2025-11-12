@@ -378,6 +378,74 @@ export default function Dashboard({ user, onLogout }) {
               </CardContent>
             </Card>
 
+            {/* Pending Drawings (Team Leaders Only) */}
+            {!user?.is_owner && pendingDrawings.length > 0 && (
+              <Card>
+                <CardHeader className="pb-3 sm:pb-4">
+                  <CardTitle className="text-base sm:text-lg flex items-center gap-2">
+                    <FileText className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
+                    Pending Drawings
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="p-3 sm:p-6">
+                  <div className="space-y-2 max-h-96 overflow-y-auto">
+                    {pendingDrawings.slice(0, 10).map((drawing) => {
+                      const daysUntilDue = drawing.due_date 
+                        ? Math.ceil((new Date(drawing.due_date) - new Date()) / (1000 * 60 * 60 * 24))
+                        : null;
+                      const isOverdue = daysUntilDue !== null && daysUntilDue < 0;
+                      const isUrgent = daysUntilDue !== null && daysUntilDue >= 0 && daysUntilDue <= 2;
+                      
+                      return (
+                        <div 
+                          key={drawing.id} 
+                          className={`p-2 sm:p-3 rounded-lg border-2 cursor-pointer hover:shadow-md transition-shadow ${
+                            isOverdue ? 'border-red-200 bg-red-50' : 
+                            isUrgent ? 'border-orange-200 bg-orange-50' : 
+                            'border-slate-200 bg-white'
+                          }`}
+                          onClick={() => window.location.href = `/projects/${drawing.project.id}`}
+                        >
+                          <div className="flex items-start justify-between gap-2 mb-1">
+                            <div className="flex-1 min-w-0">
+                              <p className="text-xs sm:text-sm font-medium text-slate-900 truncate">
+                                {drawing.name}
+                              </p>
+                              <p className="text-[10px] sm:text-xs text-slate-500 truncate">
+                                {drawing.project.code} - {drawing.project.title}
+                              </p>
+                            </div>
+                            {daysUntilDue !== null && (
+                              <span className={`text-[10px] sm:text-xs font-medium px-2 py-0.5 rounded-full whitespace-nowrap ${
+                                isOverdue ? 'bg-red-600 text-white' :
+                                isUrgent ? 'bg-orange-600 text-white' :
+                                'bg-blue-600 text-white'
+                              }`}>
+                                {isOverdue ? `${Math.abs(daysUntilDue)}d overdue` : 
+                                 daysUntilDue === 0 ? 'Due today' :
+                                 `${daysUntilDue}d left`}
+                              </span>
+                            )}
+                          </div>
+                          <div className="flex items-center gap-2 mt-1">
+                            <span className="text-[10px] text-slate-500">{drawing.category}</span>
+                            {drawing.has_pending_revision && (
+                              <span className="text-[10px] text-orange-600 font-medium">• Revision Pending</span>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                  {pendingDrawings.length > 10 && (
+                    <p className="text-xs text-slate-500 text-center mt-3">
+                      Showing 10 of {pendingDrawings.length} pending drawings
+                    </p>
+                  )}
+                </CardContent>
+              </Card>
+            )}
+
             {/* Recent Ratings */}
             {weeklyRating && (
               <Card>
