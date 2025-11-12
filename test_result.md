@@ -252,8 +252,9 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Weekly Targets Assignment Feature"
-  stuck_tasks: []
+    - "Team Leader Display in Project Details Page"
+  stuck_tasks:
+    - "Team Leader Display in Project Details Page"
   test_all: false
   test_priority: "high_first"
 
