@@ -344,13 +344,13 @@ export default function Projects({ user, onLogout }) {
         </div>
 
         {projects.length === 0 && (
-          <div className="text-center py-12">
-            <FolderOpen className="w-16 h-16 text-slate-300 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-slate-900 mb-2">No projects yet</h3>
-            <p className="text-slate-500 mb-4">Create your first project to get started</p>
+          <div className="text-center py-12 px-4">
+            <FolderOpen className="w-12 h-12 sm:w-16 sm:h-16 text-slate-300 mx-auto mb-4" />
+            <h3 className="text-base sm:text-lg font-medium text-slate-900 mb-2">No projects yet</h3>
+            <p className="text-sm sm:text-base text-slate-500 mb-4">Create your first project to get started</p>
             <Button 
               onClick={() => setDialogOpen(true)}
-              className="bg-orange-500 hover:bg-orange-600"
+              className="bg-orange-500 hover:bg-orange-600 w-full sm:w-auto"
             >
               <Plus className="w-4 h-4 mr-2" />
               Create Project
