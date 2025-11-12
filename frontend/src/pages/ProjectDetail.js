@@ -461,15 +461,41 @@ export default function ProjectDetail({ user, onLogout }) {
                 </div>
               </div>
 
-              <Button
-                variant="outline"
-                onClick={() => navigate(`/projects/${projectId}/edit`)}
-                size="sm"
-                className="w-full sm:w-auto"
-              >
-                <Edit className="w-4 h-4 mr-2" />
-                Edit
-              </Button>
+              <div className="flex flex-col sm:flex-row gap-2">
+                <Button
+                  variant="outline"
+                  onClick={handleEditProject}
+                  size="sm"
+                  className="w-full sm:w-auto"
+                >
+                  <Edit className="w-4 h-4 mr-2" />
+                  Edit
+                </Button>
+                
+                {!project.archived && user?.is_owner && (
+                  <Button
+                    variant="outline"
+                    onClick={() => setArchiveDialogOpen(true)}
+                    size="sm"
+                    className="w-full sm:w-auto border-orange-300 text-orange-700 hover:bg-orange-50"
+                  >
+                    <Calendar className="w-4 h-4 mr-2" />
+                    Archive
+                  </Button>
+                )}
+                
+                {user?.is_owner && (
+                  <Button
+                    variant="outline"
+                    onClick={() => setDeleteDialogOpen(true)}
+                    size="sm"
+                    className="w-full sm:w-auto border-red-300 text-red-700 hover:bg-red-50"
+                  >
+                    <Trash2 className="w-4 h-4 mr-2" />
+                    Delete
+                  </Button>
+                )}
+              </div>
             </div>
           </CardContent>
         </Card>
