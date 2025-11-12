@@ -63,9 +63,11 @@ export default function ProjectDetail({ user, onLogout }) {
 
   const fetchProjectData = async () => {
     try {
+      // Add timestamp to prevent caching
+      const timestamp = Date.now();
       const [projectRes, drawingsRes, brandCategoriesRes, usersRes] = await Promise.all([
-        axios.get(`${API}/projects/${projectId}`),
-        axios.get(`${API}/projects/${projectId}/drawings`),
+        axios.get(`${API}/projects/${projectId}?t=${timestamp}`),
+        axios.get(`${API}/projects/${projectId}/drawings?t=${timestamp}`),
         axios.get(`${API}/brand-categories`),
         axios.get(`${API}/users`)
       ]);
