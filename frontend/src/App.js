@@ -153,6 +153,8 @@ function App() {
                 <ProtectedRoute>
                   <WorkTracker user={user} onLogout={handleLogout} />
                 </ProtectedRoute>
+              }
+            />
             <Route
               path="/my-work"
               element={
