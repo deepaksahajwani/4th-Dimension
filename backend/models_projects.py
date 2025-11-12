@@ -483,6 +483,86 @@ class SiteIssueCreate(BaseModel):
 
 class Notification(BaseModel):
     model_config = ConfigDict(extra="ignore")
+
+
+# ==================== WEEKLY TARGET & DAILY TASK SYSTEM ====================
+
+class WeeklyTarget(BaseModel):
+    """Weekly target assigned every Monday"""
+    model_config = ConfigDict(extra="ignore")
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    assigned_to_id: str  # Team member ID
+    week_start_date: datetime  # Monday
+    week_end_date: datetime  # Sunday
+    target_type: str  # "drawing_completion", "site_visit", "revision", etc.
+    target_description: str
+    target_quantity: int  # Number of tasks to complete
+    completed_quantity: int = 0
+    project_id: Optional[str] = None
+    drawing_ids: List[str] = []  # Related drawings
+    status: str = "active"  # active, completed, overdue
+    rating: Optional[float] = None  # 0-5 rating, calculated on Saturday
+    created_by_id: str  # Owner/Manager who assigned
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+class DailyTask(BaseModel):
+    """Daily breakdown of weekly target"""
+    model_config = ConfigDict(extra="ignore")
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    weekly_target_id: str
+    assigned_to_id: str  # Team member ID
+    task_date: datetime  # Specific date
+    task_description: str
+    task_quantity: int  # Portion of weekly target
+    completed: bool = False
+    completed_at: Optional[datetime] = None
+    project_id: Optional[str] = None
+    drawing_id: Optional[str] = None
+    notes: Optional[str] = None
+    whatsapp_sent: bool = False
+    whatsapp_sent_at: Optional[datetime] = None
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+class WeeklyRating(BaseModel):
+    """Weekly performance rating calculated on Saturday"""
+    model_config = ConfigDict(extra="ignore")
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    team_member_id: str
+    week_start_date: datetime
+    week_end_date: datetime
+    total_targets: int
+    completed_targets: int
+    completion_percentage: float
+    rating: float  # 0-5 scale
+    feedback: Optional[str] = None
+    weekly_targets: List[str] = []  # List of weekly_target_ids
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+class WeeklyTargetCreate(BaseModel):
+    assigned_to_id: str
+    week_start_date: str  # ISO date string
+    target_type: str
+    target_description: str
+    target_quantity: int
+    project_id: Optional[str] = None
+    drawing_ids: List[str] = []
+    daily_breakdown: Optional[List[int]] = None  # How to split across days
+
+class DailyTaskCreate(BaseModel):
+    weekly_target_id: str
+    assigned_to_id: str
+    task_date: str
+    task_description: str
+    task_quantity: int
+    project_id: Optional[str] = None
+    drawing_id: Optional[str] = None
+
+class DailyTaskUpdate(BaseModel):
+    completed: Optional[bool] = None
+    notes: Optional[str] = None
+
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     project_id: Optional[str] = None
     message: str
