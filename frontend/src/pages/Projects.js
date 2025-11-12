@@ -19,11 +19,14 @@ const PROJECT_TYPES = ['Architecture', 'Interior', 'Landscape', 'Planning'];
 
 export default function Projects({ user, onLogout }) {
   const navigate = useNavigate();
+  const location = useLocation();
   const [projects, setProjects] = useState([]);
   const [clients, setClients] = useState([]);
   const [teamMembers, setTeamMembers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [editingProject, setEditingProject] = useState(null);
+  const [archiveConfirmOpen, setArchiveConfirmOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('basic');
   
   const [formData, setFormData] = useState({
