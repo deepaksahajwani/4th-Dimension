@@ -256,50 +256,6 @@ export default function MyWork({ user, onLogout }) {
                   })}
                 </CardContent>
               </Card>
-            )}
-
-            {/* Today's Tasks */}
-            {dailyTasks.length > 0 && (
-              <Card>
-                <CardHeader className="pb-3 sm:pb-4">
-                  <CardTitle className="text-base sm:text-lg flex items-center gap-2">
-                    <Calendar className="w-4 h-4 sm:w-5 sm:h-5 text-orange-600" />
-                    Today's Tasks
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="p-3 sm:p-6">
-                  <div className="space-y-3">
-                    {dailyTasks.map((task) => {
-                      const completionPercentage = Math.round((task.completed_count / task.target_count) * 100);
-                      
-                      return (
-                        <div key={task.id} className="p-3 bg-slate-50 rounded-lg">
-                          <div className="flex items-center justify-between mb-2">
-                            <p className="text-sm font-medium text-slate-900 capitalize">
-                              {task.task_type.replace('_', ' ')}
-                            </p>
-                            <span className={`px-2 py-0.5 text-xs rounded-full font-medium ${
-                              task.status === 'completed' ? 'bg-green-100 text-green-700' :
-                              task.status === 'in_progress' ? 'bg-blue-100 text-blue-700' :
-                              'bg-slate-100 text-slate-700'
-                            }`}>
-                              {task.status.replace('_', ' ')}
-                            </span>
-                          </div>
-                          <p className="text-xs text-slate-600 mb-2">{task.description}</p>
-                          <div className="flex items-center justify-between">
-                            <span className="text-xs text-slate-500">
-                              {task.completed_count} / {task.target_count} completed
-                            </span>
-                            <span className="text-xs font-medium text-slate-900">{completionPercentage}%</span>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </CardContent>
-              </Card>
-            )}
           </div>
         )}
 
