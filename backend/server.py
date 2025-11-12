@@ -33,6 +33,7 @@ from models_projects import (
     ProjectDrawingCreate, ProjectDrawingUpdate,
     WeeklyTarget, DailyTask, WeeklyRating, WeeklyTargetCreate, DailyTaskCreate, DailyTaskUpdate
 )
+from drawing_templates import get_template_drawings
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
