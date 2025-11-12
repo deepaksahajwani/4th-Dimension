@@ -722,7 +722,7 @@ export default function Projects({ user, onLogout }) {
                   type="submit" 
                   className="bg-orange-500 hover:bg-orange-600"
                 >
-                  Create Project
+                  {editingProject ? 'Update Project' : 'Create Project'}
                 </Button>
               </div>
             </form>
