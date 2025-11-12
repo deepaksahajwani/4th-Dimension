@@ -57,15 +57,23 @@ export default function ProjectDetail({ user, onLogout }) {
 
   const fetchProjectData = async () => {
     try {
-      const [projectRes, drawingsRes, brandCategoriesRes] = await Promise.all([
+      const [projectRes, drawingsRes, brandCategoriesRes, usersRes] = await Promise.all([
         axios.get(`${API}/projects/${projectId}`),
         axios.get(`${API}/projects/${projectId}/drawings`),
-        axios.get(`${API}/brand-categories`)
+        axios.get(`${API}/brand-categories`),
+        axios.get(`${API}/users`)
       ]);
       
       setProject(projectRes.data);
       setDrawings(drawingsRes.data);
       setBrandCategories(brandCategoriesRes.data);
+      setAllTeamMembers(usersRes.data);
+      
+      // Find team leader
+      if (projectRes.data.lead_architect_id) {
+        const leader = usersRes.data.find(u => u.id === projectRes.data.lead_architect_id);
+        setTeamLeader(leader);
+      }
       
       // Fetch client if client_id exists
       if (projectRes.data.client_id) {
