@@ -81,10 +81,15 @@ export default function AssignTargets({ user, onLogout }) {
         return;
       }
 
-      await axios.post(`${API}/weekly-targets`, formData);
+      const token = localStorage.getItem('token');
+      await axios.post(`${API}/weekly-targets`, formData, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      
       toast.success('Weekly target assigned successfully!');
       setDialogOpen(false);
       resetForm();
+      fetchData(); // Refresh targets list
     } catch (error) {
       toast.error(formatErrorMessage(error, 'Failed to assign target'));
     }
