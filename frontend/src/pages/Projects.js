@@ -728,6 +728,57 @@ export default function Projects({ user, onLogout }) {
             </form>
           </DialogContent>
         </Dialog>
+
+        {/* Archive Confirmation Dialog */}
+        <Dialog open={archiveConfirmOpen} onOpenChange={setArchiveConfirmOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Archive Project?</DialogTitle>
+            </DialogHeader>
+            <div className="py-4">
+              <p className="text-slate-700 mb-3">
+                You've entered an end date for this project. Would you like to archive it?
+              </p>
+              <div className="bg-orange-50 border border-orange-200 rounded-lg p-3">
+                <p className="text-sm text-orange-800">
+                  Archiving will mark the project as completed.
+                </p>
+              </div>
+            </div>
+            <div className="flex justify-end gap-2">
+              <Button 
+                variant="outline" 
+                onClick={() => {
+                  setArchiveConfirmOpen(false);
+                  // Continue with update without archiving
+                  const cleanedData = { ...formData };
+                  if (cleanedData.lead_architect_id === '') {
+                    cleanedData.lead_architect_id = null;
+                  }
+                  axios.put(`${API}/projects/${editingProject.id}`, cleanedData)
+                    .then(() => {
+                      toast.success('Project updated successfully!');
+                      setDialogOpen(false);
+                      resetForm();
+                      setEditingProject(null);
+                      fetchData();
+                    })
+                    .catch(error => {
+                      toast.error(formatErrorMessage(error, 'Failed to update project'));
+                    });
+                }}
+              >
+                No, Just Update
+              </Button>
+              <Button 
+                onClick={handleArchiveConfirm}
+                className="bg-orange-600 hover:bg-orange-700 text-white"
+              >
+                Yes, Archive It
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
       </div>
     </Layout>
   );
