@@ -72,6 +72,18 @@ export default function Projects({ user, onLogout }) {
     fetchData();
   }, []);
 
+  // Handle edit project from location state
+  useEffect(() => {
+    if (location.state?.editProjectId && projects.length > 0) {
+      const projectToEdit = projects.find(p => p.id === location.state.editProjectId);
+      if (projectToEdit) {
+        openEditDialog(projectToEdit);
+        // Clear the location state
+        navigate(location.pathname, { replace: true, state: {} });
+      }
+    }
+  }, [location.state, projects]);
+
   const fetchData = async () => {
     try {
       const [projectsRes, clientsRes, contactTypesRes, teamRes] = await Promise.all([
