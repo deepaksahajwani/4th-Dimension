@@ -10,6 +10,7 @@ export default function Layout({ children, user, onLogout }) {
   const navigation = [
     { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
     ...(user?.is_owner ? [{ name: 'Work Tracker', href: '/work-tracker', icon: CheckSquare }] : []),
+    ...(user?.is_owner ? [{ name: 'Assign Targets', href: '/assign-targets', icon: Target }] : []),
     ...(!user?.is_owner ? [{ name: 'My Work', href: '/my-work', icon: CheckSquare }] : []),
     { name: 'Projects', href: '/projects', icon: FolderOpen },
     { name: 'Clients', href: '/clients', icon: Users },
