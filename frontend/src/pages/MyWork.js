@@ -18,7 +18,6 @@ export default function MyWork({ user, onLogout }) {
   const [myProjects, setMyProjects] = useState([]);
   const [allDrawings, setAllDrawings] = useState([]);
   const [weeklyTargets, setWeeklyTargets] = useState([]);
-  const [dailyTasks, setDailyTasks] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
