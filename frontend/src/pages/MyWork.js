@@ -190,11 +190,10 @@ export default function MyWork({ user, onLogout }) {
           </Card>
         </div>
 
-        {/* Weekly Targets & Daily Tasks */}
-        {(weeklyTargets.length > 0 || dailyTasks.length > 0) && (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 mb-4 sm:mb-6">
+        {/* Weekly Targets */}
+        {weeklyTargets.length > 0 && (
+          <div className="mb-4 sm:mb-6">
             {/* This Week's Target */}
-            {weeklyTargets.length > 0 && (
               <Card>
                 <CardHeader className="pb-3 sm:pb-4">
                   <CardTitle className="text-base sm:text-lg flex items-center gap-2">
