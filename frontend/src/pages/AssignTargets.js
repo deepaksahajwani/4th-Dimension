@@ -43,12 +43,17 @@ export default function AssignTargets({ user, onLogout }) {
 
   const fetchData = async () => {
     try {
-      const [usersRes, projectsRes] = await Promise.all([
-        axios.get(`${API}/users`),
-        axios.get(`${API}/projects`)
+      const token = localStorage.getItem('token');
+      const headers = { Authorization: `Bearer ${token}` };
+      
+      const [usersRes, projectsRes, targetsRes] = await Promise.all([
+        axios.get(`${API}/users`, { headers }),
+        axios.get(`${API}/projects`, { headers }),
+        axios.get(`${API}/weekly-targets`, { headers })
       ]);
       setTeamMembers(usersRes.data);
       setProjects(projectsRes.data);
+      setWeeklyTargets(targetsRes.data);
     } catch (error) {
       toast.error('Failed to load data');
     } finally {
