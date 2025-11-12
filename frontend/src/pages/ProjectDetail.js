@@ -931,6 +931,78 @@ export default function ProjectDetail({ user, onLogout }) {
             </DialogFooter>
           </DialogContent>
         </Dialog>
+
+        {/* Delete Project Dialog */}
+        <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Delete Project</DialogTitle>
+            </DialogHeader>
+            <div className="py-4">
+              <p className="text-slate-700 mb-3">
+                Are you sure you want to delete this project? This action cannot be undone.
+              </p>
+              <div className="bg-red-50 border border-red-200 rounded-lg p-3">
+                <p className="text-sm text-red-800 font-medium">
+                  <strong>{project?.code}</strong> - {project?.title}
+                </p>
+              </div>
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setDeleteDialogOpen(false)}>
+                Cancel
+              </Button>
+              <Button 
+                onClick={handleDeleteProject}
+                className="bg-red-600 hover:bg-red-700 text-white"
+              >
+                Delete Project
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* Archive Project Dialog */}
+        <Dialog open={archiveDialogOpen} onOpenChange={setArchiveDialogOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Archive Project</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4 py-4">
+              <p className="text-slate-700">
+                Archiving this project will mark it as completed. Please enter the project completion date.
+              </p>
+              <div>
+                <Label>Completion Date *</Label>
+                <Input
+                  type="date"
+                  value={archiveDate}
+                  onChange={(e) => setArchiveDate(e.target.value)}
+                  required
+                />
+              </div>
+              <div className="bg-orange-50 border border-orange-200 rounded-lg p-3">
+                <p className="text-sm text-orange-800">
+                  <strong>{project?.code}</strong> - {project?.title}
+                </p>
+              </div>
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => {
+                setArchiveDialogOpen(false);
+                setArchiveDate('');
+              }}>
+                Cancel
+              </Button>
+              <Button 
+                onClick={handleArchiveProject}
+                className="bg-orange-600 hover:bg-orange-700 text-white"
+              >
+                Archive Project
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
     </Layout>
   );
