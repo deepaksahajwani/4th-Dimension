@@ -345,6 +345,19 @@ export default function ProjectDetail({ user, onLogout }) {
                   <p className="text-sm sm:text-base lg:text-lg text-slate-600 truncate">{client.name}</p>
                 )}
                 
+                {/* Team Leader */}
+                {teamLeader && (
+                  <div className="mt-2 sm:mt-3 flex items-center gap-2 px-3 py-2 bg-orange-50 rounded-lg border border-orange-200 w-fit">
+                    <div className="w-6 h-6 sm:w-8 sm:h-8 bg-orange-500 rounded-full flex items-center justify-center text-white font-bold text-xs sm:text-sm">
+                      {teamLeader.name?.charAt(0)}
+                    </div>
+                    <div>
+                      <p className="text-[10px] sm:text-xs text-orange-600 font-medium">Team Leader</p>
+                      <p className="text-xs sm:text-sm font-semibold text-orange-900">{teamLeader.name}</p>
+                    </div>
+                  </div>
+                )}
+                
                 {/* Project Types */}
                 {project.project_types && project.project_types.length > 0 && (
                   <div className="flex flex-wrap gap-1.5 sm:gap-2 mt-2 sm:mt-3">
