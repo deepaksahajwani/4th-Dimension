@@ -18,6 +18,7 @@ export default function AssignTargets({ user, onLogout }) {
   const navigate = useNavigate();
   const [teamMembers, setTeamMembers] = useState([]);
   const [projects, setProjects] = useState([]);
+  const [weeklyTargets, setWeeklyTargets] = useState([]);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   
