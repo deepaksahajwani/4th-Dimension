@@ -218,7 +218,7 @@ export default function ProjectDetail({ user, onLogout }) {
       toast.success('Project archived successfully');
       setArchiveDialogOpen(false);
       setArchiveDate('');
-      fetchData();
+      fetchProjectData();
     } catch (error) {
       toast.error(formatErrorMessage(error, 'Failed to archive project'));
     }
