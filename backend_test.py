@@ -2474,6 +2474,8 @@ if __name__ == "__main__":
             success = tester.run_client_project_types_tests()
         elif sys.argv[1] == "drawing":
             success = tester.run_drawing_management_tests()
+        elif sys.argv[1] == "issue-revision":
+            success = tester.run_drawing_tests_only()
         else:
             success = tester.run_all_tests()
     else:
