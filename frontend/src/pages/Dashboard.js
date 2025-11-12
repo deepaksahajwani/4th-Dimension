@@ -33,7 +33,8 @@ export default function Dashboard({ user, onLogout }) {
       const requests = [
         axios.get(`${API}/daily-tasks?date=${today}`),
         axios.get(`${API}/weekly-targets`),
-        axios.get(`${API}/weekly-ratings`)
+        axios.get(`${API}/weekly-ratings`),
+        axios.get(`${API}/projects`)
       ];
 
       // If owner, get team ratings
@@ -45,14 +46,40 @@ export default function Dashboard({ user, onLogout }) {
       
       setDailyTasks(responses[0].data);
       setWeeklyTargets(responses[1].data);
+      setProjects(responses[3].data);
       
       const ratings = responses[2].data;
       if (ratings.length > 0) {
         setWeeklyRating(ratings[0]); // Most recent rating
       }
 
-      if (user?.is_owner && responses[3]) {
-        setTeamRatings(responses[3].data);
+      if (user?.is_owner && responses[4]) {
+        setTeamRatings(responses[4].data);
+      }
+      
+      // Fetch pending drawings for team leader projects
+      if (user && !user.is_owner && responses[3].data) {
+        const leaderProjects = responses[3].data.filter(p => p.lead_architect_id === user.id);
+        const allDrawings = [];
+        
+        for (const project of leaderProjects) {
+          try {
+            const drawingsRes = await axios.get(`${API}/projects/${project.id}/drawings`);
+            const pendingDrawings = drawingsRes.data.filter(d => !d.is_issued || d.has_pending_revision);
+            allDrawings.push(...pendingDrawings.map(d => ({ ...d, project })));
+          } catch (error) {
+            console.error(`Failed to fetch drawings for project ${project.id}:`, error);
+          }
+        }
+        
+        // Sort by due date
+        allDrawings.sort((a, b) => {
+          if (!a.due_date) return 1;
+          if (!b.due_date) return -1;
+          return new Date(a.due_date) - new Date(b.due_date);
+        });
+        
+        setPendingDrawings(allDrawings);
       }
     } catch (error) {
       console.error('Error fetching dashboard data:', error);
