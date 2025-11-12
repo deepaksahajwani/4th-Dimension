@@ -441,6 +441,117 @@ export default function ProjectDetail({ user, onLogout }) {
             <TabsTrigger value="brands" className="text-xs sm:text-sm">Brands</TabsTrigger>
           </TabsList>
 
+          {/* Urgent Drawings Tab - Sorted by Due Date */}
+          <TabsContent value="urgent" className="mt-4 sm:mt-6">
+            <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-4 sm:mb-6">
+              <div className="flex-1 min-w-0">
+                <h2 className="text-lg sm:text-xl lg:text-2xl font-bold text-slate-900 flex items-center gap-2">
+                  <Clock className="w-5 h-5 text-red-600" />
+                  Pending Drawings by Urgency
+                </h2>
+                <p className="text-xs sm:text-sm text-slate-600 mt-1">
+                  {getPendingDrawingsSortedByUrgency().length} pending • Sorted by due date (most urgent first)
+                </p>
+              </div>
+            </div>
+
+            {getPendingDrawingsSortedByUrgency().length > 0 ? (
+              <div className="space-y-3">
+                {getPendingDrawingsSortedByUrgency().map((drawing) => {
+                  const daysUntil = getDaysUntilDue(drawing.due_date);
+                  return (
+                    <Card key={drawing.id} className="border-l-4 border-l-red-500">
+                      <CardContent className="p-3 sm:p-4">
+                        <div className="flex flex-col gap-3">
+                          <div className="flex items-start justify-between gap-2">
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-2 mb-2">
+                                <span className="px-2 py-0.5 text-[10px] sm:text-xs bg-slate-100 text-slate-700 rounded">
+                                  {drawing.category}
+                                </span>
+                                {daysUntil !== null && (
+                                  <span className={`px-2 py-0.5 text-[10px] sm:text-xs rounded font-medium ${getUrgencyColor(daysUntil)}`}>
+                                    {daysUntil < 0 ? `${Math.abs(daysUntil)} days overdue` : 
+                                     daysUntil === 0 ? 'Due today!' : 
+                                     daysUntil === 1 ? 'Due tomorrow' : 
+                                     `${daysUntil} days left`}
+                                  </span>
+                                )}
+                              </div>
+                              <h4 className="font-medium text-sm sm:text-base text-slate-900 break-words">{drawing.name}</h4>
+                              {drawing.due_date && (
+                                <p className="text-xs sm:text-sm text-slate-600 mt-1">
+                                  Due: {new Date(drawing.due_date).toLocaleDateString('en-US', { 
+                                    weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' 
+                                  })}
+                                </p>
+                              )}
+                            </div>
+                          </div>
+                          
+                          <div className="flex flex-wrap gap-1.5 sm:gap-2">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleToggleIssued(drawing)}
+                              className="flex-1 sm:flex-none text-xs h-8"
+                            >
+                              {drawing.is_issued ? "Unissue" : "Issue"}
+                            </Button>
+                            {(drawing.is_issued || drawing.has_pending_revision) && (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => drawing.has_pending_revision ? handleResolveRevision(drawing) : handleOpenRevisionDialog(drawing)}
+                                className={`flex-1 sm:flex-none text-xs h-8 ${drawing.has_pending_revision ? "border-green-500 text-green-600" : "border-amber-500 text-amber-600"}`}
+                              >
+                                {drawing.has_pending_revision ? "Resolve" : "Revise"}
+                              </Button>
+                            )}
+                            {drawing.revision_history && drawing.revision_history.length > 0 && (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleShowHistory(drawing)}
+                                className="flex-1 sm:flex-none text-xs h-8"
+                              >
+                                History
+                              </Button>
+                            )}
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  );
+                })}
+              </div>
+            ) : (
+              <Card>
+                <CardContent className="p-8 text-center">
+                  <CheckCircle2 className="w-12 h-12 sm:w-16 sm:h-16 text-green-300 mx-auto mb-4" />
+                  <p className="text-slate-500 text-sm sm:text-base">All drawings are up to date! 🎉</p>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Completed Drawings Summary */}
+            {getCompletedDrawings().length > 0 && (
+              <Card className="mt-6 bg-green-50 border-green-200">
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-3">
+                    <CheckCircle2 className="w-5 h-5 text-green-600" />
+                    <div>
+                      <p className="text-sm font-medium text-green-900">
+                        {getCompletedDrawings().length} drawings completed
+                      </p>
+                      <p className="text-xs text-green-700">View all in "All Drawings" tab</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+          </TabsContent>
+
           {/* Drawings Tab */}
           <TabsContent value="drawings" className="mt-4 sm:mt-6">
             <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-4 sm:mb-6">
