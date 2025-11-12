@@ -131,7 +131,7 @@ export default function MyWork({ user, onLogout }) {
             My Work
           </h1>
           <p className="text-sm sm:text-base text-slate-600 mt-1">
-            Projects I'm leading and pending drawings
+            Complete overview of all projects I'm leading and all pending work
           </p>
         </div>
 
