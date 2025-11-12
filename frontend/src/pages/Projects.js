@@ -455,7 +455,7 @@ export default function Projects({ user, onLogout }) {
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
           <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle>Create New Project</DialogTitle>
+              <DialogTitle>{editingProject ? 'Edit Project' : 'Create New Project'}</DialogTitle>
             </DialogHeader>
             
             <form onSubmit={handleSubmit}>
