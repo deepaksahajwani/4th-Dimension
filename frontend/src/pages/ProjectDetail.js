@@ -301,39 +301,41 @@ export default function ProjectDetail({ user, onLogout }) {
         <Button
           variant="ghost"
           onClick={() => navigate('/projects')}
-          className="mb-6"
+          className="mb-4 sm:mb-6"
+          size="sm"
         >
           <ArrowLeft className="w-4 h-4 mr-2" />
-          Back to Projects
+          <span className="hidden sm:inline">Back to Projects</span>
+          <span className="sm:hidden">Back</span>
         </Button>
 
         {/* Project Info Card */}
-        <Card className="mb-6">
-          <CardContent className="p-6">
-            <div className="flex items-start justify-between">
-              <div>
-                <div className="flex items-center gap-3 mb-2">
-                  <span className="px-3 py-1 bg-orange-100 text-orange-700 font-mono text-sm font-medium rounded">
+        <Card className="mb-4 sm:mb-6">
+          <CardContent className="p-4 sm:p-6">
+            <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+              <div className="flex-1 min-w-0">
+                <div className="flex flex-wrap items-center gap-2 mb-2">
+                  <span className="px-2 sm:px-3 py-1 bg-orange-100 text-orange-700 font-mono text-xs sm:text-sm font-medium rounded">
                     {project.code}
                   </span>
                   {project.archived && (
-                    <span className="px-3 py-1 bg-amber-100 text-amber-700 text-sm rounded">
+                    <span className="px-2 sm:px-3 py-1 bg-amber-100 text-amber-700 text-xs sm:text-sm rounded">
                       Archived
                     </span>
                   )}
                 </div>
-                <h1 className="text-3xl font-bold text-slate-900 mb-2">{project.title}</h1>
+                <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-slate-900 mb-1 sm:mb-2 break-words">{project.title}</h1>
                 {client && (
-                  <p className="text-lg text-slate-600">{client.name}</p>
+                  <p className="text-sm sm:text-base lg:text-lg text-slate-600 truncate">{client.name}</p>
                 )}
                 
                 {/* Project Types */}
                 {project.project_types && project.project_types.length > 0 && (
-                  <div className="flex flex-wrap gap-2 mt-3">
+                  <div className="flex flex-wrap gap-1.5 sm:gap-2 mt-2 sm:mt-3">
                     {project.project_types.map((type) => (
                       <span 
                         key={type} 
-                        className="px-2 py-1 text-sm bg-orange-50 text-orange-700 rounded border border-orange-200"
+                        className="px-2 py-0.5 sm:py-1 text-[10px] sm:text-xs lg:text-sm bg-orange-50 text-orange-700 rounded border border-orange-200"
                       >
                         {type}
                       </span>
@@ -342,16 +344,16 @@ export default function ProjectDetail({ user, onLogout }) {
                 )}
 
                 {/* Dates */}
-                <div className="flex gap-6 mt-4 text-sm text-slate-600">
+                <div className="flex flex-col sm:flex-row sm:gap-6 gap-2 mt-3 sm:mt-4 text-xs sm:text-sm text-slate-600">
                   {project.start_date && (
                     <div className="flex items-center gap-2">
-                      <Calendar className="w-4 h-4" />
+                      <Calendar className="w-3 h-3 sm:w-4 sm:h-4" />
                       <span>Started: {new Date(project.start_date).toLocaleDateString()}</span>
                     </div>
                   )}
                   {project.end_date && (
                     <div className="flex items-center gap-2">
-                      <Calendar className="w-4 h-4" />
+                      <Calendar className="w-3 h-3 sm:w-4 sm:h-4" />
                       <span>Ended: {new Date(project.end_date).toLocaleDateString()}</span>
                     </div>
                   )}
@@ -361,9 +363,11 @@ export default function ProjectDetail({ user, onLogout }) {
               <Button
                 variant="outline"
                 onClick={() => navigate(`/projects/${projectId}/edit`)}
+                size="sm"
+                className="w-full sm:w-auto"
               >
                 <Edit className="w-4 h-4 mr-2" />
-                Edit Project
+                Edit
               </Button>
             </div>
           </CardContent>
