@@ -259,13 +259,13 @@ export default function MyWork({ user, onLogout }) {
           </div>
         )}
 
-        {/* Pending Drawings - Sorted by Urgency */}
+        {/* All Pending Drawings - Sorted by Urgency */}
         <Card className="mb-4 sm:mb-6">
           <CardHeader className="pb-3 sm:pb-4">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
               <CardTitle className="text-base sm:text-lg flex items-center gap-2">
-                <Target className="w-4 h-4 sm:w-5 sm:h-5 text-red-600" />
-                Pending Drawings by Urgency
+                <Target className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
+                All Pending Drawings (Sorted by Urgency)
               </CardTitle>
               <div className="flex flex-wrap gap-2">
                 {urgentCount > 0 && (
