@@ -767,25 +767,7 @@ export default function Projects({ user, onLogout }) {
             <div className="flex justify-end gap-2">
               <Button 
                 variant="outline" 
-                onClick={() => {
-                  setArchiveConfirmOpen(false);
-                  // Continue with update without archiving
-                  const cleanedData = { ...formData };
-                  if (cleanedData.lead_architect_id === '') {
-                    cleanedData.lead_architect_id = null;
-                  }
-                  axios.put(`${API}/projects/${editingProject.id}`, cleanedData)
-                    .then(() => {
-                      toast.success('Project updated successfully!');
-                      setDialogOpen(false);
-                      resetForm();
-                      setEditingProject(null);
-                      fetchData();
-                    })
-                    .catch(error => {
-                      toast.error(formatErrorMessage(error, 'Failed to update project'));
-                    });
-                }}
+                onClick={handleUpdateWithoutArchive}
               >
                 No, Just Update
               </Button>
