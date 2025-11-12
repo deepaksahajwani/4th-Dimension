@@ -209,7 +209,7 @@ export default function AssignTargets({ user, onLogout }) {
         </div>
 
         {/* Team Members List */}
-        <Card>
+        <Card className="mb-6">
           <CardHeader>
             <CardTitle className="text-base sm:text-lg">Team Members</CardTitle>
           </CardHeader>
@@ -251,6 +251,115 @@ export default function AssignTargets({ user, onLogout }) {
                 </div>
               ))}
             </div>
+          </CardContent>
+        </Card>
+
+        {/* Assigned Targets List */}
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between">
+            <CardTitle className="text-base sm:text-lg">Assigned Weekly Targets</CardTitle>
+            <span className="text-sm text-slate-500">{weeklyTargets.length} total</span>
+          </CardHeader>
+          <CardContent className="p-3 sm:p-6">
+            {weeklyTargets.length === 0 ? (
+              <div className="text-center py-8">
+                <Target className="w-12 h-12 text-slate-300 mx-auto mb-3" />
+                <p className="text-slate-500">No weekly targets assigned yet</p>
+                <p className="text-sm text-slate-400 mt-1">Click on a team member to assign a target</p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {weeklyTargets.map((target) => {
+                  const member = teamMembers.find(m => m.id === target.assigned_to_id);
+                  const project = projects.find(p => p.id === target.project_id);
+                  const weekStart = new Date(target.week_start_date);
+                  const weekEnd = new Date(target.week_end_date);
+                  const completionPercentage = Math.round((target.completed_quantity / target.target_quantity) * 100);
+                  
+                  return (
+                    <div 
+                      key={target.id}
+                      className="p-4 border-2 border-slate-200 rounded-lg hover:border-orange-200 transition-colors"
+                    >
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-3">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 bg-orange-500 rounded-full flex items-center justify-center text-white font-bold text-sm">
+                            {member?.name?.charAt(0) || '?'}
+                          </div>
+                          <div>
+                            <h4 className="font-medium text-slate-900">{member?.name || 'Unknown'}</h4>
+                            <p className="text-xs text-slate-500 capitalize">{member?.role?.replace('_', ' ')}</p>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span className={`px-3 py-1 rounded-full text-xs font-medium ${
+                            target.status === 'completed' ? 'bg-green-100 text-green-700' :
+                            target.status === 'overdue' ? 'bg-red-100 text-red-700' :
+                            'bg-blue-100 text-blue-700'
+                          }`}>
+                            {target.status}
+                          </span>
+                        </div>
+                      </div>
+                      
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
+                        <div>
+                          <p className="text-xs text-slate-500 mb-1">Target Type</p>
+                          <p className="text-sm font-medium text-slate-900 capitalize">
+                            {target.target_type.replace('_', ' ')}
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-xs text-slate-500 mb-1">Week</p>
+                          <p className="text-sm font-medium text-slate-900">
+                            {weekStart.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - {weekEnd.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="mb-3">
+                        <p className="text-xs text-slate-500 mb-1">Description</p>
+                        <p className="text-sm text-slate-900">{target.target_description}</p>
+                      </div>
+
+                      {project && (
+                        <div className="mb-3">
+                          <p className="text-xs text-slate-500 mb-1">Project</p>
+                          <p className="text-sm text-slate-900">{project.code} - {project.title}</p>
+                        </div>
+                      )}
+
+                      <div className="mb-3">
+                        <div className="flex items-center justify-between mb-2">
+                          <p className="text-xs text-slate-500">Progress</p>
+                          <p className="text-xs font-medium text-slate-900">
+                            {target.completed_quantity} / {target.target_quantity} ({completionPercentage}%)
+                          </p>
+                        </div>
+                        <div className="w-full bg-slate-200 rounded-full h-2">
+                          <div 
+                            className={`h-2 rounded-full transition-all ${
+                              completionPercentage === 100 ? 'bg-green-500' :
+                              completionPercentage >= 75 ? 'bg-blue-500' :
+                              completionPercentage >= 50 ? 'bg-orange-500' :
+                              'bg-red-500'
+                            }`}
+                            style={{ width: `${completionPercentage}%` }}
+                          />
+                        </div>
+                      </div>
+
+                      {target.rating && (
+                        <div className="flex items-center gap-2 pt-2 border-t">
+                          <TrendingUp className="w-4 h-4 text-orange-500" />
+                          <span className="text-sm font-medium text-slate-900">Rating: {target.rating.toFixed(1)}/5.0</span>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
           </CardContent>
         </Card>
 
