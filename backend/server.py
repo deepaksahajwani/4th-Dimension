@@ -1408,12 +1408,11 @@ async def update_drawing(
             }, {"_id": 0})
             
             if next_drawing:
-                # Activate next drawing and mark as pending
+                # Activate next drawing
                 await db.project_drawings.update_one(
                     {"id": next_drawing['id']},
                     {"$set": {
                         "is_active": True,
-                        "status": "Pending",
                         "updated_at": datetime.now(timezone.utc).isoformat()
                     }}
                 )
