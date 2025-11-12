@@ -195,6 +195,120 @@ export default function MyWork({ user, onLogout }) {
           </Card>
         </div>
 
+        {/* Weekly Targets & Daily Tasks */}
+        {(weeklyTargets.length > 0 || dailyTasks.length > 0) && (
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 mb-4 sm:mb-6">
+            {/* This Week's Target */}
+            {weeklyTargets.length > 0 && (
+              <Card>
+                <CardHeader className="pb-3 sm:pb-4">
+                  <CardTitle className="text-base sm:text-lg flex items-center gap-2">
+                    <Target className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
+                    This Week's Target
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="p-3 sm:p-6">
+                  {weeklyTargets.slice(0, 1).map((target) => {
+                    const completionPercentage = Math.round((target.completed_quantity / target.target_quantity) * 100);
+                    const weekStart = new Date(target.week_start_date);
+                    const weekEnd = new Date(target.week_end_date);
+                    
+                    return (
+                      <div key={target.id}>
+                        <div className="flex items-center justify-between mb-3">
+                          <div>
+                            <p className="text-xs sm:text-sm text-slate-500">
+                              {weekStart.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - {weekEnd.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                            </p>
+                            <p className="text-sm sm:text-base font-medium text-slate-900 capitalize mt-1">
+                              {target.target_type.replace('_', ' ')}
+                            </p>
+                          </div>
+                          <span className={`px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm font-medium ${
+                            target.status === 'completed' ? 'bg-green-100 text-green-700' :
+                            target.status === 'overdue' ? 'bg-red-100 text-red-700' :
+                            'bg-blue-100 text-blue-700'
+                          }`}>
+                            {target.status}
+                          </span>
+                        </div>
+                        
+                        <p className="text-xs sm:text-sm text-slate-600 mb-3">
+                          {target.target_description}
+                        </p>
+                        
+                        <div className="mb-3">
+                          <div className="flex items-center justify-between mb-2">
+                            <span className="text-xs sm:text-sm text-slate-600">Progress</span>
+                            <span className="text-sm sm:text-base font-bold text-slate-900">
+                              {target.completed_quantity} / {target.target_quantity}
+                            </span>
+                          </div>
+                          <div className="w-full bg-slate-200 rounded-full h-3">
+                            <div 
+                              className={`h-3 rounded-full transition-all ${
+                                completionPercentage === 100 ? 'bg-green-500' :
+                                completionPercentage >= 75 ? 'bg-blue-500' :
+                                completionPercentage >= 50 ? 'bg-orange-500' :
+                                'bg-red-500'
+                              }`}
+                              style={{ width: `${completionPercentage}%` }}
+                            />
+                          </div>
+                          <p className="text-xs text-slate-500 mt-1">{completionPercentage}% complete</p>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Today's Tasks */}
+            {dailyTasks.length > 0 && (
+              <Card>
+                <CardHeader className="pb-3 sm:pb-4">
+                  <CardTitle className="text-base sm:text-lg flex items-center gap-2">
+                    <Calendar className="w-4 h-4 sm:w-5 sm:h-5 text-orange-600" />
+                    Today's Tasks
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="p-3 sm:p-6">
+                  <div className="space-y-3">
+                    {dailyTasks.map((task) => {
+                      const completionPercentage = Math.round((task.completed_count / task.target_count) * 100);
+                      
+                      return (
+                        <div key={task.id} className="p-3 bg-slate-50 rounded-lg">
+                          <div className="flex items-center justify-between mb-2">
+                            <p className="text-sm font-medium text-slate-900 capitalize">
+                              {task.task_type.replace('_', ' ')}
+                            </p>
+                            <span className={`px-2 py-0.5 text-xs rounded-full font-medium ${
+                              task.status === 'completed' ? 'bg-green-100 text-green-700' :
+                              task.status === 'in_progress' ? 'bg-blue-100 text-blue-700' :
+                              'bg-slate-100 text-slate-700'
+                            }`}>
+                              {task.status.replace('_', ' ')}
+                            </span>
+                          </div>
+                          <p className="text-xs text-slate-600 mb-2">{task.description}</p>
+                          <div className="flex items-center justify-between">
+                            <span className="text-xs text-slate-500">
+                              {task.completed_count} / {task.target_count} completed
+                            </span>
+                            <span className="text-xs font-medium text-slate-900">{completionPercentage}%</span>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+          </div>
+        )}
+
         {/* Pending Drawings - Sorted by Urgency */}
         <Card className="mb-4 sm:mb-6">
           <CardHeader className="pb-3 sm:pb-4">
