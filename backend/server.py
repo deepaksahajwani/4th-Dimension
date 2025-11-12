@@ -1186,8 +1186,13 @@ async def get_project(project_id: str, current_user: User = Depends(get_current_
     
     # Convert ISO strings to datetime
     for field in ['created_at', 'updated_at', 'start_date', 'end_date']:
-        if isinstance(project.get(field), str):
-            project[field] = datetime.fromisoformat(project[field])
+        if isinstance(project.get(field), str) and project.get(field):
+            try:
+                project[field] = datetime.fromisoformat(project[field])
+            except ValueError:
+                project[field] = None
+        elif project.get(field) == '':
+            project[field] = None
     
     # Get project drawings count
     drawings_count = await db.project_drawings.count_documents({"project_id": project_id, "deleted_at": None})
