@@ -188,6 +188,42 @@ export default function ProjectDetail({ user, onLogout }) {
     setEditingDrawing(null);
   };
 
+  // Project action handlers
+  const handleEditProject = () => {
+    navigate('/projects', { state: { editProjectId: projectId } });
+  };
+
+  const handleDeleteProject = async () => {
+    try {
+      await axios.delete(`${API}/projects/${projectId}`);
+      toast.success('Project deleted successfully');
+      setDeleteDialogOpen(false);
+      navigate('/projects');
+    } catch (error) {
+      toast.error(formatErrorMessage(error, 'Failed to delete project'));
+    }
+  };
+
+  const handleArchiveProject = async () => {
+    if (!archiveDate) {
+      toast.error('Please select a completion date');
+      return;
+    }
+    
+    try {
+      await axios.put(`${API}/projects/${projectId}`, {
+        archived: true,
+        end_date: archiveDate
+      });
+      toast.success('Project archived successfully');
+      setArchiveDialogOpen(false);
+      setArchiveDate('');
+      fetchData();
+    } catch (error) {
+      toast.error(formatErrorMessage(error, 'Failed to archive project'));
+    }
+  };
+
   const getDrawingsByCategory = (category) => {
     return drawings.filter(d => d.category === category);
   };
