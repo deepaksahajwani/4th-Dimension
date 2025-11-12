@@ -243,6 +243,25 @@ export default function Projects({ user, onLogout }) {
     }
   };
 
+  const handleUpdateWithoutArchive = async () => {
+    try {
+      setArchiveConfirmOpen(false);
+      const cleanedData = { ...formData };
+      if (cleanedData.lead_architect_id === '') {
+        cleanedData.lead_architect_id = null;
+      }
+      
+      await axios.put(`${API}/projects/${editingProject.id}`, cleanedData);
+      toast.success('Project updated successfully!');
+      setDialogOpen(false);
+      resetForm();
+      setEditingProject(null);
+      fetchData();
+    } catch (error) {
+      toast.error(formatErrorMessage(error, 'Failed to update project'));
+    }
+  };
+
   const openEditDialog = (project) => {
     setEditingProject(project);
     setFormData({
