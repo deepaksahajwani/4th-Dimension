@@ -34,11 +34,13 @@ export default function AssignTargets({ user, onLogout }) {
   });
 
   useEffect(() => {
-    if (!user?.is_owner) {
+    if (user && !user.is_owner) {
       navigate('/dashboard');
       return;
     }
-    fetchData();
+    if (user?.is_owner) {
+      fetchData();
+    }
   }, [user]);
 
   const fetchData = async () => {
