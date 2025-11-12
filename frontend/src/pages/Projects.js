@@ -261,14 +261,14 @@ export default function Projects({ user, onLogout }) {
     <Layout user={user} onLogout={onLogout}>
       <div className="max-w-7xl mx-auto">
         {/* Header */}
-        <div className="flex items-center justify-between mb-8">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
           <div>
-            <h1 className="text-3xl font-bold text-slate-900">Projects</h1>
-            <p className="text-slate-600 mt-1">{projects.length} total projects</p>
+            <h1 className="text-2xl sm:text-3xl font-bold text-slate-900">Projects</h1>
+            <p className="text-sm sm:text-base text-slate-600 mt-1">{projects.length} total projects</p>
           </div>
           <Button 
             onClick={() => setDialogOpen(true)}
-            className="bg-orange-500 hover:bg-orange-600"
+            className="bg-orange-500 hover:bg-orange-600 w-full sm:w-auto"
           >
             <Plus className="w-4 h-4 mr-2" />
             New Project
@@ -276,7 +276,7 @@ export default function Projects({ user, onLogout }) {
         </div>
 
         {/* Projects Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
           {projects.map((project) => {
             const client = clients.find((c) => c.id === project.client_id);
             return (
