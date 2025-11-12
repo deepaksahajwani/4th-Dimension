@@ -1328,6 +1328,246 @@ async def update_drawing(
             
             update_dict['revision_history'] = revision_history
     
+
+
+# ==================== TASK MANAGEMENT ROUTES ====================
+
+@api_router.post("/weekly-targets")
+async def create_weekly_target(
+    target_data: WeeklyTargetCreate,
+    current_user: User = Depends(require_owner)
+):
+    """Create a weekly target for a team member (owner only)"""
+    from datetime import timedelta
+    
+    week_start = datetime.fromisoformat(target_data.week_start_date)
+    week_end = week_start + timedelta(days=6)
+    
+    weekly_target = WeeklyTarget(
+        assigned_to_id=target_data.assigned_to_id,
+        week_start_date=week_start,
+        week_end_date=week_end,
+        target_type=target_data.target_type,
+        target_description=target_data.target_description,
+        target_quantity=target_data.target_quantity,
+        project_id=target_data.project_id,
+        drawing_ids=target_data.drawing_ids,
+        created_by_id=current_user.id
+    )
+    
+    target_dict = weekly_target.model_dump()
+    for field in ['week_start_date', 'week_end_date', 'created_at', 'updated_at']:
+        if target_dict.get(field):
+            target_dict[field] = target_dict[field].isoformat() if isinstance(target_dict[field], datetime) else target_dict[field]
+    
+    await db.weekly_targets.insert_one(target_dict)
+    
+    # Auto-create daily tasks if breakdown provided
+    if target_data.daily_breakdown:
+        workdays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday']
+        for i, quantity in enumerate(target_data.daily_breakdown[:5]):  # Max 5 days
+            if quantity > 0:
+                task_date = week_start + timedelta(days=i)
+                daily_task = DailyTask(
+                    weekly_target_id=weekly_target.id,
+                    assigned_to_id=target_data.assigned_to_id,
+                    task_date=task_date,
+                    task_description=f"{workdays[i]}: {target_data.target_description}",
+                    task_quantity=quantity,
+                    project_id=target_data.project_id,
+                    drawing_id=target_data.drawing_ids[0] if target_data.drawing_ids else None
+                )
+                task_dict = daily_task.model_dump()
+                for field in ['task_date', 'completed_at', 'whatsapp_sent_at', 'created_at', 'updated_at']:
+                    if task_dict.get(field):
+                        task_dict[field] = task_dict[field].isoformat() if isinstance(task_dict[field], datetime) else task_dict[field]
+                await db.daily_tasks.insert_one(task_dict)
+    
+    return {k: v for k, v in target_dict.items() if k != '_id'}
+
+@api_router.get("/weekly-targets")
+async def get_weekly_targets(
+    user_id: Optional[str] = None,
+    week_start: Optional[str] = None,
+    current_user: User = Depends(get_current_user)
+):
+    """Get weekly targets (own or all if owner)"""
+    query = {}
+    
+    # If not owner, can only see own targets
+    if not current_user.is_owner:
+        query["assigned_to_id"] = current_user.id
+    elif user_id:
+        query["assigned_to_id"] = user_id
+    
+    if week_start:
+        query["week_start_date"] = week_start
+    
+    targets = await db.weekly_targets.find(query, {"_id": 0}).to_list(1000)
+    
+    for target in targets:
+        for field in ['week_start_date', 'week_end_date', 'created_at', 'updated_at']:
+            if isinstance(target.get(field), str):
+                target[field] = datetime.fromisoformat(target[field])
+    
+    return targets
+
+@api_router.get("/daily-tasks")
+async def get_daily_tasks(
+    date: Optional[str] = None,
+    current_user: User = Depends(get_current_user)
+):
+    """Get daily tasks for current user or specific date"""
+    query = {"assigned_to_id": current_user.id}
+    
+    if date:
+        query["task_date"] = date
+    
+    tasks = await db.daily_tasks.find(query, {"_id": 0}).to_list(1000)
+    
+    for task in tasks:
+        for field in ['task_date', 'completed_at', 'whatsapp_sent_at', 'created_at', 'updated_at']:
+            if isinstance(task.get(field), str):
+                task[field] = datetime.fromisoformat(task[field])
+    
+    return tasks
+
+@api_router.put("/daily-tasks/{task_id}")
+async def update_daily_task(
+    task_id: str,
+    task_data: DailyTaskUpdate,
+    current_user: User = Depends(get_current_user)
+):
+    """Update daily task (mark as completed)"""
+    update_dict = {k: v for k, v in task_data.model_dump().items() if v is not None}
+    
+    if update_dict.get('completed') == True:
+        update_dict['completed_at'] = datetime.now(timezone.utc).isoformat()
+        
+        # Update weekly target progress
+        task = await db.daily_tasks.find_one({"id": task_id})
+        if task:
+            weekly_target = await db.weekly_targets.find_one({"id": task['weekly_target_id']})
+            if weekly_target:
+                new_completed = weekly_target.get('completed_quantity', 0) + task['task_quantity']
+                await db.weekly_targets.update_one(
+                    {"id": task['weekly_target_id']},
+                    {"$set": {
+                        "completed_quantity": new_completed,
+                        "updated_at": datetime.now(timezone.utc).isoformat()
+                    }}
+                )
+    
+    update_dict['updated_at'] = datetime.now(timezone.utc).isoformat()
+    
+    await db.daily_tasks.update_one(
+        {"id": task_id},
+        {"$set": update_dict}
+    )
+    
+    return {"message": "Task updated successfully"}
+
+@api_router.get("/weekly-ratings")
+async def get_weekly_ratings(
+    user_id: Optional[str] = None,
+    current_user: User = Depends(get_current_user)
+):
+    """Get weekly ratings"""
+    query = {}
+    
+    if not current_user.is_owner:
+        query["team_member_id"] = current_user.id
+    elif user_id:
+        query["team_member_id"] = user_id
+    
+    ratings = await db.weekly_ratings.find(query, {"_id": 0}).sort("week_start_date", -1).to_list(100)
+    
+    for rating in ratings:
+        for field in ['week_start_date', 'week_end_date', 'created_at']:
+            if isinstance(rating.get(field), str):
+                rating[field] = datetime.fromisoformat(rating[field])
+    
+    return ratings
+
+@api_router.post("/calculate-weekly-ratings")
+async def calculate_weekly_ratings(
+    week_start: str,
+    current_user: User = Depends(require_owner)
+):
+    """Calculate ratings for all team members for a specific week (owner only, run on Saturday)"""
+    from datetime import timedelta
+    
+    week_start_date = datetime.fromisoformat(week_start)
+    week_end_date = week_start_date + timedelta(days=6)
+    
+    # Get all team members
+    team_members = await db.users.find({}, {"_id": 0}).to_list(1000)
+    
+    ratings_created = []
+    
+    for member in team_members:
+        # Get weekly targets for this member
+        targets = await db.weekly_targets.find({
+            "assigned_to_id": member['id'],
+            "week_start_date": week_start
+        }, {"_id": 0}).to_list(100)
+        
+        if not targets:
+            continue
+        
+        total_targets = sum(t.get('target_quantity', 0) for t in targets)
+        completed_targets = sum(t.get('completed_quantity', 0) for t in targets)
+        
+        if total_targets == 0:
+            continue
+        
+        completion_percentage = (completed_targets / total_targets) * 100
+        
+        # Rating scale: 0-5
+        # 100%+ = 5, 90-99% = 4.5, 80-89% = 4, 70-79% = 3.5, 60-69% = 3, 50-59% = 2.5, <50% = 1-2
+        if completion_percentage >= 100:
+            rating = 5.0
+        elif completion_percentage >= 90:
+            rating = 4.5
+        elif completion_percentage >= 80:
+            rating = 4.0
+        elif completion_percentage >= 70:
+            rating = 3.5
+        elif completion_percentage >= 60:
+            rating = 3.0
+        elif completion_percentage >= 50:
+            rating = 2.5
+        else:
+            rating = max(1.0, completion_percentage / 50 * 2)
+        
+        weekly_rating = WeeklyRating(
+            team_member_id=member['id'],
+            week_start_date=week_start_date,
+            week_end_date=week_end_date,
+            total_targets=total_targets,
+            completed_targets=completed_targets,
+            completion_percentage=completion_percentage,
+            rating=rating,
+            weekly_targets=[t['id'] for t in targets]
+        )
+        
+        rating_dict = weekly_rating.model_dump()
+        for field in ['week_start_date', 'week_end_date', 'created_at']:
+            if rating_dict.get(field):
+                rating_dict[field] = rating_dict[field].isoformat() if isinstance(rating_dict[field], datetime) else rating_dict[field]
+        
+        # Update weekly targets with ratings
+        for target in targets:
+            await db.weekly_targets.update_one(
+                {"id": target['id']},
+                {"$set": {"rating": rating}}
+            )
+        
+        await db.weekly_ratings.insert_one(rating_dict)
+        ratings_created.append({k: v for k, v in rating_dict.items() if k != '_id'})
+    
+    return {"message": f"Calculated ratings for {len(ratings_created)} team members", "ratings": ratings_created}
+
     # If marking has_pending_revision as False (resolving revision)
     if update_dict.get('has_pending_revision') == False:
         # Increment revision count
