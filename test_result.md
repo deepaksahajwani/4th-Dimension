@@ -252,7 +252,7 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Revision Tracking System Frontend UI"
+    - "Weekly Targets Assignment Feature"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
