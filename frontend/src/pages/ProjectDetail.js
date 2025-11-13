@@ -140,15 +140,19 @@ export default function ProjectDetail({ user, onLogout }) {
   const handleRequestRevision = async (e) => {
     e.preventDefault();
     try {
+      const token = localStorage.getItem('token');
       await axios.put(`${API}/drawings/${selectedDrawing.id}`, {
         has_pending_revision: true,
         revision_notes: revisionFormData.revision_notes,
         revision_due_date: revisionFormData.revision_due_date
+      }, {
+        headers: { Authorization: `Bearer ${token}` }
       });
       toast.success('Revision requested successfully!');
       setRevisionDialogOpen(false);
       fetchProjectData();
     } catch (error) {
+      console.error('Request revision error:', error);
       toast.error(formatErrorMessage(error, 'Failed to request revision'));
     }
   };
