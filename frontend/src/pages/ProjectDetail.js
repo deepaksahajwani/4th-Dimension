@@ -328,15 +328,20 @@ export default function ProjectDetail({ user, onLogout }) {
           </div>
           
           <div className="flex flex-wrap sm:flex-nowrap gap-1.5 sm:gap-2 sm:ml-4">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => handleToggleIssued(drawing)}
-              title={drawing.is_issued ? "Mark as Pending" : "Mark as Issued"}
-              className="flex-1 sm:flex-none text-xs h-8"
-            >
-              {drawing.is_issued ? "Unissue" : "Issue"}
-            </Button>
+            {/* Issue/Unissue button - hidden when there's a pending revision */}
+            {!drawing.has_pending_revision && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => handleToggleIssued(drawing)}
+                title={drawing.is_issued ? "Mark as Pending" : "Mark as Issued"}
+                className="flex-1 sm:flex-none text-xs h-8"
+              >
+                {drawing.is_issued ? "Unissue" : "Issue"}
+              </Button>
+            )}
+            
+            {/* Revise/Resolve/RX Resolved button */}
             {(drawing.is_issued || drawing.has_pending_revision || drawing.revision_count > 0) && (
               <Button
                 variant="outline"
@@ -356,7 +361,7 @@ export default function ProjectDetail({ user, onLogout }) {
                 title={drawing.has_pending_revision ? "Mark Revision Complete" : drawing.revision_count > 0 ? `Revision ${drawing.revision_count} Resolved` : "Request Revision"}
               >
                 {drawing.has_pending_revision ? "Resolve" : 
-                 drawing.revision_count > 0 && drawing.is_issued ? `R${drawing.revision_count} Resolved` : 
+                 drawing.revision_count > 0 ? `R${drawing.revision_count} Resolved` : 
                  "Revise"}
               </Button>
             )}
