@@ -580,14 +580,26 @@ export default function ProjectDetail({ user, onLogout }) {
                             >
                               {drawing.is_issued ? "Unissue" : "Issue"}
                             </Button>
-                            {(drawing.is_issued || drawing.has_pending_revision) && (
+                            {(drawing.is_issued || drawing.has_pending_revision || drawing.revision_count > 0) && (
                               <Button
                                 variant="outline"
                                 size="sm"
-                                onClick={() => drawing.has_pending_revision ? handleResolveRevision(drawing) : handleOpenRevisionDialog(drawing)}
-                                className={`flex-1 sm:flex-none text-xs h-8 ${drawing.has_pending_revision ? "border-green-500 text-green-600" : "border-amber-500 text-amber-600"}`}
+                                onClick={() => {
+                                  if (drawing.has_pending_revision) {
+                                    handleResolveRevision(drawing);
+                                  } else {
+                                    handleOpenRevisionDialog(drawing);
+                                  }
+                                }}
+                                className={`flex-1 sm:flex-none text-xs h-8 ${
+                                  drawing.has_pending_revision ? "border-green-500 text-green-600" : 
+                                  drawing.revision_count > 0 && !drawing.has_pending_revision ? "border-blue-500 text-blue-600" :
+                                  "border-amber-500 text-amber-600"
+                                }`}
                               >
-                                {drawing.has_pending_revision ? "Resolve" : "Revise"}
+                                {drawing.has_pending_revision ? "Resolve" : 
+                                 drawing.revision_count > 0 && drawing.is_issued ? `R${drawing.revision_count} Resolved` : 
+                                 "Revise"}
                               </Button>
                             )}
                             {drawing.revision_history && drawing.revision_history.length > 0 && (
