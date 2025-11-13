@@ -114,12 +114,16 @@ export default function ProjectDetail({ user, onLogout }) {
 
   const handleToggleIssued = async (drawing) => {
     try {
+      const token = localStorage.getItem('token');
       await axios.put(`${API}/drawings/${drawing.id}`, {
         is_issued: !drawing.is_issued
+      }, {
+        headers: { Authorization: `Bearer ${token}` }
       });
       toast.success(drawing.is_issued ? 'Drawing marked as pending' : 'Drawing marked as issued!');
       fetchProjectData();
     } catch (error) {
+      console.error('Toggle issued error:', error);
       toast.error(formatErrorMessage(error, 'Failed to update drawing'));
     }
   };
