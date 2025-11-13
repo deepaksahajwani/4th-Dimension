@@ -342,6 +342,18 @@ test_plan:
         agent: "testing"
         comment: "CRITICAL ISSUE IDENTIFIED: Team Leader is NOT being displayed on Project Details page. ✅ TESTING COMPLETED: Successfully logged in as owner, created new project with team leader 'Deepak Shreechand Sahajwani (owner)' selected in form, navigated to Project Details page. ❌ ISSUE FOUND: Team Leader section is completely missing from Project Details page despite being implemented in ProjectDetail.js (lines 378-389). ❌ ROOT CAUSE: Backend API shows all projects have lead_architect_id: null, indicating team leader selection in project creation form is not being saved to database. ✅ FRONTEND CODE VERIFIED: ProjectDetail.js has correct implementation for Team Leader display with orange styling, avatar, and proper conditional rendering. ❌ DATA FLOW BROKEN: Team leader selection in Projects.js form (lead_architect_id field) is not being persisted to backend. The Team Leader display functionality exists but cannot work because no projects have team leader data. This is a critical data persistence issue, not a display issue."
 
+  - task: "Drawing Resolve Revision Functionality"
+    implemented: true
+    working: true
+    file: "backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "DRAWING RESOLVE REVISION FUNCTIONALITY COMPREHENSIVE TESTING COMPLETED SUCCESSFULLY (100% success rate): ✅ Step 1: Owner login successful (owner@test.com / testpassword). ✅ Step 2: Found project 'MUTHU RESIDENCE' with 2 drawings. ✅ Step 3: Found issued drawing 'ARCH_LAYOUT PLAN' (is_issued=true). ✅ Step 4: Created revision successfully - PUT /api/drawings/{drawing_id} with has_pending_revision=true, revision_notes, revision_due_date. API correctly sets has_pending_revision=true and resets is_issued=false. ✅ Step 5: RESOLVED REVISION (KEY TEST) - PUT /api/drawings/{drawing_id} with has_pending_revision=false. API correctly returns has_pending_revision=false, revision_count incremented from 2 to 3, includes all required drawing data. ✅ Step 6: Data persistence verified - GET /api/projects/{project_id}/drawings shows revision_count=3, has_pending_revision=false, revision_history with 3 entries. CONCLUSION: Backend API is working perfectly for drawing resolve revision functionality. All API endpoints return correct data and persist changes properly. If user reports 'Resolve' button does nothing, this is a FRONTEND STATE MANAGEMENT issue, not a backend API problem. The backend correctly handles revision resolution and increments revision count."
+
 agent_communication:
   - agent: "main"
     message: "Fixed React rendering error caused by trying to render Pydantic validation error objects directly in toast messages. Created formatErrorMessage utility function that properly handles string errors, array errors (Pydantic validation), and object errors. Updated 6 files: errorHandler.js (new), CompleteProfile.js, LoginPage.js, Projects.js, Team.js, and SelfRegister.js. All error handlers now use the utility to format error messages before displaying. Frontend restarted successfully and homepage loads correctly. Ready for comprehensive E2E testing of registration flows."
