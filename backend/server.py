@@ -1396,6 +1396,8 @@ async def update_drawing(
     # If drawing is being issued, activate next drawing in sequence
     if update_dict.get('is_issued') == True and drawing.get('is_issued') == False:
         update_dict['issued_date'] = datetime.now(timezone.utc).isoformat()
+        # If re-issuing after revision was resolved, keep has_pending_revision as False
+        # This maintains the "R1 Resolved" state while showing as issued
         
         # Find and activate next drawing in sequence
         if drawing.get('sequence_number'):
