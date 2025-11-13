@@ -153,12 +153,16 @@ export default function ProjectDetail({ user, onLogout }) {
     if (!window.confirm('Mark this revision as resolved?')) return;
     
     try {
+      const token = localStorage.getItem('token');
       await axios.put(`${API}/drawings/${drawing.id}`, {
         has_pending_revision: false
+      }, {
+        headers: { Authorization: `Bearer ${token}` }
       });
       toast.success('Revision resolved!');
       fetchProjectData();
     } catch (error) {
+      console.error('Resolve revision error:', error);
       toast.error(formatErrorMessage(error, 'Failed to resolve revision'));
     }
   };
