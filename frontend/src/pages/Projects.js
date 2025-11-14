@@ -487,6 +487,7 @@ export default function Projects({ user, onLogout }) {
                   <TabsTrigger value="basic">Basic Info</TabsTrigger>
                   <TabsTrigger value="contacts">Contacts</TabsTrigger>
                   <TabsTrigger value="brands">Brands</TabsTrigger>
+                  <TabsTrigger value="contractors">Contractors</TabsTrigger>
                 </TabsList>
 
                 {/* Basic Info Tab */}
