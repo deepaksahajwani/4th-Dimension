@@ -120,14 +120,23 @@ export default function ProjectDetail({ user, onLogout }) {
   };
 
   const handleToggleIssued = async (drawing) => {
+    // If issuing, show upload dialog
+    if (!drawing.is_issued) {
+      setSelectedFileDrawing(drawing);
+      setUploadType('issue');
+      setUploadDialogOpen(true);
+      return;
+    }
+    
+    // If unissuing, directly update
     try {
       const token = localStorage.getItem('token');
       await axios.put(`${API}/drawings/${drawing.id}`, {
-        is_issued: !drawing.is_issued
+        is_issued: false
       }, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      toast.success(drawing.is_issued ? 'Drawing marked as pending' : 'Drawing marked as issued!');
+      toast.success('Drawing marked as pending');
       fetchProjectData();
     } catch (error) {
       console.error('Toggle issued error:', error);
