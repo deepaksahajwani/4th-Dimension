@@ -339,6 +339,7 @@ export default function Projects({ user, onLogout }) {
       custom_contacts: {},
       brands: []
     });
+    setAssignedContractors({});
     setActiveTab('basic');
   };
 
