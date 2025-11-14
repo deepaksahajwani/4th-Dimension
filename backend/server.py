@@ -31,7 +31,8 @@ from models_projects import (
     ContactInfo, BrandCategory, BrandCategoryMaster, BrandCategoryMasterCreate, BrandCategoryMasterUpdate,
     ContactTypeMaster, ContactTypeMasterCreate, ContactTypeMasterUpdate,
     ProjectDrawingCreate, ProjectDrawingUpdate,
-    WeeklyTarget, DailyTask, WeeklyRating, WeeklyTargetCreate, DailyTaskCreate, DailyTaskUpdate
+    WeeklyTarget, DailyTask, WeeklyRating, WeeklyTargetCreate, DailyTaskCreate, DailyTaskUpdate,
+    Contractor, ContractorCreate, ContractorType
 )
 from drawing_templates import get_template_drawings
 
