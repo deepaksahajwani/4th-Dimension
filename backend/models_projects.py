@@ -289,6 +289,7 @@ class ProjectCreate(BaseModel):
     custom_contacts: dict = {}
     
     brands: List[BrandCategory] = []
+    assigned_contractors: Dict[str, str] = {}
     checklist_preset_id: Optional[str] = None
 
 class ProjectUpdate(BaseModel):
