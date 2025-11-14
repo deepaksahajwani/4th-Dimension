@@ -1476,6 +1476,92 @@ async def upload_drawing_file(
     return {"file_url": file_url, "filename": file.filename}
 
 
+# ==================== CONTRACTOR MANAGEMENT ROUTES ====================
+
+@api_router.post("/contractors")
+async def create_contractor(
+    contractor_data: ContractorCreate,
+    current_user: User = Depends(require_owner)
+):
+    """Create a new contractor/consultant (Owner only)"""
+    contractor = Contractor(**contractor_data.model_dump())
+    contractor_dict = contractor.model_dump()
+    
+    # Convert datetimes to ISO strings
+    for field in ['created_at', 'updated_at']:
+        if contractor_dict.get(field):
+            contractor_dict[field] = contractor_dict[field].isoformat()
+    
+    await db.contractors.insert_one(contractor_dict)
+    return contractor
+
+@api_router.get("/contractors")
+async def get_contractors(current_user: User = Depends(get_current_user)):
+    """Get all contractors"""
+    contractors = await db.contractors.find(
+        {"deleted_at": None},
+        {"_id": 0}
+    ).to_list(1000)
+    return contractors
+
+@api_router.get("/contractors/{contractor_id}")
+async def get_contractor(
+    contractor_id: str,
+    current_user: User = Depends(get_current_user)
+):
+    """Get a specific contractor"""
+    contractor = await db.contractors.find_one(
+        {"id": contractor_id, "deleted_at": None},
+        {"_id": 0}
+    )
+    if not contractor:
+        raise HTTPException(status_code=404, detail="Contractor not found")
+    return contractor
+
+@api_router.put("/contractors/{contractor_id}")
+async def update_contractor(
+    contractor_id: str,
+    contractor_data: ContractorCreate,
+    current_user: User = Depends(require_owner)
+):
+    """Update a contractor (Owner only)"""
+    update_dict = contractor_data.model_dump()
+    update_dict['updated_at'] = datetime.now(timezone.utc).isoformat()
+    
+    result = await db.contractors.update_one(
+        {"id": contractor_id, "deleted_at": None},
+        {"$set": update_dict}
+    )
+    
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Contractor not found")
+    
+    return await get_contractor(contractor_id, current_user)
+
+@api_router.delete("/contractors/{contractor_id}")
+async def delete_contractor(
+    contractor_id: str,
+    current_user: User = Depends(require_owner)
+):
+    """Soft delete a contractor (Owner only)"""
+    result = await db.contractors.update_one(
+        {"id": contractor_id},
+        {"$set": {
+            "deleted_at": datetime.now(timezone.utc).isoformat()
+        }}
+    )
+    
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Contractor not found")
+    
+    return {"message": "Contractor deleted successfully"}
+
+@api_router.get("/contractor-types")
+async def get_contractor_types():
+    """Get list of predefined contractor types"""
+    return [{"value": t.value, "label": t.value} for t in ContractorType]
+
+
 # ==================== TASK MANAGEMENT ROUTES ====================
 
 @api_router.post("/weekly-targets")
