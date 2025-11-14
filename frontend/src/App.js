@@ -11,6 +11,7 @@ import Dashboard from './pages/Dashboard';
 import WorkTracker from './pages/WorkTracker';
 import MyWork from './pages/MyWork';
 import AssignTargets from './pages/AssignTargets';
+import Contractors from './pages/Contractors';
 import Projects from './pages/Projects';
 import ProjectDetail from './pages/ProjectDetail';
 import Clients from './pages/Clients';
