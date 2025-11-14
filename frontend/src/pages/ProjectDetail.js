@@ -430,6 +430,19 @@ export default function ProjectDetail({ user, onLogout }) {
                 History
               </Button>
             )}
+            
+            {/* PDF Download/View Button */}
+            {drawing.file_url && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => window.open(drawing.file_url, '_blank')}
+                className="flex-1 sm:flex-none text-xs h-8 border-blue-500 text-blue-600"
+                title="View/Download PDF"
+              >
+                📄 PDF
+              </Button>
+            )}
             <Button
               variant="outline"
               size="sm"
