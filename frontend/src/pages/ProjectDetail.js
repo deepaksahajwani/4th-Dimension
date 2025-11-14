@@ -174,21 +174,10 @@ export default function ProjectDetail({ user, onLogout }) {
   };
 
   const handleResolveRevision = async (drawing) => {
-    if (!window.confirm('Mark this revision as resolved?')) return;
-    
-    try {
-      const token = localStorage.getItem('token');
-      await axios.put(`${API}/drawings/${drawing.id}`, {
-        has_pending_revision: false
-      }, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      toast.success('Revision resolved!');
-      fetchProjectData();
-    } catch (error) {
-      console.error('Resolve revision error:', error);
-      toast.error(formatErrorMessage(error, 'Failed to resolve revision'));
-    }
+    // Show upload dialog for revision resolution
+    setSelectedFileDrawing(drawing);
+    setUploadType('resolve');
+    setUploadDialogOpen(true);
   };
 
   const handleShowHistory = (drawing) => {
