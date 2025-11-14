@@ -14,6 +14,7 @@ export default function Layout({ children, user, onLogout }) {
     ...(!user?.is_owner ? [{ name: 'My Work', href: '/my-work', icon: CheckSquare }] : []),
     { name: 'Projects', href: '/projects', icon: FolderOpen },
     { name: 'Clients', href: '/clients', icon: Users },
+    { name: 'Contractors', href: '/contractors', icon: Building2 },
     { name: 'Team', href: '/team', icon: Users },
   ];
 
