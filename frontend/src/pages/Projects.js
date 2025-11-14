@@ -729,6 +729,51 @@ export default function Projects({ user, onLogout }) {
                     Brands can be added and managed after creating the project.
                   </p>
                 </TabsContent>
+
+                {/* Contractors Tab */}
+                <TabsContent value="contractors" className="space-y-4 mt-4">
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+                    <h4 className="font-medium text-blue-900 mb-2">Assign Contractors to Project</h4>
+                    <p className="text-sm text-blue-700">
+                      Select contractors for different categories. They will receive project access automatically.
+                    </p>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {[
+                      'Civil', 'Plumbing', 'Electrical', 'Air Conditioning',
+                      'Marble and Tile', 'False Ceiling', 'Furniture', 'Modular',
+                      'Kitchen', 'Landscape', 'Glass', 'Profile', 'Gardner', 'Fabricator'
+                    ].map(type => {
+                      const typeContractors = contractors.filter(c => c.contractor_type === type);
+                      return (
+                        <div key={type}>
+                          <Label className="text-sm font-medium text-slate-700">{type}</Label>
+                          <select
+                            value={assignedContractors[type] || ''}
+                            onChange={(e) => setAssignedContractors({
+                              ...assignedContractors,
+                              [type]: e.target.value
+                            })}
+                            className="w-full p-2 border rounded mt-1 text-sm"
+                          >
+                            <option value="">-- Select {type} Contractor --</option>
+                            {typeContractors.map(contractor => (
+                              <option key={contractor.id} value={contractor.id}>
+                                {contractor.name} {contractor.company_name ? `(${contractor.company_name})` : ''}
+                              </option>
+                            ))}
+                          </select>
+                          {typeContractors.length === 0 && (
+                            <p className="text-xs text-slate-500 mt-1">
+                              No contractors available. <a href="/contractors" className="text-blue-600 hover:underline">Add one →</a>
+                            </p>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </TabsContent>
               </Tabs>
 
               <div className="flex justify-end gap-3 mt-6 pt-6 border-t">
