@@ -1441,6 +1441,40 @@ async def update_drawing(
     return updated_drawing
 
 
+# ==================== FILE UPLOAD ROUTES ====================
+
+@api_router.post("/drawings/upload")
+async def upload_drawing_file(
+    file: UploadFile = File(...),
+    drawing_id: str = Form(...),
+    upload_type: str = Form(...),
+    current_user: User = Depends(get_current_user)
+):
+    """Upload PDF file for drawing"""
+    # Validate file type
+    if not file.filename.endswith('.pdf'):
+        raise HTTPException(status_code=400, detail="Only PDF files are allowed")
+    
+    # Create uploads directory if it doesn't exist
+    upload_dir = Path("uploads/drawings")
+    upload_dir.mkdir(parents=True, exist_ok=True)
+    
+    # Generate unique filename
+    file_extension = Path(file.filename).suffix
+    unique_filename = f"{drawing_id}_{upload_type}_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}{file_extension}"
+    file_path = upload_dir / unique_filename
+    
+    # Save file
+    with open(file_path, "wb") as buffer:
+        content = await file.read()
+        buffer.write(content)
+    
+    # Return file URL (relative path)
+    file_url = f"/uploads/drawings/{unique_filename}"
+    
+    return {"file_url": file_url, "filename": file.filename}
+
+
 # ==================== TASK MANAGEMENT ROUTES ====================
 
 @api_router.post("/weekly-targets")
