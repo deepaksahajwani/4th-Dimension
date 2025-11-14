@@ -1102,6 +1102,66 @@ export default function ProjectDetail({ user, onLogout }) {
             </DialogFooter>
           </DialogContent>
         </Dialog>
+
+        {/* File Upload Dialog */}
+        <Dialog open={uploadDialogOpen} onOpenChange={setUploadDialogOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>
+                {uploadType === 'issue' ? 'Upload Drawing PDF to Issue' : 'Upload Revised Drawing PDF'}
+              </DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4 py-4">
+              <p className="text-sm text-slate-600">
+                {uploadType === 'issue' 
+                  ? 'Please upload the PDF file of this drawing before issuing it.'
+                  : 'Please upload the revised PDF file to complete the resolution.'}
+              </p>
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                <p className="text-sm text-blue-800 font-medium">
+                  {selectedFileDrawing?.name}
+                </p>
+                <p className="text-xs text-blue-600 mt-1">
+                  {selectedFileDrawing?.category}
+                </p>
+              </div>
+              <div>
+                <Label>Select PDF File *</Label>
+                <Input
+                  type="file"
+                  accept=".pdf"
+                  onChange={(e) => setSelectedFile(e.target.files[0])}
+                  className="mt-1"
+                />
+                {selectedFile && (
+                  <p className="text-xs text-green-600 mt-1">
+                    ✓ Selected: {selectedFile.name}
+                  </p>
+                )}
+              </div>
+            </div>
+            <DialogFooter>
+              <Button 
+                variant="outline" 
+                onClick={() => {
+                  setUploadDialogOpen(false);
+                  setSelectedFile(null);
+                  setSelectedFileDrawing(null);
+                }}
+                disabled={uploadingFile}
+              >
+                Cancel
+              </Button>
+              <Button 
+                onClick={handleFileUpload}
+                disabled={!selectedFile || uploadingFile}
+                className="bg-blue-600 hover:bg-blue-700 text-white"
+              >
+                {uploadingFile ? 'Uploading...' : uploadType === 'issue' ? 'Upload & Issue' : 'Upload & Resolve'}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
     </Layout>
   );
