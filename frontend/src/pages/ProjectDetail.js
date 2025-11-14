@@ -341,7 +341,7 @@ export default function ProjectDetail({ user, onLogout }) {
               </Button>
             )}
             
-            {/* Revise/Resolve/RX Resolved button */}
+            {/* Revise/Resolve button */}
             {(drawing.is_issued || drawing.has_pending_revision || drawing.revision_count > 0) && (
               <Button
                 variant="outline"
@@ -355,14 +355,11 @@ export default function ProjectDetail({ user, onLogout }) {
                 }}
                 className={`flex-1 sm:flex-none text-xs h-8 ${
                   drawing.has_pending_revision ? "border-green-500 text-green-600" : 
-                  drawing.revision_count > 0 && !drawing.has_pending_revision ? "border-blue-500 text-blue-600" :
                   "border-amber-500 text-amber-600"
                 }`}
-                title={drawing.has_pending_revision ? "Mark Revision Complete" : drawing.revision_count > 0 ? `Revision ${drawing.revision_count} Resolved` : "Request Revision"}
+                title={drawing.has_pending_revision ? "Mark Revision Complete" : "Request Revision"}
               >
-                {drawing.has_pending_revision ? "Resolve" : 
-                 drawing.revision_count > 0 ? `R${drawing.revision_count} Resolved` : 
-                 "Revise"}
+                {drawing.has_pending_revision ? "Resolve" : "Revise"}
               </Button>
             )}
             {drawing.revision_history && drawing.revision_history.length > 0 && (
