@@ -200,6 +200,9 @@ export default function Projects({ user, onLogout }) {
         }
       });
       cleanedData.custom_contacts = customContacts;
+      
+      // Add assigned contractors
+      cleanedData.assigned_contractors = assignedContractors;
 
       if (editingProject) {
         // Check if end date was added during edit
