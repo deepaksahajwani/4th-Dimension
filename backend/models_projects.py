@@ -371,6 +371,8 @@ class ProjectDrawing(BaseModel):
     notes: Optional[str] = None
     sequence_number: Optional[int] = None  # Order in the sequential workflow
     is_active: bool = True  # True if this drawing is currently active/pending in sequence
+    file_url: Optional[str] = None  # URL to the issued drawing PDF
+    revision_file_urls: List[str] = []  # URLs to revision PDFs
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     deleted_at: Optional[datetime] = None
