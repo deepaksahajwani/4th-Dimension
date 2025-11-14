@@ -5,7 +5,7 @@ Complete schema for project management, drawings, tasks, site visits, and notifi
 
 from pydantic import BaseModel, Field, ConfigDict, EmailStr
 from typing import List, Optional
-from datetime import datetime, timezone
+from datetime import datetime, timezone, date
 from enum import Enum
 import uuid
 
