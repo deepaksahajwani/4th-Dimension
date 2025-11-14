@@ -46,6 +46,13 @@ export default function ProjectDetail({ user, onLogout }) {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [archiveDialogOpen, setArchiveDialogOpen] = useState(false);
   const [archiveDate, setArchiveDate] = useState('');
+  
+  // File upload states
+  const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
+  const [uploadType, setUploadType] = useState(''); // 'issue' or 'resolve'
+  const [selectedFileDrawing, setSelectedFileDrawing] = useState(null);
+  const [uploadingFile, setUploadingFile] = useState(false);
+  const [selectedFile, setSelectedFile] = useState(null);
   const [drawingFormData, setDrawingFormData] = useState({
     category: 'Architecture',
     name: '',
