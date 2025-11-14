@@ -529,6 +529,56 @@ class DailyTask(BaseModel):
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
+
+# ==================== CONTRACTOR/CONSULTANT MODELS ====================
+
+class ContractorType(str, Enum):
+    CIVIL = "Civil"
+    PLUMBING = "Plumbing"
+    ELECTRICAL = "Electrical"
+    AIR_CONDITIONING = "Air Conditioning"
+    MARBLE_TILE = "Marble and Tile"
+    FALSE_CEILING = "False Ceiling"
+    FURNITURE = "Furniture"
+    MODULAR = "Modular"
+    KITCHEN = "Kitchen"
+    LANDSCAPE = "Landscape"
+    GLASS = "Glass"
+    PROFILE = "Profile"
+    GARDNER = "Gardner"
+    FABRICATOR = "Fabricator"
+    CUSTOM = "Custom"  # For custom types
+
+class Contractor(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    name: str
+    contractor_type: str  # Civil, Plumbing, etc.
+    company_name: Optional[str] = None
+    email: Optional[str] = None
+    phone: str
+    alternate_phone: Optional[str] = None
+    address: Optional[str] = None
+    gst_number: Optional[str] = None
+    pan_number: Optional[str] = None
+    notes: Optional[str] = None
+    unique_code: str = Field(default_factory=lambda: str(uuid.uuid4())[:8])  # Short unique code
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    deleted_at: Optional[datetime] = None
+
+class ContractorCreate(BaseModel):
+    name: str
+    contractor_type: str
+    company_name: Optional[str] = None
+    email: Optional[str] = None
+    phone: str
+    alternate_phone: Optional[str] = None
+    address: Optional[str] = None
+    gst_number: Optional[str] = None
+    pan_number: Optional[str] = None
+    notes: Optional[str] = None
+
 class WeeklyRating(BaseModel):
     """Weekly performance rating calculated on Saturday"""
     model_config = ConfigDict(extra="ignore")
