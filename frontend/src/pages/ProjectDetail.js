@@ -243,6 +243,58 @@ export default function ProjectDetail({ user, onLogout }) {
     }
   };
 
+  const handleFileUpload = async () => {
+    if (!selectedFile) {
+      toast.error('Please select a PDF file');
+      return;
+    }
+    
+    setUploadingFile(true);
+    try {
+      const token = localStorage.getItem('token');
+      const formData = new FormData();
+      formData.append('file', selectedFile);
+      formData.append('drawing_id', selectedFileDrawing.id);
+      formData.append('upload_type', uploadType);
+      
+      // Upload file to backend
+      const uploadResponse = await axios.post(`${API}/drawings/upload`, formData, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'multipart/form-data'
+        }
+      });
+      
+      const file_url = uploadResponse.data.file_url;
+      
+      // Update drawing with file URL
+      const updatePayload = uploadType === 'issue' 
+        ? { is_issued: true, file_url }
+        : { has_pending_revision: false };
+      
+      if (uploadType === 'resolve') {
+        // Add to revision_file_urls array
+        const current_urls = selectedFileDrawing.revision_file_urls || [];
+        updatePayload.revision_file_urls = [...current_urls, file_url];
+      }
+      
+      await axios.put(`${API}/drawings/${selectedFileDrawing.id}`, updatePayload, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      
+      toast.success(uploadType === 'issue' ? 'Drawing issued with PDF!' : 'Revision resolved with PDF!');
+      setUploadDialogOpen(false);
+      setSelectedFile(null);
+      setSelectedFileDrawing(null);
+      fetchProjectData();
+    } catch (error) {
+      console.error('File upload error:', error);
+      toast.error(formatErrorMessage(error, 'Failed to upload file'));
+    } finally {
+      setUploadingFile(false);
+    }
+  };
+
   const getDrawingsByCategory = (category) => {
     return drawings.filter(d => d.category === category);
   };
