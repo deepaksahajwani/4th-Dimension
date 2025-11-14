@@ -326,6 +326,7 @@ class ProjectUpdate(BaseModel):
     custom_contacts: Optional[dict] = None
     
     brands: Optional[List[BrandCategory]] = None
+    assigned_contractors: Optional[Dict[str, str]] = None
 
 class DrawingCategory(BaseModel):
     model_config = ConfigDict(extra="ignore")
