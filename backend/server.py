@@ -2411,6 +2411,9 @@ async def get_notifications(current_user: User = Depends(get_current_user), limi
 # Include the router in the main app
 app.include_router(api_router)
 
+# Mount uploads directory for serving static files
+app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
+
 app.add_middleware(
     CORSMiddleware,
     allow_credentials=True,
