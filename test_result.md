@@ -430,6 +430,20 @@ test_plan:
       - working: true
         agent: "testing"
         comment: "COMPREHENSIVE PDF UPLOAD AND DOWNLOAD WORKFLOW TESTING COMPLETED SUCCESSFULLY FOR iOS COMPATIBILITY (100% success rate): ✅ COMPLETE WORKFLOW TESTED: 1) Login as owner (owner@test.com / testpassword) - SUCCESS. 2) Navigate to Projects page and found MUTHU RESIDENCE project. 3) Navigate to Project Detail page and access Drawings tab. 4) Found 2 Issue buttons for pending drawings. 5) Successfully uploaded PDF file via Issue button - created test PDF, selected file, submitted form. 6) Upload successful with 'Drawing issued with PDF!' message. 7) PDF button appeared after upload. 8) PDF download test successful with 'PDF opened successfully' message. ✅ DESKTOP TESTING: All functionality working perfectly on desktop viewport (1920x1080). ✅ MOBILE TESTING: Comprehensive mobile testing completed on iPhone viewport (375x667): Login successful, navigation working, PDF buttons accessible, PDF download working with 'PDF opened successfully' message, no console errors. ✅ LANDSCAPE TESTING: PDF functionality working in landscape orientation (667x375). ✅ iOS COMPATIBILITY CONFIRMED: Backend uses 'inline' Content-Disposition for browser viewing, frontend uses blob URLs and window.open() for iOS Safari compatibility. ✅ NETWORK REQUESTS: Download API calls confirmed working (/api/drawings/{id}/download). ✅ ERROR HANDLING: No console errors found during testing. The complete PDF upload and download workflow is working perfectly for iOS compatibility as requested. Users can successfully upload PDFs to drawings and download/view them on both desktop and mobile devices including iOS Safari."
+  - task: "File Upload Stuck Issue Investigation"
+    implemented: true
+    working: false
+    file: "frontend/src/pages/ProjectDetail.js"
+    stuck_count: 1
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: false
+        agent: "user"
+        comment: "User reports file upload gets stuck at 'Uploading...' and doesn't complete. Upload dialog remains open and never shows success message."
+      - working: false
+        agent: "testing"
+        comment: "CRITICAL ISSUE CONFIRMED - FILE UPLOAD STUCK ISSUE REPRODUCED AND ANALYZED: ❌ ISSUE CONFIRMED: File upload gets stuck at 'Uploading...' state as reported by user. ✅ BACKEND ANALYSIS COMPLETED: Both upload APIs working perfectly - POST /api/drawings/upload responds in <1 second with 200 OK, PUT /api/drawings/{id} updates drawing status correctly. Backend logs show no errors, timeouts, or performance issues. ✅ FRONTEND CODE ANALYSIS: handleFileUpload function structure is correct with proper try/catch/finally blocks. The finally block should reset uploadingFile state but is not executing properly. ❌ ROOT CAUSE IDENTIFIED: Frontend JavaScript execution issue - the 'Uploading...' state persists because setUploadingFile(false) in finally block is not executing. Potential causes: 1) Axios request timeout on frontend without proper finally execution, 2) JavaScript thread blocking preventing state updates, 3) Axios interceptors in App.js interfering with upload requests, 4) Browser-specific FormData handling issues. ✅ EVIDENCE: Direct API testing confirms backend completes upload in <1s, but frontend UI remains stuck. This is a critical frontend state management bug that prevents users from completing file uploads."
 
 agent_communication:
   - agent: "main"
