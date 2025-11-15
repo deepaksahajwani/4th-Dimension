@@ -438,7 +438,7 @@ export default function ProjectDetail({ user, onLogout }) {
       
       // Update drawing with file URL
       const updatePayload = uploadType === 'issue' 
-        ? { is_issued: true, file_url }
+        ? { under_review: true, file_url }  // Mark as under_review, not issued
         : { has_pending_revision: false };
       
       if (uploadType === 'resolve') {
@@ -454,7 +454,7 @@ export default function ProjectDetail({ user, onLogout }) {
       });
       
       console.log('Upload complete, showing success message');
-      toast.success(uploadType === 'issue' ? 'Drawing issued with PDF!' : 'Revision resolved with PDF!');
+      toast.success(uploadType === 'issue' ? 'Drawing uploaded for review!' : 'Revision resolved with PDF!');
       setUploadDialogOpen(false);
       setSelectedFile(null);
       setSelectedFileDrawing(null);
