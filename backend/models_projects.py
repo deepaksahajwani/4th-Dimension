@@ -398,6 +398,8 @@ class ProjectDrawingUpdate(BaseModel):
     revision_due_date: Optional[str] = None  # When revised drawing is due
     due_date: Optional[str] = None
     notes: Optional[str] = None
+    file_url: Optional[str] = None  # PDF file URL
+    revision_file_urls: Optional[List[str]] = None  # Revision PDF URLs
 
 class DrawingRevision(BaseModel):
     model_config = ConfigDict(extra="ignore")
