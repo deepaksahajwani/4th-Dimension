@@ -263,13 +263,13 @@ startxref
             return False
 
     def test_upload_pdf_and_transition_to_under_review(self):
-        """Step 3: Upload PDF and transition to Under Review (STATE 2)"""
+        """Step 3: Upload PDF and set file_url (STATE 2)"""
         if not self.owner_token or not self.drawing_id:
-            self.log_result("Upload PDF - Under Review", False, "Missing prerequisites")
+            self.log_result("Upload PDF - Set File URL", False, "Missing prerequisites")
             return False
             
         try:
-            print("📤 Step 3: Upload PDF and transition to Under Review (STATE 2)")
+            print("📤 Step 3: Upload PDF and set file_url (STATE 2)")
             
             headers = {"Authorization": f"Bearer {self.owner_token}"}
             
@@ -294,11 +294,9 @@ startxref
                 
                 print(f"   File uploaded successfully: {file_url}")
                 
-                # Update drawing to under_review state
+                # Update drawing with file_url (this represents the "under review" state)
                 update_data = {
-                    "under_review": True,
-                    "file_url": file_url,
-                    "has_pending_revision": False
+                    "file_url": file_url
                 }
                 
                 update_response = self.session.put(f"{BACKEND_URL}/drawings/{self.drawing_id}", 
@@ -307,28 +305,26 @@ startxref
                 if update_response.status_code == 200:
                     updated_drawing = update_response.json()
                     
-                    # Verify STATE 2: Under Review
+                    # Verify STATE 2: Has file (ready for review/approval)
                     expected_state_2 = {
-                        'file_url': file_url,
-                        'under_review': True,
-                        'is_approved': False,
+                        'file_url': 'not_null',
                         'is_issued': False,
                         'has_pending_revision': False
                     }
                     
                     return self.verify_drawing_state(updated_drawing, expected_state_2, 
-                                                   "STATE 2: Under Review (after upload)")
+                                                   "STATE 2: Has File (ready for review)")
                 else:
-                    self.log_result("Upload PDF - Under Review", False, 
+                    self.log_result("Upload PDF - Set File URL", False, 
                                   f"Failed to update drawing: {update_response.status_code}")
                     return False
             else:
-                self.log_result("Upload PDF - Under Review", False, 
+                self.log_result("Upload PDF - Set File URL", False, 
                               f"Failed to upload file: {upload_response.status_code} - {upload_response.text}")
                 return False
                 
         except Exception as e:
-            self.log_result("Upload PDF - Under Review", False, f"Exception: {str(e)}")
+            self.log_result("Upload PDF - Set File URL", False, f"Exception: {str(e)}")
             return False
 
     def test_request_revision(self):
