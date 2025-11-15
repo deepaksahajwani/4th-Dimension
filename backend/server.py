@@ -392,6 +392,24 @@ async def register(user_data: UserRegister):
     if existing_user:
         raise HTTPException(status_code=400, detail="Email already registered")
     
+    # Auto-detect user role based on email
+    # Check if email exists in Clients collection
+    client = await db.clients.find_one({"email": user_data.email}, {"_id": 0})
+    
+    # Check if email exists in Contractors collection
+    contractor = await db.contractors.find_one({"email": user_data.email}, {"_id": 0})
+    
+    # Determine role
+    if client:
+        detected_role = "client"
+        is_external_user = True
+    elif contractor:
+        detected_role = "contractor"  # This covers both contractors and consultants
+        is_external_user = True
+    else:
+        detected_role = "team_member"
+        is_external_user = False
+    
     # Check if this is the owner (Deepak Sahajwani)
     is_owner_email = user_data.email.lower() in ["deepaksahajwani@gmail.com", "deepak@4thdimension.com"] or user_data.name.lower() == "deepak sahajwani"
     
