@@ -59,6 +59,15 @@ export default function ProjectDetail({ user, onLogout }) {
     due_date: '',
     notes: ''
   });
+  
+  // Comment states
+  const [commentDialogOpen, setCommentDialogOpen] = useState(false);
+  const [selectedCommentDrawing, setSelectedCommentDrawing] = useState(null);
+  const [comments, setComments] = useState([]);
+  const [newCommentText, setNewCommentText] = useState('');
+  const [editingComment, setEditingComment] = useState(null);
+  const [loadingComments, setLoadingComments] = useState(false);
+  const [referenceFile, setReferenceFile] = useState(null);
   const [revisionFormData, setRevisionFormData] = useState({
     revision_notes: '',
     revision_due_date: ''
