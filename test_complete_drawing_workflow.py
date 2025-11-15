@@ -578,8 +578,8 @@ startxref
             self.test_upload_pdf_and_transition_to_under_review,
             self.test_request_revision,
             self.test_resolve_revision_with_new_file,
-            self.test_approve_drawing,
-            self.test_issue_drawing,
+            self.test_issue_drawing_directly,
+            self.test_request_revision_from_issued,
             self.test_unissue_drawing
         ]
         
