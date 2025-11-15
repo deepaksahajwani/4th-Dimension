@@ -338,7 +338,15 @@ export default function ProjectDetail({ user, onLogout }) {
           comment_text: newCommentText
         });
         commentId = response.data.id;
-        toast.success('Comment added');
+        
+        // Show notification for new comment
+        toast.success('💬 New comment added!', {
+          duration: 3000,
+          style: {
+            background: '#10b981',
+            color: '#fff',
+          },
+        });
       }
       
       // If there's a reference file, upload it
@@ -349,12 +357,19 @@ export default function ProjectDetail({ user, onLogout }) {
         await axios.post(`${API}/drawings/comments/${commentId}/upload-reference`, formData, {
           headers: { 'Content-Type': 'multipart/form-data' }
         });
+        toast.success('📎 Reference file attached!');
         setReferenceFile(null);
       }
       
       setNewCommentText('');
       setEditingComment(null);
       await fetchComments(selectedCommentDrawing.id);
+      
+      // Refresh project data to update comment counts
+      await fetchProjectData();
+      
+      // Close dialog after posting comment (Issue #2)
+      setCommentDialogOpen(false);
     } catch (error) {
       console.error('Comment error:', error);
       toast.error(formatErrorMessage(error, 'Failed to save comment'));
