@@ -479,46 +479,46 @@ startxref
             self.log_result("Issue Drawing", False, f"Exception: {str(e)}")
             return False
 
-    def test_issue_drawing(self):
-        """Step 7: Issue Drawing (STATE 5)"""
+    def test_request_revision_from_issued(self):
+        """Step 7: Request Revision from Issued state (STATE 5)"""
         if not self.owner_token or not self.drawing_id:
-            self.log_result("Issue Drawing", False, "Missing prerequisites")
+            self.log_result("Request Revision from Issued", False, "Missing prerequisites")
             return False
             
         try:
-            print("🚀 Step 7: Issue Drawing (STATE 5)")
+            print("🔄 Step 7: Request Revision from Issued state (STATE 5)")
             
             headers = {"Authorization": f"Bearer {self.owner_token}"}
             
-            # Issue drawing
-            issue_data = {
-                "is_issued": True
+            # Request revision from issued drawing
+            revision_data = {
+                "has_pending_revision": True,
+                "revision_notes": "Please update the issued drawing with new specifications",
+                "revision_due_date": "2024-12-25"
             }
             
             response = self.session.put(f"{BACKEND_URL}/drawings/{self.drawing_id}", 
-                                      json=issue_data, headers=headers)
+                                      json=revision_data, headers=headers)
             
             if response.status_code == 200:
                 updated_drawing = response.json()
                 
-                # Verify STATE 5: Issued
+                # Verify STATE 5: Revision Pending (from issued)
                 expected_state_5 = {
                     'file_url': 'not_null',  # Should still have file
-                    'under_review': True,
-                    'is_approved': True,
-                    'is_issued': True,
-                    'has_pending_revision': False
+                    'is_issued': False,  # Should be reset when revision requested
+                    'has_pending_revision': True
                 }
                 
                 return self.verify_drawing_state(updated_drawing, expected_state_5, 
-                                               "STATE 5: Issued (after ISSUE)")
+                                               "STATE 5: Revision Pending (from issued)")
             else:
-                self.log_result("Issue Drawing", False, 
-                              f"Failed to issue drawing: {response.status_code} - {response.text}")
+                self.log_result("Request Revision from Issued", False, 
+                              f"Failed to request revision: {response.status_code} - {response.text}")
                 return False
                 
         except Exception as e:
-            self.log_result("Issue Drawing", False, f"Exception: {str(e)}")
+            self.log_result("Request Revision from Issued", False, f"Exception: {str(e)}")
             return False
 
     def test_unissue_drawing(self):
