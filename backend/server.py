@@ -1756,6 +1756,41 @@ async def mark_comments_read(
     )
     return {"message": "Comments marked as read"}
 
+@api_router.get("/comments/reference/{filename}/download")
+async def download_comment_reference(
+    filename: str,
+    current_user: User = Depends(get_current_user)
+):
+    """Download comment reference file with authentication"""
+    from fastapi.responses import FileResponse
+    
+    file_path = Path("uploads/comment_references") / filename
+    
+    if not file_path.exists():
+        raise HTTPException(status_code=404, detail="File not found")
+    
+    # Determine media type based on file extension
+    extension = file_path.suffix.lower()
+    media_types = {
+        '.pdf': 'application/pdf',
+        '.jpg': 'image/jpeg',
+        '.jpeg': 'image/jpeg',
+        '.png': 'image/png',
+        '.gif': 'image/gif'
+    }
+    media_type = media_types.get(extension, 'application/octet-stream')
+    
+    # Return file with proper headers for viewing/downloading
+    return FileResponse(
+        path=str(file_path),
+        media_type=media_type,
+        filename=filename,
+        headers={
+            "Content-Disposition": f'inline; filename="{filename}"',
+            "Cache-Control": "public, max-age=3600",
+        }
+    )
+
 
 # ==================== CONTRACTOR MANAGEMENT ROUTES ====================
 
