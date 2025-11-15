@@ -1402,8 +1402,12 @@ async def update_drawing(
     
     # If un-issuing (is_issued changing from True to False)
     if update_dict.get('is_issued') == False and drawing.get('is_issued') == True:
-        # Keep file_url and approved state, just un-issue
+        # Reset to pending state - clear everything
         update_dict['issued_date'] = None
+        update_dict['under_review'] = False
+        update_dict['is_approved'] = False
+        update_dict['approved_date'] = None
+        update_dict['file_url'] = None  # Clear the file so Upload button appears
     
     # If marking has_pending_revision as True (requesting revision)
     if update_dict.get('has_pending_revision') == True:
