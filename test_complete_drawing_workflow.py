@@ -421,7 +421,7 @@ startxref
                     }
                     
                     return self.verify_drawing_state(updated_drawing, expected_state_2b, 
-                                                   "STATE 2b: Under Review (after RESOLVE with new file)")
+                                                   "STATE 2b: Resolved (after RESOLVE with new file)")
                 else:
                     self.log_result("Resolve Revision", False, 
                                   f"Failed to resolve revision: {resolve_response.status_code}")
