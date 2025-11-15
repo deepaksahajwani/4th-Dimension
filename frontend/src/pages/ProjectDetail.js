@@ -606,21 +606,59 @@ export default function ProjectDetail({ user, onLogout }) {
           </div>
           
           <div className="flex flex-wrap sm:flex-nowrap gap-1.5 sm:gap-2 sm:ml-4">
-            {/* Upload/Issue/Un-Issue button */}
-            {!drawing.has_pending_revision && (
+            {/* Upload button - only when no file */}
+            {!drawing.file_url && !drawing.has_pending_revision && (
               <Button
                 variant="outline"
                 size="sm"
                 onClick={() => handleToggleIssued(drawing)}
                 className="flex-1 sm:flex-none text-xs h-8"
               >
-                {drawing.is_issued ? "Un-Issue" : 
-                 (!drawing.file_url ? "Upload" : "Issue")}
+                Upload
               </Button>
             )}
             
-            {/* Revise/Resolve button - only show if under review or issued */}
-            {(drawing.under_review || drawing.is_issued || drawing.has_pending_revision) && !drawing.has_pending_revision && (
+            {/* Approve button - when under review but not approved */}
+            {drawing.under_review && !drawing.is_approved && !drawing.has_pending_revision && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => handleApproveDrawing(drawing)}
+                className="flex-1 sm:flex-none text-xs h-8 border-green-500 text-green-600"
+                title="Approve for Issuance"
+              >
+                Approve
+              </Button>
+            )}
+            
+            {/* Issue button - when approved but not issued */}
+            {drawing.is_approved && !drawing.is_issued && !drawing.has_pending_revision && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => handleToggleIssued(drawing)}
+                className="flex-1 sm:flex-none text-xs h-8 border-blue-500 text-blue-600"
+                title="Issue Drawing"
+              >
+                Issue
+              </Button>
+            )}
+            
+            {/* Un-Issue button - when issued */}
+            {drawing.is_issued && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => handleToggleIssued(drawing)}
+                className="flex-1 sm:flex-none text-xs h-8"
+                title="Un-Issue Drawing"
+              >
+                Un-Issue
+              </Button>
+            )}
+            
+            {/* Revise button - when under review, approved, or issued */}
+            {(drawing.under_review || drawing.is_approved || drawing.is_issued) && !drawing.has_pending_revision && (
               <Button
                 variant="outline"
                 size="sm"
@@ -657,8 +695,8 @@ export default function ProjectDetail({ user, onLogout }) {
               </Button>
             )}
             
-            {/* PDF Download/View Button - only show when issued */}
-            {drawing.file_url && drawing.is_issued && (
+            {/* PDF Download/View Button - show when file exists and (under review, approved, or issued) */}
+            {drawing.file_url && (drawing.under_review || drawing.is_approved || drawing.is_issued) && (
               <Button
                 variant="outline"
                 size="sm"
@@ -680,7 +718,7 @@ export default function ProjectDetail({ user, onLogout }) {
             >
               <MessageSquare className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
               Comments
-              {drawing.comment_count > 0 && (
+              {drawing.comment_count > 0 && !drawing.unread_comments && (
                 <span className="absolute -top-1 -right-1 bg-purple-600 text-white text-[10px] rounded-full w-4 h-4 flex items-center justify-center">
                   {drawing.comment_count}
                 </span>
