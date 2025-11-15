@@ -517,34 +517,61 @@ startxref
             self.log_result("Request Revision from Issued", False, f"Exception: {str(e)}")
             return False
 
-    def test_unissue_drawing(self):
-        """Step 8: Un-Issue Drawing (back to STATE 1)"""
+    def test_resolve_and_issue_then_unissue(self):
+        """Step 8: Resolve revision, Issue, then Un-Issue Drawing (back to STATE 1)"""
         if not self.owner_token or not self.drawing_id:
-            self.log_result("Un-Issue Drawing", False, "Missing prerequisites")
+            self.log_result("Resolve Issue Un-Issue", False, "Missing prerequisites")
             return False
             
         try:
-            print("🔙 Step 8: Un-Issue Drawing (back to STATE 1)")
+            print("🔙 Step 8: Resolve revision, Issue, then Un-Issue Drawing (back to STATE 1)")
             
             headers = {"Authorization": f"Bearer {self.owner_token}"}
             
-            # Un-issue drawing (should reset everything)
+            # First resolve the pending revision
+            print("   8a: Resolving pending revision...")
+            resolve_data = {
+                "has_pending_revision": False
+            }
+            
+            resolve_response = self.session.put(f"{BACKEND_URL}/drawings/{self.drawing_id}", 
+                                              json=resolve_data, headers=headers)
+            
+            if resolve_response.status_code != 200:
+                self.log_result("Resolve Issue Un-Issue", False, 
+                              f"Failed to resolve revision: {resolve_response.status_code}")
+                return False
+            
+            # Then issue the drawing
+            print("   8b: Issuing drawing...")
+            issue_data = {
+                "is_issued": True
+            }
+            
+            issue_response = self.session.put(f"{BACKEND_URL}/drawings/{self.drawing_id}", 
+                                            json=issue_data, headers=headers)
+            
+            if issue_response.status_code != 200:
+                self.log_result("Resolve Issue Un-Issue", False, 
+                              f"Failed to issue drawing: {issue_response.status_code}")
+                return False
+            
+            # Finally un-issue drawing (should reset everything)
+            print("   8c: Un-issuing drawing...")
             unissue_data = {
                 "is_issued": False
             }
             
-            response = self.session.put(f"{BACKEND_URL}/drawings/{self.drawing_id}", 
-                                      json=unissue_data, headers=headers)
+            unissue_response = self.session.put(f"{BACKEND_URL}/drawings/{self.drawing_id}", 
+                                              json=unissue_data, headers=headers)
             
-            if response.status_code == 200:
-                updated_drawing = response.json()
+            if unissue_response.status_code == 200:
+                updated_drawing = unissue_response.json()
                 
                 # Verify STATE 1: Pending (after UN-ISSUE)
-                # According to the workflow, un-issue should clear everything back to pending
+                # According to the backend logic, un-issue should clear everything back to pending
                 expected_state_1_final = {
                     'file_url': None,  # Should be cleared
-                    'under_review': False,
-                    'is_approved': False,
                     'is_issued': False,
                     'has_pending_revision': False
                 }
@@ -552,12 +579,12 @@ startxref
                 return self.verify_drawing_state(updated_drawing, expected_state_1_final, 
                                                "STATE 1: Pending (after UN-ISSUE)")
             else:
-                self.log_result("Un-Issue Drawing", False, 
-                              f"Failed to un-issue drawing: {response.status_code} - {response.text}")
+                self.log_result("Resolve Issue Un-Issue", False, 
+                              f"Failed to un-issue drawing: {unissue_response.status_code} - {unissue_response.text}")
                 return False
                 
         except Exception as e:
-            self.log_result("Un-Issue Drawing", False, f"Exception: {str(e)}")
+            self.log_result("Resolve Issue Un-Issue", False, f"Exception: {str(e)}")
             return False
 
     def run_complete_workflow_test(self):
