@@ -480,7 +480,11 @@ export default function ProjectDetail({ user, onLogout }) {
       // Update drawing with file URL
       const updatePayload = uploadType === 'issue' 
         ? { under_review: true, file_url }  // Mark as under_review, not issued
-        : { has_pending_revision: false };
+        : { 
+            has_pending_revision: false, 
+            under_review: true,  // Resolved goes back to review state
+            file_url  // Update with new resolved file
+          };
       
       if (uploadType === 'resolve') {
         // Add to revision_file_urls array
