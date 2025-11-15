@@ -433,24 +433,23 @@ export default function ProjectDetail({ user, onLogout }) {
             
             {/* PDF Download/View Button */}
             {drawing.file_url && (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => {
-                  const fileUrl = drawing.file_url.startsWith('http') 
-                    ? drawing.file_url 
-                    : `${process.env.REACT_APP_BACKEND_URL}${drawing.file_url}`;
-                  console.log('Opening PDF:', fileUrl);
-                  const newWindow = window.open(fileUrl, '_blank');
-                  if (!newWindow) {
-                    toast.error('Pop-up blocked. Please allow pop-ups and try again.');
-                  }
-                }}
-                className="flex-1 sm:flex-none text-xs h-8 border-blue-500 text-blue-600"
-                title="View/Download PDF"
+              <a
+                href={drawing.file_url.startsWith('http') 
+                  ? drawing.file_url 
+                  : `${process.env.REACT_APP_BACKEND_URL}${drawing.file_url}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-block"
               >
-                📄 PDF
-              </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="flex-1 sm:flex-none text-xs h-8 border-blue-500 text-blue-600"
+                  title="View/Download PDF"
+                >
+                  📄 PDF
+                </Button>
+              </a>
             )}
             <Button
               variant="outline"
