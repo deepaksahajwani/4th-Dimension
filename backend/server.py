@@ -2540,18 +2540,6 @@ async def get_drawing_types(current_user: User = Depends(get_current_user)):
     return types
 
 # Project Drawings
-@api_router.get("/projects/{project_id}/drawings")
-async def get_project_drawings(project_id: str, current_user: User = Depends(get_current_user)):
-    drawings = await db.project_drawings.find({"project_id": project_id}, {"_id": 0}).to_list(1000)
-    for d in drawings:
-        if isinstance(d.get('created_at'), str):
-            d['created_at'] = datetime.fromisoformat(d['created_at'])
-        if isinstance(d.get('updated_at'), str):
-            d['updated_at'] = datetime.fromisoformat(d['updated_at'])
-        if isinstance(d.get('due_date'), str):
-            d['due_date'] = datetime.fromisoformat(d['due_date'])
-    return drawings
-
 @api_router.post("/projects/{project_id}/drawings", response_model=ProjectDrawing)
 async def create_project_drawing(project_id: str, drawing_data: ProjectDrawingCreate, current_user: User = Depends(get_current_user)):
     drawing = ProjectDrawing(**drawing_data.model_dump())
