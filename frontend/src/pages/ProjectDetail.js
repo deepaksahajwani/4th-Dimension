@@ -614,15 +614,15 @@ export default function ProjectDetail({ user, onLogout }) {
           </div>
           
           <div className="flex flex-wrap sm:flex-nowrap gap-1.5 sm:gap-2 sm:ml-4">
-            {/* Upload button - only when no file */}
-            {!drawing.file_url && !drawing.has_pending_revision && (
+            {/* Upload button - when no file OR when not in workflow (legacy drawings) */}
+            {(!drawing.file_url || (!drawing.under_review && !drawing.is_approved && !drawing.is_issued)) && drawing.has_pending_revision !== true && (
               <Button
                 variant="outline"
                 size="sm"
                 onClick={() => handleToggleIssued(drawing)}
                 className="flex-1 sm:flex-none text-xs h-8"
               >
-                Upload
+                {!drawing.file_url ? 'Upload' : 'Re-Upload'}
               </Button>
             )}
             
