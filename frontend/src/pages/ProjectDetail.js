@@ -189,7 +189,7 @@ export default function ProjectDetail({ user, onLogout }) {
     try {
       const token = localStorage.getItem('token');
       
-      // Use fetch API with proper authentication for iOS compatibility
+      // Fetch file with authentication
       const response = await fetch(`${API}/drawings/${drawing.id}/download`, {
         method: 'GET',
         headers: {
@@ -198,42 +198,35 @@ export default function ProjectDetail({ user, onLogout }) {
       });
 
       if (!response.ok) {
-        throw new Error('Failed to download file');
+        throw new Error('Failed to load file');
       }
 
-      // Get the blob from response
+      // Create blob from response
       const blob = await response.blob();
+      const blobUrl = window.URL.createObjectURL(blob);
       
-      // Create a temporary URL for the blob
-      const url = window.URL.createObjectURL(blob);
+      // Open in new window (works best on iOS)
+      const newWindow = window.open(blobUrl, '_blank');
       
-      // Detect iOS devices
-      const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
-      
-      if (isIOS) {
-        // On iOS, open in new tab since download attribute doesn't work reliably
-        window.open(url, '_blank');
-        toast.success('PDF opened in new tab');
+      if (newWindow) {
+        toast.success('PDF opened successfully');
+        // Cleanup blob URL after window opens
+        setTimeout(() => window.URL.revokeObjectURL(blobUrl), 1000);
       } else {
-        // On other devices, trigger download
+        // Fallback: direct download if popup blocked
         const a = document.createElement('a');
-        a.style.display = 'none';
-        a.href = url;
+        a.href = blobUrl;
         a.download = `${drawing.name}.pdf`;
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
-        toast.success('PDF downloaded successfully');
+        toast.success('Download started');
+        setTimeout(() => window.URL.revokeObjectURL(blobUrl), 100);
       }
       
-      // Cleanup after a delay to ensure download/open completes
-      setTimeout(() => {
-        window.URL.revokeObjectURL(url);
-      }, 100);
-      
     } catch (error) {
-      console.error('Download error:', error);
-      toast.error('Failed to download PDF');
+      console.error('PDF view error:', error);
+      toast.error('Failed to open PDF');
     }
   };
 
