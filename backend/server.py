@@ -1507,14 +1507,16 @@ async def download_drawing_file(
     download_filename = f"{drawing_name}.pdf"
     
     # Return file with proper headers for iOS compatibility
-    # Using 'attachment' forces download, 'inline' for viewing
+    # Using 'inline' for viewing in browser (iOS-friendly)
     return FileResponse(
         path=str(file_path),
         media_type="application/pdf",
         filename=download_filename,
         headers={
-            "Content-Disposition": f'attachment; filename="{download_filename}"',
+            "Content-Disposition": f'inline; filename="{download_filename}"',
             "Cache-Control": "public, max-age=3600",
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Expose-Headers": "Content-Disposition",
         }
     )
 
