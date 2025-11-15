@@ -251,6 +251,98 @@ export default function ProjectDetail({ user, onLogout }) {
     }
   };
 
+  // Comment handlers
+  const handleOpenComments = async (drawing) => {
+    setSelectedCommentDrawing(drawing);
+    setCommentDialogOpen(true);
+    await fetchComments(drawing.id);
+  };
+
+  const fetchComments = async (drawingId) => {
+    setLoadingComments(true);
+    try {
+      const response = await axios.get(`${API}/drawings/${drawingId}/comments`);
+      setComments(response.data);
+    } catch (error) {
+      console.error('Error fetching comments:', error);
+      toast.error('Failed to load comments');
+    } finally {
+      setLoadingComments(false);
+    }
+  };
+
+  const handleSubmitComment = async () => {
+    if (!newCommentText.trim()) {
+      toast.error('Please enter a comment');
+      return;
+    }
+
+    try {
+      if (editingComment) {
+        // Update existing comment
+        await axios.put(`${API}/drawings/comments/${editingComment.id}`, {
+          comment_text: newCommentText
+        });
+        toast.success('Comment updated');
+      } else {
+        // Create new comment
+        await axios.post(`${API}/drawings/${selectedCommentDrawing.id}/comments`, {
+          drawing_id: selectedCommentDrawing.id,
+          comment_text: newCommentText
+        });
+        toast.success('Comment added');
+      }
+      
+      setNewCommentText('');
+      setEditingComment(null);
+      await fetchComments(selectedCommentDrawing.id);
+    } catch (error) {
+      console.error('Comment error:', error);
+      toast.error(formatErrorMessage(error, 'Failed to save comment'));
+    }
+  };
+
+  const handleEditComment = (comment) => {
+    setEditingComment(comment);
+    setNewCommentText(comment.comment_text);
+  };
+
+  const handleDeleteComment = async (commentId) => {
+    if (!window.confirm('Delete this comment?')) return;
+
+    try {
+      await axios.delete(`${API}/drawings/comments/${commentId}`);
+      toast.success('Comment deleted');
+      await fetchComments(selectedCommentDrawing.id);
+    } catch (error) {
+      console.error('Delete comment error:', error);
+      toast.error('Failed to delete comment');
+    }
+  };
+
+  const handleUploadReference = async (commentId) => {
+    if (!referenceFile) {
+      toast.error('Please select a file');
+      return;
+    }
+
+    try {
+      const formData = new FormData();
+      formData.append('file', referenceFile);
+
+      await axios.post(`${API}/drawings/comments/${commentId}/upload-reference`, formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
+
+      toast.success('Reference file uploaded');
+      setReferenceFile(null);
+      await fetchComments(selectedCommentDrawing.id);
+    } catch (error) {
+      console.error('Upload reference error:', error);
+      toast.error('Failed to upload reference file');
+    }
+  };
+
   const resetDrawingForm = () => {
     setDrawingFormData({
       category: 'Architecture',
