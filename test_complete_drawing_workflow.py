@@ -208,6 +208,7 @@ startxref
             
             # Now create the drawing
             drawing_data = {
+                "project_id": self.project_id,  # Required by ProjectDrawingCreate model
                 "category": "Architecture",
                 "name": f"Complete Workflow Test Drawing {datetime.now().strftime('%H%M%S')}",
                 "due_date": "2024-12-31",
