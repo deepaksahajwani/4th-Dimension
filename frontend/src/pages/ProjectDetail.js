@@ -307,6 +307,8 @@ export default function ProjectDetail({ user, onLogout }) {
     }
 
     try {
+      let commentId = editingComment?.id;
+      
       if (editingComment) {
         // Update existing comment
         await axios.put(`${API}/drawings/comments/${editingComment.id}`, {
@@ -315,11 +317,23 @@ export default function ProjectDetail({ user, onLogout }) {
         toast.success('Comment updated');
       } else {
         // Create new comment
-        await axios.post(`${API}/drawings/${selectedCommentDrawing.id}/comments`, {
+        const response = await axios.post(`${API}/drawings/${selectedCommentDrawing.id}/comments`, {
           drawing_id: selectedCommentDrawing.id,
           comment_text: newCommentText
         });
+        commentId = response.data.id;
         toast.success('Comment added');
+      }
+      
+      // If there's a reference file, upload it
+      if (referenceFile && commentId) {
+        const formData = new FormData();
+        formData.append('file', referenceFile);
+        
+        await axios.post(`${API}/drawings/comments/${commentId}/upload-reference`, formData, {
+          headers: { 'Content-Type': 'multipart/form-data' }
+        });
+        setReferenceFile(null);
       }
       
       setNewCommentText('');
