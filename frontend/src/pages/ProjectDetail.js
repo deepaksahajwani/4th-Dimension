@@ -1267,6 +1267,154 @@ export default function ProjectDetail({ user, onLogout }) {
           </DialogContent>
         </Dialog>
 
+        {/* Comments Dialog */}
+        <Dialog open={commentDialogOpen} onOpenChange={setCommentDialogOpen}>
+          <DialogContent className="max-w-2xl max-h-[80vh]">
+            <DialogHeader>
+              <DialogTitle>Comments: {selectedCommentDrawing?.name}</DialogTitle>
+            </DialogHeader>
+            <div className="flex flex-col h-full">
+              {/* Comments List */}
+              <div className="flex-1 overflow-y-auto space-y-4 mb-4 max-h-[40vh]">
+                {loadingComments ? (
+                  <div className="flex justify-center py-8">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
+                  </div>
+                ) : comments.length > 0 ? (
+                  comments.map((comment) => (
+                    <Card key={comment.id} className="border-l-4 border-l-purple-500">
+                      <CardContent className="p-4">
+                        <div className="flex justify-between items-start mb-2">
+                          <div>
+                            <span className="font-medium text-slate-900">{comment.user_name}</span>
+                            <span className="text-xs text-slate-500 ml-2">
+                              ({comment.user_role})
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <span className="text-xs text-slate-500">
+                              {new Date(comment.created_at).toLocaleString()}
+                            </span>
+                            {user?.id === comment.user_id && (
+                              <div className="flex gap-1">
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => handleEditComment(comment)}
+                                  className="h-6 px-2"
+                                >
+                                  <Edit className="w-3 h-3" />
+                                </Button>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => handleDeleteComment(comment.id)}
+                                  className="h-6 px-2 text-red-600"
+                                >
+                                  <Trash2 className="w-3 h-3" />
+                                </Button>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                        <p className="text-slate-700 whitespace-pre-wrap">{comment.comment_text}</p>
+                        
+                        {/* Reference Files */}
+                        {comment.reference_files && comment.reference_files.length > 0 && (
+                          <div className="mt-3 flex flex-wrap gap-2">
+                            {comment.reference_files.map((file, idx) => (
+                              <a
+                                key={idx}
+                                href={`${BACKEND_URL}${file}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-xs px-2 py-1 bg-blue-100 text-blue-700 rounded hover:bg-blue-200"
+                              >
+                                📎 Reference {idx + 1}
+                              </a>
+                            ))}
+                          </div>
+                        )}
+                      </CardContent>
+                    </Card>
+                  ))
+                ) : (
+                  <div className="text-center py-8 text-slate-500">
+                    No comments yet. Be the first to comment!
+                  </div>
+                )}
+              </div>
+              
+              {/* Add/Edit Comment Form */}
+              <div className="border-t pt-4">
+                <Label className="text-sm font-medium mb-2 block">
+                  {editingComment ? 'Edit Comment' : 'Add Comment'}
+                </Label>
+                <textarea
+                  value={newCommentText}
+                  onChange={(e) => setNewCommentText(e.target.value)}
+                  placeholder="Write your comment here..."
+                  className="w-full p-3 border rounded-lg min-h-[100px] focus:outline-none focus:ring-2 focus:ring-purple-500"
+                />
+                <div className="flex justify-between items-center mt-3">
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="file"
+                      accept="image/*,.pdf"
+                      onChange={(e) => setReferenceFile(e.target.files[0])}
+                      className="hidden"
+                      id="reference-upload"
+                    />
+                    <label htmlFor="reference-upload">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        as="span"
+                        className="cursor-pointer"
+                      >
+                        <Upload className="w-4 h-4 mr-2" />
+                        Attach File
+                      </Button>
+                    </label>
+                    {referenceFile && (
+                      <span className="text-xs text-slate-600">
+                        {referenceFile.name}
+                        <button
+                          onClick={() => setReferenceFile(null)}
+                          className="ml-2 text-red-600"
+                        >
+                          <X className="w-3 h-3 inline" />
+                        </button>
+                      </span>
+                    )}
+                  </div>
+                  <div className="flex gap-2">
+                    {editingComment && (
+                      <Button
+                        variant="outline"
+                        onClick={() => {
+                          setEditingComment(null);
+                          setNewCommentText('');
+                        }}
+                      >
+                        Cancel
+                      </Button>
+                    )}
+                    <Button
+                      onClick={handleSubmitComment}
+                      className="bg-purple-600 hover:bg-purple-700"
+                    >
+                      <Send className="w-4 h-4 mr-2" />
+                      {editingComment ? 'Update' : 'Post'}
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
+
         {/* Delete Project Dialog */}
         <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
           <DialogContent>
