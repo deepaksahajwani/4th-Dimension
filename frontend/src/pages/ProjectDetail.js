@@ -345,6 +345,47 @@ export default function ProjectDetail({ user, onLogout }) {
     }
   };
 
+  const handleDownloadCommentFile = async (fileUrl, fileName) => {
+    try {
+      const token = localStorage.getItem('token');
+      
+      // Fetch file with authentication
+      const response = await fetch(`${BACKEND_URL}${fileUrl}`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to download file');
+      }
+
+      // Create blob from response
+      const blob = await response.blob();
+      const blobUrl = window.URL.createObjectURL(blob);
+      
+      // Get file extension from URL
+      const fileExtension = fileUrl.split('.').pop();
+      const downloadFileName = `${fileName}.${fileExtension}`;
+      
+      // Trigger download
+      const a = document.createElement('a');
+      a.href = blobUrl;
+      a.download = downloadFileName;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      
+      toast.success('Download started');
+      setTimeout(() => window.URL.revokeObjectURL(blobUrl), 100);
+      
+    } catch (error) {
+      console.error('File download error:', error);
+      toast.error('Failed to download file');
+    }
+  };
+
   const handleDeleteDrawing = async (drawingId) => {
     if (!window.confirm('Are you sure you want to delete this drawing?')) return;
     
