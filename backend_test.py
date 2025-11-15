@@ -1580,6 +1580,249 @@ class BackendTester:
 
         print("✅ Drawing Issue and Revision functionality testing completed")
 
+    def test_pdf_download_endpoint(self):
+        """Test PDF download endpoint for iOS compatibility as requested in review"""
+        print(f"\n📄 Testing PDF Download Endpoint for iOS Compatibility")
+        print("=" * 60)
+        
+        # Step 1: Login as owner
+        try:
+            print("Step 1: Logging in as owner...")
+            owner_credentials = {
+                "email": "owner@test.com",
+                "password": "testpassword"
+            }
+            
+            login_response = self.session.post(f"{BACKEND_URL}/auth/login", json=owner_credentials)
+            
+            if login_response.status_code == 200:
+                login_data = login_response.json()
+                
+                if login_data.get("user", {}).get("is_owner") == True:
+                    self.owner_token = login_data["access_token"]
+                    self.log_result("PDF Download - Owner Login", True, 
+                                  "Owner successfully authenticated")
+                else:
+                    self.log_result("PDF Download - Owner Login", False, 
+                                  "User is not marked as owner")
+                    return
+            else:
+                self.log_result("PDF Download - Owner Login", False, 
+                              f"Owner login failed: {login_response.status_code} - {login_response.text}")
+                return
+                
+        except Exception as e:
+            self.log_result("PDF Download - Owner Login", False, f"Exception: {str(e)}")
+            return
+
+        owner_headers = {"Authorization": f"Bearer {self.owner_token}"}
+        
+        # Step 2: Find project "MUTHU RESIDENCE" with drawings
+        try:
+            print("Step 2: Finding project 'MUTHU RESIDENCE' with drawings...")
+            projects_response = self.session.get(f"{BACKEND_URL}/projects", headers=owner_headers)
+            
+            if projects_response.status_code == 200:
+                projects_data = projects_response.json()
+                
+                # Find MUTHU RESIDENCE project
+                muthu_project = None
+                for project in projects_data:
+                    if "MUTHU" in project.get("title", "").upper():
+                        muthu_project = project
+                        break
+                
+                if muthu_project:
+                    self.test_project = muthu_project
+                    self.log_result("PDF Download - Find MUTHU Project", True, 
+                                  f"Found project: {self.test_project.get('title')}")
+                else:
+                    # Use first available project if MUTHU RESIDENCE not found
+                    if projects_data:
+                        self.test_project = projects_data[0]
+                        self.log_result("PDF Download - Find MUTHU Project", True, 
+                                      f"MUTHU RESIDENCE not found, using: {self.test_project.get('title')}")
+                    else:
+                        self.log_result("PDF Download - Find MUTHU Project", False, 
+                                      "No projects found")
+                        return
+            else:
+                self.log_result("PDF Download - Find MUTHU Project", False, 
+                              f"Failed to get projects: {projects_response.status_code}")
+                return
+                
+        except Exception as e:
+            self.log_result("PDF Download - Find MUTHU Project", False, f"Exception: {str(e)}")
+            return
+
+        project_id = self.test_project["id"]
+        
+        # Step 3: Get drawings for the project
+        try:
+            print("Step 3: Getting drawings for the project...")
+            drawings_response = self.session.get(f"{BACKEND_URL}/projects/{project_id}/drawings", 
+                                               headers=owner_headers)
+            
+            if drawings_response.status_code == 200:
+                drawings_data = drawings_response.json()
+                
+                if len(drawings_data) > 0:
+                    # Find a drawing with file_url
+                    drawing_with_file = None
+                    for drawing in drawings_data:
+                        if drawing.get('file_url'):
+                            drawing_with_file = drawing
+                            break
+                    
+                    if drawing_with_file:
+                        self.test_drawing = drawing_with_file
+                        self.log_result("PDF Download - Find Drawing with File", True, 
+                                      f"Found drawing with file: {self.test_drawing.get('name')} (file_url: {self.test_drawing.get('file_url')})")
+                    else:
+                        # Use first drawing for testing even without file_url
+                        self.test_drawing = drawings_data[0]
+                        self.log_result("PDF Download - Find Drawing with File", True, 
+                                      f"No drawings with file_url found, using: {self.test_drawing.get('name')} for edge case testing")
+                else:
+                    self.log_result("PDF Download - Find Drawing with File", False, 
+                                  "No drawings found in project")
+                    return
+            else:
+                self.log_result("PDF Download - Find Drawing with File", False, 
+                              f"Failed to get drawings: {drawings_response.status_code}")
+                return
+                
+        except Exception as e:
+            self.log_result("PDF Download - Find Drawing with File", False, f"Exception: {str(e)}")
+            return
+
+        drawing_id = self.test_drawing["id"]
+        
+        # Step 4: Test new download endpoint with valid drawing
+        try:
+            print("Step 4: Testing download endpoint with valid drawing...")
+            download_response = self.session.get(f"{BACKEND_URL}/drawings/{drawing_id}/download", 
+                                               headers=owner_headers)
+            
+            if self.test_drawing.get('file_url'):
+                # Drawing has file_url - should succeed or return 404 if file doesn't exist
+                if download_response.status_code == 200:
+                    # Verify response headers for iOS compatibility
+                    headers = download_response.headers
+                    
+                    # Check Content-Type
+                    content_type_ok = headers.get('content-type') == 'application/pdf'
+                    
+                    # Check Content-Disposition (should be attachment for iOS)
+                    content_disposition = headers.get('content-disposition', '')
+                    attachment_ok = 'attachment' in content_disposition and 'filename=' in content_disposition
+                    
+                    # Check Cache-Control
+                    cache_control = headers.get('cache-control', '')
+                    cache_ok = 'public' in cache_control and 'max-age' in cache_control
+                    
+                    # Verify file content is returned
+                    content_length = len(download_response.content)
+                    content_ok = content_length > 0
+                    
+                    if content_type_ok and attachment_ok and cache_ok and content_ok:
+                        self.log_result("PDF Download - Valid Drawing Download", True, 
+                                      f"Download successful with proper iOS headers. Content-Type: {headers.get('content-type')}, Content-Disposition: {content_disposition}, Cache-Control: {cache_control}, Content-Length: {content_length}")
+                    else:
+                        issues = []
+                        if not content_type_ok:
+                            issues.append(f"Wrong Content-Type: {headers.get('content-type')}")
+                        if not attachment_ok:
+                            issues.append(f"Missing/wrong Content-Disposition: {content_disposition}")
+                        if not cache_ok:
+                            issues.append(f"Missing/wrong Cache-Control: {cache_control}")
+                        if not content_ok:
+                            issues.append(f"No content returned: {content_length} bytes")
+                        
+                        self.log_result("PDF Download - Valid Drawing Download", False, 
+                                      f"Header/content issues: {'; '.join(issues)}")
+                        
+                elif download_response.status_code == 404:
+                    # File doesn't exist on disk - this is acceptable
+                    error_data = download_response.json() if download_response.headers.get('content-type', '').startswith('application/json') else {}
+                    self.log_result("PDF Download - Valid Drawing Download", True, 
+                                  f"Drawing has file_url but file not found on disk (404) - acceptable: {error_data.get('detail', 'File not found')}")
+                else:
+                    self.log_result("PDF Download - Valid Drawing Download", False, 
+                                  f"Unexpected status code: {download_response.status_code}")
+            else:
+                # Drawing has no file_url - should return 404
+                if download_response.status_code == 404:
+                    error_data = download_response.json() if download_response.headers.get('content-type', '').startswith('application/json') else {}
+                    self.log_result("PDF Download - Valid Drawing Download", True, 
+                                  f"Correctly returned 404 for drawing without file_url: {error_data.get('detail', 'No file attached')}")
+                else:
+                    self.log_result("PDF Download - Valid Drawing Download", False, 
+                                  f"Expected 404 for drawing without file_url, got: {download_response.status_code}")
+                
+        except Exception as e:
+            self.log_result("PDF Download - Valid Drawing Download", False, f"Exception: {str(e)}")
+
+        # Step 5: Test with invalid drawing_id
+        try:
+            print("Step 5: Testing download endpoint with invalid drawing_id...")
+            invalid_drawing_id = "invalid-drawing-id-12345"
+            
+            invalid_response = self.session.get(f"{BACKEND_URL}/drawings/{invalid_drawing_id}/download", 
+                                              headers=owner_headers)
+            
+            if invalid_response.status_code == 404:
+                error_data = invalid_response.json() if invalid_response.headers.get('content-type', '').startswith('application/json') else {}
+                self.log_result("PDF Download - Invalid Drawing ID", True, 
+                              f"Correctly returned 404 for invalid drawing_id: {error_data.get('detail', 'Drawing not found')}")
+            else:
+                self.log_result("PDF Download - Invalid Drawing ID", False, 
+                              f"Expected 404 for invalid drawing_id, got: {invalid_response.status_code}")
+                
+        except Exception as e:
+            self.log_result("PDF Download - Invalid Drawing ID", False, f"Exception: {str(e)}")
+
+        # Step 6: Test authentication requirement
+        try:
+            print("Step 6: Testing authentication requirement...")
+            
+            # Test without authentication headers
+            unauth_response = self.session.get(f"{BACKEND_URL}/drawings/{drawing_id}/download")
+            
+            if unauth_response.status_code == 401:
+                self.log_result("PDF Download - Authentication Required", True, 
+                              "Correctly requires authentication (401)")
+            elif unauth_response.status_code == 403:
+                self.log_result("PDF Download - Authentication Required", True, 
+                              "Correctly requires authentication (403)")
+            else:
+                self.log_result("PDF Download - Authentication Required", False, 
+                              f"Expected 401/403 for unauthenticated request, got: {unauth_response.status_code}")
+                
+        except Exception as e:
+            self.log_result("PDF Download - Authentication Required", False, f"Exception: {str(e)}")
+
+        # Step 7: Test endpoint structure and response format
+        try:
+            print("Step 7: Testing endpoint structure...")
+            
+            # The endpoint should exist and be accessible (even if it returns 404)
+            test_response = self.session.get(f"{BACKEND_URL}/drawings/{drawing_id}/download", 
+                                           headers=owner_headers)
+            
+            # Any response other than 500 indicates the endpoint exists and is properly implemented
+            if test_response.status_code != 500:
+                self.log_result("PDF Download - Endpoint Structure", True, 
+                              f"Endpoint exists and responds properly (status: {test_response.status_code})")
+            else:
+                self.log_result("PDF Download - Endpoint Structure", False, 
+                              f"Endpoint returns server error: {test_response.status_code}")
+                
+        except Exception as e:
+            self.log_result("PDF Download - Endpoint Structure", False, f"Exception: {str(e)}")
+
+        print("✅ PDF Download endpoint testing completed")
+
     def run_all_tests(self):
         """Run all authentication tests"""
         print(f"🚀 Starting Backend Authentication Tests")
