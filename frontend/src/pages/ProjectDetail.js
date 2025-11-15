@@ -313,8 +313,11 @@ export default function ProjectDetail({ user, onLogout }) {
     try {
       const token = localStorage.getItem('token');
       
-      // Fetch file with authentication
-      const response = await fetch(`${BACKEND_URL}${fileUrl}`, {
+      // Extract filename from URL (e.g., "/uploads/comment_references/file.pdf" -> "file.pdf")
+      const filename = fileUrl.split('/').pop();
+      
+      // Use authenticated endpoint
+      const response = await fetch(`${API}/comments/reference/${filename}/download`, {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${token}`
@@ -349,8 +352,11 @@ export default function ProjectDetail({ user, onLogout }) {
     try {
       const token = localStorage.getItem('token');
       
-      // Fetch file with authentication
-      const response = await fetch(`${BACKEND_URL}${fileUrl}`, {
+      // Extract filename from URL
+      const filename = fileUrl.split('/').pop();
+      
+      // Use authenticated endpoint
+      const response = await fetch(`${API}/comments/reference/${filename}/download`, {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${token}`
