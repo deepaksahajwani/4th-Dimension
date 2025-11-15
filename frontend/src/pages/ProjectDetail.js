@@ -627,7 +627,7 @@ export default function ProjectDetail({ user, onLogout }) {
             )}
             
             {/* Approve button - when under review but not approved */}
-            {drawing.under_review && !drawing.is_approved && !drawing.has_pending_revision && (
+            {drawing.under_review && !drawing.is_approved && drawing.has_pending_revision !== true && (
               <Button
                 variant="outline"
                 size="sm"
