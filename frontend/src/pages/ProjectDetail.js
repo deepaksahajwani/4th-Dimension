@@ -16,7 +16,8 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { 
   ArrowLeft, Plus, CheckCircle2, Circle, AlertCircle, 
-  Calendar, Edit, Trash2, FileText, Users, Clock, MessageSquare, Send, Upload, X
+  Calendar, Edit, Trash2, FileText, Users, Clock, MessageSquare, Send, Upload, X, 
+  Download, Eye, ChevronDown
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { formatErrorMessage } from '@/utils/errorHandler';
