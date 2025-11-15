@@ -43,6 +43,14 @@ class CompleteDrawingWorkflowTester:
         """Verify drawing matches expected state"""
         checks = []
         
+        # Debug: Print actual drawing state
+        print(f"   DEBUG - Actual drawing state:")
+        print(f"     file_url: {drawing.get('file_url')}")
+        print(f"     under_review: {drawing.get('under_review')}")
+        print(f"     is_approved: {drawing.get('is_approved')}")
+        print(f"     is_issued: {drawing.get('is_issued')}")
+        print(f"     has_pending_revision: {drawing.get('has_pending_revision')}")
+        
         if expected_state.get('file_url') is None:
             checks.append((drawing.get('file_url') is None, f"file_url should be null"))
         else:
