@@ -1571,13 +1571,23 @@ export default function ProjectDetail({ user, onLogout }) {
                         {comment.reference_files && comment.reference_files.length > 0 && (
                           <div className="mt-3 flex flex-wrap gap-2">
                             {comment.reference_files.map((file, idx) => (
-                              <button
-                                key={idx}
-                                onClick={() => handleViewCommentFile(file, `Reference_${idx + 1}`)}
-                                className="text-xs px-2 py-1 bg-blue-100 text-blue-700 rounded hover:bg-blue-200 cursor-pointer"
-                              >
-                                📎 Reference {idx + 1}
-                              </button>
+                              <DropdownMenu key={idx}>
+                                <DropdownMenuTrigger asChild>
+                                  <button className="text-xs px-2 py-1 bg-blue-100 text-blue-700 rounded hover:bg-blue-200 cursor-pointer inline-flex items-center gap-1">
+                                    📎 Reference {idx + 1} <ChevronDown className="w-3 h-3" />
+                                  </button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent>
+                                  <DropdownMenuItem onClick={() => handleViewCommentFile(file, `Reference_${idx + 1}`)}>
+                                    <Eye className="w-4 h-4 mr-2" />
+                                    View
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem onClick={() => handleDownloadCommentFile(file, `Reference_${idx + 1}`)}>
+                                    <Download className="w-4 h-4 mr-2" />
+                                    Download
+                                  </DropdownMenuItem>
+                                </DropdownMenuContent>
+                              </DropdownMenu>
                             ))}
                           </div>
                         )}
