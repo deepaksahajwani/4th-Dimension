@@ -365,8 +365,10 @@ class ProjectDrawing(BaseModel):
     project_id: str
     category: str  # Architecture, Interior, Landscape, Planning
     name: str  # Drawing name/title
-    under_review: bool = False  # True when PDF uploaded for review (before issue)
+    under_review: bool = False  # True when PDF uploaded for review (before approval)
     reviewed_date: Optional[datetime] = None
+    is_approved: bool = False  # True when drawing is approved (ready to issue)
+    approved_date: Optional[datetime] = None
     is_issued: bool = False  # Whether drawing has been issued
     issued_date: Optional[datetime] = None
     comment_count: int = 0  # Total number of comments
