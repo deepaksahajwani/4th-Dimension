@@ -728,18 +728,15 @@ export default function ProjectDetail({ user, onLogout }) {
                             {/* PDF Download/View Button */}
                             {drawing.file_url && (
                               <a
-                                href={drawing.file_url.startsWith('http') 
-                                  ? drawing.file_url 
-                                  : `${process.env.REACT_APP_BACKEND_URL}${drawing.file_url}`}
-                                target="_blank"
-                                rel="noopener noreferrer"
+                                href={`${API}/drawings/${drawing.id}/download`}
+                                download
                                 className="inline-block"
                               >
                                 <Button
                                   variant="outline"
                                   size="sm"
                                   className="flex-1 sm:flex-none text-xs h-8 border-blue-500 text-blue-600"
-                                  title="View/Download PDF"
+                                  title="Download PDF"
                                 >
                                   📄 PDF
                                 </Button>
