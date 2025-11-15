@@ -255,9 +255,11 @@ metadata:
 
 test_plan:
   current_focus:
+    - "Project with Contractors Assignment"
     - "Team Leader Display in Project Details Page"
   stuck_tasks:
     - "Team Leader Display in Project Details Page"
+    - "Project with Contractors Assignment"
   test_all: false
   test_priority: "high_first"
 
