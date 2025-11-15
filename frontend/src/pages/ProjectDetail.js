@@ -1488,26 +1488,22 @@ export default function ProjectDetail({ user, onLogout }) {
                       className="hidden"
                       id="reference-upload"
                     />
-                    <label htmlFor="reference-upload">
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        as="span"
-                        className="cursor-pointer"
-                      >
-                        <Upload className="w-4 h-4 mr-2" />
-                        Attach File
-                      </Button>
+                    <label 
+                      htmlFor="reference-upload"
+                      className="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-9 px-3 cursor-pointer"
+                    >
+                      <Upload className="w-4 h-4 mr-2" />
+                      Attach File
                     </label>
                     {referenceFile && (
-                      <span className="text-xs text-slate-600">
-                        {referenceFile.name}
+                      <span className="text-xs text-slate-600 flex items-center gap-2">
+                        📎 {referenceFile.name}
                         <button
                           onClick={() => setReferenceFile(null)}
-                          className="ml-2 text-red-600"
+                          className="text-red-600 hover:text-red-800"
+                          type="button"
                         >
-                          <X className="w-3 h-3 inline" />
+                          <X className="w-3 h-3" />
                         </button>
                       </span>
                     )}
