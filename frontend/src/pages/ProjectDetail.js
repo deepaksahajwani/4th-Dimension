@@ -129,28 +129,46 @@ export default function ProjectDetail({ user, onLogout }) {
   };
 
   const handleToggleIssued = async (drawing) => {
-    // If issuing, show upload dialog
-    if (!drawing.is_issued) {
-      setSelectedFileDrawing(drawing);
-      setUploadType('issue');
-      setUploadDialogOpen(true);
+    // If drawing is currently issued, un-issue it
+    if (drawing.is_issued) {
+      try {
+        const token = localStorage.getItem('token');
+        await axios.put(`${API}/drawings/${drawing.id}`, {
+          is_issued: false
+        }, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        toast.success('Drawing un-issued');
+        fetchProjectData();
+      } catch (error) {
+        console.error('Un-issue error:', error);
+        toast.error(formatErrorMessage(error, 'Failed to un-issue drawing'));
+      }
       return;
     }
     
-    // If unissuing, directly update
-    try {
-      const token = localStorage.getItem('token');
-      await axios.put(`${API}/drawings/${drawing.id}`, {
-        is_issued: false
-      }, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      toast.success('Drawing marked as pending');
-      fetchProjectData();
-    } catch (error) {
-      console.error('Toggle issued error:', error);
-      toast.error(formatErrorMessage(error, 'Failed to update drawing'));
+    // If drawing has a file (under_review or resolved), just issue it
+    if (drawing.file_url) {
+      try {
+        const token = localStorage.getItem('token');
+        await axios.put(`${API}/drawings/${drawing.id}`, {
+          is_issued: true
+        }, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        toast.success('Drawing issued successfully!');
+        fetchProjectData();
+      } catch (error) {
+        console.error('Issue error:', error);
+        toast.error(formatErrorMessage(error, 'Failed to issue drawing'));
+      }
+      return;
     }
+    
+    // If no file exists, open upload dialog for review
+    setSelectedFileDrawing(drawing);
+    setUploadType('issue');
+    setUploadDialogOpen(true);
   };
 
   const handleOpenRevisionDialog = (drawing) => {
