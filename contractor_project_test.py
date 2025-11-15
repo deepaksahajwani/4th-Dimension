@@ -478,6 +478,14 @@ class ContractorProjectTester:
             
             headers = {"Authorization": f"Bearer {self.owner_token}"}
             
+            # Use existing client if available, or create one
+            client_id = getattr(self, 'test_client_id', None)
+            if not client_id:
+                client_id = self.test_create_client_for_project()
+                if not client_id:
+                    self.log_result("Project Access Code Uniqueness", False, "Failed to create test client")
+                    return
+            
             # Create multiple projects and verify access codes are unique
             access_codes = []
             
@@ -486,7 +494,8 @@ class ContractorProjectTester:
                     "code": f"UNIQUE-TEST-{i+1}",
                     "title": f"Uniqueness Test Project {i+1}",
                     "project_types": ["Architecture"],
-                    "status": "active",
+                    "status": "Lead",  # Use valid ProjectStatus enum value
+                    "client_id": client_id,  # Use actual client ID
                     "site_address": f"Test Address {i+1}",
                     "notes": f"Test project {i+1} for access code uniqueness"
                 }
