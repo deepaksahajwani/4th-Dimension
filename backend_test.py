@@ -1867,6 +1867,9 @@ class BackendTester:
         # Weekly Targets feature test (NEW - as requested in review)
         self.test_weekly_targets_feature()
         
+        # PDF Download endpoint test (NEW - as requested in review)
+        self.test_pdf_download_endpoint()
+        
         # Summary
         print("=" * 60)
         print("📊 TEST SUMMARY")
