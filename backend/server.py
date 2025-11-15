@@ -1390,6 +1390,11 @@ async def update_drawing(
     # If marking under_review (upload complete, ready for review)
     if update_dict.get('under_review') == True:
         update_dict['reviewed_date'] = datetime.now(timezone.utc).isoformat()
+        update_dict['is_approved'] = False  # Reset approval when new file uploaded
+    
+    # If marking as approved
+    if update_dict.get('is_approved') == True:
+        update_dict['approved_date'] = datetime.now(timezone.utc).isoformat()
     
     # If marking as issued, set issued_date
     if update_dict.get('is_issued') == True:
@@ -1397,8 +1402,7 @@ async def update_drawing(
     
     # If un-issuing (is_issued changing from True to False)
     if update_dict.get('is_issued') == False and drawing.get('is_issued') == True:
-        # Keep file_url but mark as under_review again
-        update_dict['under_review'] = True
+        # Keep file_url and approved state, just un-issue
         update_dict['issued_date'] = None
     
     # If marking has_pending_revision as True (requesting revision)
