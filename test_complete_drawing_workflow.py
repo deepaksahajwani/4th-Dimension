@@ -439,46 +439,44 @@ startxref
             self.log_result("Resolve Revision", False, f"Exception: {str(e)}")
             return False
 
-    def test_approve_drawing(self):
-        """Step 6: Approve Drawing (STATE 4)"""
+    def test_issue_drawing_directly(self):
+        """Step 6: Issue Drawing directly (STATE 4)"""
         if not self.owner_token or not self.drawing_id:
-            self.log_result("Approve Drawing", False, "Missing prerequisites")
+            self.log_result("Issue Drawing", False, "Missing prerequisites")
             return False
             
         try:
-            print("👍 Step 6: Approve Drawing (STATE 4)")
+            print("🚀 Step 6: Issue Drawing (STATE 4)")
             
             headers = {"Authorization": f"Bearer {self.owner_token}"}
             
-            # Approve drawing
-            approve_data = {
-                "is_approved": True
+            # Issue drawing directly (this is the main workflow)
+            issue_data = {
+                "is_issued": True
             }
             
             response = self.session.put(f"{BACKEND_URL}/drawings/{self.drawing_id}", 
-                                      json=approve_data, headers=headers)
+                                      json=issue_data, headers=headers)
             
             if response.status_code == 200:
                 updated_drawing = response.json()
                 
-                # Verify STATE 4: Approved
+                # Verify STATE 4: Issued
                 expected_state_4 = {
                     'file_url': 'not_null',  # Should still have file
-                    'under_review': True,
-                    'is_approved': True,
-                    'is_issued': False,
+                    'is_issued': True,
                     'has_pending_revision': False
                 }
                 
                 return self.verify_drawing_state(updated_drawing, expected_state_4, 
-                                               "STATE 4: Approved (after APPROVE)")
+                                               "STATE 4: Issued")
             else:
-                self.log_result("Approve Drawing", False, 
-                              f"Failed to approve drawing: {response.status_code} - {response.text}")
+                self.log_result("Issue Drawing", False, 
+                              f"Failed to issue drawing: {response.status_code} - {response.text}")
                 return False
                 
         except Exception as e:
-            self.log_result("Approve Drawing", False, f"Exception: {str(e)}")
+            self.log_result("Issue Drawing", False, f"Exception: {str(e)}")
             return False
 
     def test_issue_drawing(self):
