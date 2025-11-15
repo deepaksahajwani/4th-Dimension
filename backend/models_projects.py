@@ -413,6 +413,26 @@ class DrawingRevision(BaseModel):
     approved_by_id: Optional[str] = None  # TeamMember ID
     approved_at: Optional[datetime] = None
 
+class DrawingComment(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    drawing_id: str  # ProjectDrawing ID
+    user_id: str  # User ID (can be client, contractor, consultant, team member)
+    user_name: str  # Store user name for display
+    user_role: str  # Store user role (client, contractor, consultant, team_member, owner)
+    comment_text: str
+    reference_files: List[str] = []  # URLs to uploaded reference images/PDFs
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    deleted_at: Optional[datetime] = None
+
+class DrawingCommentCreate(BaseModel):
+    drawing_id: str
+    comment_text: str
+
+class DrawingCommentUpdate(BaseModel):
+    comment_text: str
+
 class ChecklistPreset(BaseModel):
     model_config = ConfigDict(extra="ignore")
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
