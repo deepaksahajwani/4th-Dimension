@@ -295,6 +295,7 @@ export default function ProjectDetail({ user, onLogout }) {
     }
     
     setUploadingFile(true);
+    
     try {
       const token = localStorage.getItem('token');
       const formData = new FormData();
@@ -302,14 +303,18 @@ export default function ProjectDetail({ user, onLogout }) {
       formData.append('drawing_id', selectedFileDrawing.id);
       formData.append('upload_type', uploadType);
       
-      // Upload file to backend
+      console.log('Starting file upload...');
+      
+      // Upload file to backend with timeout
       const uploadResponse = await axios.post(`${API}/drawings/upload`, formData, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'multipart/form-data'
-        }
+        },
+        timeout: 30000 // 30 second timeout
       });
       
+      console.log('Upload response received:', uploadResponse.data);
       const file_url = uploadResponse.data.file_url;
       
       // Update drawing with file URL
@@ -323,10 +328,13 @@ export default function ProjectDetail({ user, onLogout }) {
         updatePayload.revision_file_urls = [...current_urls, file_url];
       }
       
+      console.log('Updating drawing status...');
       await axios.put(`${API}/drawings/${selectedFileDrawing.id}`, updatePayload, {
-        headers: { Authorization: `Bearer ${token}` }
+        headers: { Authorization: `Bearer ${token}` },
+        timeout: 10000 // 10 second timeout
       });
       
+      console.log('Upload complete, showing success message');
       toast.success(uploadType === 'issue' ? 'Drawing issued with PDF!' : 'Revision resolved with PDF!');
       setUploadDialogOpen(false);
       setSelectedFile(null);
@@ -334,9 +342,17 @@ export default function ProjectDetail({ user, onLogout }) {
       fetchProjectData();
     } catch (error) {
       console.error('File upload error:', error);
-      toast.error(formatErrorMessage(error, 'Failed to upload file'));
+      if (error.code === 'ECONNABORTED') {
+        toast.error('Upload timeout - please try again with a smaller file');
+      } else {
+        toast.error(formatErrorMessage(error, 'Failed to upload file'));
+      }
     } finally {
-      setUploadingFile(false);
+      console.log('Resetting upload state');
+      // Use setTimeout to ensure state reset happens
+      setTimeout(() => {
+        setUploadingFile(false);
+      }, 100);
     }
   };
 
