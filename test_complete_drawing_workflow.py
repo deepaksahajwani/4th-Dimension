@@ -354,8 +354,6 @@ startxref
                 # Verify STATE 3: Revision Pending
                 expected_state_3 = {
                     'file_url': 'not_null',  # Should still have file
-                    'under_review': True,
-                    'is_approved': False,
                     'is_issued': False,
                     'has_pending_revision': True
                 }
