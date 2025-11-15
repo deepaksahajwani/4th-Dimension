@@ -398,6 +398,8 @@ class ProjectDrawingCreate(BaseModel):
 
 class ProjectDrawingUpdate(BaseModel):
     name: Optional[str] = None
+    under_review: Optional[bool] = None  # Drawing uploaded and under review
+    is_approved: Optional[bool] = None  # Drawing approved for issuance
     is_issued: Optional[bool] = None
     has_pending_revision: Optional[bool] = None
     revision_notes: Optional[str] = None  # What revisions are needed
