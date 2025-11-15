@@ -255,9 +255,11 @@ metadata:
 
 test_plan:
   current_focus:
+    - "File Upload Stuck Issue Investigation"
     - "Project with Contractors Assignment"
     - "Team Leader Display in Project Details Page"
   stuck_tasks:
+    - "File Upload Stuck Issue Investigation"
     - "Team Leader Display in Project Details Page"
     - "Project with Contractors Assignment"
   test_all: false
