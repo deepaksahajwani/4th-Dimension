@@ -576,40 +576,45 @@ export default function ProjectDetail({ user, onLogout }) {
           </div>
           
           <div className="flex flex-wrap sm:flex-nowrap gap-1.5 sm:gap-2 sm:ml-4">
-            {/* Issue/Unissue button - hidden when there's a pending revision */}
+            {/* Upload/Issue/Un-Issue button */}
             {!drawing.has_pending_revision && (
               <Button
                 variant="outline"
                 size="sm"
                 onClick={() => handleToggleIssued(drawing)}
-                title={drawing.is_issued ? "Mark as Pending" : "Mark as Issued"}
                 className="flex-1 sm:flex-none text-xs h-8"
               >
-                {drawing.is_issued ? "Unissue" : "Issue"}
+                {drawing.is_issued ? "Un-Issue" : 
+                 (!drawing.file_url ? "Upload" : "Issue")}
               </Button>
             )}
             
-            {/* Revise/Resolve button */}
-            {(drawing.is_issued || drawing.has_pending_revision || drawing.revision_count > 0) && (
+            {/* Revise/Resolve button - only show if under review or issued */}
+            {(drawing.under_review || drawing.is_issued || drawing.has_pending_revision) && !drawing.has_pending_revision && (
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => {
-                  if (drawing.has_pending_revision) {
-                    handleResolveRevision(drawing);
-                  } else {
-                    handleOpenRevisionDialog(drawing);
-                  }
-                }}
-                className={`flex-1 sm:flex-none text-xs h-8 ${
-                  drawing.has_pending_revision ? "border-green-500 text-green-600" : 
-                  "border-amber-500 text-amber-600"
-                }`}
-                title={drawing.has_pending_revision ? "Mark Revision Complete" : "Request Revision"}
+                onClick={() => handleOpenRevisionDialog(drawing)}
+                className="flex-1 sm:flex-none text-xs h-8 border-amber-500 text-amber-600"
+                title="Request Revision"
               >
-                {drawing.has_pending_revision ? "Resolve" : "Revise"}
+                Revise
               </Button>
             )}
+            
+            {/* Resolve button - only when revision pending */}
+            {drawing.has_pending_revision && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => handleResolveRevision(drawing)}
+                className="flex-1 sm:flex-none text-xs h-8 border-green-500 text-green-600"
+                title="Upload Revised Drawing"
+              >
+                Resolve
+              </Button>
+            )}
+            
             {drawing.revision_history && drawing.revision_history.length > 0 && (
               <Button
                 variant="outline"
@@ -622,8 +627,8 @@ export default function ProjectDetail({ user, onLogout }) {
               </Button>
             )}
             
-            {/* PDF Download/View Button */}
-            {drawing.file_url && (
+            {/* PDF Download/View Button - only show when issued */}
+            {drawing.file_url && drawing.is_issued && (
               <Button
                 variant="outline"
                 size="sm"
@@ -635,16 +640,26 @@ export default function ProjectDetail({ user, onLogout }) {
               </Button>
             )}
             
-            {/* Comment Button */}
+            {/* Comment Button with badge */}
             <Button
               variant="outline"
               size="sm"
               onClick={() => handleOpenComments(drawing)}
-              className="flex-1 sm:flex-none text-xs h-8 border-purple-500 text-purple-600"
+              className="flex-1 sm:flex-none text-xs h-8 border-purple-500 text-purple-600 relative"
               title="Comments"
             >
               <MessageSquare className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
               Comments
+              {drawing.comment_count > 0 && (
+                <span className="absolute -top-1 -right-1 bg-purple-600 text-white text-[10px] rounded-full w-4 h-4 flex items-center justify-center">
+                  {drawing.comment_count}
+                </span>
+              )}
+              {drawing.unread_comments > 0 && (
+                <span className="absolute -top-1 -right-1 bg-red-600 text-white text-[10px] rounded-full w-4 h-4 flex items-center justify-center animate-pulse">
+                  {drawing.unread_comments}
+                </span>
+              )}
             </Button>
             
             {user?.role === 'owner' && (
