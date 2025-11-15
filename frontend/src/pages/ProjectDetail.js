@@ -614,71 +614,19 @@ export default function ProjectDetail({ user, onLogout }) {
           </div>
           
           <div className="flex flex-wrap sm:flex-nowrap gap-1.5 sm:gap-2 sm:ml-4">
-            {/* Upload button - when no file OR when not in workflow (legacy drawings) */}
-            {(!drawing.file_url || (!drawing.under_review && !drawing.is_approved && !drawing.is_issued)) && drawing.has_pending_revision !== true && (
+            {/* STATE 1: PENDING - Show UPLOAD button */}
+            {!drawing.file_url && drawing.has_pending_revision !== true && (
               <Button
                 variant="outline"
                 size="sm"
                 onClick={() => handleToggleIssued(drawing)}
                 className="flex-1 sm:flex-none text-xs h-8"
               >
-                {!drawing.file_url ? 'Upload' : 'Re-Upload'}
+                Upload
               </Button>
             )}
             
-            {/* Approve button - when under review but not approved */}
-            {drawing.under_review && !drawing.is_approved && drawing.has_pending_revision !== true && (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => handleApproveDrawing(drawing)}
-                className="flex-1 sm:flex-none text-xs h-8 border-green-500 text-green-600"
-                title="Approve for Issuance"
-              >
-                Approve
-              </Button>
-            )}
-            
-            {/* Issue button - when approved but not issued */}
-            {drawing.is_approved && !drawing.is_issued && drawing.has_pending_revision !== true && (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => handleToggleIssued(drawing)}
-                className="flex-1 sm:flex-none text-xs h-8 border-blue-500 text-blue-600"
-                title="Issue Drawing"
-              >
-                Issue
-              </Button>
-            )}
-            
-            {/* Un-Issue button - when issued */}
-            {drawing.is_issued && (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => handleToggleIssued(drawing)}
-                className="flex-1 sm:flex-none text-xs h-8"
-                title="Un-Issue Drawing"
-              >
-                Un-Issue
-              </Button>
-            )}
-            
-            {/* Revise button - when under review, approved, or issued */}
-            {(drawing.under_review || drawing.is_approved || drawing.is_issued) && drawing.has_pending_revision !== true && (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => handleOpenRevisionDialog(drawing)}
-                className="flex-1 sm:flex-none text-xs h-8 border-amber-500 text-amber-600"
-                title="Request Revision"
-              >
-                Revise
-              </Button>
-            )}
-            
-            {/* Resolve button - only when revision pending */}
+            {/* STATE 3: REVISION PENDING - Show RESOLVE button */}
             {drawing.has_pending_revision === true && (
               <Button
                 variant="outline"
@@ -691,20 +639,60 @@ export default function ProjectDetail({ user, onLogout }) {
               </Button>
             )}
             
-            {drawing.revision_history && drawing.revision_history.length > 0 && (
+            {/* STATE 2 & 5: UNDER REVIEW or ISSUED - Show REVISE button */}
+            {(drawing.under_review || drawing.is_issued) && drawing.has_pending_revision !== true && (
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => handleShowHistory(drawing)}
-                title="View Revision History"
-                className="flex-1 sm:flex-none text-xs h-8"
+                onClick={() => handleOpenRevisionDialog(drawing)}
+                className="flex-1 sm:flex-none text-xs h-8 border-amber-500 text-amber-600"
+                title="Request Revision"
               >
-                History
+                Revise
               </Button>
             )}
             
-            {/* PDF Download/View Button - show when file exists and (under review, approved, or issued) */}
-            {drawing.file_url && (drawing.under_review || drawing.is_approved || drawing.is_issued) && (
+            {/* STATE 2: UNDER REVIEW - Show APPROVE button */}
+            {drawing.under_review && !drawing.is_approved && drawing.has_pending_revision !== true && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => handleApproveDrawing(drawing)}
+                className="flex-1 sm:flex-none text-xs h-8 border-green-500 text-green-600"
+                title="Approve for Issuance"
+              >
+                Approve
+              </Button>
+            )}
+            
+            {/* STATE 4: APPROVED - Show ISSUE button */}
+            {drawing.is_approved && !drawing.is_issued && drawing.has_pending_revision !== true && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => handleToggleIssued(drawing)}
+                className="flex-1 sm:flex-none text-xs h-8 border-blue-500 text-blue-600"
+                title="Issue Drawing"
+              >
+                Issue
+              </Button>
+            )}
+            
+            {/* STATE 5: ISSUED - Show UN-ISSUE button */}
+            {drawing.is_issued && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => handleToggleIssued(drawing)}
+                className="flex-1 sm:flex-none text-xs h-8"
+                title="Un-Issue Drawing"
+              >
+                Un-Issue
+              </Button>
+            )}
+            
+            {/* PDF Button - Show in States 2, 3, 4, 5 (when file exists) */}
+            {drawing.file_url && (drawing.under_review || drawing.is_approved || drawing.is_issued || drawing.has_pending_revision === true) && (
               <Button
                 variant="outline"
                 size="sm"
@@ -716,7 +704,7 @@ export default function ProjectDetail({ user, onLogout }) {
               </Button>
             )}
             
-            {/* Comment Button with badge */}
+            {/* Comment Button - Always show */}
             <Button
               variant="outline"
               size="sm"
