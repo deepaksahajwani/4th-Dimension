@@ -1387,9 +1387,19 @@ async def update_drawing(
     if not drawing:
         raise HTTPException(status_code=404, detail="Drawing not found")
     
+    # If marking under_review (upload complete, ready for review)
+    if update_dict.get('under_review') == True:
+        update_dict['reviewed_date'] = datetime.now(timezone.utc).isoformat()
+    
     # If marking as issued, set issued_date
     if update_dict.get('is_issued') == True:
         update_dict['issued_date'] = datetime.now(timezone.utc).isoformat()
+    
+    # If un-issuing (is_issued changing from True to False)
+    if update_dict.get('is_issued') == False and drawing.get('is_issued') == True:
+        # Keep file_url but mark as under_review again
+        update_dict['under_review'] = True
+        update_dict['issued_date'] = None
     
     # If marking has_pending_revision as True (requesting revision)
     if update_dict.get('has_pending_revision') == True:
