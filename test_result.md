@@ -354,6 +354,54 @@ test_plan:
         agent: "testing"
         comment: "DRAWING RESOLVE REVISION FUNCTIONALITY COMPREHENSIVE TESTING COMPLETED SUCCESSFULLY (100% success rate): ✅ Step 1: Owner login successful (owner@test.com / testpassword). ✅ Step 2: Found project 'MUTHU RESIDENCE' with 2 drawings. ✅ Step 3: Found issued drawing 'ARCH_LAYOUT PLAN' (is_issued=true). ✅ Step 4: Created revision successfully - PUT /api/drawings/{drawing_id} with has_pending_revision=true, revision_notes, revision_due_date. API correctly sets has_pending_revision=true and resets is_issued=false. ✅ Step 5: RESOLVED REVISION (KEY TEST) - PUT /api/drawings/{drawing_id} with has_pending_revision=false. API correctly returns has_pending_revision=false, revision_count incremented from 2 to 3, includes all required drawing data. ✅ Step 6: Data persistence verified - GET /api/projects/{project_id}/drawings shows revision_count=3, has_pending_revision=false, revision_history with 3 entries. CONCLUSION: Backend API is working perfectly for drawing resolve revision functionality. All API endpoints return correct data and persist changes properly. If user reports 'Resolve' button does nothing, this is a FRONTEND STATE MANAGEMENT issue, not a backend API problem. The backend correctly handles revision resolution and increments revision count."
 
+  - task: "Contractor Management System"
+    implemented: true
+    working: true
+    file: "backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "CONTRACTOR MANAGEMENT SYSTEM COMPREHENSIVE TESTING COMPLETED SUCCESSFULLY (100% success rate): ✅ Step 1: Owner Authentication - Successfully logged in as owner@test.com with proper owner privileges verified. ✅ Step 2: Contractor Types Endpoint - GET /api/contractor-types returned 15 contractor types with proper structure (value, label fields). All 14+ expected types available including Civil, Structural, Electrical, Plumbing, HVAC, Interior, Landscape, etc. ✅ Step 3: Create Contractor - POST /api/contractors successfully created 'Test Civil Contractor' with type 'Civil', phone '9876543210', email 'civil@test.com'. Unique code '6c79eca4' automatically generated as required. ✅ Step 4: Get Contractors - GET /api/contractors successfully retrieved contractors list with created contractor appearing correctly. All contractor management functionality working perfectly as requested in the review."
+
+  - task: "Project with Contractors Assignment"
+    implemented: true
+    working: false
+    file: "backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: false
+        agent: "testing"
+        comment: "PROJECT WITH CONTRACTORS TESTING COMPLETED WITH PARTIAL SUCCESS (90% success rate): ✅ Step 1: Project Creation - Successfully created project with proper structure including project_access_code (12 characters, unique). ✅ Step 2: Project Access Code Uniqueness - Verified all 3 test projects have unique 12-character access codes as required. ✅ Step 3: Basic Project Fields - All required fields (id, code, title, project_types) working correctly. ❌ ISSUE IDENTIFIED: assigned_contractors field is not being saved to database during project creation. The field exists in Project model (models_projects.py line 247) but the server endpoint (server.py line 1125) is not passing this field to the NewProject constructor. This is a backend implementation gap - the assigned_contractors feature is defined in models but not implemented in the API endpoint. Main agent needs to add assigned_contractors parameter to the project creation endpoint."
+
+  - task: "File Upload for Drawings"
+    implemented: true
+    working: true
+    file: "backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "FILE UPLOAD FUNCTIONALITY TESTING COMPLETED SUCCESSFULLY (100% success rate): ✅ Step 1: PDF File Upload - POST /api/drawings/upload successfully accepts PDF files with proper validation. ✅ Step 2: File Storage - Files saved to /uploads/drawings/ directory with unique naming convention (drawing_id_upload_type_timestamp.pdf). ✅ Step 3: Response Structure - API returns proper response with file_url and filename fields. ✅ Step 4: File URL Format - Returned file_url follows correct format '/uploads/drawings/{unique_filename}'. All file upload functionality working correctly as requested in the review."
+
+  - task: "Drawing Operations API"
+    implemented: true
+    working: true
+    file: "backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "DRAWING OPERATIONS API TESTING COMPLETED SUCCESSFULLY (100% success rate): ✅ Step 1: Get Project Drawings - GET /api/projects/{id}/drawings successfully retrieved 38 drawings with proper structure. ✅ Step 2: Drawing Fields Verification - All drawings contain required fields (id, project_id, name, category). ✅ Step 3: File URL Field - file_url field exists in drawing objects (may be null for new drawings). ✅ Step 4: Revision Tracking - revision_history and revision tracking fields present and functional. All drawing operations working correctly as requested in the review."
+
 agent_communication:
   - agent: "main"
     message: "Fixed React rendering error caused by trying to render Pydantic validation error objects directly in toast messages. Created formatErrorMessage utility function that properly handles string errors, array errors (Pydantic validation), and object errors. Updated 6 files: errorHandler.js (new), CompleteProfile.js, LoginPage.js, Projects.js, Team.js, and SelfRegister.js. All error handlers now use the utility to format error messages before displaying. Frontend restarted successfully and homepage loads correctly. Ready for comprehensive E2E testing of registration flows."
@@ -387,3 +435,5 @@ agent_communication:
     message: "DRAWING ISSUE AND REVISION FUNCTIONALITY TESTING COMPLETED: ✅ Comprehensive backend API testing confirms all drawing issue and revision functionality is working perfectly (100% success rate). ✅ TESTED SCENARIOS: 1) Login as owner (owner@test.com) - SUCCESS. 2) Get projects list - found existing project 'MUTHU RESIDENCE'. 3) Get project drawings - found 2 drawings including pending drawing 'ARCH_LAYOUT PLAN'. 4) Issue drawing via PUT /api/drawings/{id} with is_issued=true - API correctly returns updated drawing with is_issued=true and issued_date set. 5) Verify persistence - drawing issue status correctly saved in database. 6) Request revision via PUT /api/drawings/{id} with has_pending_revision=true, revision_notes, revision_due_date - API correctly sets has_pending_revision=true, resets is_issued=false, saves revision data. 7) Verify revision persistence - all revision data correctly saved. 8) Resolve revision via PUT /api/drawings/{id} with has_pending_revision=false - API correctly resolves revision and increments revision_count. 9) Final verification - revision_count=1, has_pending_revision=false. ✅ CONCLUSION: Backend APIs are working perfectly. User's reported issue with visual state not updating (success message appears but icon doesn't change) is a FRONTEND STATE MANAGEMENT issue, not a backend problem. The backend correctly updates and persists all drawing states. Main agent should investigate frontend state management and UI update logic in the drawing components."
   - agent: "testing"
     message: "DRAWING RESOLVE REVISION FUNCTIONALITY SPECIFIC TEST COMPLETED: ✅ Created focused test (drawing_resolve_revision_test.py) to test the exact user-reported issue: 'clicking Resolve button does nothing'. ✅ COMPREHENSIVE END-TO-END TEST: 1) Login as owner (owner@test.com / testpassword) - SUCCESS. 2) Found project 'MUTHU RESIDENCE' with drawings. 3) Found issued drawing 'ARCH_LAYOUT PLAN'. 4) Created revision with has_pending_revision=true, revision_notes, revision_due_date - API correctly processes request. 5) RESOLVED REVISION (KEY TEST) - PUT /api/drawings/{id} with has_pending_revision=false - API correctly returns has_pending_revision=false, revision_count incremented from 2 to 3, includes all required drawing data. 6) Data persistence verified - revision_count=3, has_pending_revision=false, revision_history with 3 entries. ✅ CONCLUSION: Backend API is working perfectly for drawing resolve revision functionality (100% success rate). All API endpoints return correct data and persist changes properly. The user's reported issue 'Resolve button does nothing' is confirmed to be a FRONTEND ISSUE, not a backend problem. The backend correctly handles revision resolution, increments revision count, and persists all data. Main agent should investigate frontend state management, UI update logic, and button click handlers in the drawing components."
+  - agent: "testing"
+    message: "CONTRACTOR AND PROJECT FEATURES COMPREHENSIVE TESTING COMPLETED (90% success rate): ✅ CONTRACTOR MANAGEMENT: All contractor endpoints working perfectly - GET /api/contractor-types (15 types available), POST /api/contractors (creates with unique_code), GET /api/contractors (lists all contractors). ✅ PROJECT CREATION: Basic project creation working with proper project_access_code generation (12 characters, unique). ✅ FILE UPLOAD: POST /api/drawings/upload working correctly for PDF files. ✅ DRAWING OPERATIONS: GET /api/projects/{id}/drawings working with proper structure and revision tracking fields. ❌ CRITICAL ISSUE: assigned_contractors field not being saved during project creation - field exists in Project model but server endpoint doesn't pass it to constructor. This is a backend implementation gap that needs to be fixed by main agent. All other contractor and project features working as requested in the review."
