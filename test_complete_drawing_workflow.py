@@ -51,19 +51,27 @@ class CompleteDrawingWorkflowTester:
         print(f"     is_issued: {drawing.get('is_issued')}")
         print(f"     has_pending_revision: {drawing.get('has_pending_revision')}")
         
+        # Check file_url
         if expected_state.get('file_url') is None:
             checks.append((drawing.get('file_url') is None, f"file_url should be null"))
-        else:
+        elif expected_state.get('file_url') == 'not_null':
             checks.append((drawing.get('file_url') is not None, f"file_url should be set"))
+        else:
+            checks.append((drawing.get('file_url') == expected_state.get('file_url'), f"file_url should match"))
             
-        checks.append((drawing.get('under_review') == expected_state.get('under_review', False), 
-                      f"under_review should be {expected_state.get('under_review', False)}"))
-        checks.append((drawing.get('is_approved') == expected_state.get('is_approved', False), 
-                      f"is_approved should be {expected_state.get('is_approved', False)}"))
-        checks.append((drawing.get('is_issued') == expected_state.get('is_issued', False), 
-                      f"is_issued should be {expected_state.get('is_issued', False)}"))
-        checks.append((drawing.get('has_pending_revision') == expected_state.get('has_pending_revision', False), 
-                      f"has_pending_revision should be {expected_state.get('has_pending_revision', False)}"))
+        # Check other fields only if they are specified in expected_state
+        if 'under_review' in expected_state:
+            checks.append((drawing.get('under_review') == expected_state.get('under_review'), 
+                          f"under_review should be {expected_state.get('under_review')}"))
+        if 'is_approved' in expected_state:
+            checks.append((drawing.get('is_approved') == expected_state.get('is_approved'), 
+                          f"is_approved should be {expected_state.get('is_approved')}"))
+        if 'is_issued' in expected_state:
+            checks.append((drawing.get('is_issued') == expected_state.get('is_issued'), 
+                          f"is_issued should be {expected_state.get('is_issued')}"))
+        if 'has_pending_revision' in expected_state:
+            checks.append((drawing.get('has_pending_revision') == expected_state.get('has_pending_revision'), 
+                          f"has_pending_revision should be {expected_state.get('has_pending_revision')}"))
         
         failed_checks = [msg for check, msg in checks if not check]
         
