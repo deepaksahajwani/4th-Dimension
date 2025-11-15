@@ -228,7 +228,7 @@ export default function ProjectDetail({ user, onLogout }) {
     setHistoryDialogOpen(true);
   };
 
-  const handleDownloadPDF = async (drawing) => {
+  const handleViewPDF = async (drawing) => {
     try {
       const token = localStorage.getItem('token');
       
@@ -256,20 +256,85 @@ export default function ProjectDetail({ user, onLogout }) {
         // Cleanup blob URL after window opens
         setTimeout(() => window.URL.revokeObjectURL(blobUrl), 1000);
       } else {
-        // Fallback: direct download if popup blocked
-        const a = document.createElement('a');
-        a.href = blobUrl;
-        a.download = `${drawing.name}.pdf`;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        toast.success('Download started');
-        setTimeout(() => window.URL.revokeObjectURL(blobUrl), 100);
+        toast.error('Please allow popups to view PDF');
       }
       
     } catch (error) {
       console.error('PDF view error:', error);
       toast.error('Failed to open PDF');
+    }
+  };
+
+  const handleDownloadPDF = async (drawing) => {
+    try {
+      const token = localStorage.getItem('token');
+      
+      // Fetch file with authentication
+      const response = await fetch(`${API}/drawings/${drawing.id}/download`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to download file');
+      }
+
+      // Create blob from response
+      const blob = await response.blob();
+      const blobUrl = window.URL.createObjectURL(blob);
+      
+      // Trigger download
+      const a = document.createElement('a');
+      a.href = blobUrl;
+      a.download = `${drawing.name}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      
+      toast.success('Download started');
+      setTimeout(() => window.URL.revokeObjectURL(blobUrl), 100);
+      
+    } catch (error) {
+      console.error('PDF download error:', error);
+      toast.error('Failed to download PDF');
+    }
+  };
+
+  const handleViewCommentFile = async (fileUrl, fileName) => {
+    try {
+      const token = localStorage.getItem('token');
+      
+      // Fetch file with authentication
+      const response = await fetch(`${BACKEND_URL}${fileUrl}`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to load file');
+      }
+
+      // Create blob from response
+      const blob = await response.blob();
+      const blobUrl = window.URL.createObjectURL(blob);
+      
+      // Open in new window
+      const newWindow = window.open(blobUrl, '_blank');
+      
+      if (newWindow) {
+        toast.success('File opened successfully');
+        setTimeout(() => window.URL.revokeObjectURL(blobUrl), 1000);
+      } else {
+        toast.error('Please allow popups to view file');
+      }
+      
+    } catch (error) {
+      console.error('File view error:', error);
+      toast.error('Failed to open file');
     }
   };
 
