@@ -1209,10 +1209,23 @@ async def get_projects(
     include_archived: bool = False,
     current_user: User = Depends(get_current_user)
 ):
-    """Get all projects"""
+    """Get projects based on user role"""
     query = {"deleted_at": None}
     if not include_archived:
         query["archived"] = {"$ne": True}
+    
+    # Role-based filtering
+    if current_user.role == "client":
+        # Clients see projects where client_email matches their email
+        query["client_email"] = current_user.email
+    elif current_user.role in ["contractor", "consultant"]:
+        # Contractors/Consultants see projects where they're assigned
+        # Find contractor/consultant record by email
+        contractor = await db.contractors.find_one({"email": current_user.email}, {"_id": 0, "id": 1})
+        if contractor:
+            # Find projects that have this contractor assigned
+            query["assigned_contractors.contractor_id"] = contractor["id"]
+    # Owners and team_members see all projects (no additional filter)
     
     projects = await db.projects.find(query, {"_id": 0}).to_list(1000)
     for project in projects:
