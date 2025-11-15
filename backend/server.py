@@ -33,6 +33,7 @@ from models_projects import (
     ContactTypeMaster, ContactTypeMasterCreate, ContactTypeMasterUpdate,
     ProjectDrawingCreate, ProjectDrawingUpdate,
     WeeklyTarget, DailyTask, WeeklyRating, WeeklyTargetCreate, DailyTaskCreate, DailyTaskUpdate,
+    DrawingComment, DrawingCommentCreate, DrawingCommentUpdate,
     Contractor, ContractorCreate, ContractorType
 )
 from drawing_templates import get_template_drawings
