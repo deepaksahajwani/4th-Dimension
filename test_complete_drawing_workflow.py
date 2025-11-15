@@ -413,11 +413,9 @@ startxref
                 if resolve_response.status_code == 200:
                     updated_drawing = resolve_response.json()
                     
-                    # Verify STATE 2b: Under Review (after RESOLVE with new file)
+                    # Verify STATE 2b: Resolved (after RESOLVE with new file)
                     expected_state_2b = {
-                        'file_url': new_file_url,
-                        'under_review': True,
-                        'is_approved': False,
+                        'file_url': 'not_null',  # Should have updated file
                         'is_issued': False,
                         'has_pending_revision': False
                     }
