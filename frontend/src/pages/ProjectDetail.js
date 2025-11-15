@@ -909,6 +909,18 @@ export default function ProjectDetail({ user, onLogout }) {
                                 📄 PDF
                               </Button>
                             )}
+                            
+                            {/* Comment Button */}
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleOpenComments(drawing)}
+                              className="flex-1 sm:flex-none text-xs h-8 border-purple-500 text-purple-600"
+                              title="Comments"
+                            >
+                              <MessageSquare className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
+                              Comments
+                            </Button>
                           </div>
                         </div>
                       </CardContent>
