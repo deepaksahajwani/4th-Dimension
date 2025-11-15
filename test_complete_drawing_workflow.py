@@ -568,7 +568,7 @@ startxref
         """Run the complete drawing workflow test"""
         print("🎯 COMPLETE DRAWING WORKFLOW TEST - ALL 5 STATES")
         print("=" * 70)
-        print("Testing complete workflow: Pending → Upload → Under Review → Revision → Resolve → Approve → Issue → Un-Issue")
+        print("Testing complete workflow: Pending → Upload → Has File → Revision → Resolve → Issue → Revision from Issued → Un-Issue")
         print()
         
         # Run all test steps in sequence
