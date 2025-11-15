@@ -438,15 +438,16 @@ async def register(user_data: UserRegister):
             registration_completed=True  # Profile already complete
         )
     else:
-        # Regular user - needs profile completion
+        # Regular user - auto-assign role based on email detection
+        # External users (clients/contractors/consultants) are auto-validated
         user = User(
             email=user_data.email,
             name=user_data.name,
-            role="pending",
+            role=detected_role,
             password_hash=get_password_hash(user_data.password),
             is_owner=False,
-            is_validated=False,
-            registration_completed=False
+            is_validated=is_external_user,  # Auto-validate clients/contractors
+            registration_completed=is_external_user  # External users don't need profile completion
         )
     
     user_dict = user.model_dump()
