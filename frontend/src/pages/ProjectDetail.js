@@ -274,6 +274,17 @@ export default function ProjectDetail({ user, onLogout }) {
     setSelectedCommentDrawing(drawing);
     setCommentDialogOpen(true);
     await fetchComments(drawing.id);
+    
+    // Mark comments as read
+    if (drawing.unread_comments > 0) {
+      try {
+        await axios.post(`${API}/drawings/${drawing.id}/mark-comments-read`);
+        // Refresh drawing data to update unread count
+        fetchProjectData();
+      } catch (error) {
+        console.error('Error marking comments as read:', error);
+      }
+    }
   };
 
   const fetchComments = async (drawingId) => {
