@@ -185,6 +185,49 @@ export default function ProjectDetail({ user, onLogout }) {
     setHistoryDialogOpen(true);
   };
 
+  const handleDownloadPDF = async (drawing) => {
+    try {
+      const token = localStorage.getItem('token');
+      
+      // Use fetch API with proper authentication for iOS compatibility
+      const response = await fetch(`${API}/drawings/${drawing.id}/download`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to download file');
+      }
+
+      // Get the blob from response
+      const blob = await response.blob();
+      
+      // Create a temporary URL for the blob
+      const url = window.URL.createObjectURL(blob);
+      
+      // Create a temporary anchor element and trigger download
+      const a = document.createElement('a');
+      a.style.display = 'none';
+      a.href = url;
+      a.download = `${drawing.name}.pdf`;
+      
+      // Append to body, click, and cleanup
+      document.body.appendChild(a);
+      a.click();
+      
+      // Cleanup
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+      
+      toast.success('PDF downloaded successfully');
+    } catch (error) {
+      console.error('Download error:', error);
+      toast.error('Failed to download PDF');
+    }
+  };
+
   const handleDeleteDrawing = async (drawingId) => {
     if (!window.confirm('Are you sure you want to delete this drawing?')) return;
     
