@@ -1559,6 +1559,161 @@ async def download_drawing_file(
     )
 
 
+# ==================== DRAWING COMMENTS ROUTES ====================
+
+@api_router.post("/drawings/{drawing_id}/comments")
+async def create_drawing_comment(
+    drawing_id: str,
+    comment_data: DrawingCommentCreate,
+    current_user: User = Depends(get_current_user)
+):
+    """Create a comment on a drawing"""
+    from models_projects import DrawingComment
+    
+    # Verify drawing exists
+    drawing = await db.project_drawings.find_one({"id": drawing_id}, {"_id": 0})
+    if not drawing:
+        raise HTTPException(status_code=404, detail="Drawing not found")
+    
+    # Create comment
+    comment = DrawingComment(
+        drawing_id=drawing_id,
+        user_id=current_user.id,
+        user_name=current_user.name,
+        user_role=current_user.role,
+        comment_text=comment_data.comment_text
+    )
+    
+    comment_dict = comment.model_dump()
+    comment_dict['created_at'] = comment_dict['created_at'].isoformat()
+    comment_dict['updated_at'] = comment_dict['updated_at'].isoformat()
+    
+    await db.drawing_comments.insert_one(comment_dict)
+    
+    return comment
+
+@api_router.get("/drawings/{drawing_id}/comments")
+async def get_drawing_comments(
+    drawing_id: str,
+    current_user: User = Depends(get_current_user)
+):
+    """Get all comments for a drawing"""
+    comments = await db.drawing_comments.find(
+        {"drawing_id": drawing_id, "deleted_at": None},
+        {"_id": 0}
+    ).sort("created_at", -1).to_list(1000)
+    
+    for comment in comments:
+        if isinstance(comment.get('created_at'), str):
+            comment['created_at'] = datetime.fromisoformat(comment['created_at'])
+        if isinstance(comment.get('updated_at'), str):
+            comment['updated_at'] = datetime.fromisoformat(comment['updated_at'])
+    
+    return comments
+
+@api_router.put("/drawings/comments/{comment_id}")
+async def update_drawing_comment(
+    comment_id: str,
+    comment_data: DrawingCommentUpdate,
+    current_user: User = Depends(get_current_user)
+):
+    """Update a comment (only by comment author)"""
+    from models_projects import DrawingCommentUpdate
+    
+    # Find comment
+    comment = await db.drawing_comments.find_one({"id": comment_id, "deleted_at": None}, {"_id": 0})
+    if not comment:
+        raise HTTPException(status_code=404, detail="Comment not found")
+    
+    # Check if user is the author
+    if comment['user_id'] != current_user.id:
+        raise HTTPException(status_code=403, detail="You can only edit your own comments")
+    
+    # Update comment
+    await db.drawing_comments.update_one(
+        {"id": comment_id},
+        {"$set": {
+            "comment_text": comment_data.comment_text,
+            "updated_at": datetime.now(timezone.utc).isoformat()
+        }}
+    )
+    
+    updated_comment = await db.drawing_comments.find_one({"id": comment_id}, {"_id": 0})
+    return updated_comment
+
+@api_router.delete("/drawings/comments/{comment_id}")
+async def delete_drawing_comment(
+    comment_id: str,
+    current_user: User = Depends(get_current_user)
+):
+    """Delete a comment (only by comment author)"""
+    # Find comment
+    comment = await db.drawing_comments.find_one({"id": comment_id, "deleted_at": None}, {"_id": 0})
+    if not comment:
+        raise HTTPException(status_code=404, detail="Comment not found")
+    
+    # Check if user is the author
+    if comment['user_id'] != current_user.id:
+        raise HTTPException(status_code=403, detail="You can only delete your own comments")
+    
+    # Soft delete
+    await db.drawing_comments.update_one(
+        {"id": comment_id},
+        {"$set": {"deleted_at": datetime.now(timezone.utc).isoformat()}}
+    )
+    
+    return {"message": "Comment deleted successfully"}
+
+@api_router.post("/drawings/comments/{comment_id}/upload-reference")
+async def upload_comment_reference(
+    comment_id: str,
+    file: UploadFile = File(...),
+    current_user: User = Depends(get_current_user)
+):
+    """Upload reference file (image/PDF) for a comment"""
+    # Find comment
+    comment = await db.drawing_comments.find_one({"id": comment_id, "deleted_at": None}, {"_id": 0})
+    if not comment:
+        raise HTTPException(status_code=404, detail="Comment not found")
+    
+    # Check if user is the author
+    if comment['user_id'] != current_user.id:
+        raise HTTPException(status_code=403, detail="You can only add files to your own comments")
+    
+    # Validate file type (images and PDFs only)
+    allowed_extensions = ['.pdf', '.jpg', '.jpeg', '.png', '.gif']
+    file_extension = Path(file.filename).suffix.lower()
+    if file_extension not in allowed_extensions:
+        raise HTTPException(status_code=400, detail="Only PDF and image files are allowed")
+    
+    # Create uploads directory
+    upload_dir = Path("uploads/comment_references")
+    upload_dir.mkdir(parents=True, exist_ok=True)
+    
+    # Generate unique filename
+    unique_filename = f"{comment_id}_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}{file_extension}"
+    file_path = upload_dir / unique_filename
+    
+    # Save file
+    with open(file_path, "wb") as buffer:
+        content = await file.read()
+        buffer.write(content)
+    
+    # Return file URL
+    file_url = f"/uploads/comment_references/{unique_filename}"
+    
+    # Add to comment's reference_files array
+    current_files = comment.get('reference_files', [])
+    current_files.append(file_url)
+    
+    await db.drawing_comments.update_one(
+        {"id": comment_id},
+        {"$set": {"reference_files": current_files}}
+    )
+    
+    return {"file_url": file_url, "filename": file.filename}
+
+
 # ==================== CONTRACTOR MANAGEMENT ROUTES ====================
 
 @api_router.post("/contractors")
