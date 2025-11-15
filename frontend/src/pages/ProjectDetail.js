@@ -679,7 +679,7 @@ export default function ProjectDetail({ user, onLogout }) {
             )}
             
             {/* Resolve button - only when revision pending */}
-            {drawing.has_pending_revision && (
+            {drawing.has_pending_revision === true && (
               <Button
                 variant="outline"
                 size="sm"
