@@ -1216,8 +1216,14 @@ async def get_projects(
     
     # Role-based filtering
     if current_user.role == "client":
-        # Clients see projects where client_email matches their email
-        query["client_email"] = current_user.email
+        # Clients see projects where their client_id matches
+        # First find the client record by email
+        client = await db.clients.find_one({"email": current_user.email}, {"_id": 0, "id": 1})
+        if client:
+            query["client_id"] = client["id"]
+        else:
+            # If no client record found, return empty list
+            return []
     elif current_user.role in ["contractor", "consultant"]:
         # Contractors/Consultants see projects where they're assigned
         # Find contractor/consultant record by email
