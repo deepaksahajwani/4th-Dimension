@@ -207,21 +207,30 @@ export default function ProjectDetail({ user, onLogout }) {
       // Create a temporary URL for the blob
       const url = window.URL.createObjectURL(blob);
       
-      // Create a temporary anchor element and trigger download
-      const a = document.createElement('a');
-      a.style.display = 'none';
-      a.href = url;
-      a.download = `${drawing.name}.pdf`;
+      // Detect iOS devices
+      const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
       
-      // Append to body, click, and cleanup
-      document.body.appendChild(a);
-      a.click();
+      if (isIOS) {
+        // On iOS, open in new tab since download attribute doesn't work reliably
+        window.open(url, '_blank');
+        toast.success('PDF opened in new tab');
+      } else {
+        // On other devices, trigger download
+        const a = document.createElement('a');
+        a.style.display = 'none';
+        a.href = url;
+        a.download = `${drawing.name}.pdf`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        toast.success('PDF downloaded successfully');
+      }
       
-      // Cleanup
-      window.URL.revokeObjectURL(url);
-      document.body.removeChild(a);
+      // Cleanup after a delay to ensure download/open completes
+      setTimeout(() => {
+        window.URL.revokeObjectURL(url);
+      }, 100);
       
-      toast.success('PDF downloaded successfully');
     } catch (error) {
       console.error('Download error:', error);
       toast.error('Failed to download PDF');
