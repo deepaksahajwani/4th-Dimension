@@ -436,7 +436,12 @@ export default function ProjectDetail({ user, onLogout }) {
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => window.open(drawing.file_url, '_blank')}
+                onClick={() => {
+                  const fileUrl = drawing.file_url.startsWith('http') 
+                    ? drawing.file_url 
+                    : `${process.env.REACT_APP_BACKEND_URL}${drawing.file_url}`;
+                  window.open(fileUrl, '_blank');
+                }}
                 className="flex-1 sm:flex-none text-xs h-8 border-blue-500 text-blue-600"
                 title="View/Download PDF"
               >
