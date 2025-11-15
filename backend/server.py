@@ -1601,6 +1601,17 @@ async def create_drawing_comment(
     
     await db.drawing_comments.insert_one(comment_dict)
     
+    # Increment comment count and unread comments on drawing
+    await db.project_drawings.update_one(
+        {"id": drawing_id},
+        {
+            "$inc": {
+                "comment_count": 1,
+                "unread_comments": 1
+            }
+        }
+    )
+    
     return comment
 
 @api_router.get("/drawings/{drawing_id}/comments")
