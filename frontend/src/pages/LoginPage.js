@@ -29,7 +29,13 @@ export default function LoginPage({ onLogin }) {
       if (response.data.requires_profile_completion) {
         navigate('/register-info');
       } else {
-        navigate('/dashboard');
+        // Role-based redirection
+        const userRole = response.data.user.role;
+        if (userRole === 'client' || userRole === 'contractor' || userRole === 'consultant') {
+          navigate('/projects'); // External users go directly to projects
+        } else {
+          navigate('/dashboard'); // Internal users go to dashboard
+        }
       }
     } catch (error) {
       // If user doesn't exist, redirect to register
