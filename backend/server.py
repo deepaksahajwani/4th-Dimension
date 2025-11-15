@@ -1735,6 +1735,19 @@ async def upload_comment_reference(
     
     return {"file_url": file_url, "filename": file.filename}
 
+@api_router.post("/drawings/{drawing_id}/mark-comments-read")
+async def mark_comments_read(
+    drawing_id: str,
+    current_user: User = Depends(get_current_user)
+):
+    """Mark all comments as read for a drawing"""
+    # Reset unread_comments to 0
+    await db.project_drawings.update_one(
+        {"id": drawing_id},
+        {"$set": {"unread_comments": 0}}
+    )
+    return {"message": "Comments marked as read"}
+
 
 # ==================== CONTRACTOR MANAGEMENT ROUTES ====================
 
