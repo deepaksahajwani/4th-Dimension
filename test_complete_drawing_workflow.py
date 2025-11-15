@@ -603,7 +603,7 @@ startxref
             self.test_resolve_revision_with_new_file,
             self.test_issue_drawing_directly,
             self.test_request_revision_from_issued,
-            self.test_unissue_drawing
+            self.test_resolve_and_issue_then_unissue
         ]
         
         all_passed = True
