@@ -1477,27 +1477,44 @@ async def upload_drawing_file(
     
     return {"file_url": file_url, "filename": file.filename}
 
-@api_router.get("/drawings/download/{filename}")
+@api_router.get("/drawings/{drawing_id}/download")
 async def download_drawing_file(
-    filename: str,
+    drawing_id: str,
     current_user: User = Depends(get_current_user)
 ):
-    """Download drawing file with proper headers for iOS"""
+    """Download drawing file with proper headers for iOS compatibility"""
+    # Fetch drawing from database
+    drawing = await db.drawings.find_one({"id": drawing_id}, {"_id": 0})
+    
+    if not drawing:
+        raise HTTPException(status_code=404, detail="Drawing not found")
+    
+    if not drawing.get("file_url"):
+        raise HTTPException(status_code=404, detail="No file attached to this drawing")
+    
+    # Extract filename from file_url (e.g., "/uploads/drawings/filename.pdf")
+    file_url = drawing["file_url"]
+    filename = file_url.split("/")[-1]
     file_path = Path("uploads/drawings") / filename
     
     if not file_path.exists():
-        raise HTTPException(status_code=404, detail="File not found")
+        raise HTTPException(status_code=404, detail="File not found on server")
     
     from fastapi.responses import FileResponse
     
+    # Create a clean filename for download
+    drawing_name = drawing.get("name", "drawing").replace(" ", "_")
+    download_filename = f"{drawing_name}.pdf"
+    
     # Return file with proper headers for iOS compatibility
+    # Using 'attachment' forces download, 'inline' for viewing
     return FileResponse(
         path=str(file_path),
         media_type="application/pdf",
+        filename=download_filename,
         headers={
-            "Content-Disposition": f'inline; filename="{filename}"',
+            "Content-Disposition": f'attachment; filename="{download_filename}"',
             "Cache-Control": "public, max-age=3600",
-            "Access-Control-Allow-Origin": "*"
         }
     )
 
