@@ -476,20 +476,15 @@ export default function ProjectDetail({ user, onLogout }) {
             
             {/* PDF Download/View Button */}
             {drawing.file_url && (
-              <a
-                href={`${API}/drawings/${drawing.id}/download`}
-                download
-                className="inline-block"
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => handleDownloadPDF(drawing)}
+                className="flex-1 sm:flex-none text-xs h-8 border-blue-500 text-blue-600"
+                title="Download PDF"
               >
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="flex-1 sm:flex-none text-xs h-8 border-blue-500 text-blue-600"
-                  title="Download PDF"
-                >
-                  📄 PDF
-                </Button>
-              </a>
+                📄 PDF
+              </Button>
             )}
             <Button
               variant="outline"
