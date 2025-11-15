@@ -1477,6 +1477,30 @@ async def upload_drawing_file(
     
     return {"file_url": file_url, "filename": file.filename}
 
+@api_router.get("/drawings/download/{filename}")
+async def download_drawing_file(
+    filename: str,
+    current_user: User = Depends(get_current_user)
+):
+    """Download drawing file with proper headers for iOS"""
+    file_path = Path("uploads/drawings") / filename
+    
+    if not file_path.exists():
+        raise HTTPException(status_code=404, detail="File not found")
+    
+    from fastapi.responses import FileResponse
+    
+    # Return file with proper headers for iOS compatibility
+    return FileResponse(
+        path=str(file_path),
+        media_type="application/pdf",
+        headers={
+            "Content-Disposition": f'inline; filename="{filename}"',
+            "Cache-Control": "public, max-age=3600",
+            "Access-Control-Allow-Origin": "*"
+        }
+    )
+
 
 # ==================== CONTRACTOR MANAGEMENT ROUTES ====================
 
