@@ -640,7 +640,7 @@ export default function ProjectDetail({ user, onLogout }) {
             )}
             
             {/* Issue button - when approved but not issued */}
-            {drawing.is_approved && !drawing.is_issued && !drawing.has_pending_revision && (
+            {drawing.is_approved && !drawing.is_issued && drawing.has_pending_revision !== true && (
               <Button
                 variant="outline"
                 size="sm"
@@ -666,7 +666,7 @@ export default function ProjectDetail({ user, onLogout }) {
             )}
             
             {/* Revise button - when under review, approved, or issued */}
-            {(drawing.under_review || drawing.is_approved || drawing.is_issued) && !drawing.has_pending_revision && (
+            {(drawing.under_review || drawing.is_approved || drawing.is_issued) && drawing.has_pending_revision !== true && (
               <Button
                 variant="outline"
                 size="sm"
