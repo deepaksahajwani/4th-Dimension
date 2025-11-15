@@ -2412,7 +2412,10 @@ async def get_notifications(current_user: User = Depends(get_current_user), limi
 app.include_router(api_router)
 
 # Mount uploads directory for serving static files
-app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
+from pathlib import Path
+uploads_path = Path(__file__).parent / "uploads"
+uploads_path.mkdir(parents=True, exist_ok=True)
+app.mount("/uploads", StaticFiles(directory=str(uploads_path)), name="uploads")
 
 app.add_middleware(
     CORSMiddleware,
