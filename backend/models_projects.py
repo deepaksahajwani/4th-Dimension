@@ -369,6 +369,8 @@ class ProjectDrawing(BaseModel):
     reviewed_date: Optional[datetime] = None
     is_issued: bool = False  # Whether drawing has been issued
     issued_date: Optional[datetime] = None
+    comment_count: int = 0  # Total number of comments
+    unread_comments: int = 0  # Number of unread comments for tracking
     revision_count: int = 0  # Number of revisions
     has_pending_revision: bool = False  # True if there's a revision needed
     current_revision_notes: Optional[str] = None  # Current pending revision notes
