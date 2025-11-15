@@ -11,7 +11,7 @@ from datetime import datetime
 import uuid
 
 # Get backend URL from frontend .env
-BACKEND_URL = "https://taskforge-81.preview.emergentagent.com/api"
+BACKEND_URL = "https://buildtracker-10.preview.emergentagent.com/api"
 
 class DrawingRevisionTester:
     def __init__(self):
