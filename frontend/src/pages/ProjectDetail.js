@@ -147,8 +147,8 @@ export default function ProjectDetail({ user, onLogout }) {
       return;
     }
     
-    // If drawing has a file (under_review or resolved), just issue it
-    if (drawing.file_url) {
+    // If drawing is approved, issue it
+    if (drawing.is_approved && drawing.file_url) {
       try {
         const token = localStorage.getItem('token');
         await axios.put(`${API}/drawings/${drawing.id}`, {
@@ -169,6 +169,22 @@ export default function ProjectDetail({ user, onLogout }) {
     setSelectedFileDrawing(drawing);
     setUploadType('issue');
     setUploadDialogOpen(true);
+  };
+
+  const handleApproveDrawing = async (drawing) => {
+    try {
+      const token = localStorage.getItem('token');
+      await axios.put(`${API}/drawings/${drawing.id}`, {
+        is_approved: true
+      }, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      toast.success('Drawing approved for issuance');
+      fetchProjectData();
+    } catch (error) {
+      console.error('Approve error:', error);
+      toast.error(formatErrorMessage(error, 'Failed to approve drawing'));
+    }
   };
 
   const handleOpenRevisionDialog = (drawing) => {
