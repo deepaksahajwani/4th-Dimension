@@ -780,15 +780,27 @@ export default function ProjectDetail({ user, onLogout }) {
             
             {/* PDF Button - Show in States 2, 3, 4, 5 (when file exists) */}
             {drawing.file_url && (drawing.under_review || drawing.is_approved || drawing.is_issued || drawing.has_pending_revision === true) && (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => handleDownloadPDF(drawing)}
-                className="flex-1 sm:flex-none text-xs h-8 border-blue-500 text-blue-600"
-                title="Download PDF"
-              >
-                📄 PDF
-              </Button>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="flex-1 sm:flex-none text-xs h-8 border-blue-500 text-blue-600"
+                  >
+                    📄 PDF <ChevronDown className="w-3 h-3 ml-1" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent>
+                  <DropdownMenuItem onClick={() => handleViewPDF(drawing)}>
+                    <Eye className="w-4 h-4 mr-2" />
+                    View
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => handleDownloadPDF(drawing)}>
+                    <Download className="w-4 h-4 mr-2" />
+                    Download
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             )}
             
             {/* Comment Button - Always show */}
