@@ -2562,6 +2562,50 @@ async def get_consultants(current_user: User = Depends(get_current_user)):
             c['updated_at'] = datetime.fromisoformat(c['updated_at'])
     return consultants
 
+@api_router.put("/consultants/{consultant_id}", response_model=Consultant)
+async def update_consultant(
+    consultant_id: str,
+    consultant_data: ConsultantCreate,
+    current_user: User = Depends(get_current_user)
+):
+    """Update consultant"""
+    existing = await db.consultants.find_one({"id": consultant_id}, {"_id": 0})
+    if not existing:
+        raise HTTPException(status_code=404, detail="Consultant not found")
+    
+    update_dict = consultant_data.model_dump()
+    update_dict['updated_at'] = datetime.now(timezone.utc).isoformat()
+    
+    await db.consultants.update_one(
+        {"id": consultant_id},
+        {"$set": update_dict}
+    )
+    
+    updated = await db.consultants.find_one({"id": consultant_id}, {"_id": 0})
+    if isinstance(updated.get('created_at'), str):
+        updated['created_at'] = datetime.fromisoformat(updated['created_at'])
+    if isinstance(updated.get('updated_at'), str):
+        updated['updated_at'] = datetime.fromisoformat(updated['updated_at'])
+    
+    return updated
+
+@api_router.delete("/consultants/{consultant_id}")
+async def delete_consultant(
+    consultant_id: str,
+    current_user: User = Depends(get_current_user)
+):
+    """Soft delete consultant"""
+    existing = await db.consultants.find_one({"id": consultant_id}, {"_id": 0})
+    if not existing:
+        raise HTTPException(status_code=404, detail="Consultant not found")
+    
+    await db.consultants.update_one(
+        {"id": consultant_id},
+        {"$set": {"deleted_at": datetime.now(timezone.utc).isoformat()}}
+    )
+    
+    return {"message": "Consultant deleted successfully"}
+
 # Checklist Presets
 @api_router.get("/checklist-presets", response_model=List[ChecklistPreset])
 async def get_checklist_presets(current_user: User = Depends(get_current_user)):
