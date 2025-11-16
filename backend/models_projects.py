@@ -37,12 +37,12 @@ class TeamMemberRole(str, Enum):
     DRAFTER = "Drafter"
 
 class ConsultantType(str, Enum):
-    STRUCTURAL = "Structural"
-    MEP = "MEP"
+    STRUCTURE = "Structure"
+    LANDSCAPE = "Landscape"
     PLUMBING = "Plumbing"
     ELECTRICAL = "Electrical"
-    HVAC = "HVAC"
-    LANDSCAPE = "Landscape"
+    AIR_CONDITIONING = "Air Conditioning"
+    STYLING = "Styling"
     OTHER = "Other"
 
 class DrawingCategoryEnum(str, Enum):
