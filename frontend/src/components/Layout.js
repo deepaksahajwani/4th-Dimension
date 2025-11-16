@@ -15,6 +15,7 @@ export default function Layout({ children, user, onLogout }) {
     { name: 'Projects', href: '/projects', icon: FolderOpen },
     { name: 'Clients', href: '/clients', icon: Users },
     { name: 'Contractors', href: '/contractors', icon: Building2 },
+    { name: 'Consultants', href: '/consultants', icon: FileText },
     { name: 'Team', href: '/team', icon: Users },
   ];
 
