@@ -43,6 +43,7 @@ class ConsultantType(str, Enum):
     ELECTRICAL = "Electrical"
     AIR_CONDITIONING = "Air Conditioning"
     STYLING = "Styling"
+    GREEN = "Green"
     OTHER = "Other"
 
 class DrawingCategoryEnum(str, Enum):
