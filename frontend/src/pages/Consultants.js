@@ -14,7 +14,7 @@ const API = `${BACKEND_URL}/api`;
 
 const CONSULTANT_TYPES = [
   "Structure", "Landscape", "Plumbing", "Electrical", 
-  "Air Conditioning", "Styling", "Other"
+  "Air Conditioning", "Styling", "Green", "Other"
 ];
 
 export default function Consultants({ user, onLogout }) {
