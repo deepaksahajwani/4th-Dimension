@@ -199,7 +199,25 @@ export default function Team({ user, onLogout }) {
                     className="cursor-pointer hover:shadow-lg transition-shadow"
                     onClick={() => handleMemberClick(member.id)}
                   >
-                    <CardContent className="p-6 text-center">
+                    <CardContent className="p-6 text-center relative">
+                      {/* Verification Status Badge */}
+                      {member.email_verified && member.mobile_verified ? (
+                        <div className="absolute top-2 right-2 bg-green-100 text-green-700 px-2 py-1 rounded-full text-xs flex items-center gap-1">
+                          <CheckCircle className="w-3 h-3" />
+                          Verified
+                        </div>
+                      ) : member.email_verified || member.mobile_verified ? (
+                        <div className="absolute top-2 right-2 bg-yellow-100 text-yellow-700 px-2 py-1 rounded-full text-xs flex items-center gap-1">
+                          <Clock className="w-3 h-3" />
+                          Partial
+                        </div>
+                      ) : member.is_validated ? null : (
+                        <div className="absolute top-2 right-2 bg-orange-100 text-orange-700 px-2 py-1 rounded-full text-xs flex items-center gap-1">
+                          <Clock className="w-3 h-3" />
+                          Pending
+                        </div>
+                      )}
+                      
                       <div className="w-20 h-20 mx-auto mb-4 bg-gradient-to-br from-orange-400 to-orange-600 rounded-full flex items-center justify-center text-white text-2xl font-bold">
                         {member.name.charAt(0).toUpperCase()}
                       </div>
