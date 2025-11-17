@@ -127,6 +127,33 @@ export default function Team({ user, onLogout }) {
     navigate('/team/manage');
   };
 
+  const handleInviteTeamMember = async (e) => {
+    e.preventDefault();
+    
+    if (!inviteForm.name || !inviteForm.email || !inviteForm.phone || !inviteForm.role) {
+      toast.error('Please fill in all fields');
+      return;
+    }
+
+    setInviting(true);
+    try {
+      const response = await axios.post(`${API}/team/invite`, inviteForm);
+      
+      toast.success('Team member invited! Verification emails and SMS sent.', {
+        duration: 5000
+      });
+      
+      setInviteDialogOpen(false);
+      setInviteForm({ name: '', email: '', phone: '', role: '' });
+      fetchTeamMembers();
+    } catch (error) {
+      console.error('Invite error:', error);
+      toast.error(error.response?.data?.detail || 'Failed to invite team member');
+    } finally {
+      setInviting(false);
+    }
+  };
+
   if (loading) {
     return (
       <Layout user={user} onLogout={onLogout}>
