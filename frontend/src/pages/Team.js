@@ -242,6 +242,91 @@ export default function Team({ user, onLogout }) {
           </div>
         )}
       </div>
+
+      {/* Invite Team Member Dialog */}
+      <Dialog open={inviteDialogOpen} onOpenChange={setInviteDialogOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Invite Team Member</DialogTitle>
+          </DialogHeader>
+          <form onSubmit={handleInviteTeamMember}>
+            <div className="space-y-4 py-4">
+              <div>
+                <Label htmlFor="name">Full Name *</Label>
+                <Input
+                  id="name"
+                  value={inviteForm.name}
+                  onChange={(e) => setInviteForm({...inviteForm, name: e.target.value})}
+                  placeholder="John Doe"
+                  required
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="email">Email Address *</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  value={inviteForm.email}
+                  onChange={(e) => setInviteForm({...inviteForm, email: e.target.value})}
+                  placeholder="john@example.com"
+                  required
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="phone">Phone Number *</Label>
+                <Input
+                  id="phone"
+                  type="tel"
+                  value={inviteForm.phone}
+                  onChange={(e) => setInviteForm({...inviteForm, phone: e.target.value})}
+                  placeholder="+919876543210"
+                  required
+                />
+                <p className="text-xs text-slate-500 mt-1">Include country code (e.g., +91 for India)</p>
+              </div>
+
+              <div>
+                <Label htmlFor="role">Role *</Label>
+                <select
+                  id="role"
+                  value={inviteForm.role}
+                  onChange={(e) => setInviteForm({...inviteForm, role: e.target.value})}
+                  className="w-full h-10 px-3 rounded-md border border-input bg-background"
+                  required
+                >
+                  <option value="">Select Role</option>
+                  {Object.keys(ROLE_LABELS).filter(r => r !== 'owner').map(role => (
+                    <option key={role} value={role}>{ROLE_LABELS[role]}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                <p className="text-sm text-blue-800">
+                  <strong>What happens next:</strong>
+                </p>
+                <ul className="text-xs text-blue-700 mt-2 space-y-1 ml-4 list-disc">
+                  <li>Verification email with link + OTP sent</li>
+                  <li>SMS with OTP sent to phone</li>
+                  <li>Member verifies email and phone</li>
+                  <li>Account activated for login</li>
+                </ul>
+              </div>
+            </div>
+
+            <DialogFooter>
+              <Button type="button" variant="outline" onClick={() => setInviteDialogOpen(false)}>
+                Cancel
+              </Button>
+              <Button type="submit" disabled={inviting} className="bg-indigo-600 hover:bg-indigo-700">
+                {inviting ? 'Sending...' : 'Send Invite'}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
     </Layout>
   );
 }
