@@ -670,3 +670,35 @@ class NotificationCreate(BaseModel):
     sent_to_emails: Optional[str] = None
     channel: NotificationChannel
     context_ref: Optional[str] = None
+
+# ==================== VERIFICATION MODELS ====================
+
+class TeamMemberVerification(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    user_id: str  # User/Team member ID
+    email: EmailStr
+    phone: Optional[str] = None
+    email_verification_token: str
+    email_otp: str
+    email_verified: bool = False
+    email_verified_at: Optional[datetime] = None
+    phone_otp: Optional[str] = None
+    phone_verified: bool = False
+    phone_verified_at: Optional[datetime] = None
+    otp_created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    otp_attempts: int = 0
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    expires_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+class VerifyEmailRequest(BaseModel):
+    token: Optional[str] = None  # Email verification token (from link)
+    otp: Optional[str] = None  # OTP code
+
+class VerifyPhoneRequest(BaseModel):
+    user_id: str
+    otp: str
+
+class ResendOTPRequest(BaseModel):
+    user_id: str
+    type: str  # "email" or "phone"
