@@ -607,6 +607,287 @@ async def logout(credentials: HTTPAuthorizationCredentials = Depends(security)):
     return {"message": "Logged out successfully"}
 
 
+# ==================== TEAM MEMBER VERIFICATION ROUTES ====================
+
+import verification_service
+
+@api_router.post("/team/invite")
+async def invite_team_member(
+    email: EmailStr,
+    name: str,
+    phone: str,
+    role: str,
+    current_user: User = Depends(require_owner)
+):
+    """
+    Owner invites team member - sends verification email and SMS
+    """
+    try:
+        # Check if user already exists
+        existing_user = await db.users.find_one({"email": email}, {"_id": 0})
+        if existing_user:
+            raise HTTPException(status_code=400, detail="User with this email already exists")
+        
+        # Create user with unverified status
+        user_id = str(uuid.uuid4())
+        user = User(
+            id=user_id,
+            email=email,
+            name=name,
+            role=role,
+            is_owner=False,
+            is_validated=False,
+            email_verified=False,
+            mobile_verified=False,
+            registration_completed=False
+        )
+        
+        user_dict = user.model_dump()
+        user_dict['created_at'] = user_dict['created_at'].isoformat()
+        await db.users.insert_one(user_dict)
+        
+        # Generate verification tokens and OTPs
+        email_token = verification_service.generate_verification_token()
+        email_otp = verification_service.generate_otp()
+        phone_otp = verification_service.generate_otp()
+        
+        # Store verification data
+        verification = TeamMemberVerification(
+            user_id=user_id,
+            email=email,
+            phone=phone,
+            email_verification_token=email_token,
+            email_otp=email_otp,
+            phone_otp=phone_otp,
+            expires_at=datetime.now(timezone.utc) + timedelta(hours=24)
+        )
+        
+        verification_dict = verification.model_dump()
+        verification_dict['created_at'] = verification_dict['created_at'].isoformat()
+        verification_dict['otp_created_at'] = verification_dict['otp_created_at'].isoformat()
+        verification_dict['expires_at'] = verification_dict['expires_at'].isoformat()
+        
+        await db.team_verifications.insert_one(verification_dict)
+        
+        # Generate verification link
+        frontend_url = os.getenv('REACT_APP_BACKEND_URL', 'http://localhost:3000')
+        verification_link = f"{frontend_url}/verify-email?token={email_token}"
+        
+        # Send verification email
+        email_success, email_error = await verification_service.send_verification_email(
+            to_email=email,
+            user_name=name,
+            verification_link=verification_link,
+            otp=email_otp
+        )
+        
+        if not email_success:
+            print(f"Failed to send email: {email_error}")
+        
+        # Send verification SMS
+        sms_success, sms_error = await verification_service.send_verification_sms(
+            phone_number=phone,
+            otp=phone_otp
+        )
+        
+        if not sms_success:
+            print(f"Failed to send SMS: {sms_error}")
+        
+        return {
+            "message": "Team member invited successfully",
+            "user_id": user_id,
+            "email_sent": email_success,
+            "sms_sent": sms_success
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"Error inviting team member: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to invite team member: {str(e)}")
+
+@api_router.post("/team/verify-email")
+async def verify_team_member_email(request: VerifyEmailRequest):
+    """
+    Verify team member email using token or OTP
+    """
+    try:
+        query = {}
+        if request.token:
+            query["email_verification_token"] = request.token
+        elif request.otp:
+            query["email_otp"] = request.otp
+        else:
+            raise HTTPException(status_code=400, detail="Token or OTP required")
+        
+        verification = await db.team_verifications.find_one(query, {"_id": 0})
+        
+        if not verification:
+            raise HTTPException(status_code=404, detail="Invalid verification token or OTP")
+        
+        # Check if already verified
+        if verification.get('email_verified'):
+            return {"message": "Email already verified", "user_id": verification['user_id']}
+        
+        # Check if expired
+        if verification_service.is_otp_expired(verification['otp_created_at']):
+            raise HTTPException(status_code=400, detail="Verification code expired")
+        
+        # Mark email as verified
+        await db.team_verifications.update_one(
+            {"id": verification['id']},
+            {"$set": {
+                "email_verified": True,
+                "email_verified_at": datetime.now(timezone.utc).isoformat()
+            }}
+        )
+        
+        # Update user
+        await db.users.update_one(
+            {"id": verification['user_id']},
+            {"$set": {"email_verified": True}}
+        )
+        
+        return {
+            "message": "Email verified successfully",
+            "user_id": verification['user_id'],
+            "phone_verified": verification.get('phone_verified', False)
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"Error verifying email: {str(e)}")
+        raise HTTPException(status_code=500, detail="Failed to verify email")
+
+@api_router.post("/team/verify-phone")
+async def verify_team_member_phone(request: VerifyPhoneRequest):
+    """
+    Verify team member phone using OTP
+    """
+    try:
+        verification = await db.team_verifications.find_one(
+            {"user_id": request.user_id, "phone_otp": request.otp},
+            {"_id": 0}
+        )
+        
+        if not verification:
+            raise HTTPException(status_code=404, detail="Invalid OTP")
+        
+        # Check if already verified
+        if verification.get('phone_verified'):
+            return {"message": "Phone already verified"}
+        
+        # Check if expired
+        if verification_service.is_otp_expired(verification['otp_created_at']):
+            raise HTTPException(status_code=400, detail="OTP expired")
+        
+        # Mark phone as verified
+        await db.team_verifications.update_one(
+            {"id": verification['id']},
+            {"$set": {
+                "phone_verified": True,
+                "phone_verified_at": datetime.now(timezone.utc).isoformat()
+            }}
+        )
+        
+        # Update user - mark as validated if both email and phone verified
+        email_verified = verification.get('email_verified', False)
+        if email_verified:
+            await db.users.update_one(
+                {"id": request.user_id},
+                {"$set": {
+                    "mobile_verified": True,
+                    "is_validated": True,
+                    "registration_completed": True
+                }}
+            )
+        else:
+            await db.users.update_one(
+                {"id": request.user_id},
+                {"$set": {"mobile_verified": True}}
+            )
+        
+        return {
+            "message": "Phone verified successfully",
+            "fully_verified": email_verified,
+            "can_login": email_verified
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"Error verifying phone: {str(e)}")
+        raise HTTPException(status_code=500, detail="Failed to verify phone")
+
+@api_router.post("/team/resend-otp")
+async def resend_verification_otp(request: ResendOTPRequest):
+    """
+    Resend OTP for email or phone verification
+    """
+    try:
+        verification = await db.team_verifications.find_one(
+            {"user_id": request.user_id},
+            {"_id": 0}
+        )
+        
+        if not verification:
+            raise HTTPException(status_code=404, detail="Verification record not found")
+        
+        # Generate new OTP
+        new_otp = verification_service.generate_otp()
+        
+        # Update verification record
+        update_data = {
+            "otp_created_at": datetime.now(timezone.utc).isoformat(),
+            "otp_attempts": verification.get('otp_attempts', 0) + 1
+        }
+        
+        if request.type == "email":
+            update_data["email_otp"] = new_otp
+            
+            # Send email
+            user = await db.users.find_one({"id": request.user_id}, {"_id": 0})
+            verification_link = f"{os.getenv('REACT_APP_BACKEND_URL', 'http://localhost:3000')}/verify-email?token={verification['email_verification_token']}"
+            
+            success, error = await verification_service.send_verification_email(
+                to_email=verification['email'],
+                user_name=user['name'],
+                verification_link=verification_link,
+                otp=new_otp
+            )
+            
+            if not success:
+                raise HTTPException(status_code=500, detail=f"Failed to send email: {error}")
+                
+        elif request.type == "phone":
+            update_data["phone_otp"] = new_otp
+            
+            # Send SMS
+            success, error = await verification_service.send_verification_sms(
+                phone_number=verification['phone'],
+                otp=new_otp
+            )
+            
+            if not success:
+                raise HTTPException(status_code=500, detail=f"Failed to send SMS: {error}")
+        else:
+            raise HTTPException(status_code=400, detail="Invalid type. Must be 'email' or 'phone'")
+        
+        await db.team_verifications.update_one(
+            {"id": verification['id']},
+            {"$set": update_data}
+        )
+        
+        return {"message": f"OTP resent successfully to {request.type}"}
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"Error resending OTP: {str(e)}")
+        raise HTTPException(status_code=500, detail="Failed to resend OTP")
+
+
 # ==================== PROFILE COMPLETION & OTP ====================
 
 @api_router.post("/profile/request-otp")
