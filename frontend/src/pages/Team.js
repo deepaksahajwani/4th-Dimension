@@ -174,10 +174,16 @@ export default function Team({ user, onLogout }) {
             <p className="text-slate-600 mt-1">Meet the talented people behind 4th Dimension</p>
           </div>
           {user?.is_owner && (
-            <Button onClick={handleManageTeam} className="bg-orange-500 hover:bg-orange-600">
-              <SettingsIcon className="w-4 h-4 mr-2" />
-              Manage Team
-            </Button>
+            <div className="flex gap-2">
+              <Button onClick={() => setInviteDialogOpen(true)} className="bg-indigo-600 hover:bg-indigo-700">
+                <UserPlus className="w-4 h-4 mr-2" />
+                Invite Member
+              </Button>
+              <Button onClick={handleManageTeam} className="bg-orange-500 hover:bg-orange-600">
+                <SettingsIcon className="w-4 h-4 mr-2" />
+                Manage Team
+              </Button>
+            </div>
           )}
         </div>
 
