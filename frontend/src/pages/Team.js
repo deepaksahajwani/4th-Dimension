@@ -56,6 +56,14 @@ export default function Team({ user, onLogout }) {
   const navigate = useNavigate();
   const [teamMembers, setTeamMembers] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [inviteDialogOpen, setInviteDialogOpen] = useState(false);
+  const [inviting, setInviting] = useState(false);
+  const [inviteForm, setInviteForm] = useState({
+    name: '',
+    email: '',
+    phone: '',
+    role: ''
+  });
 
   useEffect(() => {
     fetchTeamMembers();
