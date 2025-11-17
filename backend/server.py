@@ -34,6 +34,7 @@ from models_projects import (
     ProjectDrawingCreate, ProjectDrawingUpdate,
     WeeklyTarget, DailyTask, WeeklyRating, WeeklyTargetCreate, DailyTaskCreate, DailyTaskUpdate,
     DrawingComment, DrawingCommentCreate, DrawingCommentUpdate,
+    TeamMemberVerification, VerifyEmailRequest, VerifyPhoneRequest, ResendOTPRequest,
     Contractor, ContractorCreate, ContractorType
 )
 from drawing_templates import get_template_drawings
