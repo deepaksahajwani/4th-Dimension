@@ -1823,6 +1823,311 @@ class BackendTester:
 
         print("✅ PDF Download endpoint testing completed")
 
+    def test_team_member_invitation_flow(self):
+        """Test complete team member invitation and verification flow"""
+        print(f"\n👥 Testing Team Member Invitation and Verification Flow")
+        print("=" * 60)
+        
+        # Step 1: Login as owner
+        try:
+            print("Step 1: Logging in as owner...")
+            owner_credentials = {
+                "email": "owner@test.com",
+                "password": "testpassword"
+            }
+            
+            login_response = self.session.post(f"{BACKEND_URL}/auth/login", json=owner_credentials)
+            
+            if login_response.status_code == 200:
+                login_data = login_response.json()
+                
+                if login_data.get("user", {}).get("is_owner") == True:
+                    self.owner_token = login_data["access_token"]
+                    self.log_result("Team Invitation - Owner Login", True, 
+                                  "Owner successfully authenticated")
+                else:
+                    self.log_result("Team Invitation - Owner Login", False, 
+                                  "User is not marked as owner")
+                    return
+            else:
+                self.log_result("Team Invitation - Owner Login", False, 
+                              f"Owner login failed: {login_response.status_code} - {login_response.text}")
+                return
+                
+        except Exception as e:
+            self.log_result("Team Invitation - Owner Login", False, f"Exception: {str(e)}")
+            return
+
+        owner_headers = {"Authorization": f"Bearer {self.owner_token}"}
+        
+        # Step 2: Invite team member
+        try:
+            print("Step 2: Inviting team member...")
+            
+            # Generate unique test data
+            test_member_email = f"testmember_{uuid.uuid4().hex[:8]}@example.com"
+            test_member_name = "Test Member"
+            test_member_phone = "+919876543210"
+            test_member_role = "junior_architect"
+            
+            invite_data = {
+                "email": test_member_email,
+                "name": test_member_name,
+                "phone": test_member_phone,
+                "role": test_member_role
+            }
+            
+            invite_response = self.session.post(f"{BACKEND_URL}/team/invite", 
+                                              json=invite_data, headers=owner_headers)
+            
+            if invite_response.status_code == 200:
+                invite_result = invite_response.json()
+                
+                # Check response structure
+                required_fields = ["message", "user_id", "email_sent", "sms_sent"]
+                if all(field in invite_result for field in required_fields):
+                    self.invited_user_id = invite_result["user_id"]
+                    self.invited_user_email = test_member_email
+                    self.invited_user_phone = test_member_phone
+                    
+                    self.log_result("Team Invitation - Send Invite", True, 
+                                  f"Invitation sent successfully. User ID: {self.invited_user_id}, Email sent: {invite_result['email_sent']}, SMS sent: {invite_result['sms_sent']}")
+                else:
+                    missing_fields = [f for f in required_fields if f not in invite_result]
+                    self.log_result("Team Invitation - Send Invite", False, 
+                                  f"Missing response fields: {missing_fields}")
+                    return
+            else:
+                self.log_result("Team Invitation - Send Invite", False, 
+                              f"Invitation failed: {invite_response.status_code} - {invite_response.text}")
+                return
+                
+        except Exception as e:
+            self.log_result("Team Invitation - Send Invite", False, f"Exception: {str(e)}")
+            return
+
+        # Step 3: Check user was created with correct verification status
+        try:
+            print("Step 3: Checking user creation and verification status...")
+            
+            users_response = self.session.get(f"{BACKEND_URL}/users", headers=owner_headers)
+            
+            if users_response.status_code == 200:
+                users_data = users_response.json()
+                
+                # Find the invited user
+                invited_user = None
+                for user in users_data:
+                    if user.get("id") == self.invited_user_id:
+                        invited_user = user
+                        break
+                
+                if invited_user:
+                    # Check verification status
+                    verification_checks = [
+                        (invited_user.get('email_verified') == False, "email_verified should be False initially"),
+                        (invited_user.get('mobile_verified') == False, "mobile_verified should be False initially"),
+                        (invited_user.get('is_validated') == False, "is_validated should be False initially"),
+                        (invited_user.get('registration_completed') == False, "registration_completed should be False initially"),
+                        (invited_user.get('email') == self.invited_user_email, "email should match"),
+                        (invited_user.get('name') == test_member_name, "name should match"),
+                        (invited_user.get('role') == test_member_role, "role should match")
+                    ]
+                    
+                    failed_checks = [msg for check, msg in verification_checks if not check]
+                    
+                    if not failed_checks:
+                        self.log_result("Team Invitation - User Creation Status", True, 
+                                      "User created with correct initial verification status")
+                    else:
+                        self.log_result("Team Invitation - User Creation Status", False, 
+                                      f"Verification status issues: {'; '.join(failed_checks)}")
+                else:
+                    self.log_result("Team Invitation - User Creation Status", False, 
+                                  "Invited user not found in users list")
+                    return
+            else:
+                self.log_result("Team Invitation - User Creation Status", False, 
+                              f"Failed to get users: {users_response.status_code}")
+                return
+                
+        except Exception as e:
+            self.log_result("Team Invitation - User Creation Status", False, f"Exception: {str(e)}")
+            return
+
+        # Step 4: Test email verification with token (simulated)
+        try:
+            print("Step 4: Testing email verification endpoint...")
+            
+            # Since we can't get the actual token from the database easily,
+            # we'll test the endpoint structure with a mock token
+            mock_token = "mock_verification_token_12345"
+            
+            verify_email_data = {
+                "token": mock_token
+            }
+            
+            verify_response = self.session.post(f"{BACKEND_URL}/team/verify-email", 
+                                              json=verify_email_data)
+            
+            # We expect this to fail with 404 (token not found), which confirms the endpoint exists
+            if verify_response.status_code == 404:
+                response_data = verify_response.json()
+                if "detail" in response_data and "invalid" in response_data["detail"].lower():
+                    self.log_result("Team Invitation - Email Verification Endpoint", True, 
+                                  "Email verification endpoint exists and handles invalid tokens correctly")
+                else:
+                    self.log_result("Team Invitation - Email Verification Endpoint", False, 
+                                  "Unexpected error message format")
+            else:
+                self.log_result("Team Invitation - Email Verification Endpoint", False, 
+                              f"Unexpected response: {verify_response.status_code}")
+                
+        except Exception as e:
+            self.log_result("Team Invitation - Email Verification Endpoint", False, f"Exception: {str(e)}")
+
+        # Step 5: Test phone verification endpoint
+        try:
+            print("Step 5: Testing phone verification endpoint...")
+            
+            # Test with mock OTP
+            mock_otp = "123456"
+            
+            verify_phone_data = {
+                "user_id": self.invited_user_id,
+                "otp": mock_otp
+            }
+            
+            verify_phone_response = self.session.post(f"{BACKEND_URL}/team/verify-phone", 
+                                                    json=verify_phone_data)
+            
+            # We expect this to fail with 404 (invalid OTP), which confirms the endpoint exists
+            if verify_phone_response.status_code == 404:
+                response_data = verify_phone_response.json()
+                if "detail" in response_data and "invalid" in response_data["detail"].lower():
+                    self.log_result("Team Invitation - Phone Verification Endpoint", True, 
+                                  "Phone verification endpoint exists and handles invalid OTPs correctly")
+                else:
+                    self.log_result("Team Invitation - Phone Verification Endpoint", False, 
+                                  "Unexpected error message format")
+            else:
+                self.log_result("Team Invitation - Phone Verification Endpoint", False, 
+                              f"Unexpected response: {verify_phone_response.status_code}")
+                
+        except Exception as e:
+            self.log_result("Team Invitation - Phone Verification Endpoint", False, f"Exception: {str(e)}")
+
+        # Step 6: Test resend OTP endpoint
+        try:
+            print("Step 6: Testing resend OTP endpoint...")
+            
+            resend_data = {
+                "user_id": self.invited_user_id,
+                "type": "email"
+            }
+            
+            resend_response = self.session.post(f"{BACKEND_URL}/team/resend-otp", 
+                                              json=resend_data)
+            
+            # This might succeed or fail depending on verification record existence
+            if resend_response.status_code in [200, 404]:
+                if resend_response.status_code == 200:
+                    self.log_result("Team Invitation - Resend OTP Endpoint", True, 
+                                  "Resend OTP endpoint working correctly")
+                else:
+                    response_data = resend_response.json()
+                    if "detail" in response_data:
+                        self.log_result("Team Invitation - Resend OTP Endpoint", True, 
+                                      "Resend OTP endpoint exists and handles missing records correctly")
+                    else:
+                        self.log_result("Team Invitation - Resend OTP Endpoint", False, 
+                                      "Unexpected error format")
+            else:
+                self.log_result("Team Invitation - Resend OTP Endpoint", False, 
+                              f"Unexpected response: {resend_response.status_code}")
+                
+        except Exception as e:
+            self.log_result("Team Invitation - Resend OTP Endpoint", False, f"Exception: {str(e)}")
+
+        # Step 7: Test duplicate invitation (should fail)
+        try:
+            print("Step 7: Testing duplicate invitation...")
+            
+            duplicate_invite_data = {
+                "email": self.invited_user_email,  # Same email as before
+                "name": "Duplicate Test Member",
+                "phone": "+919876543211",
+                "role": "architect"
+            }
+            
+            duplicate_response = self.session.post(f"{BACKEND_URL}/team/invite", 
+                                                 json=duplicate_invite_data, headers=owner_headers)
+            
+            if duplicate_response.status_code == 400:
+                response_data = duplicate_response.json()
+                if "detail" in response_data and "already exists" in response_data["detail"].lower():
+                    self.log_result("Team Invitation - Duplicate Email Check", True, 
+                                  "Correctly rejected duplicate email invitation")
+                else:
+                    self.log_result("Team Invitation - Duplicate Email Check", False, 
+                                  f"Wrong error message: {response_data}")
+            else:
+                self.log_result("Team Invitation - Duplicate Email Check", False, 
+                              f"Expected 400, got {duplicate_response.status_code}")
+                
+        except Exception as e:
+            self.log_result("Team Invitation - Duplicate Email Check", False, f"Exception: {str(e)}")
+
+        # Step 8: Test non-owner access (should fail)
+        try:
+            print("Step 8: Testing non-owner access control...")
+            
+            # Create a regular user for this test
+            non_owner_email = f"nonowner_{uuid.uuid4().hex[:8]}@example.com"
+            non_owner_register = {
+                "email": non_owner_email,
+                "password": "NonOwner123!",
+                "name": "Non Owner Test"
+            }
+            
+            register_response = self.session.post(f"{BACKEND_URL}/auth/register", json=non_owner_register)
+            
+            if register_response.status_code == 200:
+                non_owner_data = register_response.json()
+                non_owner_token = non_owner_data["access_token"]
+                non_owner_headers = {"Authorization": f"Bearer {non_owner_token}"}
+                
+                # Try to invite as non-owner (should fail)
+                unauthorized_invite = {
+                    "email": f"unauthorized_{uuid.uuid4().hex[:8]}@example.com",
+                    "name": "Unauthorized Invite",
+                    "phone": "+919876543212",
+                    "role": "architect"
+                }
+                
+                unauthorized_response = self.session.post(f"{BACKEND_URL}/team/invite", 
+                                                        json=unauthorized_invite, headers=non_owner_headers)
+                
+                if unauthorized_response.status_code == 403:
+                    response_data = unauthorized_response.json()
+                    if "detail" in response_data and "owner" in response_data["detail"].lower():
+                        self.log_result("Team Invitation - Non-owner Access Control", True, 
+                                      "Correctly rejected non-owner invitation attempt")
+                    else:
+                        self.log_result("Team Invitation - Non-owner Access Control", False, 
+                                      f"Wrong error message: {response_data}")
+                else:
+                    self.log_result("Team Invitation - Non-owner Access Control", False, 
+                                  f"Expected 403, got {unauthorized_response.status_code}")
+            else:
+                self.log_result("Team Invitation - Non-owner Access Control", False, 
+                              "Failed to create non-owner test user")
+                
+        except Exception as e:
+            self.log_result("Team Invitation - Non-owner Access Control", False, f"Exception: {str(e)}")
+
+        print("✅ Team member invitation and verification flow testing completed")
+
     def run_all_tests(self):
         """Run all authentication tests"""
         print(f"🚀 Starting Backend Authentication Tests")
