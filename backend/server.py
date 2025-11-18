@@ -619,10 +619,7 @@ import verification_service
 
 @api_router.post("/team/invite")
 async def invite_team_member(
-    email: EmailStr,
-    name: str,
-    phone: str,
-    role: str,
+    invite_data: InviteTeamMember,
     current_user: User = Depends(require_owner)
 ):
     """
@@ -630,7 +627,7 @@ async def invite_team_member(
     """
     try:
         # Check if user already exists
-        existing_user = await db.users.find_one({"email": email}, {"_id": 0})
+        existing_user = await db.users.find_one({"email": invite_data.email}, {"_id": 0})
         if existing_user:
             raise HTTPException(status_code=400, detail="User with this email already exists")
         
