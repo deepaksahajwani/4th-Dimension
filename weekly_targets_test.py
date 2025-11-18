@@ -11,7 +11,7 @@ from datetime import datetime, timedelta
 import uuid
 
 # Get backend URL from frontend .env
-BACKEND_URL = "https://buildtracker-10.preview.emergentagent.com/api"
+BACKEND_URL = "https://archflow-9.preview.emergentagent.com/api"
 
 class WeeklyTargetsTester:
     def __init__(self):
