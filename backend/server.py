@@ -145,6 +145,12 @@ class UpdateTeamMember(BaseModel):
     passions: Optional[str] = None
     contribution: Optional[str] = None
 
+class InviteTeamMember(BaseModel):
+    email: EmailStr
+    name: str
+    phone: str
+    role: str
+
 class UserSession(BaseModel):
     model_config = ConfigDict(extra="ignore")
     user_id: str
