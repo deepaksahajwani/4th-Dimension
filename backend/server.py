@@ -635,9 +635,9 @@ async def invite_team_member(
         user_id = str(uuid.uuid4())
         user = User(
             id=user_id,
-            email=email,
-            name=name,
-            role=role,
+            email=invite_data.email,
+            name=invite_data.name,
+            role=invite_data.role,
             is_owner=False,
             is_validated=False,
             email_verified=False,
@@ -657,8 +657,8 @@ async def invite_team_member(
         # Store verification data
         verification = TeamMemberVerification(
             user_id=user_id,
-            email=email,
-            phone=phone,
+            email=invite_data.email,
+            phone=invite_data.phone,
             email_verification_token=email_token,
             email_otp=email_otp,
             phone_otp=phone_otp,
@@ -678,8 +678,8 @@ async def invite_team_member(
         
         # Send verification email
         email_success, email_error = await verification_service.send_verification_email(
-            to_email=email,
-            user_name=name,
+            to_email=invite_data.email,
+            user_name=invite_data.name,
             verification_link=verification_link,
             otp=email_otp
         )
@@ -689,7 +689,7 @@ async def invite_team_member(
         
         # Send verification SMS
         sms_success, sms_error = await verification_service.send_verification_sms(
-            phone_number=phone,
+            phone_number=invite_data.phone,
             otp=phone_otp
         )
         
