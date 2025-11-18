@@ -201,12 +201,12 @@ export default function Team({ user, onLogout }) {
                   >
                     <CardContent className="p-6 text-center relative">
                       {/* Verification Status Badge */}
-                      {member.is_email_verified && member.is_phone_verified ? (
+                      {member.email_verified && member.mobile_verified ? (
                         <div className="absolute top-2 right-2 bg-green-100 text-green-700 px-2 py-1 rounded-full text-xs flex items-center gap-1">
                           <CheckCircle className="w-3 h-3" />
                           Verified
                         </div>
-                      ) : member.is_email_verified || member.is_phone_verified ? (
+                      ) : member.email_verified || member.mobile_verified ? (
                         <div className="absolute top-2 right-2 bg-yellow-100 text-yellow-700 px-2 py-1 rounded-full text-xs flex items-center gap-1">
                           <Clock className="w-3 h-3" />
                           Partial
