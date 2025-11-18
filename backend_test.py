@@ -1870,7 +1870,7 @@ class BackendTester:
             test_member_phone = "+919876543210"
             test_member_role = "junior_architect"
             
-            invite_data = {
+            invite_params = {
                 "email": test_member_email,
                 "name": test_member_name,
                 "phone": test_member_phone,
@@ -1878,7 +1878,7 @@ class BackendTester:
             }
             
             invite_response = self.session.post(f"{BACKEND_URL}/team/invite", 
-                                              json=invite_data, headers=owner_headers)
+                                              params=invite_params, headers=owner_headers)
             
             if invite_response.status_code == 200:
                 invite_result = invite_response.json()
