@@ -2098,7 +2098,7 @@ class BackendTester:
                 non_owner_headers = {"Authorization": f"Bearer {non_owner_token}"}
                 
                 # Try to invite as non-owner (should fail)
-                unauthorized_invite = {
+                unauthorized_invite_params = {
                     "email": f"unauthorized_{uuid.uuid4().hex[:8]}@example.com",
                     "name": "Unauthorized Invite",
                     "phone": "+919876543212",
@@ -2106,7 +2106,7 @@ class BackendTester:
                 }
                 
                 unauthorized_response = self.session.post(f"{BACKEND_URL}/team/invite", 
-                                                        json=unauthorized_invite, headers=non_owner_headers)
+                                                        params=unauthorized_invite_params, headers=non_owner_headers)
                 
                 if unauthorized_response.status_code == 403:
                     response_data = unauthorized_response.json()
