@@ -2053,7 +2053,7 @@ class BackendTester:
         try:
             print("Step 7: Testing duplicate invitation...")
             
-            duplicate_invite_data = {
+            duplicate_invite_params = {
                 "email": self.invited_user_email,  # Same email as before
                 "name": "Duplicate Test Member",
                 "phone": "+919876543211",
@@ -2061,7 +2061,7 @@ class BackendTester:
             }
             
             duplicate_response = self.session.post(f"{BACKEND_URL}/team/invite", 
-                                                 json=duplicate_invite_data, headers=owner_headers)
+                                                 params=duplicate_invite_params, headers=owner_headers)
             
             if duplicate_response.status_code == 400:
                 response_data = duplicate_response.json()
