@@ -14,6 +14,8 @@ import AssignTargets from './pages/AssignTargets';
 import Contractors from './pages/Contractors';
 import Consultants from './pages/Consultants';
 import Projects from './pages/Projects';
+import VerifyEmail from './pages/VerifyEmail';
+import VerifyPhone from './pages/VerifyPhone';
 import ProjectDetail from './pages/ProjectDetail';
 import Clients from './pages/Clients';
 import ClientDetail from './pages/ClientDetail';
