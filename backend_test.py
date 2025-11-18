@@ -2175,6 +2175,9 @@ class BackendTester:
         # PDF Download endpoint test (NEW - as requested in review)
         self.test_pdf_download_endpoint()
         
+        # Team Member Invitation and Verification Flow test (NEW - as requested in review)
+        self.test_team_member_invitation_flow()
+        
         # Summary
         print("=" * 60)
         print("📊 TEST SUMMARY")
