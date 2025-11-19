@@ -928,11 +928,11 @@ async def send_approval_request_email(owner_email: str, user_data: dict):
                     </div>
                     
                     <div style="text-align: center; margin: 30px 0;">
-                        <a href="{approval_link}" style="display: inline-block; background: #10B981; color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; margin: 10px; font-weight: bold;">
-                            Approve
+                        <a href="{approval_link}" style="display: inline-block; background: #10B981; color: white !important; padding: 14px 40px; text-decoration: none; border-radius: 6px; margin: 10px; font-weight: bold; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                            ✓ Approve
                         </a>
-                        <a href="{reject_link}" style="display: inline-block; background: #EF4444; color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; margin: 10px; font-weight: bold;">
-                            Reject
+                        <a href="{reject_link}" style="display: inline-block; background: #EF4444; color: white !important; padding: 14px 40px; text-decoration: none; border-radius: 6px; margin: 10px; font-weight: bold; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                            ✕ Reject
                         </a>
                     </div>
                     
