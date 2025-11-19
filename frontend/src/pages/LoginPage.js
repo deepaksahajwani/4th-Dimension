@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
@@ -14,10 +14,40 @@ const API = `${BACKEND_URL}/api`;
 
 export default function LoginPage({ onLogin }) {
   const navigate = useNavigate();
+  const location = useLocation();
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [keepLoggedIn, setKeepLoggedIn] = useState(false);
   const [loginData, setLoginData] = useState({ email: '', password: '' });
+
+  useEffect(() => {
+    // Check for approval/rejection from email link
+    const params = new URLSearchParams(location.search);
+    const approved = params.get('approved');
+    const rejected = params.get('rejected');
+    const userName = params.get('user');
+    
+    if (approved === 'true' && userName) {
+      toast.success(`${decodeURIComponent(userName)} has been approved!`, {
+        duration: 6000,
+        description: 'Please login to see your dashboard'
+      });
+      window.history.replaceState({}, '', '/login');
+    } else if (rejected === 'true' && userName) {
+      toast.info(`${decodeURIComponent(userName)} has been rejected.`, {
+        duration: 6000,
+        description: 'Please login to continue'
+      });
+      window.history.replaceState({}, '', '/login');
+    }
+    
+    // If already logged in, check and redirect to pending registrations
+    const token = localStorage.getItem('token');
+    const user = localStorage.getItem('user');
+    if (token && user && (approved || rejected)) {
+      navigate('/pending-registrations');
+    }
+  }, [location, navigate]);
 
   const handleLogin = async (e) => {
     e.preventDefault();
