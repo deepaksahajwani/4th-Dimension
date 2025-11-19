@@ -930,40 +930,32 @@ async def send_approval_request_email(owner_email: str, user_data: dict):
                         <p><strong>Address:</strong> {user_data['address_line_1']}, {user_data['city']}, {user_data['state']}</p>
                     </div>
                     
-                    <!-- Button section using table for better email client support -->
-                    <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin: 30px 0;">
+                    <!-- Approve Button -->
+                    <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin: 20px 0;">
                         <tr>
                             <td align="center">
                                 <table cellpadding="0" cellspacing="0" border="0">
                                     <tr>
-                                        <td style="padding: 0 10px;">
-                                            <a href="{approval_link}" 
-                                               style="display: inline-block; 
-                                                      background-color: #10B981; 
-                                                      color: #ffffff !important; 
-                                                      padding: 15px 45px; 
-                                                      text-decoration: none; 
-                                                      border-radius: 6px; 
-                                                      font-weight: bold; 
-                                                      font-size: 16px;
-                                                      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-                                                      mso-line-height-rule: exactly;">
-                                                ✓ Approve
+                                        <td align="center" bgcolor="#10B981" style="border-radius: 6px;">
+                                            <a href="{approval_link}" target="_blank" style="font-size: 16px; font-family: Arial, sans-serif; color: #ffffff; text-decoration: none; border-radius: 6px; padding: 15px 50px; border: 1px solid #10B981; display: inline-block; font-weight: bold;">
+                                                ✓ APPROVE
                                             </a>
                                         </td>
-                                        <td style="padding: 0 10px;">
-                                            <a href="{reject_link}" 
-                                               style="display: inline-block; 
-                                                      background-color: #EF4444; 
-                                                      color: #ffffff !important; 
-                                                      padding: 15px 45px; 
-                                                      text-decoration: none; 
-                                                      border-radius: 6px; 
-                                                      font-weight: bold; 
-                                                      font-size: 16px;
-                                                      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-                                                      mso-line-height-rule: exactly;">
-                                                ✕ Reject
+                                    </tr>
+                                </table>
+                            </td>
+                        </tr>
+                    </table>
+                    
+                    <!-- Reject Button -->
+                    <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin: 20px 0;">
+                        <tr>
+                            <td align="center">
+                                <table cellpadding="0" cellspacing="0" border="0">
+                                    <tr>
+                                        <td align="center" bgcolor="#EF4444" style="border-radius: 6px;">
+                                            <a href="{reject_link}" target="_blank" style="font-size: 16px; font-family: Arial, sans-serif; color: #ffffff; text-decoration: none; border-radius: 6px; padding: 15px 50px; border: 1px solid #EF4444; display: inline-block; font-weight: bold;">
+                                                ✕ REJECT
                                             </a>
                                         </td>
                                     </tr>
