@@ -148,8 +148,14 @@ class Consultant(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     name: str
     type: ConsultantType
+    company_name: Optional[str] = None
+    company_address: Optional[str] = None
+    contact_person_name: Optional[str] = None
+    contact_person_email: Optional[EmailStr] = None
+    contact_person_phone: Optional[str] = None
     phone: Optional[str] = None
     email: Optional[EmailStr] = None
+    gst_number: Optional[str] = None
     notes: Optional[str] = None
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
@@ -158,8 +164,14 @@ class Consultant(BaseModel):
 class ConsultantCreate(BaseModel):
     name: str
     type: ConsultantType
+    company_name: Optional[str] = None
+    company_address: Optional[str] = None
+    contact_person_name: Optional[str] = None
+    contact_person_email: Optional[EmailStr] = None
+    contact_person_phone: Optional[str] = None
     phone: Optional[str] = None
     email: Optional[EmailStr] = None
+    gst_number: Optional[str] = None
     notes: Optional[str] = None
 
 class ContactInfo(BaseModel):
