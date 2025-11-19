@@ -87,6 +87,7 @@ export default function ManageTeam({ user, onLogout }) {
   };
 
   const handleDelete = (member) => {
+    console.log('handleDelete called for:', member.name);
     setSelectedMember(member);
     setDeleteDialogOpen(true);
   };
