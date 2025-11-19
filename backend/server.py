@@ -532,8 +532,10 @@ async def login(credentials: UserLogin):
             "id": user_doc['id'],
             "email": user_doc['email'],
             "name": user_doc['name'],
+            "role": user_doc.get('role', ''),
             "is_owner": user_doc.get('is_owner', False),
             "is_validated": user_doc.get('is_validated', False),
+            "approval_status": user_doc.get('approval_status', 'approved'),
             "registration_completed": user_doc.get('registration_completed', False)
         },
         "requires_profile_completion": not user_doc.get('registration_completed', False)
