@@ -96,10 +96,12 @@ class User(BaseModel):
     picture: Optional[str] = None
     is_owner: bool = False  # Only for Deepak Sahajwani
     is_admin: bool = False
-    is_validated: bool = False  # All users auto-validated after registration
+    is_validated: bool = False  # Requires owner approval after OTP verification
+    approval_status: str = "pending"  # pending, approved, rejected
     mobile_verified: bool = False
     email_verified: bool = False
     registration_completed: bool = False  # Details form completed
+    registered_via: Optional[str] = None  # email, google
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 class UserRegister(BaseModel):
