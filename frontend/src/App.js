@@ -177,6 +177,7 @@ function App() {
             <Route path="/verify-otp" element={<VerifyOTP />} />
             <Route path="/set-password" element={<SetPassword />} />
             <Route path="/pending-approval" element={<PendingApproval />} />
+            <Route path="/not-registered" element={<NotRegistered />} />
             <Route path="/register-info" element={<RegisterInfo onLogin={handleLogin} />} />
             <Route path="/verify-email" element={<VerifyEmail />} />
             <Route path="/verify-phone" element={<VerifyPhone />} />
