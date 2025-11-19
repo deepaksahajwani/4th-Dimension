@@ -604,6 +604,10 @@ class Contractor(BaseModel):
     name: str
     contractor_type: str  # Civil, Plumbing, etc.
     company_name: Optional[str] = None
+    company_address: Optional[str] = None
+    contact_person_name: Optional[str] = None
+    contact_person_email: Optional[str] = None
+    contact_person_phone: Optional[str] = None
     email: Optional[str] = None
     phone: str
     alternate_phone: Optional[str] = None
@@ -620,6 +624,10 @@ class ContractorCreate(BaseModel):
     name: str
     contractor_type: str
     company_name: Optional[str] = None
+    company_address: Optional[str] = None
+    contact_person_name: Optional[str] = None
+    contact_person_email: Optional[str] = None
+    contact_person_phone: Optional[str] = None
     email: Optional[str] = None
     phone: str
     alternate_phone: Optional[str] = None
