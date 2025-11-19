@@ -1211,9 +1211,9 @@ async def approve_reject_user(user_id: str, action: str):
             # Send rejection notification to user
             await send_approval_notification(user, approved=False)
             
-            # Redirect to pending registrations page with rejection message
+            # Redirect to login page with rejection parameter
             user_name_encoded = __import__('urllib.parse').quote(user['name'])
-            return RedirectResponse(url=f"{frontend_url}/pending-registrations?success=rejected&user={user_name_encoded}")
+            return RedirectResponse(url=f"{frontend_url}/login?rejected=true&user={user_name_encoded}")
         
     except HTTPException:
         raise
