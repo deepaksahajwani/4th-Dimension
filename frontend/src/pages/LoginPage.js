@@ -206,7 +206,7 @@ export default function LoginPage({ onLogin }) {
               <p className="text-sm text-slate-600">
                 New here?{' '}
                 <button
-                  onClick={() => navigate('/register-info')}
+                  onClick={() => navigate('/register')}
                   className="text-orange-500 hover:text-orange-600 font-medium"
                 >
                   Register now
