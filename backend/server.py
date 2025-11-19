@@ -109,6 +109,30 @@ class UserRegister(BaseModel):
     password: str
     name: str
 
+class PublicRegistration(BaseModel):
+    """New public self-registration model"""
+    name: str
+    email: EmailStr
+    mobile: str
+    registration_type: str  # client, team_member, contractor, vendor, consultant
+    address_line_1: str
+    address_line_2: Optional[str] = None
+    city: str
+    state: str
+    pin_code: str
+    registered_via: str  # email or google
+
+class VerifyRegistrationOTP(BaseModel):
+    """Verify both email and phone OTPs"""
+    email: EmailStr
+    email_otp: str
+    phone_otp: str
+
+class SetPasswordAfterOTP(BaseModel):
+    """Set password after OTP verification (for email registration only)"""
+    email: EmailStr
+    password: str
+
 class CompleteProfile(BaseModel):
     full_name: str
     address_line_1: str
