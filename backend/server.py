@@ -909,8 +909,9 @@ async def send_approval_request_email(owner_email: str, user_data: dict):
     """Send approval request email to owner"""
     try:
         sender_email = os.getenv('SENDER_EMAIL')
-        approval_link = f"{os.getenv('REACT_APP_BACKEND_URL')}/approve-user?user_id={user_data['id']}&action=approve"
-        reject_link = f"{os.getenv('REACT_APP_BACKEND_URL')}/approve-user?user_id={user_data['id']}&action=reject"
+        backend_url = os.getenv('REACT_APP_BACKEND_URL')
+        approval_link = f"{backend_url}/api/approve-user?user_id={user_data['id']}&action=approve"
+        reject_link = f"{backend_url}/api/approve-user?user_id={user_data['id']}&action=reject"
         
         html_content = f"""
         <html>
