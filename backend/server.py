@@ -1197,9 +1197,9 @@ async def approve_reject_user(user_id: str, action: str):
             # Send approval notification to user
             await send_approval_notification(user, approved=True)
             
-            # Redirect to pending registrations page with success message
+            # Redirect to login page with success parameter
             user_name_encoded = __import__('urllib.parse').quote(user['name'])
-            return RedirectResponse(url=f"{frontend_url}/pending-registrations?success=approved&user={user_name_encoded}")
+            return RedirectResponse(url=f"{frontend_url}/login?approved=true&user={user_name_encoded}")
         else:
             await db.users.update_one(
                 {"id": user_id},
