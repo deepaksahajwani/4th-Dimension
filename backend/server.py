@@ -964,9 +964,21 @@ async def send_approval_request_email(owner_email: str, user_data: dict):
                         </tr>
                     </table>
                     
-                    <p style="color: #666; font-size: 12px; text-align: center; margin-top: 30px;">
-                        You can also approve/reject from your dashboard at:<br>
-                        <a href="{backend_url}/pending-registrations" style="color: #4F46E5; text-decoration: none;">
+                    <!-- Backup text links -->
+                    <p style="color: #666; font-size: 13px; text-align: center; margin-top: 20px; padding: 15px; background: #F9FAFB; border-radius: 6px;">
+                        <strong>Can't see the buttons?</strong> Click these links:<br><br>
+                        <a href="{approval_link}" target="_blank" style="color: #10B981; text-decoration: underline; font-weight: bold;">
+                            Approve Registration
+                        </a>
+                        &nbsp;|&nbsp;
+                        <a href="{reject_link}" target="_blank" style="color: #EF4444; text-decoration: underline; font-weight: bold;">
+                            Reject Registration
+                        </a>
+                    </p>
+                    
+                    <p style="color: #666; font-size: 12px; text-align: center; margin-top: 20px;">
+                        Or visit your dashboard:<br>
+                        <a href="{backend_url}/pending-registrations" target="_blank" style="color: #4F46E5; text-decoration: underline;">
                             {backend_url}/pending-registrations
                         </a>
                     </p>
