@@ -616,6 +616,54 @@ class ContractorCreate(BaseModel):
     pan_number: Optional[str] = None
     notes: Optional[str] = None
 
+class VendorType(str, Enum):
+    MATERIALS = "Materials Supplier"
+    FURNITURE = "Furniture Supplier"
+    TILES_MARBLE = "Tiles & Marble Supplier"
+    ELECTRICAL = "Electrical Equipment Supplier"
+    PLUMBING = "Plumbing Equipment Supplier"
+    PAINT = "Paint Supplier"
+    HARDWARE = "Hardware Supplier"
+    LIGHTING = "Lighting Supplier"
+    SANITARYWARE = "Sanitaryware Supplier"
+    CUSTOM = "Custom"
+
+class Vendor(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    company_name: str
+    vendor_type: str
+    contact_person_name: str
+    contact_person_email: str
+    contact_person_phone: str
+    company_address: Optional[str] = None
+    gst_number: Optional[str] = None
+    notes: Optional[str] = None
+    unique_code: str = Field(default_factory=lambda: str(uuid.uuid4())[:8])
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    deleted_at: Optional[datetime] = None
+
+class VendorCreate(BaseModel):
+    company_name: str
+    vendor_type: str
+    contact_person_name: str
+    contact_person_email: str
+    contact_person_phone: str
+    company_address: Optional[str] = None
+    gst_number: Optional[str] = None
+    notes: Optional[str] = None
+
+class VendorUpdate(BaseModel):
+    company_name: Optional[str] = None
+    vendor_type: Optional[str] = None
+    contact_person_name: Optional[str] = None
+    contact_person_email: Optional[str] = None
+    contact_person_phone: Optional[str] = None
+    company_address: Optional[str] = None
+    gst_number: Optional[str] = None
+    notes: Optional[str] = None
+
 class WeeklyRating(BaseModel):
     """Weekly performance rating calculated on Saturday"""
     model_config = ConfigDict(extra="ignore")
