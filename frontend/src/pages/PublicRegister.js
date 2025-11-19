@@ -63,7 +63,19 @@ export default function PublicRegister() {
       });
     } catch (error) {
       console.error('Registration error:', error);
-      toast.error(error.response?.data?.detail || 'Registration failed. Please try again.');
+      
+      // Check if email already exists
+      if (error.response?.status === 400 && error.response?.data?.detail?.includes('already registered')) {
+        toast.error('This email is already registered!', {
+          duration: 5000,
+          action: {
+            label: 'Go to Login',
+            onClick: () => navigate('/login', { state: { email: formData.email } })
+          }
+        });
+      } else {
+        toast.error(error.response?.data?.detail || 'Registration failed. Please try again.');
+      }
     } finally {
       setLoading(false);
     }
