@@ -23,6 +23,24 @@ export default function LoginPage({ onLogin }) {
     setLoading(true);
     try {
       const response = await axios.post(`${API}/auth/login`, loginData);
+      
+      // Check approval status
+      if (response.data.user.approval_status === 'pending') {
+        toast.warning('Your account is pending approval');
+        navigate('/pending-approval', { 
+          state: { 
+            email: response.data.user.email 
+          } 
+        });
+        return;
+      }
+      
+      if (response.data.user.approval_status === 'rejected') {
+        toast.error('Your registration was not approved. Please contact support.');
+        return;
+      }
+      
+      // User is approved, proceed with login
       onLogin(response.data.user, response.data.access_token);
       toast.success('Welcome back!');
       
@@ -41,7 +59,7 @@ export default function LoginPage({ onLogin }) {
       // If user doesn't exist, redirect to register
       if (error.response?.status === 401) {
         toast.info('Account not found. Please register.');
-        navigate('/register-info', { state: { email: loginData.email, password: loginData.password } });
+        navigate('/register', { state: { email: loginData.email } });
       } else {
         toast.error(formatErrorMessage(error, 'Login failed'));
       }
