@@ -1206,80 +1206,15 @@ async def approve_reject_user(user_id: str, action: str):
             # Send rejection notification to user
             await send_approval_notification(user, approved=False)
             
-            html_content = f"""
-            <html>
-                <head>
-                    <title>User Rejected</title>
-                    <style>
-                        body {{
-                            font-family: Arial, sans-serif;
-                            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                            min-height: 100vh;
-                            display: flex;
-                            align-items: center;
-                            justify-content: center;
-                            margin: 0;
-                        }}
-                        .container {{
-                            background: white;
-                            padding: 40px;
-                            border-radius: 10px;
-                            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
-                            max-width: 500px;
-                            text-align: center;
-                        }}
-                        .reject-icon {{
-                            width: 80px;
-                            height: 80px;
-                            background: #EF4444;
-                            border-radius: 50%;
-                            display: flex;
-                            align-items: center;
-                            justify-content: center;
-                            margin: 0 auto 20px;
-                            font-size: 50px;
-                            color: white;
-                        }}
-                        h1 {{ color: #EF4444; margin: 20px 0; }}
-                        p {{ color: #666; line-height: 1.6; }}
-                        .user-info {{
-                            background: #F3F4F6;
-                            padding: 20px;
-                            border-radius: 8px;
-                            margin: 20px 0;
-                        }}
-                    </style>
-                </head>
-                <body>
-                    <div class="container">
-                        <div class="reject-icon">✕</div>
-                        <h1>Registration Rejected</h1>
-                        <div class="user-info">
-                            <p><strong>{user['name']}</strong></p>
-                            <p>{user['email']}</p>
-                        </div>
-                        <p>The registration has been rejected. The user has been notified via email.</p>
-                        <p style="margin-top: 30px; font-size: 14px; color: #999;">You can close this window.</p>
-                    </div>
-                </body>
-            </html>
-            """
-            return HTMLResponse(content=html_content)
+            # Redirect to pending registrations page with rejection message
+            user_name_encoded = __import__('urllib.parse').quote(user['name'])
+            return RedirectResponse(url=f"{frontend_url}/pending-registrations?success=rejected&user={user_name_encoded}")
         
     except HTTPException:
         raise
     except Exception as e:
         print(f"Approval error: {str(e)}")
-        html_content = f"""
-        <html>
-            <head><title>Error</title></head>
-            <body style="font-family: Arial, sans-serif; padding: 40px; text-align: center;">
-                <h1 style="color: #EF4444;">Error</h1>
-                <p>An error occurred: {str(e)}</p>
-            </body>
-        </html>
-        """
-        return HTMLResponse(content=html_content, status_code=500)
+        return RedirectResponse(url=f"{frontend_url}/pending-registrations?error=unknown")
 
 @api_router.post("/auth/approve-user-dashboard")
 async def approve_user_from_dashboard(
