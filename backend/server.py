@@ -1166,35 +1166,19 @@ async def invite_team_member(
 async def approve_reject_user(user_id: str, action: str):
     """
     Approve or reject user registration (called from email link)
-    Returns HTML page with confirmation
+    Redirects to dashboard with success message
     """
-    from fastapi.responses import HTMLResponse
+    from fastapi.responses import RedirectResponse
     
     try:
+        frontend_url = os.getenv('REACT_APP_BACKEND_URL')
+        
         if action not in ['approve', 'reject']:
-            html_content = """
-            <html>
-                <head><title>Invalid Action</title></head>
-                <body style="font-family: Arial, sans-serif; padding: 40px; text-align: center;">
-                    <h1 style="color: #EF4444;">Invalid Action</h1>
-                    <p>The action specified is not valid.</p>
-                </body>
-            </html>
-            """
-            return HTMLResponse(content=html_content, status_code=400)
+            return RedirectResponse(url=f"{frontend_url}/pending-registrations?error=invalid_action")
         
         user = await db.users.find_one({"id": user_id}, {"_id": 0})
         if not user:
-            html_content = """
-            <html>
-                <head><title>User Not Found</title></head>
-                <body style="font-family: Arial, sans-serif; padding: 40px; text-align: center;">
-                    <h1 style="color: #EF4444;">User Not Found</h1>
-                    <p>The user you're trying to approve/reject does not exist.</p>
-                </body>
-            </html>
-            """
-            return HTMLResponse(content=html_content, status_code=404)
+            return RedirectResponse(url=f"{frontend_url}/pending-registrations?error=user_not_found")
         
         if action == 'approve':
             await db.users.update_one(
