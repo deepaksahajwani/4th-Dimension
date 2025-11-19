@@ -620,8 +620,10 @@ async def process_google_session(session_id: str):
                 "id": user_doc['id'],
                 "email": user_doc['email'],
                 "name": user_doc['name'],
+                "role": user_doc.get('role', ''),
                 "is_owner": user_doc.get('is_owner', False),
                 "is_validated": user_doc.get('is_validated', False),
+                "approval_status": user_doc.get('approval_status', 'approved'),
                 "registration_completed": user_doc.get('registration_completed', False),
                 "picture": user_doc.get('picture')
             },
