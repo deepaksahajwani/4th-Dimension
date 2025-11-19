@@ -1836,11 +1836,19 @@ async def delete_user(user_id: str, current_user: User = Depends(require_owner))
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
     
+    # Get user email for cleanup
+    user_email = user.get('email')
+    
     # Delete user
     await db.users.delete_one({"id": user_id})
     
     # Delete user's sessions
     await db.user_sessions.delete_many({"user_id": user_id})
+    
+    # Delete any pending registrations
+    if user_email:
+        await db.pending_registrations.delete_many({"email": user_email})
+        await db.team_verifications.delete_many({"email": user_email})
     
     return {"message": "Team member deleted successfully"}
 
