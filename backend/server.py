@@ -1127,14 +1127,35 @@ async def invite_team_member(
 async def approve_reject_user(user_id: str, action: str):
     """
     Approve or reject user registration (called from email link)
+    Returns HTML page with confirmation
     """
+    from fastapi.responses import HTMLResponse
+    
     try:
         if action not in ['approve', 'reject']:
-            raise HTTPException(status_code=400, detail="Invalid action")
+            html_content = """
+            <html>
+                <head><title>Invalid Action</title></head>
+                <body style="font-family: Arial, sans-serif; padding: 40px; text-align: center;">
+                    <h1 style="color: #EF4444;">Invalid Action</h1>
+                    <p>The action specified is not valid.</p>
+                </body>
+            </html>
+            """
+            return HTMLResponse(content=html_content, status_code=400)
         
         user = await db.users.find_one({"id": user_id}, {"_id": 0})
         if not user:
-            raise HTTPException(status_code=404, detail="User not found")
+            html_content = """
+            <html>
+                <head><title>User Not Found</title></head>
+                <body style="font-family: Arial, sans-serif; padding: 40px; text-align: center;">
+                    <h1 style="color: #EF4444;">User Not Found</h1>
+                    <p>The user you're trying to approve/reject does not exist.</p>
+                </body>
+            </html>
+            """
+            return HTMLResponse(content=html_content, status_code=404)
         
         if action == 'approve':
             await db.users.update_one(
@@ -1148,7 +1169,65 @@ async def approve_reject_user(user_id: str, action: str):
             # Send approval notification to user
             await send_approval_notification(user, approved=True)
             
-            return {"message": f"User {user['name']} has been approved successfully"}
+            html_content = f"""
+            <html>
+                <head>
+                    <title>User Approved</title>
+                    <style>
+                        body {{
+                            font-family: Arial, sans-serif;
+                            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                            min-height: 100vh;
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                            margin: 0;
+                        }}
+                        .container {{
+                            background: white;
+                            padding: 40px;
+                            border-radius: 10px;
+                            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+                            max-width: 500px;
+                            text-align: center;
+                        }}
+                        .success-icon {{
+                            width: 80px;
+                            height: 80px;
+                            background: #10B981;
+                            border-radius: 50%;
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                            margin: 0 auto 20px;
+                            font-size: 50px;
+                            color: white;
+                        }}
+                        h1 {{ color: #10B981; margin: 20px 0; }}
+                        p {{ color: #666; line-height: 1.6; }}
+                        .user-info {{
+                            background: #F3F4F6;
+                            padding: 20px;
+                            border-radius: 8px;
+                            margin: 20px 0;
+                        }}
+                    </style>
+                </head>
+                <body>
+                    <div class="container">
+                        <div class="success-icon">✓</div>
+                        <h1>User Approved Successfully!</h1>
+                        <div class="user-info">
+                            <p><strong>{user['name']}</strong></p>
+                            <p>{user['email']}</p>
+                        </div>
+                        <p>The user has been notified via email and can now log in to the system.</p>
+                        <p style="margin-top: 30px; font-size: 14px; color: #999;">You can close this window.</p>
+                    </div>
+                </body>
+            </html>
+            """
+            return HTMLResponse(content=html_content)
         else:
             await db.users.update_one(
                 {"id": user_id},
@@ -1160,13 +1239,80 @@ async def approve_reject_user(user_id: str, action: str):
             # Send rejection notification to user
             await send_approval_notification(user, approved=False)
             
-            return {"message": f"User {user['name']} has been rejected"}
+            html_content = f"""
+            <html>
+                <head>
+                    <title>User Rejected</title>
+                    <style>
+                        body {{
+                            font-family: Arial, sans-serif;
+                            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                            min-height: 100vh;
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                            margin: 0;
+                        }}
+                        .container {{
+                            background: white;
+                            padding: 40px;
+                            border-radius: 10px;
+                            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+                            max-width: 500px;
+                            text-align: center;
+                        }}
+                        .reject-icon {{
+                            width: 80px;
+                            height: 80px;
+                            background: #EF4444;
+                            border-radius: 50%;
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                            margin: 0 auto 20px;
+                            font-size: 50px;
+                            color: white;
+                        }}
+                        h1 {{ color: #EF4444; margin: 20px 0; }}
+                        p {{ color: #666; line-height: 1.6; }}
+                        .user-info {{
+                            background: #F3F4F6;
+                            padding: 20px;
+                            border-radius: 8px;
+                            margin: 20px 0;
+                        }}
+                    </style>
+                </head>
+                <body>
+                    <div class="container">
+                        <div class="reject-icon">✕</div>
+                        <h1>Registration Rejected</h1>
+                        <div class="user-info">
+                            <p><strong>{user['name']}</strong></p>
+                            <p>{user['email']}</p>
+                        </div>
+                        <p>The registration has been rejected. The user has been notified via email.</p>
+                        <p style="margin-top: 30px; font-size: 14px; color: #999;">You can close this window.</p>
+                    </div>
+                </body>
+            </html>
+            """
+            return HTMLResponse(content=html_content)
         
     except HTTPException:
         raise
     except Exception as e:
         print(f"Approval error: {str(e)}")
-        raise HTTPException(status_code=500, detail=str(e))
+        html_content = f"""
+        <html>
+            <head><title>Error</title></head>
+            <body style="font-family: Arial, sans-serif; padding: 40px; text-align: center;">
+                <h1 style="color: #EF4444;">Error</h1>
+                <p>An error occurred: {str(e)}</p>
+            </body>
+        </html>
+        """
+        return HTMLResponse(content=html_content, status_code=500)
 
 @api_router.post("/auth/approve-user-dashboard")
 async def approve_user_from_dashboard(
