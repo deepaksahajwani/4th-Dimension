@@ -31,6 +31,7 @@ const ROLE_LABELS = {
 
 export default function PendingRegistrations({ user, onLogout }) {
   const navigate = useNavigate();
+  const location = useLocation();
   const [pendingUsers, setPendingUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedUser, setSelectedUser] = useState(null);
@@ -44,7 +45,30 @@ export default function PendingRegistrations({ user, onLogout }) {
       return;
     }
     fetchPendingRegistrations();
-  }, [user, navigate]);
+    
+    // Check for success/error messages from URL params
+    const params = new URLSearchParams(location.search);
+    const successType = params.get('success');
+    const userName = params.get('user');
+    const error = params.get('error');
+    
+    if (successType === 'approved' && userName) {
+      toast.success(`${decodeURIComponent(userName)} has been approved successfully!`, {
+        duration: 5000
+      });
+      // Clean URL
+      window.history.replaceState({}, '', '/pending-registrations');
+    } else if (successType === 'rejected' && userName) {
+      toast.info(`${decodeURIComponent(userName)}'s registration has been rejected.`, {
+        duration: 5000
+      });
+      // Clean URL
+      window.history.replaceState({}, '', '/pending-registrations');
+    } else if (error) {
+      toast.error('An error occurred during the approval process.');
+      window.history.replaceState({}, '', '/pending-registrations');
+    }
+  }, [user, navigate, location]);
 
   const fetchPendingRegistrations = async () => {
     try {
