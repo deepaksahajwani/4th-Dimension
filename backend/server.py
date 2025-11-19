@@ -2164,6 +2164,92 @@ async def get_contractor_types():
     return [{"value": t.value, "label": t.value} for t in ContractorType]
 
 
+# ==================== VENDOR ROUTES ====================
+
+@api_router.post("/vendors")
+async def create_vendor(
+    vendor_data: VendorCreate,
+    current_user: User = Depends(require_owner)
+):
+    """Create a new vendor (Owner only)"""
+    vendor = Vendor(**vendor_data.model_dump())
+    vendor_dict = vendor.model_dump()
+    
+    # Convert datetimes to ISO strings
+    for field in ['created_at', 'updated_at']:
+        if vendor_dict.get(field):
+            vendor_dict[field] = vendor_dict[field].isoformat()
+    
+    await db.vendors.insert_one(vendor_dict)
+    return vendor
+
+@api_router.get("/vendors")
+async def get_vendors(current_user: User = Depends(get_current_user)):
+    """Get all vendors"""
+    vendors = await db.vendors.find(
+        {"deleted_at": None},
+        {"_id": 0}
+    ).to_list(1000)
+    return vendors
+
+@api_router.get("/vendors/{vendor_id}")
+async def get_vendor(
+    vendor_id: str,
+    current_user: User = Depends(get_current_user)
+):
+    """Get a specific vendor"""
+    vendor = await db.vendors.find_one(
+        {"id": vendor_id, "deleted_at": None},
+        {"_id": 0}
+    )
+    if not vendor:
+        raise HTTPException(status_code=404, detail="Vendor not found")
+    return vendor
+
+@api_router.put("/vendors/{vendor_id}")
+async def update_vendor(
+    vendor_id: str,
+    vendor_data: VendorUpdate,
+    current_user: User = Depends(require_owner)
+):
+    """Update a vendor (Owner only)"""
+    update_dict = {k: v for k, v in vendor_data.model_dump().items() if v is not None}
+    update_dict['updated_at'] = datetime.now(timezone.utc).isoformat()
+    
+    result = await db.vendors.update_one(
+        {"id": vendor_id, "deleted_at": None},
+        {"$set": update_dict}
+    )
+    
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Vendor not found")
+    
+    return await get_vendor(vendor_id, current_user)
+
+@api_router.delete("/vendors/{vendor_id}")
+async def delete_vendor(
+    vendor_id: str,
+    current_user: User = Depends(require_owner)
+):
+    """Soft delete a vendor (Owner only)"""
+    result = await db.vendors.update_one(
+        {"id": vendor_id},
+        {"$set": {
+            "deleted_at": datetime.now(timezone.utc).isoformat()
+        }}
+    )
+    
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Vendor not found")
+    
+    return {"message": "Vendor deleted successfully"}
+
+@api_router.get("/vendor-types")
+async def get_vendor_types():
+    """Get list of predefined vendor types"""
+    return [{"value": t.value, "label": t.value} for t in VendorType]
+
+
 # ==================== TASK MANAGEMENT ROUTES ====================
 
 @api_router.post("/weekly-targets")
