@@ -915,7 +915,10 @@ async def send_approval_request_email(owner_email: str, user_data: dict):
         
         html_content = f"""
         <html>
-            <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+            <head>
+                <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+            </head>
+            <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0;">
                 <div style="max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #ddd; border-radius: 10px;">
                     <h2 style="color: #4F46E5;">New Registration Pending Approval</h2>
                     
@@ -927,17 +930,53 @@ async def send_approval_request_email(owner_email: str, user_data: dict):
                         <p><strong>Address:</strong> {user_data['address_line_1']}, {user_data['city']}, {user_data['state']}</p>
                     </div>
                     
-                    <div style="text-align: center; margin: 30px 0;">
-                        <a href="{approval_link}" style="display: inline-block; background: #10B981; color: white !important; padding: 14px 40px; text-decoration: none; border-radius: 6px; margin: 10px; font-weight: bold; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
-                            ✓ Approve
-                        </a>
-                        <a href="{reject_link}" style="display: inline-block; background: #EF4444; color: white !important; padding: 14px 40px; text-decoration: none; border-radius: 6px; margin: 10px; font-weight: bold; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
-                            ✕ Reject
-                        </a>
-                    </div>
+                    <!-- Button section using table for better email client support -->
+                    <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin: 30px 0;">
+                        <tr>
+                            <td align="center">
+                                <table cellpadding="0" cellspacing="0" border="0">
+                                    <tr>
+                                        <td style="padding: 0 10px;">
+                                            <a href="{approval_link}" 
+                                               style="display: inline-block; 
+                                                      background-color: #10B981; 
+                                                      color: #ffffff !important; 
+                                                      padding: 15px 45px; 
+                                                      text-decoration: none; 
+                                                      border-radius: 6px; 
+                                                      font-weight: bold; 
+                                                      font-size: 16px;
+                                                      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+                                                      mso-line-height-rule: exactly;">
+                                                ✓ Approve
+                                            </a>
+                                        </td>
+                                        <td style="padding: 0 10px;">
+                                            <a href="{reject_link}" 
+                                               style="display: inline-block; 
+                                                      background-color: #EF4444; 
+                                                      color: #ffffff !important; 
+                                                      padding: 15px 45px; 
+                                                      text-decoration: none; 
+                                                      border-radius: 6px; 
+                                                      font-weight: bold; 
+                                                      font-size: 16px;
+                                                      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+                                                      mso-line-height-rule: exactly;">
+                                                ✕ Reject
+                                            </a>
+                                        </td>
+                                    </tr>
+                                </table>
+                            </td>
+                        </tr>
+                    </table>
                     
-                    <p style="color: #666; font-size: 12px; text-align: center;">
-                        You can also approve/reject from your dashboard
+                    <p style="color: #666; font-size: 12px; text-align: center; margin-top: 30px;">
+                        You can also approve/reject from your dashboard at:<br>
+                        <a href="{backend_url}/pending-registrations" style="color: #4F46E5; text-decoration: none;">
+                            {backend_url}/pending-registrations
+                        </a>
                     </p>
                 </div>
             </body>
