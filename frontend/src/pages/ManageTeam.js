@@ -104,12 +104,15 @@ export default function ManageTeam({ user, onLogout }) {
   };
 
   const confirmDelete = async () => {
+    console.log('confirmDelete called for:', selectedMember?.name);
     try {
+      console.log('Deleting user with ID:', selectedMember.id);
       await axios.delete(`${API}/users/${selectedMember.id}`);
       toast.success('Team member removed');
       setDeleteDialogOpen(false);
       fetchTeamMembers();
     } catch (error) {
+      console.error('Delete error:', error);
       toast.error(formatErrorMessage(error, 'Failed to delete team member'));
     }
   };
