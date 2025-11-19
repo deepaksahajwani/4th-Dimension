@@ -1082,6 +1082,156 @@ async def invite_team_member(
             "sms_sent": sms_success
         }
         
+
+@api_router.get("/approve-user")
+async def approve_reject_user(user_id: str, action: str):
+    """
+    Approve or reject user registration (called from email link)
+    """
+    try:
+        if action not in ['approve', 'reject']:
+            raise HTTPException(status_code=400, detail="Invalid action")
+        
+        user = await db.users.find_one({"id": user_id}, {"_id": 0})
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+        
+        if action == 'approve':
+            await db.users.update_one(
+                {"id": user_id},
+                {"$set": {
+                    "approval_status": "approved",
+                    "is_validated": True
+                }}
+            )
+            
+            # Send approval notification to user
+            await send_approval_notification(user, approved=True)
+            
+            return {"message": f"User {user['name']} has been approved successfully"}
+        else:
+            await db.users.update_one(
+                {"id": user_id},
+                {"$set": {
+                    "approval_status": "rejected"
+                }}
+            )
+            
+            # Send rejection notification to user
+            await send_approval_notification(user, approved=False)
+            
+            return {"message": f"User {user['name']} has been rejected"}
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"Approval error: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@api_router.post("/auth/approve-user-dashboard")
+async def approve_user_from_dashboard(
+    user_id: str,
+    action: str,
+    current_user: User = Depends(require_owner)
+):
+    """
+    Approve or reject user from owner dashboard
+    """
+    return await approve_reject_user(user_id, action)
+
+@api_router.get("/auth/pending-registrations")
+async def get_pending_registrations(current_user: User = Depends(require_owner)):
+    """
+    Get list of pending user registrations (Owner only)
+    """
+    try:
+        pending_users = await db.users.find(
+            {"approval_status": "pending"},
+            {"_id": 0}
+        ).to_list(1000)
+        
+        return pending_users
+    except Exception as e:
+        print(f"Error fetching pending registrations: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+async def send_approval_notification(user: dict, approved: bool):
+    """Send approval/rejection notification to user"""
+    try:
+        sender_email = os.getenv('SENDER_EMAIL')
+        
+        if approved:
+            subject = "Your 4th Dimension Account Has Been Approved!"
+            html_content = f"""
+            <html>
+                <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+                    <div style="max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #ddd; border-radius: 10px;">
+                        <div style="text-align: center; margin-bottom: 30px;">
+                            <h1 style="color: #10B981;">🎉 Account Approved!</h1>
+                        </div>
+                        
+                        <h2>Dear {user['name']},</h2>
+                        
+                        <p>Great news! Your 4th Dimension account has been approved. You can now log in and start using the platform.</p>
+                        
+                        <div style="background: #D1FAE5; padding: 20px; border-radius: 8px; margin: 20px 0; text-align: center;">
+                            <p style="margin: 0 0 15px 0;"><strong>Your Login Credentials:</strong></p>
+                            <p><strong>Email:</strong> {user['email']}</p>
+                            {'<p><strong>Password:</strong> As set during registration</p>' if user.get('registered_via') == 'email' else '<p><strong>Login:</strong> Use your Google account</p>'}
+                            
+                            <a href="{os.getenv('REACT_APP_BACKEND_URL')}" style="display: inline-block; background: #10B981; color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; margin-top: 15px; font-weight: bold;">
+                                Login Now
+                            </a>
+                        </div>
+                        
+                        <p>Welcome to the 4th Dimension family! We're excited to work with you.</p>
+                        
+                        <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd; text-align: center; color: #666; font-size: 12px;">
+                            <p><strong>4th Dimension - Architecture & Design</strong></p>
+                        </div>
+                    </div>
+                </body>
+            </html>
+            """
+        else:
+            subject = "4th Dimension Registration Update"
+            html_content = f"""
+            <html>
+                <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+                    <div style="max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #ddd; border-radius: 10px;">
+                        <h2>Dear {user['name']},</h2>
+                        
+                        <p>Thank you for your interest in joining 4th Dimension.</p>
+                        
+                        <p>After careful review, we regret to inform you that we are unable to approve your registration at this time.</p>
+                        
+                        <p>If you believe this is an error or have any questions, please contact us at {sender_email}.</p>
+                        
+                        <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd; text-align: center; color: #666; font-size: 12px;">
+                            <p><strong>4th Dimension - Architecture & Design</strong></p>
+                        </div>
+                    </div>
+                </body>
+            </html>
+            """
+        
+        from sendgrid import SendGridAPIClient
+        from sendgrid.helpers.mail import Mail
+        
+        message = Mail(
+            from_email=sender_email,
+            to_emails=user['email'],
+            subject=subject,
+            html_content=html_content
+        )
+        
+        sendgrid_client = SendGridAPIClient(os.getenv('SENDGRID_API_KEY'))
+        sendgrid_client.send(message)
+        
+    except Exception as e:
+        print(f"Failed to send approval notification: {str(e)}")
+
+
     except HTTPException:
         raise
     except Exception as e:
