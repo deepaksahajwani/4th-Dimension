@@ -92,6 +92,19 @@ function App() {
       const response = await axios.post(`${API}/auth/google/session?session_id=${sessionId}`);
       console.log('Google auth response:', response.data);
       
+      // Check approval status
+      if (response.data.user.approval_status === 'pending') {
+        toast.warning('Your account is pending approval');
+        window.location.href = '/pending-approval';
+        return;
+      }
+      
+      if (response.data.user.approval_status === 'rejected') {
+        toast.error('Your registration was not approved. Please contact support.');
+        window.location.href = '/login';
+        return;
+      }
+      
       localStorage.setItem('token', response.data.session_token);
       localStorage.setItem('user', JSON.stringify(response.data.user));
       setUser(response.data.user);
