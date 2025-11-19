@@ -16,6 +16,7 @@ export default function LoginPage({ onLogin }) {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [keepLoggedIn, setKeepLoggedIn] = useState(false);
   const [loginData, setLoginData] = useState({ email: '', password: '' });
 
   const handleLogin = async (e) => {
