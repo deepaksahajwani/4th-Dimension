@@ -1170,6 +1170,7 @@ async def invite_team_member(
 async def approve_reject_user(user_id: str, action: str):
     """
     Approve or reject user registration (called from email link)
+    No authentication required - email link itself is the authorization
     Redirects to dashboard with success message
     """
     from fastapi.responses import RedirectResponse
@@ -1178,11 +1179,11 @@ async def approve_reject_user(user_id: str, action: str):
         frontend_url = os.getenv('REACT_APP_BACKEND_URL')
         
         if action not in ['approve', 'reject']:
-            return RedirectResponse(url=f"{frontend_url}/pending-registrations?error=invalid_action")
+            return RedirectResponse(url=f"{frontend_url}/login?error=invalid_action")
         
         user = await db.users.find_one({"id": user_id}, {"_id": 0})
         if not user:
-            return RedirectResponse(url=f"{frontend_url}/pending-registrations?error=user_not_found")
+            return RedirectResponse(url=f"{frontend_url}/login?error=user_not_found")
         
         if action == 'approve':
             await db.users.update_one(
