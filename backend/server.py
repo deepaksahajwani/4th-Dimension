@@ -1219,7 +1219,7 @@ async def approve_reject_user(user_id: str, action: str):
         raise
     except Exception as e:
         print(f"Approval error: {str(e)}")
-        return RedirectResponse(url=f"{frontend_url}/pending-registrations?error=unknown")
+        return RedirectResponse(url=f"{frontend_url}/login?error=unknown")
 
 @api_router.post("/auth/approve-user-dashboard")
 async def approve_user_from_dashboard(
