@@ -57,10 +57,9 @@ export default function LoginPage({ onLogin }) {
         }
       }
     } catch (error) {
-      // If user doesn't exist, redirect to register
+      // If user doesn't exist, redirect to not-registered page
       if (error.response?.status === 401) {
-        toast.info('Account not found. Please register.');
-        navigate('/register', { state: { email: loginData.email } });
+        navigate('/not-registered', { state: { email: loginData.email } });
       } else {
         toast.error(formatErrorMessage(error, 'Login failed'));
       }
