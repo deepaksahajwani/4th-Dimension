@@ -114,9 +114,19 @@ function App() {
     }
   };
 
-  const handleLogin = (userData, token) => {
-    localStorage.setItem('token', token);
-    localStorage.setItem('user', JSON.stringify(userData));
+  const handleLogin = (userData, token, keepLoggedIn = false) => {
+    if (keepLoggedIn) {
+      // Store in localStorage for persistent login
+      localStorage.setItem('token', token);
+      localStorage.setItem('user', JSON.stringify(userData));
+      localStorage.setItem('keepLoggedIn', 'true');
+    } else {
+      // Store only in sessionStorage for session-based login
+      sessionStorage.setItem('token', token);
+      sessionStorage.setItem('user', JSON.stringify(userData));
+      localStorage.setItem('token', token);
+      localStorage.setItem('user', JSON.stringify(userData));
+    }
     setUser(userData);
   };
 
