@@ -42,7 +42,7 @@ export default function LoginPage({ onLogin }) {
       }
       
       // User is approved, proceed with login
-      onLogin(response.data.user, response.data.access_token);
+      onLogin(response.data.user, response.data.access_token, keepLoggedIn);
       toast.success('Welcome back!');
       
       if (response.data.requires_profile_completion) {
