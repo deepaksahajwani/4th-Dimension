@@ -1169,8 +1169,8 @@ async def approve_reject_user(user_id: str, action: str):
 
 @api_router.post("/auth/approve-user-dashboard")
 async def approve_user_from_dashboard(
-    user_id: str,
-    action: str,
+    user_id: str = Query(...),
+    action: str = Query(...),
     current_user: User = Depends(require_owner)
 ):
     """
