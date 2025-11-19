@@ -57,9 +57,16 @@ export default function LoginPage({ onLogin }) {
         }
       }
     } catch (error) {
-      // If user doesn't exist, redirect to not-registered page
+      // If authentication failed (401), show custom error with register option
       if (error.response?.status === 401) {
-        navigate('/not-registered', { state: { email: loginData.email } });
+        toast.error(error.response?.data?.detail || 'Invalid credentials', {
+          duration: 6000,
+          description: "Don't have an account?",
+          action: {
+            label: 'Register Here',
+            onClick: () => navigate('/not-registered', { state: { email: loginData.email } })
+          }
+        });
       } else {
         toast.error(formatErrorMessage(error, 'Login failed'));
       }
