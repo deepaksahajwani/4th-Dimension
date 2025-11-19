@@ -640,6 +640,358 @@ async def logout(credentials: HTTPAuthorizationCredentials = Depends(security)):
     return {"message": "Logged out successfully"}
 
 
+
+# ==================== PUBLIC SELF-REGISTRATION ROUTES ====================
+
+@api_router.post("/auth/public-register")
+async def public_register(registration_data: PublicRegistration):
+    """
+    Public self-registration with OTP verification
+    Step 1: Submit registration details and send OTPs
+    """
+    try:
+        # Check if user already exists
+        existing_user = await db.users.find_one({"email": registration_data.email}, {"_id": 0})
+        if existing_user:
+            raise HTTPException(status_code=400, detail="Email already registered")
+        
+        # Check if there's a pending registration
+        pending_reg = await db.pending_registrations.find_one({"email": registration_data.email}, {"_id": 0})
+        if pending_reg:
+            # Delete old pending registration
+            await db.pending_registrations.delete_one({"email": registration_data.email})
+        
+        # Generate OTPs
+        import verification_service
+        email_otp = verification_service.generate_otp()
+        phone_otp = verification_service.generate_otp()
+        
+        # Store pending registration with OTPs
+        pending_registration = {
+            "id": str(uuid.uuid4()),
+            "name": registration_data.name,
+            "email": registration_data.email,
+            "mobile": registration_data.mobile,
+            "registration_type": registration_data.registration_type,
+            "address_line_1": registration_data.address_line_1,
+            "address_line_2": registration_data.address_line_2,
+            "city": registration_data.city,
+            "state": registration_data.state,
+            "pin_code": registration_data.pin_code,
+            "registered_via": registration_data.registered_via,
+            "email_otp": email_otp,
+            "phone_otp": phone_otp,
+            "email_verified": False,
+            "phone_verified": False,
+            "created_at": datetime.now(timezone.utc).isoformat(),
+            "expires_at": (datetime.now(timezone.utc) + timedelta(hours=1)).isoformat()
+        }
+        
+        await db.pending_registrations.insert_one(pending_registration)
+        
+        # Send email OTP
+        sender_email = os.getenv('SENDER_EMAIL')
+        html_content = f"""
+        <html>
+            <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+                <div style="max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #ddd; border-radius: 10px;">
+                    <div style="text-align: center; margin-bottom: 30px;">
+                        <h1 style="color: #4F46E5;">Welcome to 4th Dimension!</h1>
+                        <p style="color: #666;">Architecture & Design</p>
+                    </div>
+                    
+                    <h2 style="color: #1F2937;">Hello {registration_data.name},</h2>
+                    <p>Thank you for registering with 4th Dimension as a <strong>{registration_data.registration_type.replace('_', ' ').title()}</strong>.</p>
+                    
+                    <div style="background: #FEF3C7; padding: 20px; border-radius: 8px; margin: 20px 0;">
+                        <p style="margin: 0 0 10px 0;"><strong>Your Email Verification OTP:</strong></p>
+                        <div style="font-size: 36px; font-weight: bold; color: #D97706; letter-spacing: 8px; text-align: center; padding: 15px; background: white; border-radius: 5px;">
+                            {email_otp}
+                        </div>
+                        <p style="margin: 10px 0 0 0; font-size: 12px; color: #92400E; text-align: center;">
+                            This OTP will expire in 1 hour
+                        </p>
+                    </div>
+                    
+                    <p>A separate OTP has been sent to your mobile number <strong>{registration_data.mobile}</strong> for phone verification.</p>
+                    
+                    <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd; text-align: center; color: #666; font-size: 12px;">
+                        <p><strong>4th Dimension - Architecture & Design</strong><br>Building Dreams, Creating Realities</p>
+                    </div>
+                </div>
+            </body>
+        </html>
+        """
+        
+        from sendgrid import SendGridAPIClient
+        from sendgrid.helpers.mail import Mail
+        
+        message = Mail(
+            from_email=sender_email,
+            to_emails=registration_data.email,
+            subject='Verify Your Registration - 4th Dimension',
+            html_content=html_content
+        )
+        
+        sendgrid_client = SendGridAPIClient(os.getenv('SENDGRID_API_KEY'))
+        email_response = sendgrid_client.send(message)
+        email_sent = email_response.status_code in [200, 201, 202]
+        
+        # Send SMS OTP (will fail for unverified numbers in trial)
+        sms_success, sms_error = await verification_service.send_verification_sms(
+            phone_number=registration_data.mobile,
+            otp=phone_otp
+        )
+        
+        return {
+            "message": "Registration submitted. Please verify your email and phone with OTPs.",
+            "email_sent": email_sent,
+            "sms_sent": sms_success,
+            "registration_id": pending_registration["id"]
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"Public registration error: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Registration failed: {str(e)}")
+
+@api_router.post("/auth/verify-registration-otp")
+async def verify_registration_otp(otp_data: VerifyRegistrationOTP):
+    """
+    Step 2: Verify both email and phone OTPs
+    """
+    try:
+        # Find pending registration
+        pending_reg = await db.pending_registrations.find_one(
+            {"email": otp_data.email},
+            {"_id": 0}
+        )
+        
+        if not pending_reg:
+            raise HTTPException(status_code=404, detail="Registration not found or expired")
+        
+        # Check expiry
+        expires_at = datetime.fromisoformat(pending_reg['expires_at'])
+        if datetime.now(timezone.utc) > expires_at:
+            await db.pending_registrations.delete_one({"email": otp_data.email})
+            raise HTTPException(status_code=400, detail="OTPs expired. Please register again.")
+        
+        # Verify OTPs
+        if pending_reg['email_otp'] != otp_data.email_otp:
+            raise HTTPException(status_code=400, detail="Invalid email OTP")
+        
+        if pending_reg['phone_otp'] != otp_data.phone_otp:
+            raise HTTPException(status_code=400, detail="Invalid phone OTP")
+        
+        # Mark as verified
+        await db.pending_registrations.update_one(
+            {"email": otp_data.email},
+            {"$set": {
+                "email_verified": True,
+                "phone_verified": True
+            }}
+        )
+        
+        return {
+            "message": "OTPs verified successfully",
+            "registered_via": pending_reg['registered_via'],
+            "requires_password": pending_reg['registered_via'] == 'email'
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"OTP verification error: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Verification failed: {str(e)}")
+
+@api_router.post("/auth/set-password-after-otp")
+async def set_password_after_otp(password_data: SetPasswordAfterOTP):
+    """
+    Step 3: Set password after OTP verification (for email registration only)
+    Then create user and send approval email to owner
+    """
+    try:
+        # Find pending registration
+        pending_reg = await db.pending_registrations.find_one(
+            {"email": password_data.email, "email_verified": True, "phone_verified": True},
+            {"_id": 0}
+        )
+        
+        if not pending_reg:
+            raise HTTPException(status_code=404, detail="Verified registration not found")
+        
+        # Create user account
+        user_id = str(uuid.uuid4())
+        user = User(
+            id=user_id,
+            email=pending_reg['email'],
+            name=pending_reg['name'],
+            mobile=pending_reg['mobile'],
+            address_line_1=pending_reg['address_line_1'],
+            address_line_2=pending_reg.get('address_line_2'),
+            city=pending_reg['city'],
+            state=pending_reg['state'],
+            pin_code=pending_reg['pin_code'],
+            role=pending_reg['registration_type'],
+            password_hash=get_password_hash(password_data.password) if pending_reg['registered_via'] == 'email' else None,
+            is_owner=False,
+            is_validated=False,
+            approval_status="pending",
+            email_verified=True,
+            mobile_verified=True,
+            registration_completed=True,
+            registered_via=pending_reg['registered_via']
+        )
+        
+        user_dict = user.model_dump()
+        user_dict['created_at'] = user_dict['created_at'].isoformat()
+        
+        await db.users.insert_one(user_dict)
+        
+        # Delete pending registration
+        await db.pending_registrations.delete_one({"email": password_data.email})
+        
+        # Send approval request email to owner
+        owner = await db.users.find_one({"is_owner": True}, {"_id": 0})
+        if owner:
+            await send_approval_request_email(owner['email'], user_dict)
+        
+        # Send welcome email to user
+        await send_registration_complete_email(user_dict)
+        
+        return {
+            "message": "Registration complete. Awaiting owner approval.",
+            "user_id": user_id
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"Password setup error: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to complete registration: {str(e)}")
+
+async def send_approval_request_email(owner_email: str, user_data: dict):
+    """Send approval request email to owner"""
+    try:
+        sender_email = os.getenv('SENDER_EMAIL')
+        approval_link = f"{os.getenv('REACT_APP_BACKEND_URL')}/approve-user?user_id={user_data['id']}&action=approve"
+        reject_link = f"{os.getenv('REACT_APP_BACKEND_URL')}/approve-user?user_id={user_data['id']}&action=reject"
+        
+        html_content = f"""
+        <html>
+            <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+                <div style="max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #ddd; border-radius: 10px;">
+                    <h2 style="color: #4F46E5;">New Registration Pending Approval</h2>
+                    
+                    <div style="background: #F3F4F6; padding: 20px; border-radius: 8px; margin: 20px 0;">
+                        <p><strong>Name:</strong> {user_data['name']}</p>
+                        <p><strong>Email:</strong> {user_data['email']}</p>
+                        <p><strong>Mobile:</strong> {user_data['mobile']}</p>
+                        <p><strong>Registration Type:</strong> {user_data['role'].replace('_', ' ').title()}</p>
+                        <p><strong>Address:</strong> {user_data['address_line_1']}, {user_data['city']}, {user_data['state']}</p>
+                    </div>
+                    
+                    <div style="text-align: center; margin: 30px 0;">
+                        <a href="{approval_link}" style="display: inline-block; background: #10B981; color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; margin: 10px; font-weight: bold;">
+                            Approve
+                        </a>
+                        <a href="{reject_link}" style="display: inline-block; background: #EF4444; color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; margin: 10px; font-weight: bold;">
+                            Reject
+                        </a>
+                    </div>
+                    
+                    <p style="color: #666; font-size: 12px; text-align: center;">
+                        You can also approve/reject from your dashboard
+                    </p>
+                </div>
+            </body>
+        </html>
+        """
+        
+        from sendgrid import SendGridAPIClient
+        from sendgrid.helpers.mail import Mail
+        
+        message = Mail(
+            from_email=sender_email,
+            to_emails=owner_email,
+            subject=f'New Registration - {user_data["name"]} ({user_data["role"].replace("_", " ").title()})',
+            html_content=html_content
+        )
+        
+        sendgrid_client = SendGridAPIClient(os.getenv('SENDGRID_API_KEY'))
+        sendgrid_client.send(message)
+        
+    except Exception as e:
+        print(f"Failed to send approval email: {str(e)}")
+
+async def send_registration_complete_email(user_data: dict):
+    """Send welcome email to newly registered user"""
+    try:
+        sender_email = os.getenv('SENDER_EMAIL')
+        
+        html_content = f"""
+        <html>
+            <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+                <div style="max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #ddd; border-radius: 10px;">
+                    <div style="text-align: center; margin-bottom: 30px;">
+                        <h1 style="color: #4F46E5;">Welcome to the 4th Dimension Family!</h1>
+                        <p style="color: #666;">Architecture & Design</p>
+                    </div>
+                    
+                    <h2 style="color: #1F2937;">Dear {user_data['name']},</h2>
+                    
+                    <p>We are delighted to welcome you to the 4th Dimension family! Your registration as a <strong>{user_data['role'].replace('_', ' ').title()}</strong> has been received.</p>
+                    
+                    <div style="background: #EEF2FF; padding: 20px; border-radius: 8px; margin: 20px 0;">
+                        <h3 style="color: #4F46E5; margin-top: 0;">Your Login Credentials:</h3>
+                        <p><strong>Username (Email):</strong> {user_data['email']}</p>
+                        {'<p><strong>Password:</strong> As set during registration</p>' if user_data.get('registered_via') == 'email' else '<p><strong>Login Method:</strong> Google Account</p>'}
+                        <p style="color: #DC2626; font-size: 14px; margin-top: 10px;">
+                            <strong>⚠️ Please save these credentials securely</strong>
+                        </p>
+                    </div>
+                    
+                    <div style="background: #FEF3C7; padding: 15px; border-radius: 8px; margin: 20px 0;">
+                        <p style="margin: 0;"><strong>📝 Registration Status:</strong> Pending Approval</p>
+                        <p style="margin: 10px 0 0 0; font-size: 14px;">
+                            Your registration is currently being reviewed by our team. You will receive an email notification once your account is approved.
+                        </p>
+                    </div>
+                    
+                    <p>At 4th Dimension, we transform architectural dreams into reality. We look forward to your valuable contribution to our company and are excited to have you on board.</p>
+                    
+                    <p>If you have any questions, feel free to reach out to us.</p>
+                    
+                    <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd; text-align: center; color: #666;">
+                        <p style="font-size: 18px; color: #4F46E5; font-weight: bold;">Building Dreams, Creating Realities</p>
+                        <p style="margin-top: 15px;">
+                            <strong>4th Dimension - Architecture & Design</strong><br>
+                            Contact: {sender_email}
+                        </p>
+                    </div>
+                </div>
+            </body>
+        </html>
+        """
+        
+        from sendgrid import SendGridAPIClient
+        from sendgrid.helpers.mail import Mail
+        
+        message = Mail(
+            from_email=sender_email,
+            to_emails=user_data['email'],
+            subject='Welcome to 4th Dimension Family!',
+            html_content=html_content
+        )
+        
+        sendgrid_client = SendGridAPIClient(os.getenv('SENDGRID_API_KEY'))
+        sendgrid_client.send(message)
+        
+    except Exception as e:
+        print(f"Failed to send welcome email: {str(e)}")
+
+
 # ==================== TEAM MEMBER VERIFICATION ROUTES ====================
 
 import verification_service
