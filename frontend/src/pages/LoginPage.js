@@ -143,6 +143,20 @@ export default function LoginPage({ onLogin }) {
                 </div>
               </div>
 
+              {/* Keep me logged in checkbox */}
+              <div className="flex items-center space-x-2">
+                <input
+                  type="checkbox"
+                  id="keepLoggedIn"
+                  checked={keepLoggedIn}
+                  onChange={(e) => setKeepLoggedIn(e.target.checked)}
+                  className="w-4 h-4 text-orange-500 border-slate-300 rounded focus:ring-orange-500"
+                />
+                <Label htmlFor="keepLoggedIn" className="text-sm text-slate-600 cursor-pointer">
+                  Keep me logged in
+                </Label>
+              </div>
+
               <Button 
                 type="submit" 
                 className="w-full bg-orange-500 hover:bg-orange-600" 
