@@ -26,6 +26,7 @@ import ClientDetail from './pages/ClientDetail';
 import Team from './pages/Team';
 import TeamMemberDetail from './pages/TeamMemberDetail';
 import ManageTeam from './pages/ManageTeam';
+import PendingRegistrations from './pages/PendingRegistrations';
 import Accounting from './pages/Accounting';
 import Drawings from './pages/Drawings';
 import Tasks from './pages/Tasks';
