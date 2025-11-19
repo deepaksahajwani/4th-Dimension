@@ -1,10 +1,21 @@
-import { useNavigate } from 'react-router-dom';
+import { useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
-import { Building2, Clock, CheckCircle, AlertCircle } from 'lucide-react';
+import { Building2, Clock, Mail, CheckCircle } from 'lucide-react';
 
 export default function PendingApproval() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const email = location.state?.email;
+  const message = location.state?.message;
+
+  useEffect(() => {
+    // If accessed directly without registration, redirect
+    if (!email && !localStorage.getItem('token')) {
+      navigate('/register');
+    }
+  }, [email, navigate]);
 
   const handleLogout = () => {
     localStorage.removeItem('token');
