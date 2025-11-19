@@ -24,60 +24,114 @@ export default function PendingApproval() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 via-blue-50 to-slate-100 p-4">
-      <div className="w-full max-w-md">
-        <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-blue-600 rounded-2xl mb-4 shadow-lg">
-            <Building2 className="w-9 h-9 text-white" />
+    <div className="min-h-screen bg-gradient-to-br from-orange-50 to-indigo-50 flex items-center justify-center p-4">
+      <Card className="w-full max-w-2xl">
+        <CardHeader className="text-center">
+          <div className="flex items-center justify-center mb-4">
+            <div className="relative">
+              <Clock className="w-16 h-16 text-orange-500" />
+              <div className="absolute -top-1 -right-1 bg-yellow-400 rounded-full p-1">
+                <Mail className="w-5 h-5 text-white" />
+              </div>
+            </div>
           </div>
-          <h1 className="text-3xl font-bold text-slate-900 mb-2">4th Dimension</h1>
-        </div>
-
-        <Card className="shadow-xl border-0">
-          <CardContent className="p-8">
-            <div className="text-center space-y-6">
-              <div className="inline-flex items-center justify-center w-20 h-20 bg-amber-100 rounded-full">
-                <Clock className="w-10 h-10 text-amber-600" />
-              </div>
-
+          <CardTitle className="text-3xl font-bold text-slate-900">
+            Registration Pending Approval
+          </CardTitle>
+          <p className="text-slate-600 mt-2">
+            Thank you for registering with 4th Dimension!
+          </p>
+        </CardHeader>
+        
+        <CardContent className="space-y-6">
+          {/* Success Message */}
+          {message && (
+            <div className="bg-green-50 border border-green-200 rounded-lg p-4 flex items-start gap-3">
+              <CheckCircle className="w-5 h-5 text-green-600 mt-0.5" />
               <div>
-                <h2 className="text-2xl font-bold text-slate-900 mb-2">Registration Complete!</h2>
-                <p className="text-slate-600">Your account is pending approval</p>
+                <p className="text-green-800 font-medium">{message}</p>
               </div>
+            </div>
+          )}
 
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 text-left space-y-3">
-                <div className="flex items-start gap-3">
-                  <CheckCircle className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" />
-                  <div>
-                    <p className="text-sm font-medium text-slate-900">Profile Completed</p>
-                    <p className="text-xs text-slate-600">Your details have been submitted successfully</p>
-                  </div>
+          {/* Status Information */}
+          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6">
+            <h3 className="text-lg font-semibold text-yellow-900 mb-3">
+              What's happening now?
+            </h3>
+            <div className="space-y-3">
+              <div className="flex items-start gap-3">
+                <div className="w-8 h-8 rounded-full bg-yellow-200 flex items-center justify-center flex-shrink-0">
+                  <span className="text-yellow-800 font-bold">1</span>
                 </div>
-
-                <div className="flex items-start gap-3">
-                  <CheckCircle className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" />
-                  <div>
-                    <p className="text-sm font-medium text-slate-900">Mobile & Email Verified</p>
-                    <p className="text-xs text-slate-600">Both verifications completed</p>
-                  </div>
-                </div>
-
-                <div className="flex items-start gap-3">
-                  <AlertCircle className="w-5 h-5 text-amber-600 mt-0.5 flex-shrink-0" />
-                  <div>
-                    <p className="text-sm font-medium text-slate-900">Awaiting Administrator Approval</p>
-                    <p className="text-xs text-slate-600">The owner or administrator will review your registration</p>
-                  </div>
+                <div>
+                  <p className="font-medium text-yellow-900">Registration Submitted</p>
+                  <p className="text-sm text-yellow-700">Your details have been sent to the owner</p>
                 </div>
               </div>
 
-              <div className="bg-slate-50 border border-slate-200 rounded-lg p-4">
-                <p className="text-sm text-slate-700">
-                  <strong>What happens next?</strong>
-                </p>
-                <p className="text-xs text-slate-600 mt-2">
-                  The owner (Deepak Sahajwani) or an administrator will review your registration details and approve your account. You'll receive an email once your account is activated.
-                </p>
+              <div className="flex items-start gap-3">
+                <div className="w-8 h-8 rounded-full bg-yellow-200 flex items-center justify-center flex-shrink-0">
+                  <span className="text-yellow-800 font-bold">2</span>
+                </div>
+                <div>
+                  <p className="font-medium text-yellow-900">Under Review</p>
+                  <p className="text-sm text-yellow-700">The owner will review your registration</p>
+                </div>
+              </div>
+
+              <div className="flex items-start gap-3">
+                <div className="w-8 h-8 rounded-full bg-yellow-100 flex items-center justify-center flex-shrink-0">
+                  <span className="text-yellow-600 font-bold">3</span>
+                </div>
+                <div>
+                  <p className="font-medium text-yellow-800">Approval Decision</p>
+                  <p className="text-sm text-yellow-600">You'll receive an email notification</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Email Notification Info */}
+          {email && (
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+              <div className="flex items-start gap-3">
+                <Mail className="w-5 h-5 text-blue-600 mt-0.5" />
+                <div>
+                  <p className="text-sm text-blue-800">
+                    <strong>Check your email:</strong> {email}
+                  </p>
+                  <p className="text-xs text-blue-700 mt-1">
+                    You'll receive a confirmation email with your login credentials once your account is approved.
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Welcome Message */}
+          <div className="text-center py-6 border-t border-slate-200">
+            <Building2 className="w-12 h-12 text-orange-500 mx-auto mb-4" />
+            <h3 className="text-xl font-bold text-slate-900 mb-2">
+              Welcome to the 4th Dimension Family!
+            </h3>
+            <p className="text-slate-600">
+              We're excited to have you on board and look forward to your valuable contribution.
+            </p>
+            <p className="text-sm text-slate-500 mt-4 italic">
+              "Building Dreams, Creating Realities"
+            </p>
+          </div>
+
+          {/* Action Buttons */}
+          <div className="flex flex-col sm:flex-row gap-3">{message && (
+            <div className="bg-green-50 border border-green-200 rounded-lg p-4 flex items-start gap-3">
+              <CheckCircle className="w-5 h-5 text-green-600 mt-0.5" />
+              <div>
+                <p className="text-green-800 font-medium">{message}</p>
+              </div>
+            </div>
+          )}
               </div>
 
               <Button 
