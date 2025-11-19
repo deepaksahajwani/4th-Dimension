@@ -553,7 +553,7 @@ async def process_google_session(session_id: str):
             session_data = response.json()
         
         # Check if user exists
-        user_doc = await db.users.find_one({"email": session_data['email']})
+        user_doc = await db.users.find_one({"email": session_data['email']}, {"_id": 0})
         
         if not user_doc:
             # Check if this is the owner
