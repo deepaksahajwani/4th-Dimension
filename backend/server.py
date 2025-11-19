@@ -1082,6 +1082,11 @@ async def invite_team_member(
             "sms_sent": sms_success
         }
         
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"Error inviting team member: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to invite team member: {str(e)}")
 
 @api_router.get("/approve-user")
 async def approve_reject_user(user_id: str, action: str):
