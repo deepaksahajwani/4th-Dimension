@@ -1192,65 +1192,9 @@ async def approve_reject_user(user_id: str, action: str):
             # Send approval notification to user
             await send_approval_notification(user, approved=True)
             
-            html_content = f"""
-            <html>
-                <head>
-                    <title>User Approved</title>
-                    <style>
-                        body {{
-                            font-family: Arial, sans-serif;
-                            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                            min-height: 100vh;
-                            display: flex;
-                            align-items: center;
-                            justify-content: center;
-                            margin: 0;
-                        }}
-                        .container {{
-                            background: white;
-                            padding: 40px;
-                            border-radius: 10px;
-                            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
-                            max-width: 500px;
-                            text-align: center;
-                        }}
-                        .success-icon {{
-                            width: 80px;
-                            height: 80px;
-                            background: #10B981;
-                            border-radius: 50%;
-                            display: flex;
-                            align-items: center;
-                            justify-content: center;
-                            margin: 0 auto 20px;
-                            font-size: 50px;
-                            color: white;
-                        }}
-                        h1 {{ color: #10B981; margin: 20px 0; }}
-                        p {{ color: #666; line-height: 1.6; }}
-                        .user-info {{
-                            background: #F3F4F6;
-                            padding: 20px;
-                            border-radius: 8px;
-                            margin: 20px 0;
-                        }}
-                    </style>
-                </head>
-                <body>
-                    <div class="container">
-                        <div class="success-icon">✓</div>
-                        <h1>User Approved Successfully!</h1>
-                        <div class="user-info">
-                            <p><strong>{user['name']}</strong></p>
-                            <p>{user['email']}</p>
-                        </div>
-                        <p>The user has been notified via email and can now log in to the system.</p>
-                        <p style="margin-top: 30px; font-size: 14px; color: #999;">You can close this window.</p>
-                    </div>
-                </body>
-            </html>
-            """
-            return HTMLResponse(content=html_content)
+            # Redirect to pending registrations page with success message
+            user_name_encoded = __import__('urllib.parse').quote(user['name'])
+            return RedirectResponse(url=f"{frontend_url}/pending-registrations?success=approved&user={user_name_encoded}")
         else:
             await db.users.update_one(
                 {"id": user_id},
