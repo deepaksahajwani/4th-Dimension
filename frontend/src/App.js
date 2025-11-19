@@ -273,6 +273,15 @@ function App() {
               }
             />
             <Route
+              path="/pending-registrations"
+              element={
+                <ProtectedRoute>
+                  <PendingRegistrations user={user} onLogout={handleLogout} />
+                </ProtectedRoute>
+              }
+            />
+
+            <Route
               path="/accounting"
               element={
                 <ProtectedRoute>
