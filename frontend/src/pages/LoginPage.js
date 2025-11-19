@@ -208,16 +208,21 @@ export default function LoginPage({ onLogin }) {
               </Button>
             </form>
 
-            <div className="mt-6 text-center">
-              <p className="text-sm text-slate-600">
-                New here?{' '}
-                <button
+            {/* Register Section - More Prominent */}
+            <div className="mt-6 pt-6 border-t border-slate-200">
+              <div className="bg-orange-50 border border-orange-200 rounded-lg p-4 text-center">
+                <p className="text-sm text-slate-700 mb-2">
+                  <strong>Don't have an account?</strong>
+                </p>
+                <Button
+                  type="button"
                   onClick={() => navigate('/register')}
-                  className="text-orange-500 hover:text-orange-600 font-medium"
+                  variant="outline"
+                  className="w-full border-orange-500 text-orange-600 hover:bg-orange-500 hover:text-white"
                 >
-                  Register now
-                </button>
-              </p>
+                  Register Now
+                </Button>
+              </div>
             </div>
           </CardContent>
         </Card>
