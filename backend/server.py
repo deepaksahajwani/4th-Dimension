@@ -777,12 +777,42 @@ async def verify_registration_otp(otp_data: VerifyRegistrationOTP):
             await db.pending_registrations.delete_one({"email": otp_data.email})
             raise HTTPException(status_code=400, detail="OTPs expired. Please register again.")
         
-        # Verify OTPs
+        # Verify Email OTP (our generated OTP)
         if pending_reg['email_otp'] != otp_data.email_otp:
             raise HTTPException(status_code=400, detail="Invalid email OTP")
         
-        if pending_reg['phone_otp'] != otp_data.phone_otp:
-            raise HTTPException(status_code=400, detail="Invalid phone OTP")
+        # Verify Phone OTP using Twilio Verify service
+        verify_service_sid = os.getenv('TWILIO_VERIFY_SERVICE_SID')
+        phone_verified = False
+        
+        if verify_service_sid:
+            # Use Twilio Verify to check the phone OTP
+            try:
+                from twilio.rest import Client
+                twilio_client = Client(
+                    os.getenv('TWILIO_ACCOUNT_SID'),
+                    os.getenv('TWILIO_AUTH_TOKEN')
+                )
+                
+                verification_check = twilio_client.verify \
+                    .v2 \
+                    .services(verify_service_sid) \
+                    .verification_checks \
+                    .create(to=pending_reg['mobile'], code=otp_data.phone_otp)
+                
+                if verification_check.status == 'approved':
+                    phone_verified = True
+                else:
+                    raise HTTPException(status_code=400, detail="Invalid phone OTP")
+                    
+            except Exception as twilio_error:
+                print(f"Twilio verification error: {str(twilio_error)}")
+                raise HTTPException(status_code=400, detail="Invalid phone OTP or verification failed")
+        else:
+            # Fallback: compare with stored OTP
+            if pending_reg['phone_otp'] != otp_data.phone_otp:
+                raise HTTPException(status_code=400, detail="Invalid phone OTP")
+            phone_verified = True
         
         # Mark as verified
         await db.pending_registrations.update_one(
