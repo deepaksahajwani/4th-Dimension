@@ -165,9 +165,13 @@ export default function VerifyOTP() {
             <Button 
               type="submit" 
               disabled={loading || emailOTP.length !== 6}
-              className="w-full bg-orange-500 hover:bg-orange-600 text-white py-6"
+              className={`w-full py-6 text-white font-bold text-lg ${
+                loading || emailOTP.length !== 6 
+                  ? 'bg-gray-300 cursor-not-allowed' 
+                  : 'bg-orange-500 hover:bg-orange-600 cursor-pointer'
+              }`}
             >
-              {loading ? 'Verifying...' : 'Verify Email OTP'}
+              {loading ? 'Verifying...' : emailOTP.length === 6 ? '✓ Verify Email OTP' : `Enter OTP (${emailOTP.length}/6)`}
             </Button>
 
             {/* Resend Link */}
