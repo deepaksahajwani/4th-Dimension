@@ -188,6 +188,7 @@ function App() {
             <Route path="/set-password" element={<SetPassword />} />
             <Route path="/pending-approval" element={<PendingApproval />} />
             <Route path="/not-registered" element={<NotRegistered />} />
+            <Route path="/approval-success" element={<ApprovalSuccess />} />
             <Route path="/register-info" element={<RegisterInfo onLogin={handleLogin} />} />
             <Route path="/verify-email" element={<VerifyEmail />} />
             <Route path="/verify-phone" element={<VerifyPhone />} />
