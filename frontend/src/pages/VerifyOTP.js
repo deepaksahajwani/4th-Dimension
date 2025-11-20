@@ -169,6 +169,13 @@ export default function VerifyOTP() {
             <button
               type="submit"
               disabled={loading || emailOTP.length !== 6}
+              onClick={(e) => {
+                console.log('Button clicked!', { loading, otpLength: emailOTP.length });
+                if (loading || emailOTP.length !== 6) {
+                  e.preventDefault();
+                  toast.error('Please enter complete 6-digit OTP');
+                }
+              }}
               className={`w-full py-6 text-white font-bold text-lg rounded-lg transition-all touch-manipulation ${
                 loading || emailOTP.length !== 6
                   ? 'bg-gray-300 cursor-not-allowed opacity-50'
