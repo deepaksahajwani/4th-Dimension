@@ -1359,6 +1359,196 @@ async def get_email_preview(user_id: str = Query(None), role: str = Query(...), 
         print(f"Email preview error: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
+@api_router.post("/auth/forgot-password")
+async def forgot_password(request: ForgotPasswordRequest):
+    """
+    Send password reset email with token
+    """
+    try:
+        # Check if user exists
+        user = await db.users.find_one({"email": request.email}, {"_id": 0})
+        
+        if not user:
+            # For security, don't reveal if email exists
+            # Return success anyway
+            return {"message": "If an account exists with this email, you will receive a password reset link."}
+        
+        # Generate secure reset token
+        import secrets
+        reset_token = secrets.token_urlsafe(32)
+        
+        # Store token with expiry (1 hour)
+        from datetime import datetime, timezone, timedelta
+        await db.password_resets.insert_one({
+            "email": request.email,
+            "token": reset_token,
+            "created_at": datetime.now(timezone.utc),
+            "expires_at": datetime.now(timezone.utc) + timedelta(hours=1),
+            "used": False
+        })
+        
+        # Send password reset email
+        from sendgrid import SendGridAPIClient
+        from sendgrid.helpers.mail import Mail
+        
+        sender_email = os.getenv('SENDER_EMAIL')
+        frontend_url = os.getenv('REACT_APP_BACKEND_URL')
+        reset_link = f"{frontend_url}/reset-password?token={reset_token}"
+        
+        html_content = f"""
+        <html>
+            <head>
+                <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+            </head>
+            <body style="font-family: 'Segoe UI', Arial, sans-serif; line-height: 1.8; color: #1F2937; background-color: #F9FAFB; padding: 20px;">
+                <div style="max-width: 600px; margin: 0 auto; background: white; padding: 40px; border-radius: 15px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
+                    
+                    <div style="text-align: center; margin-bottom: 30px;">
+                        <h1 style="color: #4F46E5; font-size: 28px; margin-bottom: 10px;">Password Reset Request</h1>
+                        <p style="color: #6B7280; font-size: 14px;">4th Dimension - Architecture & Design</p>
+                    </div>
+                    
+                    <h2 style="color: #1F2937; font-size: 20px;">Hello {user['name']},</h2>
+                    
+                    <p style="font-size: 16px; line-height: 1.8;">We received a request to reset your password for your 4th Dimension account.</p>
+                    
+                    <div style="background: #EEF2FF; padding: 20px; border-radius: 8px; margin: 25px 0; border-left: 4px solid #4F46E5;">
+                        <p style="margin: 0; color: #3730A3; font-size: 14px;"><strong>🔒 Security Notice:</strong> If you didn't request this password reset, please ignore this email. Your password will remain unchanged.</p>
+                    </div>
+                    
+                    <p style="font-size: 16px;">Click the button below to reset your password:</p>
+                    
+                    <div style="text-align: center; margin: 30px 0;">
+                        <a href="{reset_link}" style="display: inline-block; background: #4F46E5; color: white; padding: 15px 40px; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 16px;">
+                            Reset My Password
+                        </a>
+                    </div>
+                    
+                    <p style="font-size: 14px; color: #6B7280;">Or copy and paste this link into your browser:</p>
+                    <p style="font-size: 13px; color: #4F46E5; word-break: break-all; background: #F3F4F6; padding: 10px; border-radius: 6px;">
+                        {reset_link}
+                    </p>
+                    
+                    <div style="background: #FEF3C7; padding: 15px; border-radius: 8px; margin: 25px 0; border-left: 4px solid #F59E0B;">
+                        <p style="margin: 0; color: #92400E; font-size: 13px;"><strong>⏱️ Important:</strong> This link will expire in 1 hour for security reasons.</p>
+                    </div>
+                    
+                    <p style="font-size: 14px; color: #6B7280; margin-top: 30px;">If you continue to have problems, please contact our support team.</p>
+                    
+                    <div style="margin-top: 40px; padding-top: 25px; border-top: 2px solid #E5E7EB; text-align: center; color: #6B7280; font-size: 13px;">
+                        <p style="margin: 5px 0;"><strong style="color: #4F46E5;">4th Dimension - Architecture & Design</strong></p>
+                        <p style="margin: 5px 0;">Building Dreams, Creating Realities</p>
+                        <p style="margin: 15px 0 5px 0;">Need Help? <a href="mailto:support@4thdimension.com" style="color: #4F46E5;">support@4thdimension.com</a></p>
+                    </div>
+                </div>
+            </body>
+        </html>
+        """
+        
+        message = Mail(
+            from_email=sender_email,
+            to_emails=request.email,
+            subject='Reset Your 4th Dimension Password',
+            html_content=html_content
+        )
+        
+        sendgrid_client = SendGridAPIClient(os.getenv('SENDGRID_API_KEY'))
+        sendgrid_client.send(message)
+        
+        print(f"✅ Password reset email sent to {request.email}")
+        
+        return {"message": "Password reset link has been sent to your email."}
+        
+    except Exception as e:
+        print(f"Forgot password error: {str(e)}")
+        # For security, still return success message
+        return {"message": "If an account exists with this email, you will receive a password reset link."}
+
+@api_router.get("/auth/validate-reset-token")
+async def validate_reset_token(token: str = Query(...)):
+    """
+    Validate password reset token
+    """
+    try:
+        from datetime import datetime, timezone
+        
+        # Find token
+        reset_request = await db.password_resets.find_one({"token": token}, {"_id": 0})
+        
+        if not reset_request:
+            raise HTTPException(status_code=400, detail="Invalid reset token")
+        
+        # Check if used
+        if reset_request.get('used', False):
+            raise HTTPException(status_code=400, detail="This reset link has already been used")
+        
+        # Check if expired
+        expires_at = datetime.fromisoformat(reset_request['expires_at'])
+        if datetime.now(timezone.utc) > expires_at:
+            raise HTTPException(status_code=400, detail="Reset link has expired")
+        
+        return {"message": "Token is valid"}
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"Token validation error: {str(e)}")
+        raise HTTPException(status_code=500, detail="Failed to validate token")
+
+@api_router.post("/auth/reset-password")
+async def reset_password(request: ResetPasswordRequest):
+    """
+    Reset password using valid token
+    """
+    try:
+        from datetime import datetime, timezone
+        
+        # Find and validate token
+        reset_request = await db.password_resets.find_one({"token": request.token}, {"_id": 0})
+        
+        if not reset_request:
+            raise HTTPException(status_code=400, detail="Invalid reset token")
+        
+        # Check if used
+        if reset_request.get('used', False):
+            raise HTTPException(status_code=400, detail="This reset link has already been used")
+        
+        # Check if expired
+        expires_at = datetime.fromisoformat(reset_request['expires_at'])
+        if datetime.now(timezone.utc) > expires_at:
+            raise HTTPException(status_code=400, detail="Reset link has expired")
+        
+        # Validate new password
+        if len(request.new_password) < 8:
+            raise HTTPException(status_code=400, detail="Password must be at least 8 characters long")
+        
+        # Update user password
+        new_password_hash = get_password_hash(request.new_password)
+        
+        result = await db.users.update_one(
+            {"email": reset_request['email']},
+            {"$set": {"password_hash": new_password_hash}}
+        )
+        
+        if result.modified_count == 0:
+            raise HTTPException(status_code=404, detail="User not found")
+        
+        # Mark token as used
+        await db.password_resets.update_one(
+            {"token": request.token},
+            {"$set": {"used": True}}
+        )
+        
+        print(f"✅ Password reset successfully for {reset_request['email']}")
+        
+        return {"message": "Password has been reset successfully"}
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"Reset password error: {str(e)}")
+        raise HTTPException(status_code=500, detail="Failed to reset password")
+
     except HTTPException:
         raise
     except Exception as e:
