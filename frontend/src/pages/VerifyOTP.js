@@ -123,8 +123,8 @@ export default function VerifyOTP() {
               </p>
             </div>
 
-            {/* Phone OTP */}
-            <div className="space-y-2">
+            {/* Phone OTP - Temporarily Hidden */}
+            {/* <div className="space-y-2">
               <Label htmlFor="phone_otp" className="flex items-center gap-2">
                 <Smartphone className="w-4 h-4 text-orange-500" />
                 Phone OTP
@@ -142,12 +142,12 @@ export default function VerifyOTP() {
               <p className="text-xs text-slate-500">
                 Check your phone for SMS
               </p>
-            </div>
+            </div> */}
 
             {/* Info Box */}
-            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
-              <p className="text-xs text-yellow-800">
-                <strong>Note:</strong> OTPs are valid for 1 hour. If you don't receive them, please check your spam folder or contact support.
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+              <p className="text-xs text-blue-800">
+                <strong>Note:</strong> Phone verification is temporarily disabled for faster registration. Email OTP is valid for 1 hour.
               </p>
             </div>
 
