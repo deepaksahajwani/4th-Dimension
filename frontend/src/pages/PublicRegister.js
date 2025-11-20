@@ -172,6 +172,25 @@ export default function PublicRegister() {
                   </select>
                 </div>
               </div>
+
+              <div>
+                <Label htmlFor="preferred_language">Preferred Language / पसंदीदा भाषा *</Label>
+                <select
+                  id="preferred_language"
+                  value={formData.preferred_language}
+                  onChange={(e) => setFormData({ ...formData, preferred_language: e.target.value })}
+                  className="flex h-10 w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm"
+                  required
+                >
+                  <option value="">Select language / भाषा चुनें</option>
+                  <option value="en">English</option>
+                  <option value="hi">हिंदी (Hindi)</option>
+                  <option value="ta">தமிழ் (Tamil)</option>
+                  <option value="mr">मराठी (Marathi)</option>
+                  <option value="gu">ગુજરાતી (Gujarati)</option>
+                </select>
+                <p className="text-xs text-slate-500 mt-1">You will receive emails in this language</p>
+              </div>
             </div>
 
             {/* Address Information */}
