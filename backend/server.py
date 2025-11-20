@@ -789,38 +789,45 @@ async def verify_registration_otp(otp_data: VerifyRegistrationOTP):
         if pending_reg['email_otp'] != otp_data.email_otp:
             raise HTTPException(status_code=400, detail="Invalid email OTP")
         
-        # Verify Phone OTP using Twilio Verify service
-        verify_service_sid = os.getenv('TWILIO_VERIFY_SERVICE_SID')
-        phone_verified = False
+        # PHONE OTP TEMPORARILY DISABLED - Structure kept for future re-enablement
+        # Automatically mark phone as verified without checking OTP
+        phone_verified = True
+        print(f"⚠️ Phone OTP verification temporarily disabled. Auto-approving phone verification.")
         
-        if verify_service_sid:
-            # Use Twilio Verify to check the phone OTP
-            try:
-                from twilio.rest import Client
-                twilio_client = Client(
-                    os.getenv('TWILIO_ACCOUNT_SID'),
-                    os.getenv('TWILIO_AUTH_TOKEN')
-                )
-                
-                verification_check = twilio_client.verify \
-                    .v2 \
-                    .services(verify_service_sid) \
-                    .verification_checks \
-                    .create(to=pending_reg['mobile'], code=otp_data.phone_otp)
-                
-                if verification_check.status == 'approved':
-                    phone_verified = True
-                else:
-                    raise HTTPException(status_code=400, detail="Invalid phone OTP")
-                    
-            except Exception as twilio_error:
-                print(f"Twilio verification error: {str(twilio_error)}")
-                raise HTTPException(status_code=400, detail="Invalid phone OTP or verification failed")
-        else:
-            # Fallback: compare with stored OTP
-            if pending_reg['phone_otp'] != otp_data.phone_otp:
-                raise HTTPException(status_code=400, detail="Invalid phone OTP")
-            phone_verified = True
+        # === ORIGINAL PHONE OTP CODE (DISABLED) ===
+        # Uncomment this section to re-enable phone OTP verification:
+        # verify_service_sid = os.getenv('TWILIO_VERIFY_SERVICE_SID')
+        # phone_verified = False
+        # 
+        # if verify_service_sid:
+        #     # Use Twilio Verify to check the phone OTP
+        #     try:
+        #         from twilio.rest import Client
+        #         twilio_client = Client(
+        #             os.getenv('TWILIO_ACCOUNT_SID'),
+        #             os.getenv('TWILIO_AUTH_TOKEN')
+        #         )
+        #         
+        #         verification_check = twilio_client.verify \
+        #             .v2 \
+        #             .services(verify_service_sid) \
+        #             .verification_checks \
+        #             .create(to=pending_reg['mobile'], code=otp_data.phone_otp)
+        #         
+        #         if verification_check.status == 'approved':
+        #             phone_verified = True
+        #         else:
+        #             raise HTTPException(status_code=400, detail="Invalid phone OTP")
+        #             
+        #     except Exception as twilio_error:
+        #         print(f"Twilio verification error: {str(twilio_error)}")
+        #         raise HTTPException(status_code=400, detail="Invalid phone OTP or verification failed")
+        # else:
+        #     # Fallback: compare with stored OTP
+        #     if pending_reg['phone_otp'] != otp_data.phone_otp:
+        #         raise HTTPException(status_code=400, detail="Invalid phone OTP")
+        #     phone_verified = True
+        # === END DISABLED CODE ===
         
         # Mark as verified
         await db.pending_registrations.update_one(
