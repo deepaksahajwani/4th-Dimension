@@ -89,6 +89,7 @@ class User(BaseModel):
     gender: Optional[str] = None  # male, female, other
     marital_status: Optional[str] = None  # single, married, divorced, widowed
     role: str  # owner, team_member, client, contractor, consultant
+    preferred_language: str = 'en'  # en, hi, ta, mr, gu
     salary: Optional[float] = None  # Monthly salary (owner only can see/edit)
     writeup: Optional[str] = None  # Brief writeup about the team member (owner sets)
     passions: Optional[str] = None  # Passions and hobbies
