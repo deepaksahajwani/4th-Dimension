@@ -128,6 +128,9 @@ export default function VerifyOTP() {
               <p className="text-xs text-slate-500">
                 Check your email: <strong>{email}</strong>
               </p>
+              <p className="text-xs text-slate-600 mt-1">
+                Digits entered: <strong className={emailOTP.length === 6 ? 'text-green-600' : 'text-orange-600'}>{emailOTP.length}/6</strong>
+              </p>
             </div>
 
             {/* Phone OTP - Temporarily Hidden */}
