@@ -27,6 +27,7 @@ export default function PublicRegister() {
   const [formData, setFormData] = useState({
     name: '',
     email: location.state?.email || '',
+    country_code: '+91',
     mobile: '',
     registration_type: '',
     preferred_language: 'en',
