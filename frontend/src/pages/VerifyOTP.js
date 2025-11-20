@@ -86,6 +86,21 @@ export default function VerifyOTP() {
     toast.info('Resend OTP functionality coming soon');
   };
 
+  // Add a manual submit handler for better mobile support
+  const handleButtonClick = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    console.log('Button click handler', { emailOTP, length: emailOTP.length, loading });
+    
+    if (loading || emailOTP.length !== 6) {
+      toast.error('Please enter complete 6-digit OTP');
+      return;
+    }
+    
+    // Manually trigger form submission
+    handleVerify(e);
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-orange-50 to-indigo-50 flex items-center justify-center p-4">
       <Card className="w-full max-w-md">
