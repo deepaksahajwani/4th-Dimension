@@ -538,3 +538,197 @@ def get_welcome_email_content(user: dict, login_url: str) -> tuple[str, str]:
         """
     
     return subject, html_content
+
+def get_translated_email_content(user: dict, login_url: str, lang: str = 'en') -> tuple[str, str]:
+    """
+    Generate translated email content for Hindi and Gujarati
+    For other languages, falls back to English
+    """
+    from email_translations import TRANSLATIONS
+    
+    if lang not in ['hi', 'gu']:
+        # Fall back to English for unsupported languages
+        return get_welcome_email_content(user, login_url)
+    
+    role = user.get('role', '').lower()
+    name = user['name']
+    email = user['email']
+    user_id = user.get('id', '')
+    registered_via = user.get('registered_via', 'email')
+    backend_url = os.getenv('REACT_APP_BACKEND_URL', login_url)
+    
+    # Get translations
+    t = TRANSLATIONS[lang]
+    
+    # Common styling
+    button_style = "display: inline-block; background: #4F46E5; color: white; padding: 15px 40px; text-decoration: none; border-radius: 8px; margin-top: 20px; font-weight: bold; font-size: 16px;"
+    
+    # Language toggle bar
+    language_toggle = get_language_toggle_bar(user_id, role, backend_url)
+    
+    # Login credentials
+    credentials_html = f"""
+    <div style="background: #D1FAE5; padding: 20px; border-radius: 8px; margin: 25px 0; text-align: center; border: 2px solid #10B981;">
+        <p style="margin: 0 0 15px 0; font-size: 18px;"><strong>{t['client']['login_credentials']}</strong></p>
+        <p style="margin: 10px 0;"><strong>{t['client']['email_label']}</strong> {email}</p>
+        {f'<p style="margin: 10px 0;"><strong>{t["client"]["password_label"]}</strong> {t["client"]["password_set"]}</p>' if registered_via == 'email' else f'<p style="margin: 10px 0;"><strong>{t["client"]["login_method"]}</strong> {t["client"]["use_google"]}</p>'}
+        
+        <a href="{login_url}" style="{button_style}">
+            {t['client']['login_button']}
+        </a>
+    </div>
+    """
+    
+    if role == 'client':
+        role_data = t['client']
+        subject = role_data['subject']
+        
+        # Build features HTML
+        features_html = ""
+        for feature in role_data['features']:
+            features_html += f"""
+            <div style="background: white; padding: 15px; border-radius: 8px; margin: 10px 0; border-left: 4px solid #4F46E5;">
+                <strong>{feature['title']}</strong>
+                <p style="margin: 8px 0 0 0; color: #4B5563;">{feature['desc']}</p>
+            </div>
+            """
+        
+        # Build steps HTML
+        steps_html = ""
+        for idx, step in enumerate(role_data['steps'], 1):
+            steps_html += f'<li style="margin: 12px 0;">{step}</li>'
+        
+        html_content = f"""
+        <html>
+            <head>
+                <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+            </head>
+            <body style="font-family: 'Segoe UI', Arial, sans-serif; line-height: 1.8; color: #1F2937; background-color: #F9FAFB; padding: 20px;">
+                <div style="max-width: 650px; margin: 0 auto; background: white; padding: 40px; border-radius: 15px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
+                    
+                    <div style="text-align: center; margin-bottom: 30px;">
+                        <h1 style="color: #4F46E5; font-size: 32px; margin-bottom: 10px;">{t['welcome']}</h1>
+                        <p style="color: #6B7280; font-size: 16px;">{t['architecture_design']}</p>
+                    </div>
+                    
+                    {language_toggle}
+                    
+                    <h2 style="color: #1F2937; font-size: 24px;">{t['dear']} {name},</h2>
+                    
+                    <p style="font-size: 16px; line-height: 1.8;">{role_data['intro']}</p>
+                    
+                    <div style="background: #F3F4F6; padding: 25px; border-radius: 10px; margin: 25px 0;">
+                        <h3 style="color: #4F46E5; margin-top: 0;">{role_data['what_we_offer']}</h3>
+                        {features_html}
+                    </div>
+                    
+                    {credentials_html}
+                    
+                    <div style="background: #F3F4F6; padding: 25px; border-radius: 10px; margin: 25px 0;">
+                        <h3 style="color: #4F46E5; margin-top: 0;">{role_data['how_to_use']}</h3>
+                        <ol style="padding-left: 20px; color: #4B5563;">
+                            {steps_html}
+                        </ol>
+                    </div>
+                    
+                    <div style="background: #FEF3C7; padding: 20px; border-radius: 8px; margin: 25px 0; border-left: 4px solid #F59E0B;">
+                        <p style="margin: 0; color: #92400E;"><strong>{role_data['pro_tip']}</strong> {role_data['pro_tip_text']}</p>
+                    </div>
+                    
+                    <p style="font-size: 16px; margin-top: 30px;">{role_data['closing']}</p>
+                    
+                    <p style="font-size: 16px;"><strong>{role_data['lets_build']}</strong></p>
+                    
+                    <p style="margin-top: 30px;">{role_data['warm_regards']}<br>
+                    <strong style="color: #4F46E5;">{role_data['team']}</strong><br>
+                    <span style="color: #6B7280; font-size: 14px;">{t['architecture_design']}</span></p>
+                    
+                    <div style="margin-top: 40px; padding-top: 25px; border-top: 2px solid #E5E7EB; text-align: center; color: #6B7280; font-size: 13px;">
+                        <p style="margin: 5px 0;"><strong style="color: #4F46E5;">4th Dimension - {t['architecture_design']}</strong></p>
+                        <p style="margin: 5px 0;">{role_data['tagline']}</p>
+                        <p style="margin: 15px 0 5px 0;">{role_data['need_help']} <a href="mailto:support@4thdimension.com" style="color: #4F46E5;">support@4thdimension.com</a></p>
+                    </div>
+                </div>
+            </body>
+        </html>
+        """
+    
+    elif role == 'contractor':
+        role_data = t['contractor']
+        subject = role_data['subject']
+        
+        # Build features HTML
+        features_html = ""
+        for feature in role_data['features']:
+            features_html += f"""
+            <div style="background: white; padding: 15px; border-radius: 8px; margin: 10px 0; border-left: 4px solid #4F46E5;">
+                <strong>{feature['title']}</strong>
+                <p style="margin: 8px 0 0 0; color: #4B5563;">{feature['desc']}</p>
+            </div>
+            """
+        
+        # Build steps HTML
+        steps_html = ""
+        for idx, step in enumerate(role_data['steps'], 1):
+            steps_html += f'<li style="margin: 12px 0;">{step}</li>'
+        
+        html_content = f"""
+        <html>
+            <head>
+                <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+            </head>
+            <body style="font-family: 'Segoe UI', Arial, sans-serif; line-height: 1.8; color: #1F2937; background-color: #F9FAFB; padding: 20px;">
+                <div style="max-width: 650px; margin: 0 auto; background: white; padding: 40px; border-radius: 15px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
+                    
+                    <div style="text-align: center; margin-bottom: 30px;">
+                        <h1 style="color: #4F46E5; font-size: 32px; margin-bottom: 10px;">{t['welcome']}</h1>
+                        <p style="color: #6B7280; font-size: 16px;">{t['architecture_design']}</p>
+                    </div>
+                    
+                    {language_toggle}
+                    
+                    <h2 style="color: #1F2937; font-size: 24px;">{t['dear']} {name},</h2>
+                    
+                    <p style="font-size: 16px; line-height: 1.8;">{role_data['intro']}</p>
+                    
+                    <div style="background: #F3F4F6; padding: 25px; border-radius: 10px; margin: 25px 0;">
+                        <h3 style="color: #4F46E5; margin-top: 0;">{role_data['partnership_benefits']}</h3>
+                        {features_html}
+                    </div>
+                    
+                    {credentials_html}
+                    
+                    <div style="background: #F3F4F6; padding: 25px; border-radius: 10px; margin: 25px 0;">
+                        <h3 style="color: #4F46E5; margin-top: 0;">{role_data['portal_guide']}</h3>
+                        <ol style="padding-left: 20px; color: #4B5563;">
+                            {steps_html}
+                        </ol>
+                    </div>
+                    
+                    <div style="background: #FEF3C7; padding: 20px; border-radius: 8px; margin: 25px 0; border-left: 4px solid #F59E0B;">
+                        <p style="margin: 0; color: #92400E;"><strong>{role_data['important']}</strong> {role_data['important_text']}</p>
+                    </div>
+                    
+                    <p style="font-size: 16px; margin-top: 30px;">{role_data['closing']}</p>
+                    
+                    <p style="font-size: 16px;"><strong>{role_data['looking_forward']}</strong></p>
+                    
+                    <p style="margin-top: 30px;">{role_data['best_regards']}<br>
+                    <strong style="color: #4F46E5;">{role_data['team']}</strong><br>
+                    <span style="color: #6B7280; font-size: 14px;">{t['architecture_design']}</span></p>
+                    
+                    <div style="margin-top: 40px; padding-top: 25px; border-top: 2px solid #E5E7EB; text-align: center; color: #6B7280; font-size: 13px;">
+                        <p style="margin: 5px 0;"><strong style="color: #4F46E5;">4th Dimension - {t['architecture_design']}</strong></p>
+                        <p style="margin: 5px 0;">{role_data['tagline'] if 'tagline' in role_data else t['client']['tagline']}</p>
+                        <p style="margin: 15px 0 5px 0;">{role_data['support']} <a href="mailto:projects@4thdimension.com" style="color: #4F46E5;">projects@4thdimension.com</a></p>
+                    </div>
+                </div>
+            </body>
+        </html>
+        """
+    
+    else:
+        # For other roles, use English template
+        return get_welcome_email_content(user, login_url)
+    
+    return subject, html_content
