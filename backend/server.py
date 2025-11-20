@@ -879,6 +879,7 @@ async def set_password_after_otp(password_data: SetPasswordAfterOTP):
             state=pending_reg['state'],
             pin_code=pending_reg['pin_code'],
             role=pending_reg['registration_type'],
+            preferred_language=pending_reg.get('preferred_language', 'en'),
             password_hash=get_password_hash(password_data.password) if pending_reg['registered_via'] == 'email' else None,
             is_owner=False,
             is_validated=False,
