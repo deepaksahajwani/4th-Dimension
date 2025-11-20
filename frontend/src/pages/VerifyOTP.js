@@ -30,6 +30,9 @@ export default function VerifyOTP() {
 
   const handleVerify = async (e) => {
     e.preventDefault();
+    e.stopPropagation();
+    
+    console.log('handleVerify called', { emailOTP, length: emailOTP.length });
     
     if (!emailOTP) {
       toast.error('Please enter email OTP');
@@ -46,6 +49,7 @@ export default function VerifyOTP() {
 
     setLoading(true);
     try {
+      console.log('Sending OTP verification request...');
       const response = await axios.post(`${API}/auth/verify-registration-otp`, {
         email: email,
         email_otp: emailOTP,
