@@ -182,21 +182,27 @@ export default function VerifyOTP() {
 
             {/* Verify Button */}
             <button
-              type="submit"
+              type="button"
               disabled={loading || emailOTP.length !== 6}
-              onClick={(e) => {
-                console.log('Button clicked!', { loading, otpLength: emailOTP.length });
-                if (loading || emailOTP.length !== 6) {
-                  e.preventDefault();
-                  toast.error('Please enter complete 6-digit OTP');
+              onClick={handleButtonClick}
+              onTouchEnd={(e) => {
+                e.preventDefault();
+                console.log('Touch end on button');
+                if (!loading && emailOTP.length === 6) {
+                  handleButtonClick(e);
                 }
               }}
-              className={`w-full py-6 text-white font-bold text-lg rounded-lg transition-all touch-manipulation ${
+              className={`w-full py-6 text-white font-bold text-lg rounded-lg transition-all ${
                 loading || emailOTP.length !== 6
                   ? 'bg-gray-300 cursor-not-allowed opacity-50'
                   : 'bg-orange-500 hover:bg-orange-600 active:bg-orange-700 cursor-pointer shadow-lg'
               }`}
-              style={{ WebkitTapHighlightColor: 'transparent' }}
+              style={{ 
+                WebkitTapHighlightColor: 'transparent',
+                touchAction: 'manipulation',
+                userSelect: 'none',
+                WebkitUserSelect: 'none'
+              }}
             >
               {loading ? 'Verifying...' : emailOTP.length === 6 ? '✓ Verify Email OTP' : `Enter OTP (${emailOTP.length}/6)`}
             </button>
