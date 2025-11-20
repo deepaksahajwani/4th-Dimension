@@ -154,10 +154,10 @@ export default function VerifyOTP() {
             {/* Verify Button */}
             <Button 
               type="submit" 
-              disabled={loading || emailOTP.length !== 6 || phoneOTP.length !== 6}
+              disabled={loading || emailOTP.length !== 6}
               className="w-full bg-orange-500 hover:bg-orange-600 text-white py-6"
             >
-              {loading ? 'Verifying...' : 'Verify OTPs'}
+              {loading ? 'Verifying...' : 'Verify Email OTP'}
             </Button>
 
             {/* Resend Link */}
@@ -167,7 +167,7 @@ export default function VerifyOTP() {
                 onClick={handleResendOTP}
                 className="text-sm text-orange-500 hover:text-orange-600 font-medium"
               >
-                Didn't receive OTPs? Resend
+                Didn't receive OTP? Resend
               </button>
             </div>
 
