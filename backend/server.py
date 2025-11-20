@@ -1198,9 +1198,9 @@ async def approve_reject_user(user_id: str, action: str):
             # Send approval notification to user
             await send_approval_notification(user, approved=True)
             
-            # Redirect to login page with success parameter
+            # Redirect to success page (preserves owner's login state)
             user_name_encoded = __import__('urllib.parse').quote(user['name'])
-            return RedirectResponse(url=f"{frontend_url}/login?approved=true&user={user_name_encoded}")
+            return RedirectResponse(url=f"{frontend_url}/approval-success?action=approved&user={user_name_encoded}")
         else:
             await db.users.update_one(
                 {"id": user_id},
@@ -1212,9 +1212,9 @@ async def approve_reject_user(user_id: str, action: str):
             # Send rejection notification to user
             await send_approval_notification(user, approved=False)
             
-            # Redirect to login page with rejection parameter
+            # Redirect to success page (preserves owner's login state)
             user_name_encoded = __import__('urllib.parse').quote(user['name'])
-            return RedirectResponse(url=f"{frontend_url}/login?rejected=true&user={user_name_encoded}")
+            return RedirectResponse(url=f"{frontend_url}/approval-success?action=rejected&user={user_name_encoded}")
         
     except HTTPException:
         raise
