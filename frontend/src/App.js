@@ -13,6 +13,7 @@ import SetPassword from './pages/SetPassword';
 import PendingApproval from './pages/PendingApproval';
 import NotRegistered from './pages/NotRegistered';
 import ApprovalSuccess from './pages/ApprovalSuccess';
+import EmailPreview from './pages/EmailPreview';
 import Dashboard from './pages/Dashboard';
 import ExternalDashboard from './pages/ExternalDashboard';
 import WorkTracker from './pages/WorkTracker';
