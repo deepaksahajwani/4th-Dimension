@@ -116,6 +116,7 @@ class PublicRegistration(BaseModel):
     email: EmailStr
     mobile: str
     registration_type: str  # client, team_member, contractor, vendor, consultant
+    preferred_language: str = 'en'  # en, hi, ta, mr, gu
     address_line_1: str
     address_line_2: Optional[str] = None
     city: str
