@@ -680,6 +680,7 @@ async def public_register(registration_data: PublicRegistration):
             "email": registration_data.email,
             "mobile": registration_data.mobile,
             "registration_type": registration_data.registration_type,
+            "preferred_language": registration_data.preferred_language,
             "address_line_1": registration_data.address_line_1,
             "address_line_2": registration_data.address_line_2,
             "city": registration_data.city,
