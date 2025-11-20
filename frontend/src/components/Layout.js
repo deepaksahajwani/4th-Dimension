@@ -7,7 +7,15 @@ export default function Layout({ children, user, onLogout }) {
   const location = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  const navigation = [
+  // Check if user is external (client, contractor, consultant, vendor)
+  const isExternalUser = user?.role && ['client', 'contractor', 'consultant', 'vendor'].includes(user.role);
+  
+  const navigation = isExternalUser ? [
+    // Simplified menu for external users
+    { name: 'Dashboard', href: '/external-dashboard', icon: LayoutDashboard },
+    { name: 'Projects', href: '/projects', icon: FolderOpen },
+  ] : [
+    // Full menu for internal users (owner, team members)
     { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
     ...(user?.is_owner ? [{ name: 'Pending Approvals', href: '/pending-registrations', icon: Clock }] : []),
     ...(user?.is_owner ? [{ name: 'Work Tracker', href: '/work-tracker', icon: CheckSquare }] : []),
