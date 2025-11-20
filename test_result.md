@@ -276,6 +276,8 @@ test_plan:
     - "Project with Contractors Assignment"
   test_all: false
   test_priority: "high_first"
+  completed_features:
+    - "External User Dashboard for Client/Contractor/Consultant/Vendor Roles"
 
   - task: "Project Type Checkboxes for Clients"
     implemented: true
