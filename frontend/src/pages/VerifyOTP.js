@@ -162,17 +162,18 @@ export default function VerifyOTP() {
             </div>
 
             {/* Verify Button */}
-            <Button 
-              type="submit" 
+            <button
+              type="submit"
               disabled={loading || emailOTP.length !== 6}
-              className={`w-full py-6 text-white font-bold text-lg ${
-                loading || emailOTP.length !== 6 
-                  ? 'bg-gray-300 cursor-not-allowed' 
-                  : 'bg-orange-500 hover:bg-orange-600 cursor-pointer'
+              className={`w-full py-6 text-white font-bold text-lg rounded-lg transition-all touch-manipulation ${
+                loading || emailOTP.length !== 6
+                  ? 'bg-gray-300 cursor-not-allowed opacity-50'
+                  : 'bg-orange-500 hover:bg-orange-600 active:bg-orange-700 cursor-pointer shadow-lg'
               }`}
+              style={{ WebkitTapHighlightColor: 'transparent' }}
             >
               {loading ? 'Verifying...' : emailOTP.length === 6 ? '✓ Verify Email OTP' : `Enter OTP (${emailOTP.length}/6)`}
-            </Button>
+            </button>
 
             {/* Resend Link */}
             <div className="text-center">
