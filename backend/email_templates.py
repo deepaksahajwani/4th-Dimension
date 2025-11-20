@@ -514,6 +514,8 @@ def get_welcome_email_content(user: dict, login_url: str) -> tuple[str, str]:
                         <p style="color: #6B7280; font-size: 16px;">Architecture & Design Excellence</p>
                     </div>
                     
+                    {language_toggle}
+                    
                     <h2 style="color: #1F2937; font-size: 24px;">Dear {name},</h2>
                     
                     <p style="font-size: 16px; line-height: 1.8;">Welcome! Your account has been approved and you now have access to the 4th Dimension portal.</p>
