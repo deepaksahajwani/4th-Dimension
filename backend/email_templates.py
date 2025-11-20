@@ -1,7 +1,26 @@
 """
 Email Templates for 4th Dimension Architecture Firm
 Role-specific welcome emails for approved users
+Supports: English, Hindi, Tamil, Marathi, Gujarati
 """
+
+import os
+
+def get_language_toggle_bar(user_id: str, role: str, backend_url: str) -> str:
+    """Generate language toggle bar for emails"""
+    base_url = f"{backend_url}/email-preview"
+    return f"""
+    <div style="background: #F3F4F6; padding: 15px; border-radius: 8px; margin: 20px 0; text-align: center; border: 1px solid #E5E7EB;">
+        <p style="margin: 0 0 10px 0; font-size: 13px; color: #6B7280;"><strong>🌐 Read this email in your language:</strong></p>
+        <div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 10px;">
+            <a href="{base_url}?user={user_id}&role={role}&lang=en" style="background: #4F46E5; color: white; padding: 8px 16px; text-decoration: none; border-radius: 6px; font-size: 13px; font-weight: 600;">English</a>
+            <a href="{base_url}?user={user_id}&role={role}&lang=hi" style="background: #10B981; color: white; padding: 8px 16px; text-decoration: none; border-radius: 6px; font-size: 13px; font-weight: 600;">हिंदी</a>
+            <a href="{base_url}?user={user_id}&role={role}&lang=ta" style="background: #F59E0B; color: white; padding: 8px 16px; text-decoration: none; border-radius: 6px; font-size: 13px; font-weight: 600;">தமிழ்</a>
+            <a href="{base_url}?user={user_id}&role={role}&lang=mr" style="background: #EF4444; color: white; padding: 8px 16px; text-decoration: none; border-radius: 6px; font-size: 13px; font-weight: 600;">मराठी</a>
+            <a href="{base_url}?user={user_id}&role={role}&lang=gu" style="background: #8B5CF6; color: white; padding: 8px 16px; text-decoration: none; border-radius: 6px; font-size: 13px; font-weight: 600;">ગુજરાતી</a>
+        </div>
+    </div>
+    """
 
 def get_welcome_email_content(user: dict, login_url: str) -> tuple[str, str]:
     """
