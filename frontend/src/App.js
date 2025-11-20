@@ -193,6 +193,8 @@ function App() {
             <Route path="/not-registered" element={<NotRegistered />} />
             <Route path="/approval-success" element={<ApprovalSuccess />} />
             <Route path="/email-preview" element={<EmailPreview />} />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
+            <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/register-info" element={<RegisterInfo onLogin={handleLogin} />} />
             <Route path="/verify-email" element={<VerifyEmail />} />
             <Route path="/verify-phone" element={<VerifyPhone />} />
