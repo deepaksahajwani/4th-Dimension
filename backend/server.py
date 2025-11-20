@@ -136,6 +136,15 @@ class SetPasswordAfterOTP(BaseModel):
     email: EmailStr
     password: str
 
+class ForgotPasswordRequest(BaseModel):
+    """Request password reset"""
+    email: EmailStr
+
+class ResetPasswordRequest(BaseModel):
+    """Reset password with token"""
+    token: str
+    new_password: str
+
 class CompleteProfile(BaseModel):
     full_name: str
     address_line_1: str
