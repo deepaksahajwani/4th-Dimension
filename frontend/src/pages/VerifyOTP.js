@@ -110,13 +110,20 @@ export default function VerifyOTP() {
               </Label>
               <Input
                 id="email_otp"
-                type="text"
+                type="tel"
+                inputMode="numeric"
+                pattern="[0-9]*"
                 maxLength="6"
                 value={emailOTP}
-                onChange={(e) => setEmailOTP(e.target.value.replace(/\D/g, ''))}
+                onChange={(e) => {
+                  const value = e.target.value.replace(/\D/g, '');
+                  setEmailOTP(value);
+                  console.log('OTP entered:', value, 'Length:', value.length);
+                }}
                 placeholder="Enter 6-digit OTP"
                 className="text-center text-2xl tracking-widest font-bold"
                 required
+                autoComplete="one-time-code"
               />
               <p className="text-xs text-slate-500">
                 Check your email: <strong>{email}</strong>
