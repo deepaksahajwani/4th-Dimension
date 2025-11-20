@@ -1250,59 +1250,41 @@ async def get_pending_registrations(current_user: User = Depends(require_owner))
         raise HTTPException(status_code=500, detail=str(e))
 
 async def send_approval_notification(user: dict, approved: bool):
-    """Send approval/rejection notification to user"""
+    """Send approval/rejection notification to user with role-specific welcome email"""
     try:
         sender_email = os.getenv('SENDER_EMAIL')
+        login_url = os.getenv('REACT_APP_BACKEND_URL')
         
         if approved:
-            subject = "Your 4th Dimension Account Has Been Approved!"
-            html_content = f"""
-            <html>
-                <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
-                    <div style="max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #ddd; border-radius: 10px;">
-                        <div style="text-align: center; margin-bottom: 30px;">
-                            <h1 style="color: #10B981;">🎉 Account Approved!</h1>
-                        </div>
-                        
-                        <h2>Dear {user['name']},</h2>
-                        
-                        <p>Great news! Your 4th Dimension account has been approved. You can now log in and start using the platform.</p>
-                        
-                        <div style="background: #D1FAE5; padding: 20px; border-radius: 8px; margin: 20px 0; text-align: center;">
-                            <p style="margin: 0 0 15px 0;"><strong>Your Login Credentials:</strong></p>
-                            <p><strong>Email:</strong> {user['email']}</p>
-                            {'<p><strong>Password:</strong> As set during registration</p>' if user.get('registered_via') == 'email' else '<p><strong>Login:</strong> Use your Google account</p>'}
-                            
-                            <a href="{os.getenv('REACT_APP_BACKEND_URL')}" style="display: inline-block; background: #10B981; color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; margin-top: 15px; font-weight: bold;">
-                                Login Now
-                            </a>
-                        </div>
-                        
-                        <p>Welcome to the 4th Dimension family! We're excited to work with you.</p>
-                        
-                        <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd; text-align: center; color: #666; font-size: 12px;">
-                            <p><strong>4th Dimension - Architecture & Design</strong></p>
-                        </div>
-                    </div>
-                </body>
-            </html>
-            """
+            # Use role-specific welcome email template
+            subject, html_content = get_welcome_email_content(user, login_url)
         else:
+            # Rejection email
             subject = "4th Dimension Registration Update"
             html_content = f"""
             <html>
-                <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
-                    <div style="max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #ddd; border-radius: 10px;">
-                        <h2>Dear {user['name']},</h2>
+                <head>
+                    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+                </head>
+                <body style="font-family: 'Segoe UI', Arial, sans-serif; line-height: 1.8; color: #1F2937; background-color: #F9FAFB; padding: 20px;">
+                    <div style="max-width: 650px; margin: 0 auto; background: white; padding: 40px; border-radius: 15px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
+                        <div style="text-align: center; margin-bottom: 30px;">
+                            <h1 style="color: #EF4444; font-size: 28px;">Registration Update</h1>
+                        </div>
                         
-                        <p>Thank you for your interest in joining 4th Dimension.</p>
+                        <h2 style="color: #1F2937; font-size: 24px;">Dear {user['name']},</h2>
                         
-                        <p>After careful review, we regret to inform you that we are unable to approve your registration at this time.</p>
+                        <p style="font-size: 16px; line-height: 1.8;">Thank you for your interest in joining 4th Dimension.</p>
                         
-                        <p>If you believe this is an error or have any questions, please contact us at {sender_email}.</p>
+                        <div style="background: #FEE2E2; padding: 20px; border-radius: 8px; margin: 25px 0; border-left: 4px solid #EF4444;">
+                            <p style="margin: 0; color: #991B1B;">After careful review, we regret to inform you that we are unable to approve your registration at this time.</p>
+                        </div>
                         
-                        <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd; text-align: center; color: #666; font-size: 12px;">
-                            <p><strong>4th Dimension - Architecture & Design</strong></p>
+                        <p style="font-size: 16px;">If you believe this is an error or have any questions, please contact us at <a href="mailto:{sender_email}" style="color: #4F46E5;">{sender_email}</a>.</p>
+                        
+                        <div style="margin-top: 40px; padding-top: 25px; border-top: 2px solid #E5E7EB; text-align: center; color: #6B7280; font-size: 13px;">
+                            <p style="margin: 5px 0;"><strong style="color: #4F46E5;">4th Dimension - Architecture & Design</strong></p>
+                            <p style="margin: 5px 0;">Building Dreams, Creating Realities</p>
                         </div>
                     </div>
                 </body>
@@ -1321,6 +1303,7 @@ async def send_approval_notification(user: dict, approved: bool):
         
         sendgrid_client = SendGridAPIClient(os.getenv('SENDGRID_API_KEY'))
         sendgrid_client.send(message)
+        print(f"✅ {'Approval' if approved else 'Rejection'} notification sent to {user['email']}")
         
     except Exception as e:
         print(f"Failed to send approval notification: {str(e)}")
