@@ -191,6 +191,14 @@ function App() {
               }
             />
             <Route
+              path="/external-dashboard"
+              element={
+                <ProtectedRoute>
+                  <ExternalDashboard user={user} onLogout={handleLogout} />
+                </ProtectedRoute>
+              }
+            />
+            <Route
               path="/work-tracker"
               element={
                 <ProtectedRoute>
