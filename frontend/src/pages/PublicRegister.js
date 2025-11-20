@@ -138,19 +138,36 @@ export default function PublicRegister() {
 
                 <div>
                   <Label htmlFor="mobile">Mobile Number *</Label>
-                  <div className="relative">
-                    <Phone className="absolute left-3 top-3 w-4 h-4 text-slate-400" />
-                    <Input
-                      id="mobile"
-                      type="tel"
-                      value={formData.mobile}
-                      onChange={(e) => setFormData({ ...formData, mobile: e.target.value })}
-                      placeholder="+919876543210"
-                      className="pl-10"
+                  <div className="flex gap-2">
+                    <select
+                      value={formData.country_code}
+                      onChange={(e) => setFormData({ ...formData, country_code: e.target.value })}
+                      className="flex h-10 w-24 rounded-md border border-slate-200 bg-white px-3 py-2 text-sm"
                       required
-                    />
+                    >
+                      <option value="+91">🇮🇳 +91</option>
+                      <option value="+1">🇺🇸 +1</option>
+                      <option value="+44">🇬🇧 +44</option>
+                      <option value="+971">🇦🇪 +971</option>
+                      <option value="+65">🇸🇬 +65</option>
+                    </select>
+                    <div className="relative flex-1">
+                      <Phone className="absolute left-3 top-3 w-4 h-4 text-slate-400" />
+                      <Input
+                        id="mobile"
+                        type="tel"
+                        inputMode="numeric"
+                        pattern="[0-9]*"
+                        value={formData.mobile}
+                        onChange={(e) => setFormData({ ...formData, mobile: e.target.value.replace(/\D/g, '') })}
+                        placeholder="9876543210"
+                        className="pl-10"
+                        maxLength="10"
+                        required
+                      />
+                    </div>
                   </div>
-                  <p className="text-xs text-slate-500 mt-1">Include country code</p>
+                  <p className="text-xs text-slate-500 mt-1">10-digit mobile number</p>
                 </div>
               </div>
 
