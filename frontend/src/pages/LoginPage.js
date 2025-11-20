@@ -80,10 +80,10 @@ export default function LoginPage({ onLogin }) {
       } else {
         // Role-based redirection
         const userRole = response.data.user.role;
-        if (userRole === 'client' || userRole === 'contractor' || userRole === 'consultant') {
-          navigate('/projects'); // External users go directly to projects
+        if (userRole === 'client' || userRole === 'contractor' || userRole === 'consultant' || userRole === 'vendor') {
+          navigate('/external-dashboard'); // External users go to simplified dashboard
         } else {
-          navigate('/dashboard'); // Internal users go to dashboard
+          navigate('/dashboard'); // Internal users (owner, team) go to full dashboard
         }
       }
     } catch (error) {
