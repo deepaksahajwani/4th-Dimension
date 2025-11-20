@@ -49,7 +49,7 @@ export default function VerifyOTP() {
       const response = await axios.post(`${API}/auth/verify-registration-otp`, {
         email: email,
         email_otp: emailOTP,
-        phone_otp: phoneOTP
+        phone_otp: dummyPhoneOTP
       });
       
       toast.success('OTPs verified successfully!');
