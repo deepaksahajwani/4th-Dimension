@@ -1319,6 +1319,36 @@ async def send_approval_notification(user: dict, approved: bool):
     except Exception as e:
         print(f"Failed to send approval notification: {str(e)}")
 
+@api_router.get("/email-preview")
+async def get_email_preview(user_id: str = Query(None), role: str = Query(...), lang: str = Query('en')):
+    """
+    Get email preview in different languages
+    """
+    try:
+        from email_templates import get_translated_email_content
+        from email_translations import TRANSLATIONS
+        
+        # Create mock user data for preview
+        mock_user = {
+            'id': user_id or 'preview-user',
+            'name': 'प्रिय उपयोगकर्ता' if lang == 'hi' else 'પ્રિય વપરાશકર્તા' if lang == 'gu' else 'Dear User',
+            'email': 'user@example.com',
+            'role': role,
+            'registered_via': 'email',
+            'preferred_language': lang
+        }
+        
+        login_url = os.getenv('REACT_APP_BACKEND_URL', 'https://design-manager-4.preview.emergentagent.com')
+        
+        subject, html_content = get_translated_email_content(mock_user, login_url, lang)
+        
+        return {
+            "subject": subject,
+            "html_content": html_content
+        }
+    except Exception as e:
+        print(f"Email preview error: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
 
     except HTTPException:
         raise
