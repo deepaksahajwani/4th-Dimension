@@ -118,9 +118,17 @@ function App() {
         toast.success('Please complete your registration!');
         window.location.href = '/register-info';
       } else {
-        console.log('Redirecting to dashboard');
-        toast.success('Logged in successfully!');
-        window.location.href = '/dashboard';
+        // Role-based redirection
+        const userRole = response.data.user.role;
+        if (userRole === 'client' || userRole === 'contractor' || userRole === 'consultant' || userRole === 'vendor') {
+          console.log('Redirecting to external dashboard');
+          toast.success('Logged in successfully!');
+          window.location.href = '/external-dashboard';
+        } else {
+          console.log('Redirecting to dashboard');
+          toast.success('Logged in successfully!');
+          window.location.href = '/dashboard';
+        }
       }
     } catch (error) {
       console.error('Google auth error:', error);
