@@ -31,15 +31,18 @@ export default function VerifyOTP() {
   const handleVerify = async (e) => {
     e.preventDefault();
     
-    if (!emailOTP || !phoneOTP) {
-      toast.error('Please enter both OTPs');
+    if (!emailOTP) {
+      toast.error('Please enter email OTP');
       return;
     }
 
-    if (emailOTP.length !== 6 || phoneOTP.length !== 6) {
-      toast.error('OTPs must be 6 digits');
+    if (emailOTP.length !== 6) {
+      toast.error('Email OTP must be 6 digits');
       return;
     }
+    
+    // Use dummy phone OTP since verification is disabled
+    const dummyPhoneOTP = phoneOTP || '000000';
 
     setLoading(true);
     try {
