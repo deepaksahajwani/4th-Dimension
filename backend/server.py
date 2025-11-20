@@ -39,6 +39,7 @@ from models_projects import (
     Vendor, VendorCreate, VendorUpdate, VendorType
 )
 from drawing_templates import get_template_drawings
+from email_templates import get_welcome_email_content
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
