@@ -264,8 +264,8 @@ export default function PublicRegister() {
                 <strong>What happens next?</strong>
               </p>
               <ul className="text-xs text-blue-700 mt-2 space-y-1 ml-4 list-disc">
-                <li>OTPs will be sent to your email and mobile number</li>
-                <li>Verify both OTPs on the next screen</li>
+                <li>An OTP will be sent to your email address</li>
+                <li>Verify the email OTP on the next screen</li>
                 <li>Set your password (if registering with email)</li>
                 <li>Your registration will be sent to the owner for approval</li>
                 <li>You'll receive an email once approved</li>
