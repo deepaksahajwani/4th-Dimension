@@ -1382,8 +1382,8 @@ async def forgot_password(request: ForgotPasswordRequest):
         await db.password_resets.insert_one({
             "email": request.email,
             "token": reset_token,
-            "created_at": datetime.now(timezone.utc),
-            "expires_at": datetime.now(timezone.utc) + timedelta(hours=1),
+            "created_at": datetime.now(timezone.utc).isoformat(),
+            "expires_at": (datetime.now(timezone.utc) + timedelta(hours=1)).isoformat(),
             "used": False
         })
         
