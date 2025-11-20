@@ -50,7 +50,14 @@ export default function PublicRegister() {
 
     setLoading(true);
     try {
-      const response = await axios.post(`${API}/auth/public-register`, formData);
+      // Combine country code and mobile number
+      const registrationData = {
+        ...formData,
+        mobile: formData.country_code + formData.mobile
+      };
+      delete registrationData.country_code;
+      
+      const response = await axios.post(`${API}/auth/public-register`, registrationData);
       
       toast.success('OTPs sent! Please check your email and phone.', {
         duration: 5000
