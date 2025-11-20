@@ -42,7 +42,7 @@ export default function PublicRegister() {
     e.preventDefault();
     
     if (!formData.name || !formData.email || !formData.mobile || !formData.registration_type || 
-        !formData.address_line_1 || !formData.city || !formData.state || !formData.pin_code) {
+        !formData.preferred_language || !formData.address_line_1 || !formData.city || !formData.state || !formData.pin_code) {
       toast.error('Please fill in all required fields');
       return;
     }
