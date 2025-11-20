@@ -29,6 +29,7 @@ export default function PublicRegister() {
     email: location.state?.email || '',
     mobile: '',
     registration_type: '',
+    preferred_language: 'en',
     address_line_1: '',
     address_line_2: '',
     city: '',
