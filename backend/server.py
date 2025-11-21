@@ -560,7 +560,7 @@ async def process_google_session(session_id: str):
     try:
         async with httpx.AsyncClient() as client:
             response = await client.get(
-                "https://auth.emergentagent.com/auth/v1/env/oauth/session-data",
+                "https://auth.emergentagent.com/auth/v1/env/oauth/session-data/",
                 headers={"X-Session-ID": session_id}
             )
             response.raise_for_status()
