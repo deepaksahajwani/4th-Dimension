@@ -770,3 +770,48 @@ class VerifyPhoneRequest(BaseModel):
 class ResendOTPRequest(BaseModel):
     user_id: str
     type: str  # "email" or "phone"
+
+# ==================== WHATSAPP NOTIFICATION MODELS ====================
+
+class WhatsAppNotification(BaseModel):
+    """WhatsApp notification tracking model"""
+    model_config = ConfigDict(extra="ignore")
+    
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    user_id: Optional[str] = None  # Recipient user ID
+    phone_number: str  # E.164 format: +919876543210
+    message_type: str  # user_registered, task_assigned, milestone_completed, etc.
+    message_body: str
+    project_id: Optional[str] = None
+    twilio_message_sid: Optional[str] = None
+    delivery_status: str = "sent"  # sent, delivered, failed, read
+    error_code: Optional[str] = None
+    error_message: Optional[str] = None
+    sent_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    delivered_at: Optional[datetime] = None
+
+class WhatsAppSettings(BaseModel):
+    """User WhatsApp notification preferences"""
+    model_config = ConfigDict(extra="ignore")
+    
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    user_id: str
+    enabled: bool = True  # Master on/off switch
+    
+    # Individual alert preferences
+    notify_user_registered: bool = True
+    notify_drawing_uploaded: bool = True
+    notify_new_comment: bool = True
+    notify_task_assigned: bool = True
+    notify_task_deadline: bool = True
+    notify_milestone_completed: bool = True
+    notify_payment: bool = True
+    notify_site_visit: bool = True
+    notify_daily_report: bool = True
+    
+    # Quiet hours
+    quiet_hours_start: Optional[str] = None  # "22:00"
+    quiet_hours_end: Optional[str] = None  # "08:00"
+    
+    updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
