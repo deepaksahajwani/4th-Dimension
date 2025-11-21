@@ -4014,3 +4014,163 @@ logger = logging.getLogger(__name__)
 @app.on_event("shutdown")
 async def shutdown_db_client():
     client.close()
+# ==================== WHATSAPP NOTIFICATION ENDPOINTS ====================
+
+@api_router.post("/whatsapp/test")
+async def test_whatsapp_notification(
+    phone_number: str = Query(..., description="Phone number to send test message"),
+    current_user: dict = Depends(get_current_user)
+):
+    """
+    Test WhatsApp notification - send a test message
+    Only owner can test
+    """
+    try:
+        if not current_user.get('is_owner'):
+            raise HTTPException(status_code=403, detail="Only owner can send test messages")
+        
+        from whatsapp_service import whatsapp_service
+        
+        message = (
+            "🎉 *Test Message from 4th Dimension*\n\n"
+            "This is a test WhatsApp notification.\n\n"
+            "If you received this, WhatsApp alerts are working correctly!"
+        )
+        
+        result = whatsapp_service.send_message(phone_number, message)
+        
+        if result["success"]:
+            return {
+                "success": True,
+                "message": "Test WhatsApp notification sent successfully",
+                "details": result
+            }
+        else:
+            raise HTTPException(status_code=400, detail=result.get("error", "Failed to send message"))
+    
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Test WhatsApp error: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@api_router.get("/whatsapp/settings")
+async def get_whatsapp_settings(current_user: dict = Depends(get_current_user)):
+    """Get user's WhatsApp notification settings"""
+    try:
+        settings = await db.whatsapp_settings.find_one({"user_id": current_user["id"]}, {"_id": 0})
+        
+        if not settings:
+            # Return default settings
+            return {
+                "user_id": current_user["id"],
+                "enabled": True,
+                "notify_user_registered": True,
+                "notify_drawing_uploaded": True,
+                "notify_new_comment": True,
+                "notify_task_assigned": True,
+                "notify_task_deadline": True,
+                "notify_milestone_completed": True,
+                "notify_payment": True,
+                "notify_site_visit": True,
+                "notify_daily_report": True,
+                "quiet_hours_start": None,
+                "quiet_hours_end": None
+            }
+        
+        return settings
+    
+    except Exception as e:
+        logger.error(f"Get WhatsApp settings error: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@api_router.put("/whatsapp/settings")
+async def update_whatsapp_settings(
+    settings: dict,
+    current_user: dict = Depends(get_current_user)
+):
+    """Update user's WhatsApp notification settings"""
+    try:
+        settings["user_id"] = current_user["id"]
+        settings["updated_at"] = datetime.now(timezone.utc).isoformat()
+        
+        # Upsert settings
+        await db.whatsapp_settings.update_one(
+            {"user_id": current_user["id"]},
+            {"$set": settings},
+            upsert=True
+        )
+        
+        return {
+            "success": True,
+            "message": "WhatsApp notification settings updated successfully"
+        }
+    
+    except Exception as e:
+        logger.error(f"Update WhatsApp settings error: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@api_router.get("/whatsapp/notifications/history")
+async def get_notification_history(
+    limit: int = Query(50, le=200),
+    current_user: dict = Depends(get_current_user)
+):
+    """Get user's WhatsApp notification history"""
+    try:
+        notifications = await db.whatsapp_notifications.find(
+            {"user_id": current_user["id"]},
+            {"_id": 0}
+        ).sort("sent_at", -1).limit(limit).to_list(limit)
+        
+        return {
+            "total": len(notifications),
+            "notifications": notifications
+        }
+    
+    except Exception as e:
+        logger.error(f"Get notification history error: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@api_router.get("/whatsapp/notifications/stats")
+async def get_notification_stats(current_user: dict = Depends(get_current_user)):
+    """Get WhatsApp notification statistics (Owner only)"""
+    try:
+        if not current_user.get('is_owner'):
+            raise HTTPException(status_code=403, detail="Only owner can view stats")
+        
+        # Count total notifications
+        total = await db.whatsapp_notifications.count_documents({})
+        
+        # Count by status
+        sent_count = await db.whatsapp_notifications.count_documents({"delivery_status": "sent"})
+        delivered_count = await db.whatsapp_notifications.count_documents({"delivery_status": "delivered"})
+        failed_count = await db.whatsapp_notifications.count_documents({"delivery_status": "failed"})
+        
+        # Count by type
+        pipeline = [
+            {"$group": {"_id": "$message_type", "count": {"$sum": 1}}},
+            {"$sort": {"count": -1}}
+        ]
+        
+        type_counts = await db.whatsapp_notifications.aggregate(pipeline).to_list(100)
+        
+        return {
+            "total_notifications": total,
+            "by_status": {
+                "sent": sent_count,
+                "delivered": delivered_count,
+                "failed": failed_count
+            },
+            "by_type": type_counts
+        }
+    
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Get notification stats error: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
