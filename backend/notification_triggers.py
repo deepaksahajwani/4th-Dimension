@@ -15,8 +15,9 @@ logger = logging.getLogger(__name__)
 
 # Database connection
 mongo_url = os.environ.get('MONGO_URL')
+db_name = os.environ.get('DB_NAME', 'architecture_firm')
 client = AsyncIOMotorClient(mongo_url)
-db = client[os.environ.get('DB_NAME')]
+db = client[db_name]
 
 
 async def check_user_notifications_enabled(user_id: str, notification_type: str) -> bool:
