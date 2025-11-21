@@ -267,10 +267,12 @@ metadata:
 
 test_plan:
   current_focus:
+    - "Google OAuth Authentication Integration"
     - "File Upload Stuck Issue Investigation"
     - "Project with Contractors Assignment"
     - "Team Leader Display in Project Details Page"
   stuck_tasks:
+    - "Google OAuth Authentication Integration"
     - "File Upload Stuck Issue Investigation"
     - "Team Leader Display in Project Details Page"
     - "Project with Contractors Assignment"
