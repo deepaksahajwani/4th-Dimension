@@ -24,10 +24,11 @@ class WhatsAppNotificationService:
         self.whatsapp_number = os.getenv('TWILIO_WHATSAPP_NUMBER', 'whatsapp:+919913899888')
         
         if not self.account_sid or not self.auth_token:
-            raise ValueError("Missing Twilio credentials in environment")
-        
-        self.client = Client(self.account_sid, self.auth_token)
-        logger.info("WhatsApp Notification Service initialized")
+            logger.warning("Twilio credentials not found - WhatsApp notifications will be disabled")
+            self.client = None
+        else:
+            self.client = Client(self.account_sid, self.auth_token)
+            logger.info("WhatsApp Notification Service initialized")
     
     def validate_indian_phone(self, phone_number: str) -> bool:
         """
