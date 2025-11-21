@@ -914,6 +914,9 @@ async def set_password_after_otp(password_data: SetPasswordAfterOTP):
         if owner:
             await send_approval_request_email(owner['email'], user_dict)
         
+        # Send WhatsApp notification to owner
+        await notification_triggers.notify_user_registered(user_dict)
+        
         # Send welcome email to user
         await send_registration_complete_email(user_dict)
         
