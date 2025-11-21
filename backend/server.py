@@ -1220,6 +1220,9 @@ async def approve_reject_user(user_id: str, action: str):
             # Send approval notification to user
             await send_approval_notification(user, approved=True)
             
+            # Send WhatsApp notification
+            await notification_triggers.notify_user_approved(user_id)
+            
             # Redirect to success page (preserves owner's login state)
             user_name_encoded = __import__('urllib.parse').quote(user['name'])
             return RedirectResponse(url=f"{frontend_url}/approval-success?action=approved&user={user_name_encoded}")
