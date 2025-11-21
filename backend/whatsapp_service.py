@@ -104,6 +104,13 @@ class WhatsAppNotificationService:
         Returns:
             Dict with success status and message details
         """
+        if not self.client:
+            logger.warning("WhatsApp client not initialized - message not sent")
+            return {
+                "success": False,
+                "error": "WhatsApp service not configured"
+            }
+        
         try:
             # Normalize phone number
             normalized_number = self.normalize_indian_phone(to_number)
