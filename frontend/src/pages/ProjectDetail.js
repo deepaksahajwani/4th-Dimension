@@ -1798,17 +1798,37 @@ export default function ProjectDetail({ user, onLogout }) {
                 </p>
               </div>
               <div>
-                <Label>Select PDF File *</Label>
+                <Label>Select PDF File * (Max 50MB)</Label>
                 <Input
                   type="file"
                   accept=".pdf"
                   onChange={(e) => setSelectedFile(e.target.files[0])}
                   className="mt-1"
+                  disabled={uploadingFile}
                 />
                 {selectedFile && (
-                  <p className="text-xs text-green-600 mt-1">
-                    ✓ Selected: {selectedFile.name}
-                  </p>
+                  <div className="mt-2 space-y-2">
+                    <p className="text-xs text-green-600">
+                      ✓ Selected: {selectedFile.name}
+                    </p>
+                    <p className="text-xs text-slate-500">
+                      Size: {(selectedFile.size / (1024 * 1024)).toFixed(2)} MB
+                    </p>
+                  </div>
+                )}
+                {uploadingFile && (
+                  <div className="mt-3 space-y-2">
+                    <div className="flex justify-between text-xs text-slate-600">
+                      <span>Uploading...</span>
+                      <span>{uploadProgress}%</span>
+                    </div>
+                    <div className="w-full bg-slate-200 rounded-full h-2">
+                      <div 
+                        className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                        style={{ width: `${uploadProgress}%` }}
+                      />
+                    </div>
+                  </div>
                 )}
               </div>
             </div>
