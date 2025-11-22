@@ -271,6 +271,10 @@ export default function Projects({ user, onLogout }) {
 
   const openEditDialog = (project) => {
     setEditingProject(project);
+    
+    // Populate assigned contractors state with existing data
+    setAssignedContractors(project.assigned_contractors || {});
+    
     setFormData({
       code: project.code || '',
       title: project.title || '',
