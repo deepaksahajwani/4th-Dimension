@@ -1849,7 +1849,9 @@ export default function ProjectDetail({ user, onLogout }) {
                 disabled={!selectedFile || uploadingFile}
                 className="bg-blue-600 hover:bg-blue-700 text-white"
               >
-                {uploadingFile ? 'Uploading...' : uploadType === 'issue' ? 'Upload for Review' : 'Upload Resolved'}
+                {uploadingFile 
+                  ? `Uploading ${uploadProgress}%...` 
+                  : uploadType === 'issue' ? 'Upload for Review' : 'Upload Resolved'}
               </Button>
             </DialogFooter>
           </DialogContent>
