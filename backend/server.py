@@ -3793,6 +3793,14 @@ async def get_consultants(current_user: User = Depends(get_current_user)):
             c['created_at'] = datetime.fromisoformat(c['created_at'])
         if isinstance(c.get('updated_at'), str):
             c['updated_at'] = datetime.fromisoformat(c['updated_at'])
+        # Auto-fix legacy "Structural" type to "Structure"
+        if c.get('type') == 'Structural':
+            c['type'] = 'Structure'
+            # Update in database
+            await db.consultants.update_one(
+                {"id": c['id']},
+                {"$set": {"type": "Structure"}}
+            )
     return consultants
 
 @api_router.put("/consultants/{consultant_id}", response_model=Consultant)
