@@ -589,7 +589,15 @@ export default function ProjectDetail({ user, onLogout }) {
       return;
     }
     
+    // Validate file size (50MB limit for better UX)
+    const maxSize = 50 * 1024 * 1024; // 50MB
+    if (selectedFile.size > maxSize) {
+      toast.error('File size exceeds 50MB limit. Please compress the PDF.');
+      return;
+    }
+    
     setUploadingFile(true);
+    setUploadProgress(0);
     
     try {
       const token = localStorage.getItem('token');
@@ -598,19 +606,31 @@ export default function ProjectDetail({ user, onLogout }) {
       formData.append('drawing_id', selectedFileDrawing.id);
       formData.append('upload_type', uploadType);
       
-      console.log('Starting file upload...');
+      console.log('Starting file upload...', {
+        fileName: selectedFile.name,
+        fileSize: selectedFile.size,
+        uploadType
+      });
       
-      // Upload file to backend with timeout
+      // Upload file to backend with progress tracking
       const uploadResponse = await axios.post(`${API}/drawings/upload`, formData, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'multipart/form-data'
         },
-        timeout: 30000 // 30 second timeout
+        timeout: 120000, // 2 minute timeout for larger files
+        onUploadProgress: (progressEvent) => {
+          const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+          setUploadProgress(percentCompleted);
+          console.log(`Upload progress: ${percentCompleted}%`);
+        }
       });
       
       console.log('Upload response received:', uploadResponse.data);
       const file_url = uploadResponse.data.file_url;
+      
+      // Set progress to 100% briefly before updating status
+      setUploadProgress(100);
       
       // Update drawing with file URL
       const updatePayload = uploadType === 'issue' 
@@ -634,19 +654,28 @@ export default function ProjectDetail({ user, onLogout }) {
       console.log('Updating drawing status...');
       await axios.put(`${API}/drawings/${selectedFileDrawing.id}`, updatePayload, {
         headers: { Authorization: `Bearer ${token}` },
-        timeout: 10000 // 10 second timeout
+        timeout: 15000 // 15 second timeout
       });
       
       console.log('Upload complete, showing success message');
       toast.success(uploadType === 'issue' ? 'Drawing uploaded for review!' : 'Revision resolved with PDF!');
+      
+      // Reset states
       setUploadDialogOpen(false);
       setSelectedFile(null);
       setSelectedFileDrawing(null);
-      fetchProjectData();
+      setUploadProgress(0);
+      
+      // Refresh data
+      await fetchProjectData();
     } catch (error) {
       console.error('File upload error:', error);
+      setUploadProgress(0);
+      
       if (error.code === 'ECONNABORTED') {
-        toast.error('Upload timeout - please try again with a smaller file');
+        toast.error('Upload timeout - file may be too large. Try compressing it.');
+      } else if (error.response?.status === 413) {
+        toast.error('File too large. Maximum size is 50MB.');
       } else {
         toast.error(formatErrorMessage(error, 'Failed to upload file'));
       }
