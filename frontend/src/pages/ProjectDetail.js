@@ -1776,7 +1776,18 @@ export default function ProjectDetail({ user, onLogout }) {
         </Dialog>
 
         {/* File Upload Dialog */}
-        <Dialog open={uploadDialogOpen} onOpenChange={setUploadDialogOpen}>
+        <Dialog open={uploadDialogOpen} onOpenChange={(open) => {
+          // Prevent closing during upload
+          if (!uploadingFile || !open) {
+            setUploadDialogOpen(open);
+            if (!open) {
+              setSelectedFile(null);
+              setUploadProgress(0);
+            }
+          } else {
+            toast.warning('Please wait for upload to complete');
+          }
+        }}>
           <DialogContent>
             <DialogHeader>
               <DialogTitle>
