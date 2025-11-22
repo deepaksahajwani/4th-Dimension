@@ -389,14 +389,17 @@ test_plan:
   - task: "Project with Contractors Assignment"
     implemented: true
     working: false
-    file: "backend/server.py"
-    stuck_count: 0
+    file: "backend/server.py, frontend/src/pages/Projects.js"
+    stuck_count: 1
     priority: "high"
     needs_retesting: false
     status_history:
       - working: false
         agent: "testing"
         comment: "PROJECT WITH CONTRACTORS TESTING COMPLETED WITH PARTIAL SUCCESS (90% success rate): ✅ Step 1: Project Creation - Successfully created project with proper structure including project_access_code (12 characters, unique). ✅ Step 2: Project Access Code Uniqueness - Verified all 3 test projects have unique 12-character access codes as required. ✅ Step 3: Basic Project Fields - All required fields (id, code, title, project_types) working correctly. ❌ ISSUE IDENTIFIED: assigned_contractors field is not being saved to database during project creation. The field exists in Project model (models_projects.py line 247) but the server endpoint (server.py line 1125) is not passing this field to the NewProject constructor. This is a backend implementation gap - the assigned_contractors feature is defined in models but not implemented in the API endpoint. Main agent needs to add assigned_contractors parameter to the project creation endpoint."
+      - working: false
+        agent: "testing"
+        comment: "ASSIGNED CONTRACTORS BUG FIX TESTING COMPLETED - CRITICAL ISSUE CONFIRMED: ✅ TESTING SUCCESSFUL: Successfully logged in with deepaksahajwani@gmail.com, found 'Test Project for Edit Functionality' project, opened edit dialog, and navigated to Contractors tab. ✅ UI COMPONENTS WORKING: All 14 contractor dropdown fields are present and functional (Civil, Electrical, Plumbing, Air Conditioning, Marble and Tile, False Ceiling, Furniture, Modular, Kitchen, Landscape, Glass, Profile, Gardner, Fabricator). ❌ CRITICAL BUG CONFIRMED: All contractor dropdowns show 'Value=None' indicating assigned contractors are NOT being populated when edit dialog opens. The test project should have pre-assigned contractors (Civil: b6572614-a286-41be-b870-1fc0c189f3ac, Electrical: c7d2fcdb-bacb-4996-a94a-7cf53802916c, Plumbing: 7b84e698-1303-473d-9af4-00fa2c0af225) but all dropdowns are empty. ❌ ROOT CAUSE: The bug fix setAssignedContractors(project.assigned_contractors || {}) on line 276 of Projects.js is not working correctly. This could be due to: 1) Backend not returning assigned_contractors data, 2) Data format mismatch between backend and frontend, or 3) State management issue where assignedContractors state is not connected to dropdown values. The assigned contractors bug fix is NOT working as expected."
 
   - task: "File Upload for Drawings"
     implemented: true
