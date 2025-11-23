@@ -1783,17 +1783,18 @@ export default function ProjectDetail({ user, onLogout }) {
                     {/* File Attachment */}
                     <input
                       type="file"
-                      accept="image/*,.pdf"
-                      onChange={(e) => setReferenceFile(e.target.files[0])}
+                      accept="image/*,.pdf,.doc,.docx,.txt"
+                      onChange={(e) => setReferenceFiles(Array.from(e.target.files))}
                       className="hidden"
                       id="reference-upload"
+                      multiple
                     />
                     <label 
                       htmlFor="reference-upload"
                       className="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-9 px-3 cursor-pointer"
                     >
                       <Upload className="w-4 h-4 mr-2" />
-                      Attach File
+                      Attach Files
                     </label>
                     
                     {/* Voice Recording */}
