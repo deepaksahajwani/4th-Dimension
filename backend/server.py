@@ -2913,7 +2913,7 @@ async def upload_comment_reference(
         ]
         file_extension = Path(file.filename).suffix.lower()
         if file_extension not in allowed_extensions:
-            raise HTTPException(status_code=400, detail=f"File type {file_extension} not allowed. Only PDF, images, and documents are allowed")
+            raise HTTPException(status_code=400, detail=f"File type {file_extension} not allowed. Supported: PDF, images, CAD files (.dwg, .dxf), documents, spreadsheets, and archives")
         
         # Create uploads directory
         upload_dir = Path("uploads/comment_references")
