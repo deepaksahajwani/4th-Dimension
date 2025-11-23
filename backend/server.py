@@ -2670,34 +2670,51 @@ async def update_drawing(
 
 @api_router.post("/drawings/upload")
 async def upload_drawing_file(
-    file: UploadFile = File(...),
+    files: List[UploadFile] = File(...),
     drawing_id: str = Form(...),
     upload_type: str = Form(...),
     current_user: User = Depends(get_current_user)
 ):
-    """Upload PDF file for drawing"""
-    # Validate file type
-    if not file.filename.endswith('.pdf'):
-        raise HTTPException(status_code=400, detail="Only PDF files are allowed")
+    """Upload multiple PDF files for drawing"""
+    uploaded_files = []
     
-    # Create uploads directory if it doesn't exist
-    upload_dir = Path("uploads/drawings")
-    upload_dir.mkdir(parents=True, exist_ok=True)
-    
-    # Generate unique filename
-    file_extension = Path(file.filename).suffix
-    unique_filename = f"{drawing_id}_{upload_type}_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}{file_extension}"
-    file_path = upload_dir / unique_filename
-    
-    # Save file
-    with open(file_path, "wb") as buffer:
+    for file in files:
+        # Validate file type (PDF only)
+        if not file.filename.lower().endswith('.pdf'):
+            raise HTTPException(status_code=400, detail=f"File {file.filename}: Only PDF files are allowed")
+        
+        # Check file size (50MB limit)
         content = await file.read()
-        buffer.write(content)
+        if len(content) > MAX_FILE_SIZE:
+            raise HTTPException(status_code=413, detail=f"File {file.filename}: File size exceeds maximum")
+        
+        # Create uploads directory
+        upload_dir = Path("uploads/drawings")
+        upload_dir.mkdir(parents=True, exist_ok=True)
+        
+        # Generate unique filename
+        timestamp = datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')
+        file_extension = Path(file.filename).suffix
+        unique_filename = f"{drawing_id}_{upload_type}_{timestamp}_{len(uploaded_files)}{file_extension}"
+        file_path = upload_dir / unique_filename
+        
+        # Save file
+        with open(file_path, "wb") as buffer:
+            buffer.write(content)
+        
+        # Return file URL
+        file_url = f"/uploads/drawings/{unique_filename}"
+        uploaded_files.append({
+            "url": file_url,
+            "filename": file.filename,
+            "original_name": file.filename,
+            "size": len(content)
+        })
     
-    # Return file URL (relative path)
-    file_url = f"/uploads/drawings/{unique_filename}"
-    
-    return {"file_url": file_url, "filename": file.filename}
+    return {
+        "uploaded_files": uploaded_files,
+        "message": f"Successfully uploaded {len(uploaded_files)} file(s)"
+    }
 
 @api_router.get("/drawings/{drawing_id}/download")
 async def download_drawing_file(
