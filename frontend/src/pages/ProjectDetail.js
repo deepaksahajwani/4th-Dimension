@@ -1999,7 +1999,7 @@ export default function ProjectDetail({ user, onLogout }) {
           if (!uploadingFile || !open) {
             setUploadDialogOpen(open);
             if (!open) {
-              setSelectedFile(null);
+              setSelectedFiles([]);
               setUploadProgress(0);
             }
           } else {
