@@ -68,6 +68,7 @@ export default function Projects({ user, onLogout }) {
   const [showAddContactType, setShowAddContactType] = useState(false);
   const [newContactTypeName, setNewContactTypeName] = useState('');
   const [contractors, setContractors] = useState([]);
+  const [consultants, setConsultants] = useState([]);
   const [assignedContractors, setAssignedContractors] = useState({});
 
   useEffect(() => {
