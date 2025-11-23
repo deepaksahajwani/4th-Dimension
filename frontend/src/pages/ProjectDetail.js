@@ -76,6 +76,7 @@ export default function ProjectDetail({ user, onLogout }) {
   const [editingComment, setEditingComment] = useState(null);
   const [loadingComments, setLoadingComments] = useState(false);
   const [referenceFile, setReferenceFile] = useState(null);
+  const [referenceFiles, setReferenceFiles] = useState([]);
   const [submittingComment, setSubmittingComment] = useState(false);
   
   // Voice recording states
