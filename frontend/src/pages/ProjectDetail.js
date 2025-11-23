@@ -484,16 +484,17 @@ export default function ProjectDetail({ user, onLogout }) {
         });
       }
       
-      // If there's a reference file, upload it
-      if (referenceFile && commentId) {
+      // If there are reference files, upload them
+      if (referenceFiles.length > 0 && commentId) {
         const formData = new FormData();
-        formData.append('file', referenceFile);
+        referenceFiles.forEach((file, index) => {
+          formData.append('files', file);
+        });
         
         await axios.post(`${API}/drawings/comments/${commentId}/upload-reference`, formData, {
           headers: { 'Content-Type': 'multipart/form-data' }
         });
-        toast.success('📎 Reference file attached!');
-        setReferenceFile(null);
+        toast.success(`📎 ${referenceFiles.length} file(s) attached!`);
       }
       
       setNewCommentText('');
