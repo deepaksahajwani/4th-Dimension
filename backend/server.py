@@ -2399,11 +2399,6 @@ async def get_projects(
                 {"id": project['id']},
                 {"$set": {"status": "Lead"}}
             )
-                except ValueError:
-                    # Handle invalid date strings
-                    project[field] = None
-            elif project.get(field) == '':
-                project[field] = None
     return projects
 
 @api_router.get("/projects/{project_id}")
