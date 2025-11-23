@@ -463,10 +463,11 @@ export default function ProjectDetail({ user, onLogout }) {
         });
         toast.success('Comment updated');
       } else {
-        // Create new comment
+        // Create new comment (allow empty text if there's a voice note)
+        const commentText = newCommentText.trim() || (audioBlob ? '[Voice Note]' : '');
         const response = await axios.post(`${API}/drawings/${selectedCommentDrawing.id}/comments`, {
           drawing_id: selectedCommentDrawing.id,
-          comment_text: newCommentText
+          comment_text: commentText
         });
         commentId = response.data.id;
         
