@@ -195,12 +195,22 @@ async def notify_drawing_uploaded(project_id: str, drawing_name: str, uploaded_b
         # Remove the uploader (don't notify them)
         all_user_ids.discard(uploaded_by_id)
         
-        # Generate message
-        message = templates.drawing_uploaded(
-            project.get("name", "Unknown Project"),
-            drawing_name,
-            uploader_name
-        )
+        # Generate enhanced message with deep link
+        app_url = os.environ.get('FRONTEND_URL', 'https://architect-pm.preview.emergentagent.com')
+        project_link = f"{app_url}/projects/{project_id}"
+        
+        message = f"""🏗️ NEW DRAWING UPLOADED
+        
+Project: {project.get("name", "Unknown Project")}
+Drawing: {drawing_name}
+Uploaded by: {uploader_name}
+
+👆 REVIEW NOW: {project_link}
+
+Quick Actions:
+✅ Approve | 🔄 Request Revision | 💬 Add Comment
+
+- 4th Dimension Team"""
         
         # Send to all team members
         for user_id in all_user_ids:
