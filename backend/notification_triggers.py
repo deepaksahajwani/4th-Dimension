@@ -562,6 +562,77 @@ async def notify_voice_note_added(project_id: str, drawing_name: str, commenter_
         app_url = os.environ.get('FRONTEND_URL', 'https://architect-pm.preview.emergentagent.com')
         project_link = f"{app_url}/projects/{project_id}"
         
+        message = f"""🎙️ VOICE NOTE ADDED
+
+Project: {project.get("name", "Unknown Project")}
+Drawing: {drawing_name}
+Voice Note by: {commenter_name}
+
+👆 LISTEN NOW: {project_link}
+
+Quick Actions:
+🎧 Play Voice Note | 💬 Reply | ✅ Acknowledge
+
+- 4th Dimension Team"""
+        
+        # Send to all team members
+        for user_id in all_user_ids:
+            if not await check_user_notifications_enabled(user_id, "notify_new_comment"):
+                continue
+            
+            user = await db.users.find_one({"id": user_id}, {"_id": 0})
+            if user and user.get("mobile"):
+                result = whatsapp_service.send_message(user["mobile"], message)
+                await save_notification_log(
+                    user_id=user_id,
+                    phone_number=user["mobile"],
+                    message_type="voice_note_added",
+                    message_body=message,
+                    project_id=project_id,
+                    result=result
+                )
+        
+        logger.info(f"Voice note notifications sent for project {project_id}")
+    
+    except Exception as e:
+        logger.error(f"Error sending voice_note_added notification: {str(e)}")
+
+
+async def notify_voice_note_added(project_id: str, drawing_name: str, commenter_id: str, comment_id: str):
+    """
+    Notify team members when a voice note is added to a comment
+    
+    Args:
+        project_id: Project ID
+        drawing_name: Name of the drawing
+        commenter_id: User ID who added the voice note
+        comment_id: Comment ID
+    """
+    try:
+        # Get project details
+        project = await db.projects.find_one({"id": project_id}, {"_id": 0})
+        if not project:
+            logger.warning(f"Project {project_id} not found")
+            return
+        
+        # Get commenter details
+        commenter = await db.users.find_one({"id": commenter_id}, {"_id": 0})
+        commenter_name = commenter.get("name", "Someone") if commenter else "Someone"
+        
+        # Get all team members on this project
+        team_member_ids = project.get("team_members", [])
+        assigned_contractors = project.get("assigned_contractors", [])
+        assigned_clients = project.get("assigned_clients", [])
+        
+        all_user_ids = set(team_member_ids + assigned_contractors + assigned_clients)
+        
+        # Remove the commenter (don't notify them)
+        all_user_ids.discard(commenter_id)
+        
+        # Generate enhanced message with deep link
+        app_url = os.environ.get('FRONTEND_URL', 'https://architect-pm.preview.emergentagent.com')
+        project_link = f"{app_url}/projects/{project_id}"
+        
         message = f"""🎤 VOICE NOTE ADDED
         
 Project: {project.get("name", "Unknown Project")}
