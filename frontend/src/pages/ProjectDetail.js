@@ -445,9 +445,9 @@ export default function ProjectDetail({ user, onLogout }) {
   };
 
   const handleSubmitComment = async () => {
-    // Allow submission if there's either text or voice note
-    if (!newCommentText.trim() && !audioBlob) {
-      toast.error('Please enter a comment or record a voice note');
+    // Allow submission if there's text, voice note, or file attachment
+    if (!newCommentText.trim() && !audioBlob && !referenceFile) {
+      toast.error('Please enter a comment, record a voice note, or attach a file');
       return;
     }
 
