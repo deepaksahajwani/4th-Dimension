@@ -2862,10 +2862,10 @@ async def delete_drawing_comment(
 @api_router.post("/drawings/comments/{comment_id}/upload-reference")
 async def upload_comment_reference(
     comment_id: str,
-    file: UploadFile = File(...),
+    files: List[UploadFile] = File(...),
     current_user: User = Depends(get_current_user)
 ):
-    """Upload reference file (image/PDF) for a comment"""
+    """Upload multiple reference files (images/PDFs) for a comment"""
     # Find comment
     comment = await db.drawing_comments.find_one({"id": comment_id, "deleted_at": None}, {"_id": 0})
     if not comment:
@@ -2875,38 +2875,49 @@ async def upload_comment_reference(
     if comment['user_id'] != current_user.id:
         raise HTTPException(status_code=403, detail="You can only add files to your own comments")
     
-    # Validate file type (images and PDFs only)
-    allowed_extensions = ['.pdf', '.jpg', '.jpeg', '.png', '.gif']
-    file_extension = Path(file.filename).suffix.lower()
-    if file_extension not in allowed_extensions:
-        raise HTTPException(status_code=400, detail="Only PDF and image files are allowed")
-    
-    # Create uploads directory
-    upload_dir = Path("uploads/comment_references")
-    upload_dir.mkdir(parents=True, exist_ok=True)
-    
-    # Generate unique filename
-    unique_filename = f"{comment_id}_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}{file_extension}"
-    file_path = upload_dir / unique_filename
-    
-    # Save file
-    with open(file_path, "wb") as buffer:
-        content = await file.read()
-        buffer.write(content)
-    
-    # Return file URL
-    file_url = f"/uploads/comment_references/{unique_filename}"
-    
-    # Add to comment's reference_files array
+    uploaded_files = []
     current_files = comment.get('reference_files', [])
-    current_files.append(file_url)
     
+    for file in files:
+        # Validate file type (images and PDFs only)
+        allowed_extensions = ['.pdf', '.jpg', '.jpeg', '.png', '.gif', '.doc', '.docx', '.txt']
+        file_extension = Path(file.filename).suffix.lower()
+        if file_extension not in allowed_extensions:
+            raise HTTPException(status_code=400, detail=f"File type {file_extension} not allowed. Only PDF, images, and documents are allowed")
+        
+        # Create uploads directory
+        upload_dir = Path("uploads/comment_references")
+        upload_dir.mkdir(parents=True, exist_ok=True)
+        
+        # Generate unique filename
+        unique_filename = f"{comment_id}_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}_{len(uploaded_files)}{file_extension}"
+        file_path = upload_dir / unique_filename
+        
+        # Save file
+        with open(file_path, "wb") as buffer:
+            content = await file.read()
+            buffer.write(content)
+        
+        # Return file URL
+        file_url = f"/uploads/comment_references/{unique_filename}"
+        uploaded_files.append({
+            "url": file_url,
+            "filename": file.filename,
+            "original_name": file.filename
+        })
+        current_files.append(file_url)
+    
+    # Update comment with all reference files
     await db.drawing_comments.update_one(
         {"id": comment_id},
         {"$set": {"reference_files": current_files}}
     )
     
-    return {"file_url": file_url, "filename": file.filename}
+    return {
+        "uploaded_files": uploaded_files,
+        "total_files": len(current_files),
+        "message": f"Successfully uploaded {len(uploaded_files)} file(s)"
+    }
 
 @api_router.post("/drawings/comments/{comment_id}/upload-voice")
 async def upload_comment_voice_note(
