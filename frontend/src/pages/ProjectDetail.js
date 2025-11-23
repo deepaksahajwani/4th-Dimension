@@ -1858,17 +1858,28 @@ export default function ProjectDetail({ user, onLogout }) {
                       )}
                     </div>
                     
-                    {referenceFile && (
-                      <span className="text-xs text-slate-600 flex items-center gap-2">
-                        📎 {referenceFile.name}
-                        <button
-                          onClick={() => setReferenceFile(null)}
-                          className="text-red-600 hover:text-red-800"
-                          type="button"
-                        >
-                          <X className="w-3 h-3" />
-                        </button>
-                      </span>
+                    {referenceFiles.length > 0 && (
+                      <div className="flex flex-col gap-1">
+                        <span className="text-xs text-slate-600 font-medium">
+                          📎 {referenceFiles.length} file(s) selected:
+                        </span>
+                        {referenceFiles.map((file, index) => (
+                          <div key={index} className="flex items-center gap-2 text-xs text-slate-600 bg-slate-50 px-2 py-1 rounded">
+                            <span className="truncate max-w-[200px]">{file.name}</span>
+                            <span className="text-slate-400">({(file.size / 1024).toFixed(1)}KB)</span>
+                            <button
+                              onClick={() => {
+                                const newFiles = referenceFiles.filter((_, i) => i !== index);
+                                setReferenceFiles(newFiles);
+                              }}
+                              className="text-red-600 hover:text-red-800 ml-auto"
+                              type="button"
+                            >
+                              <X className="w-3 h-3" />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
                     )}
                   </div>
                   <div className="flex gap-2">
