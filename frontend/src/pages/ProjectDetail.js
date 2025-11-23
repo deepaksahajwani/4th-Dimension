@@ -696,15 +696,16 @@ export default function ProjectDetail({ user, onLogout }) {
   };
 
   const handleFileUpload = async () => {
-    if (!selectedFile) {
-      toast.error('Please select a PDF file');
+    if (selectedFiles.length === 0) {
+      toast.error('Please select PDF file(s)');
       return;
     }
     
-    // Validate file size (50MB limit for better UX)
+    // Validate file sizes (50MB limit for better UX)
     const maxSize = 50 * 1024 * 1024; // 50MB
-    if (selectedFile.size > maxSize) {
-      toast.error('File size exceeds 50MB limit. Please compress the PDF.');
+    const oversizedFiles = selectedFiles.filter(file => file.size > maxSize);
+    if (oversizedFiles.length > 0) {
+      toast.error(`File(s) too large: ${oversizedFiles.map(f => f.name).join(', ')}. Maximum size is 50MB per file.`);
       return;
     }
     
@@ -714,23 +715,26 @@ export default function ProjectDetail({ user, onLogout }) {
     try {
       const token = localStorage.getItem('token');
       const formData = new FormData();
-      formData.append('file', selectedFile);
+      
+      selectedFiles.forEach((file, index) => {
+        formData.append('files', file);
+      });
       formData.append('drawing_id', selectedFileDrawing.id);
       formData.append('upload_type', uploadType);
       
-      console.log('Starting file upload...', {
-        fileName: selectedFile.name,
-        fileSize: selectedFile.size,
+      console.log(`Starting upload of ${selectedFiles.length} file(s)...`, {
+        fileNames: selectedFiles.map(f => f.name),
+        totalSize: selectedFiles.reduce((sum, f) => sum + f.size, 0),
         uploadType
       });
       
-      // Upload file to backend with progress tracking
+      // Upload files to backend with progress tracking
       const uploadResponse = await axios.post(`${API}/drawings/upload`, formData, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'multipart/form-data'
         },
-        timeout: 120000, // 2 minute timeout for larger files
+        timeout: 300000, // 5 minute timeout for multiple large files
         onUploadProgress: (progressEvent) => {
           const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
           setUploadProgress(percentCompleted);
@@ -739,28 +743,32 @@ export default function ProjectDetail({ user, onLogout }) {
       });
       
       console.log('Upload response received:', uploadResponse.data);
-      const file_url = uploadResponse.data.file_url;
+      const uploadedFiles = uploadResponse.data.uploaded_files;
       
       // Set progress to 100% briefly before updating status
       setUploadProgress(100);
+      
+      // Use the first uploaded file as the main file URL for backward compatibility
+      const primaryFileUrl = uploadedFiles[0]?.url;
       
       // Update drawing with file URL
       const updatePayload = uploadType === 'issue' 
         ? { 
             under_review: true, 
-            file_url,
+            file_url: primaryFileUrl,
             has_pending_revision: false  // Explicitly set to false
           }
         : { 
             has_pending_revision: false, 
             under_review: true,  // Resolved goes back to review state
-            file_url  // Update with new resolved file
+            file_url: primaryFileUrl  // Update with new resolved file
           };
       
       if (uploadType === 'resolve') {
         // Add to revision_file_urls array
         const current_urls = selectedFileDrawing.revision_file_urls || [];
-        updatePayload.revision_file_urls = [...current_urls, file_url];
+        const new_urls = uploadedFiles.map(file => file.url);
+        updatePayload.revision_file_urls = [...current_urls, ...new_urls];
       }
       
       console.log('Updating drawing status...');
@@ -770,11 +778,14 @@ export default function ProjectDetail({ user, onLogout }) {
       });
       
       console.log('Upload complete, showing success message');
-      toast.success(uploadType === 'issue' ? 'Drawing uploaded for review!' : 'Revision resolved with PDF!');
+      const message = uploadType === 'issue' 
+        ? `${selectedFiles.length} drawing(s) uploaded for review!`
+        : `${selectedFiles.length} revision(s) resolved with PDF(s)!`;
+      toast.success(message);
       
       // Reset states
       setUploadDialogOpen(false);
-      setSelectedFile(null);
+      setSelectedFiles([]);
       setSelectedFileDrawing(null);
       setUploadProgress(0);
       
@@ -785,11 +796,11 @@ export default function ProjectDetail({ user, onLogout }) {
       setUploadProgress(0);
       
       if (error.code === 'ECONNABORTED') {
-        toast.error('Upload timeout - file may be too large. Try compressing it.');
+        toast.error('Upload timeout - files may be too large. Try compressing them or uploading fewer files.');
       } else if (error.response?.status === 413) {
-        toast.error('File too large. Maximum size is 50MB.');
+        toast.error('Files too large. Maximum size is 50MB per file.');
       } else {
-        toast.error(formatErrorMessage(error, 'Failed to upload file'));
+        toast.error(formatErrorMessage(error, 'Failed to upload file(s)'));
       }
     } finally {
       console.log('Resetting upload state');
