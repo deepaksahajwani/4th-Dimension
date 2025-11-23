@@ -2905,6 +2905,71 @@ async def upload_comment_reference(
     
     return {"file_url": file_url, "filename": file.filename}
 
+@api_router.post("/drawings/comments/{comment_id}/upload-voice")
+async def upload_comment_voice_note(
+    comment_id: str,
+    voice_note: UploadFile = File(...),
+    current_user: User = Depends(get_current_user)
+):
+    """Upload voice note for a comment"""
+    # Find comment
+    comment = await db.drawing_comments.find_one({"id": comment_id, "deleted_at": None}, {"_id": 0})
+    if not comment:
+        raise HTTPException(status_code=404, detail="Comment not found")
+    
+    # Check if user is the author
+    if comment['user_id'] != current_user.id:
+        raise HTTPException(status_code=403, detail="You can only add voice notes to your own comments")
+    
+    # Validate file type (audio files only)
+    allowed_extensions = ['.webm', '.mp3', '.wav', '.m4a', '.ogg']
+    file_extension = Path(voice_note.filename).suffix.lower()
+    if file_extension not in allowed_extensions:
+        raise HTTPException(status_code=400, detail="Only audio files are allowed")
+    
+    # Create uploads directory
+    upload_dir = Path("uploads/voice_notes")
+    upload_dir.mkdir(parents=True, exist_ok=True)
+    
+    # Generate unique filename
+    unique_filename = f"voice_{comment_id}_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}.webm"
+    file_path = upload_dir / unique_filename
+    
+    # Save file
+    with open(file_path, "wb") as buffer:
+        content = await voice_note.read()
+        buffer.write(content)
+    
+    # Return file URL
+    voice_url = f"/uploads/voice_notes/{unique_filename}"
+    
+    # Add voice note URL to comment
+    await db.drawing_comments.update_one(
+        {"id": comment_id},
+        {"$set": {"voice_note_url": voice_url}}
+    )
+    
+    # Trigger enhanced WhatsApp notification for voice note
+    try:
+        # Get drawing and project details for notification
+        drawing = await db.project_drawings.find_one({"id": comment.get("drawing_id")}, {"_id": 0})
+        if drawing:
+            project_id = drawing.get("project_id")
+            drawing_name = drawing.get("name", "Unknown Drawing")
+            
+            # Import notification function
+            from notification_triggers import notify_voice_note_added
+            await notify_voice_note_added(
+                project_id=project_id,
+                drawing_name=drawing_name,
+                commenter_id=current_user.id,
+                comment_id=comment_id
+            )
+    except Exception as e:
+        logger.warning(f"Failed to send voice note notification: {e}")
+    
+    return {"voice_url": voice_url, "message": "Voice note uploaded successfully"}
+
 @api_router.post("/drawings/{drawing_id}/mark-comments-read")
 async def mark_comments_read(
     drawing_id: str,
