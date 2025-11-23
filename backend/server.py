@@ -65,6 +65,9 @@ MAX_FILE_SIZE = int(os.environ.get('MAX_FILE_SIZE', 524288000))
 UPLOAD_DIR = Path("/app/uploads")
 UPLOAD_DIR.mkdir(exist_ok=True)
 
+# Logger setup
+logger = logging.getLogger(__name__)
+
 # Create the main app without a prefix
 app = FastAPI(title="Architecture Firm Management System")
 
