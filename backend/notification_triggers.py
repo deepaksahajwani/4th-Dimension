@@ -607,5 +607,6 @@ __all__ = [
     'notify_task_assigned',
     'notify_milestone_completed',
     'notify_payment_due',
-    'notify_site_visit_scheduled'
+    'notify_site_visit_scheduled',
+    'notify_voice_note_added'
 ]
