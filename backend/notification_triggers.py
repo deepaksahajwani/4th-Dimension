@@ -255,12 +255,25 @@ async def notify_new_comment(project_id: str, commenter_id: str, comment_text: s
         commenter = await db.users.find_one({"id": commenter_id}, {"_id": 0})
         commenter_name = commenter.get("name", "Someone") if commenter else "Someone"
         
-        # Generate message
-        message = templates.new_comment(
-            project.get("name", "Unknown Project"),
-            commenter_name,
-            comment_text
-        )
+        # Generate enhanced comment message with deep link
+        app_url = os.environ.get('FRONTEND_URL', 'https://architect-pm.preview.emergentagent.com')
+        project_link = f"{app_url}/projects/{project_id}"
+        
+        # Truncate comment for WhatsApp display
+        display_comment = comment_text[:100] + "..." if len(comment_text) > 100 else comment_text
+        
+        message = f"""💬 NEW COMMENT ADDED
+
+Project: {project.get("name", "Unknown Project")}
+By: {commenter_name}
+Comment: "{display_comment}"
+
+👆 VIEW & RESPOND: {project_link}
+
+Quick Actions:
+💬 Reply | ✅ Acknowledge | 🔔 Mark Important
+
+- 4th Dimension Team"""
         
         # Notify mentioned users or all team members
         if mentioned_user_ids:
