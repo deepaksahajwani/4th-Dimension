@@ -2389,6 +2389,17 @@ async def get_projects(
                 try:
                     project[field] = datetime.fromisoformat(project[field])
                 except ValueError:
+                    pass
+        
+        # Auto-fix legacy status values
+        if project.get('status') not in ['Lead', 'Concept', 'Layout_Dev', 'Elevation_3D', 'Structural_Coord', 'Working_Drawings', 'Execution', 'OnHold', 'Closed']:
+            project['status'] = 'Lead'
+            # Update in database
+            await db.projects.update_one(
+                {"id": project['id']},
+                {"$set": {"status": "Lead"}}
+            )
+                except ValueError:
                     # Handle invalid date strings
                     project[field] = None
             elif project.get(field) == '':
