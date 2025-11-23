@@ -1708,6 +1708,25 @@ export default function ProjectDetail({ user, onLogout }) {
                         </div>
                         <p className="text-slate-700 whitespace-pre-wrap">{comment.comment_text}</p>
                         
+                        {/* Voice Note */}
+                        {comment.voice_note_url && (
+                          <div className="mt-3 flex items-center gap-2 bg-blue-50 px-3 py-2 rounded-lg border border-blue-200">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => {
+                                const audio = new Audio(`${API.replace('/api', '')}${comment.voice_note_url}`);
+                                audio.play();
+                              }}
+                              className="text-blue-700 hover:bg-blue-100 h-8 px-2"
+                            >
+                              <Play className="w-4 h-4 mr-1" />
+                              Play Voice Note
+                            </Button>
+                            <span className="text-sm text-blue-600">🎙️</span>
+                          </div>
+                        )}
+                        
                         {/* Reference Files */}
                         {comment.reference_files && comment.reference_files.length > 0 && (
                           <div className="mt-3 flex flex-wrap gap-2">
