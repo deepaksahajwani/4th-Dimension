@@ -2080,7 +2080,7 @@ export default function ProjectDetail({ user, onLogout }) {
                 )}
               </div>
             </div>
-            <DialogFooter>
+            <DialogFooter className="flex flex-col sm:flex-row gap-2">
               <Button 
                 variant="outline" 
                 onClick={() => {
@@ -2089,13 +2089,14 @@ export default function ProjectDetail({ user, onLogout }) {
                   setSelectedFileDrawing(null);
                 }}
                 disabled={uploadingFile}
+                className="w-full sm:w-auto text-xs sm:text-sm"
               >
                 Cancel
               </Button>
               <Button 
                 onClick={handleFileUpload}
                 disabled={selectedFiles.length === 0 || uploadingFile}
-                className="bg-blue-600 hover:bg-blue-700 text-white"
+                className="bg-blue-600 hover:bg-blue-700 text-white w-full sm:w-auto text-xs sm:text-sm"
               >
                 {uploadingFile 
                   ? `Uploading ${uploadProgress}%...` 
