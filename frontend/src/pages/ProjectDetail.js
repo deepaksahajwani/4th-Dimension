@@ -492,11 +492,109 @@ export default function ProjectDetail({ user, onLogout }) {
       setEditingComment(null);
       await fetchComments(selectedCommentDrawing.id);
       
+      // Handle voice note upload if present
+      if (audioBlob && commentId) {
+        await uploadVoiceNote(commentId);
+      }
+      
       // Refresh project data to update comment counts
       await fetchProjectData();
       
       // Close dialog after posting comment (Issue #2)
       setCommentDialogOpen(false);
+    } catch (error) {
+      toast.error(formatErrorMessage(error, 'Failed to save comment'));
+    } finally {
+      setSubmittingComment(false);
+    }
+  };
+
+  // Voice Recording Functions
+  const startRecording = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const recorder = new MediaRecorder(stream, { mimeType: 'audio/webm' });
+      
+      recorder.onstart = () => {
+        setIsRecording(true);
+        setRecordingTime(0);
+      };
+      
+      recorder.ondataavailable = (event) => {
+        if (event.data.size > 0) {
+          setAudioBlob(event.data);
+        }
+      };
+      
+      recorder.onstop = () => {
+        setIsRecording(false);
+        stream.getTracks().forEach(track => track.stop());
+      };
+      
+      setMediaRecorder(recorder);
+      recorder.start();
+      
+      // Start timer
+      const timer = setInterval(() => {
+        setRecordingTime(prev => prev + 1);
+      }, 1000);
+      
+      // Store timer to clear later
+      recorder.timer = timer;
+      
+    } catch (error) {
+      toast.error('Could not access microphone');
+      console.error('Recording error:', error);
+    }
+  };
+
+  const stopRecording = () => {
+    if (mediaRecorder && mediaRecorder.state === 'recording') {
+      mediaRecorder.stop();
+      clearInterval(mediaRecorder.timer);
+    }
+  };
+
+  const clearVoiceNote = () => {
+    setAudioBlob(null);
+    setRecordingTime(0);
+    setPlayingAudio(false);
+  };
+
+  const playVoiceNote = () => {
+    if (audioBlob) {
+      const audio = new Audio(URL.createObjectURL(audioBlob));
+      setPlayingAudio(true);
+      audio.play();
+      audio.onended = () => setPlayingAudio(false);
+    }
+  };
+
+  const uploadVoiceNote = async (commentId) => {
+    if (!audioBlob) return;
+    
+    try {
+      const formData = new FormData();
+      formData.append('voice_note', audioBlob, 'voice_note.webm');
+      
+      await axios.post(`${API}/drawings/comments/${commentId}/upload-voice`, formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
+      
+      toast.success('🎙️ Voice note attached!');
+      clearVoiceNote();
+      
+    } catch (error) {
+      toast.error('Failed to upload voice note');
+      console.error('Voice upload error:', error);
+    }
+  };
+
+  const formatTime = (seconds) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  };
     } catch (error) {
       console.error('Comment error:', error);
       toast.error(formatErrorMessage(error, 'Failed to save comment'));
