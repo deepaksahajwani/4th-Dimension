@@ -2679,9 +2679,12 @@ async def upload_drawing_file(
     uploaded_files = []
     
     for file in files:
-        # Validate file type (PDF only)
-        if not file.filename.lower().endswith('.pdf'):
-            raise HTTPException(status_code=400, detail=f"File {file.filename}: Only PDF files are allowed")
+        # Validate file type - expanded to support architectural files
+        allowed_extensions = ['.pdf', '.dwg', '.dxf', '.dwf', '.dgn']
+        file_extension = Path(file.filename).suffix.lower()
+        
+        if file_extension not in allowed_extensions:
+            raise HTTPException(status_code=400, detail=f"File {file.filename}: Only PDF and CAD files (.dwg, .dxf, .dwf, .dgn) are allowed for drawings")
         
         # Check file size (50MB limit)
         content = await file.read()
