@@ -345,12 +345,26 @@ async def notify_task_assigned(task_id: str, assignee_id: str, project_id: str):
             except:
                 pass
         
-        # Generate message
-        message = templates.task_assigned(
-            task.get("title", "Unnamed Task"),
-            project_name,
-            deadline_str
-        )
+        # Generate enhanced task assignment message with deep link
+        app_url = os.environ.get('FRONTEND_URL', 'https://architect-pm.preview.emergentagent.com')
+        project_link = f"{app_url}/projects/{project_id}"
+        
+        # Priority emoji
+        priority_emoji = {"high": "🔴", "medium": "🟡", "low": "🟢"}.get(task.get("priority", "medium"), "🟡")
+        
+        message = f"""✅ NEW TASK ASSIGNED
+
+{priority_emoji} Priority: {task.get("priority", "Medium").title()}
+Task: {task.get("title", "Unnamed Task")}
+Project: {project_name}
+Deadline: {deadline_str}
+
+👆 VIEW TASK: {project_link}
+
+Quick Actions:
+▶️ Start Work | ❓ Ask Question | ⏰ Update Status
+
+- 4th Dimension Team"""
         
         # Send WhatsApp
         result = whatsapp_service.send_message(user["mobile"], message)
