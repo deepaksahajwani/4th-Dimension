@@ -1795,7 +1795,7 @@ export default function ProjectDetail({ user, onLogout }) {
                     {/* File Attachment */}
                     <input
                       type="file"
-                      accept="image/*,.pdf,.doc,.docx,.txt"
+                      accept="image/*,.pdf,.doc,.docx,.txt,.dwg,.dxf,.dwf,.dgn,.xls,.xlsx,.csv,.ppt,.pptx,.zip,.rar"
                       onChange={(e) => setReferenceFiles(Array.from(e.target.files))}
                       className="hidden"
                       id="reference-upload"
