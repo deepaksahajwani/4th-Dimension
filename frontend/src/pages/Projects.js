@@ -174,9 +174,12 @@ export default function Projects({ user, onLogout }) {
       // Clean up empty contacts
       const cleanedData = { ...formData };
       
-      // Convert empty string lead_architect_id to null
+      // Convert empty string IDs to null
       if (cleanedData.lead_architect_id === '') {
         cleanedData.lead_architect_id = null;
+      }
+      if (cleanedData.project_manager_id === '') {
+        cleanedData.project_manager_id = null;
       }
       
       // Remove empty contact objects
