@@ -2896,8 +2896,21 @@ async def upload_comment_reference(
     current_files = comment.get('reference_files', [])
     
     for file in files:
-        # Validate file type (images and PDFs only)
-        allowed_extensions = ['.pdf', '.jpg', '.jpeg', '.png', '.gif', '.doc', '.docx', '.txt']
+        # Validate file type (expanded support for architectural files)
+        allowed_extensions = [
+            # Documents
+            '.pdf', '.doc', '.docx', '.txt', '.rtf',
+            # Images  
+            '.jpg', '.jpeg', '.png', '.gif', '.bmp', '.tiff', '.svg',
+            # CAD/Drawing files
+            '.dwg', '.dxf', '.dwf', '.dgn',
+            # Spreadsheets
+            '.xls', '.xlsx', '.csv',
+            # Presentations
+            '.ppt', '.pptx',
+            # Archives
+            '.zip', '.rar', '.7z'
+        ]
         file_extension = Path(file.filename).suffix.lower()
         if file_extension not in allowed_extensions:
             raise HTTPException(status_code=400, detail=f"File type {file_extension} not allowed. Only PDF, images, and documents are allowed")
