@@ -464,10 +464,10 @@ export default function ProjectDetail({ user, onLogout }) {
         });
         toast.success('Comment updated');
       } else {
-        // Create new comment (allow empty text if there's a voice note or file)
+        // Create new comment (allow empty text if there's a voice note or files)
         const commentText = newCommentText.trim() || 
                            (audioBlob ? '[Voice Note]' : '') || 
-                           (referenceFile ? '[File Attachment]' : '');
+                           (referenceFiles.length > 0 ? `[${referenceFiles.length} File(s) Attached]` : '');
         const response = await axios.post(`${API}/drawings/${selectedCommentDrawing.id}/comments`, {
           drawing_id: selectedCommentDrawing.id,
           comment_text: commentText
