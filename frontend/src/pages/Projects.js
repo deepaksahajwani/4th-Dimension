@@ -264,6 +264,9 @@ export default function Projects({ user, onLogout }) {
       if (cleanedData.lead_architect_id === '') {
         cleanedData.lead_architect_id = null;
       }
+      if (cleanedData.project_manager_id === '') {
+        cleanedData.project_manager_id = null;
+      }
       
       await axios.put(`${API}/projects/${editingProject.id}`, cleanedData);
       toast.success('Project updated successfully!');
