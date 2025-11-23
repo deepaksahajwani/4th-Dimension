@@ -60,6 +60,7 @@ export default function ProjectDetail({ user, onLogout }) {
   const [selectedFileDrawing, setSelectedFileDrawing] = useState(null);
   const [uploadingFile, setUploadingFile] = useState(false);
   const [selectedFile, setSelectedFile] = useState(null);
+  const [selectedFiles, setSelectedFiles] = useState([]);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [drawingFormData, setDrawingFormData] = useState({
     category: 'Architecture',
