@@ -500,49 +500,51 @@ export default function Projects({ user, onLogout }) {
 
                 {/* Basic Info Tab */}
                 <TabsContent value="basic" className="space-y-4 mt-4">
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                      <Label>Project Code *</Label>
+                      <Label className="text-sm font-medium">Project Code *</Label>
                       <Input
                         value={formData.code}
                         onChange={(e) => setFormData({ ...formData, code: e.target.value })}
                         placeholder="e.g., PRJ-2024-001"
                         required
+                        className="mt-1"
                       />
                     </div>
                     <div>
-                      <Label>Project Title *</Label>
+                      <Label className="text-sm font-medium">Project Title *</Label>
                       <Input
                         value={formData.title}
                         onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                         placeholder="e.g., Residence at Bandra"
                         required
+                        className="mt-1"
                       />
                     </div>
                   </div>
 
                   <div>
-                    <Label>Project Types *</Label>
-                    <div className="flex flex-wrap gap-3 mt-2">
+                    <Label className="text-sm font-medium">Project Types *</Label>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mt-2">
                       {PROJECT_TYPES.map((type) => (
-                        <label key={type} className="flex items-center gap-2 cursor-pointer">
+                        <label key={type} className="flex items-center gap-2 cursor-pointer p-2 rounded border hover:bg-slate-50">
                           <input
                             type="checkbox"
                             checked={formData.project_types.includes(type)}
                             onChange={() => handleProjectTypeToggle(type)}
                             className="w-4 h-4 text-orange-500 border-slate-300 rounded focus:ring-orange-500"
                           />
-                          <span className="text-sm text-slate-700">{type}</span>
+                          <span className="text-xs sm:text-sm text-slate-700">{type}</span>
                         </label>
                       ))}
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                      <Label>Client *</Label>
+                      <Label className="text-sm font-medium">Client *</Label>
                       <select
-                        className="flex h-10 w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm"
+                        className="flex h-10 w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm mt-1"
                         value={formData.client_id}
                         onChange={(e) => setFormData({ ...formData, client_id: e.target.value })}
                         required
@@ -556,9 +558,9 @@ export default function Projects({ user, onLogout }) {
                       </select>
                     </div>
                     <div>
-                      <Label>Team Leader</Label>
+                      <Label className="text-sm font-medium">Team Leader</Label>
                       <select
-                        className="flex h-10 w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm"
+                        className="flex h-10 w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm mt-1"
                         value={formData.lead_architect_id}
                         onChange={(e) => setFormData({ ...formData, lead_architect_id: e.target.value })}
                       >
@@ -572,11 +574,11 @@ export default function Projects({ user, onLogout }) {
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                      <Label>Status</Label>
+                      <Label className="text-sm font-medium">Status</Label>
                       <select
-                        className="flex h-10 w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm"
+                        className="flex h-10 w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm mt-1"
                         value={formData.status}
                         onChange={(e) => setFormData({ ...formData, status: e.target.value })}
                       >
@@ -591,13 +593,43 @@ export default function Projects({ user, onLogout }) {
                         <option value="Closed">Closed</option>
                       </select>
                     </div>
-                    <div></div>
+                    <div className="space-y-4">
+                      <div>
+                        <Label className="text-sm font-medium">Start Date</Label>
+                        <Input
+                          type="date"
+                          value={formData.start_date}
+                          onChange={(e) => setFormData({ ...formData, start_date: e.target.value })}
+                          className="mt-1"
+                        />
+                      </div>
+                    </div>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                      <Label>Start Date</Label>
+                      <Label className="text-sm font-medium">End Date</Label>
                       <Input
+                        type="date"
+                        value={formData.end_date}
+                        onChange={(e) => setFormData({ ...formData, end_date: e.target.value })}
+                        className="mt-1"
+                      />
+                    </div>
+                    <div>
+                      <Label className="text-sm font-medium">Priority</Label>
+                      <select
+                        className="flex h-10 w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm mt-1"
+                        value={formData.priority}
+                        onChange={(e) => setFormData({ ...formData, priority: e.target.value })}
+                      >
+                        <option value="medium">Medium</option>
+                        <option value="low">Low</option>
+                        <option value="high">High</option>
+                      </select>
+                    </div>
+                  </div>
+                </TabsContent>
                         type="date"
                         value={formData.start_date}
                         onChange={(e) => setFormData({ ...formData, start_date: e.target.value })}
