@@ -677,100 +677,129 @@ export default function Projects({ user, onLogout }) {
                   </div>
                 </TabsContent>
 
-                {/* Contacts Tab */}
-                <TabsContent value="contacts" className="space-y-4 mt-4">
-                  <div className="space-y-3">
-                    <h3 className="font-semibold text-slate-900 mb-2">Standard Contacts</h3>
-                    <ContactSection title="Civil Contractor" fieldName="civil_contractor" />
-                    <ContactSection title="Structural Consultant" fieldName="structural_consultant" />
-                    <ContactSection title="Tile & Marble Contractor" fieldName="tile_marble_contractor" />
-                    <ContactSection title="Furniture Contractor" fieldName="furniture_contractor" />
-                    <ContactSection title="Electrical Contractor" fieldName="electrical_contractor" />
-                    <ContactSection title="Electrical Consultant" fieldName="electrical_consultant" />
-                    <ContactSection title="Plumbing Consultant" fieldName="plumbing_consultant" />
-                    <ContactSection title="Plumbing Contractor" fieldName="plumbing_contractor" />
-                    <ContactSection title="False Ceiling Contractor" fieldName="false_ceiling_contractor" />
-                    <ContactSection title="Furniture Material Supplier" fieldName="furniture_material_supplier" />
-                    <ContactSection title="Kitchen Contractor" fieldName="kitchen_contractor" />
-                    <ContactSection title="Modular Contractor" fieldName="modular_contractor" />
-                    <ContactSection title="Color Contractor" fieldName="color_contractor" />
-                    <ContactSection title="Landscape Consultant" fieldName="landscape_consultant" />
-                    <ContactSection title="Landscape Contractor" fieldName="landscape_contractor" />
-                    <ContactSection title="Automation Consultant" fieldName="automation_consultant" />
-                    <ContactSection title="Readymade Furniture Supplier" fieldName="readymade_furniture_supplier" />
-                    <ContactSection title="Lights Supplier" fieldName="lights_supplier" />
-                    
-                    {/* Custom Contact Types */}
-                    {contactTypes.length > 0 && (
-                      <>
-                        <h3 className="font-semibold text-slate-900 mt-6 mb-2">Custom Contacts</h3>
-                        {contactTypes.map((type) => (
-                          <div key={type.id} className="p-4 border border-slate-200 rounded-lg bg-slate-50">
-                            <h4 className="font-medium text-sm text-slate-900 mb-3">{type.type_name}</h4>
-                            <div className="grid grid-cols-3 gap-3">
-                              <Input
-                                placeholder="Name"
-                                value={formData.custom_contacts[type.id]?.name || ''}
-                                onChange={(e) => updateCustomContactField(type.id, 'name', e.target.value)}
-                              />
-                              <Input
-                                placeholder="Email"
-                                type="email"
-                                value={formData.custom_contacts[type.id]?.email || ''}
-                                onChange={(e) => updateCustomContactField(type.id, 'email', e.target.value)}
-                              />
-                              <Input
-                                placeholder="Phone"
-                                value={formData.custom_contacts[type.id]?.phone || ''}
-                                onChange={(e) => updateCustomContactField(type.id, 'phone', e.target.value)}
-                              />
-                            </div>
-                          </div>
-                        ))}
-                      </>
-                    )}
-
-                    {/* Add New Contact Type */}
-                    <div className="pt-4 border-t mt-4">
-                      {!showAddContactType ? (
-                        <Button
-                          type="button"
-                          variant="outline"
-                          onClick={() => setShowAddContactType(true)}
-                          className="w-full"
+                {/* Team Tab */}
+                <TabsContent value="team" className="space-y-6 mt-4">
+                  {/* Team Members Section */}
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                    <h3 className="font-semibold text-slate-900 mb-3 text-sm sm:text-base">👥 Team Members</h3>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div>
+                        <Label className="text-xs sm:text-sm font-medium">Project Manager</Label>
+                        <select 
+                          className="w-full mt-1 p-2 border border-slate-300 rounded text-sm"
+                          value={formData.project_manager_id || ''}
+                          onChange={(e) => setFormData({...formData, project_manager_id: e.target.value})}
                         >
-                          <Plus className="w-4 h-4 mr-2" />
-                          Add Custom Contact Type
-                        </Button>
-                      ) : (
-                        <div className="space-y-3 p-4 border border-orange-200 rounded-lg bg-orange-50">
-                          <Label>New Contact Type Name</Label>
-                          <Input
-                            value={newContactTypeName}
-                            onChange={(e) => setNewContactTypeName(e.target.value)}
-                            placeholder="e.g., MEP Consultant, HVAC Contractor"
-                          />
-                          <div className="flex gap-2">
-                            <Button
-                              type="button"
-                              onClick={handleAddContactType}
-                              className="flex-1 bg-orange-500 hover:bg-orange-600"
-                            >
-                              Add Contact Type
-                            </Button>
-                            <Button
-                              type="button"
-                              variant="outline"
-                              onClick={() => {
-                                setShowAddContactType(false);
-                                setNewContactTypeName('');
-                              }}
-                            >
-                              Cancel
-                            </Button>
+                          <option value="">Select Project Manager</option>
+                          {teamMembers.filter(m => m.role === 'project_manager' || m.role === 'owner').map((member) => (
+                            <option key={member.id} value={member.id}>{member.name}</option>
+                          ))}
+                        </select>
+                      </div>
+                      <div>
+                        <Label className="text-xs sm:text-sm font-medium">Lead Architect</Label>
+                        <select 
+                          className="w-full mt-1 p-2 border border-slate-300 rounded text-sm"
+                          value={formData.lead_architect_id || ''}
+                          onChange={(e) => setFormData({...formData, lead_architect_id: e.target.value})}
+                        >
+                          <option value="">Select Lead Architect</option>
+                          {teamMembers.filter(m => m.role === 'architect' || m.role === 'owner').map((member) => (
+                            <option key={member.id} value={member.id}>{member.name}</option>
+                          ))}
+                        </select>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Consultants Section */}
+                  <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                    <h3 className="font-semibold text-slate-900 mb-3 text-sm sm:text-base">🏗️ Consultants</h3>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div>
+                        <Label className="text-xs sm:text-sm font-medium">Structural Consultant</Label>
+                        <select className="w-full mt-1 p-2 border border-slate-300 rounded text-sm">
+                          <option value="">Select Consultant</option>
+                          {consultants.filter(c => c.type === 'Structure').map((consultant) => (
+                            <option key={consultant.id} value={consultant.id}>{consultant.name}</option>
+                          ))}
+                        </select>
+                      </div>
+                      <div>
+                        <Label className="text-xs sm:text-sm font-medium">MEP Consultant</Label>
+                        <select className="w-full mt-1 p-2 border border-slate-300 rounded text-sm">
+                          <option value="">Select Consultant</option>
+                          {consultants.filter(c => c.type === 'MEP').map((consultant) => (
+                            <option key={consultant.id} value={consultant.id}>{consultant.name}</option>
+                          ))}
+                        </select>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Vendors Section */}
+                  <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
+                    <h3 className="font-semibold text-slate-900 mb-3 text-sm sm:text-base">🏪 Vendors</h3>
+                    <div className="space-y-3">
+                      {contactTypes.map((type) => (
+                        <div key={type.id} className="grid grid-cols-1 sm:grid-cols-3 gap-2 p-3 bg-white rounded border border-slate-200">
+                          <div className="sm:col-span-3 mb-2 sm:mb-0">
+                            <Label className="text-xs sm:text-sm font-medium text-purple-700">{type.type_name}</Label>
+                          </div>
+                          <div>
+                            <Input
+                              placeholder="Vendor name"
+                              value={formData.custom_contacts[type.id]?.name || ''}
+                              onChange={(e) => setFormData({
+                                ...formData,
+                                custom_contacts: {
+                                  ...formData.custom_contacts,
+                                  [type.id]: {
+                                    ...formData.custom_contacts[type.id],
+                                    name: e.target.value
+                                  }
+                                }
+                              })}
+                              className="text-sm"
+                            />
+                          </div>
+                          <div>
+                            <Input
+                              placeholder="Email"
+                              type="email"
+                              value={formData.custom_contacts[type.id]?.email || ''}
+                              onChange={(e) => setFormData({
+                                ...formData,
+                                custom_contacts: {
+                                  ...formData.custom_contacts,
+                                  [type.id]: {
+                                    ...formData.custom_contacts[type.id],
+                                    email: e.target.value
+                                  }
+                                }
+                              })}
+                              className="text-sm"
+                            />
+                          </div>
+                          <div>
+                            <Input
+                              placeholder="Phone"
+                              value={formData.custom_contacts[type.id]?.phone || ''}
+                              onChange={(e) => setFormData({
+                                ...formData,
+                                custom_contacts: {
+                                  ...formData.custom_contacts,
+                                  [type.id]: {
+                                    ...formData.custom_contacts[type.id],
+                                    phone: e.target.value
+                                  }
+                                }
+                              })}
+                              className="text-sm"
+                            />
                           </div>
                         </div>
-                      )}
+                      ))}
                     </div>
                   </div>
                 </TabsContent>
