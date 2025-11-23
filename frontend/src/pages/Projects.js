@@ -641,35 +641,21 @@ export default function Projects({ user, onLogout }) {
                       </select>
                     </div>
                   </div>
-                </TabsContent>
-                        type="date"
-                        value={formData.start_date}
-                        onChange={(e) => setFormData({ ...formData, start_date: e.target.value })}
-                      />
-                    </div>
-                    <div>
-                      <Label>End Date <span className="text-xs text-slate-500">(Auto-archives project)</span></Label>
-                      <Input
-                        type="date"
-                        value={formData.end_date}
-                        onChange={(e) => setFormData({ ...formData, end_date: e.target.value })}
-                      />
-                    </div>
-                  </div>
 
                   <div>
-                    <Label>Site Address</Label>
+                    <Label className="text-sm font-medium">Site Address</Label>
                     <Input
                       value={formData.site_address}
                       onChange={(e) => setFormData({ ...formData, site_address: e.target.value })}
                       placeholder="Complete site address"
+                      className="mt-1"
                     />
                   </div>
 
                   <div>
-                    <Label>Notes</Label>
+                    <Label className="text-sm font-medium">Notes</Label>
                     <textarea
-                      className="flex min-h-[80px] w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm"
+                      className="flex min-h-[80px] w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm mt-1"
                       value={formData.notes}
                       onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
                       placeholder="Additional project notes"
