@@ -2423,6 +2423,15 @@ async def get_project(project_id: str, current_user: User = Depends(get_current_
         elif project.get(field) == '':
             project[field] = None
     
+    # Auto-fix legacy status values
+    if project.get('status') not in ['Lead', 'Concept', 'Layout_Dev', 'Elevation_3D', 'Structural_Coord', 'Working_Drawings', 'Execution', 'OnHold', 'Closed']:
+        project['status'] = 'Lead'
+        # Update in database
+        await db.projects.update_one(
+            {"id": project['id']},
+            {"$set": {"status": "Lead"}}
+        )
+    
     # Get project drawings count
     drawings_count = await db.project_drawings.count_documents({"project_id": project_id, "deleted_at": None})
     project['drawings_count'] = drawings_count
