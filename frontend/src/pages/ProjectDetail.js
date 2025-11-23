@@ -444,10 +444,13 @@ export default function ProjectDetail({ user, onLogout }) {
   };
 
   const handleSubmitComment = async () => {
-    if (!newCommentText.trim()) {
-      toast.error('Please enter a comment');
+    // Allow submission if there's either text or voice note
+    if (!newCommentText.trim() && !audioBlob) {
+      toast.error('Please enter a comment or record a voice note');
       return;
     }
+
+    setSubmittingComment(true);
 
     try {
       let commentId = editingComment?.id;
