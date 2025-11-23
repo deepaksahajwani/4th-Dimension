@@ -495,6 +495,7 @@ export default function ProjectDetail({ user, onLogout }) {
       
       setNewCommentText('');
       setEditingComment(null);
+      clearVoiceNote(); // Clear voice note after successful submission
       await fetchComments(selectedCommentDrawing.id);
       
       // Handle voice note upload if present
