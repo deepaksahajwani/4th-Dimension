@@ -2006,20 +2006,20 @@ export default function ProjectDetail({ user, onLogout }) {
             toast.warning('Please wait for upload to complete');
           }
         }}>
-          <DialogContent>
+          <DialogContent className="max-w-lg mx-auto">
             <DialogHeader>
-              <DialogTitle>
-                {uploadType === 'issue' ? 'Upload Drawing PDF to Issue' : 'Upload Revised Drawing PDF'}
+              <DialogTitle className="text-base sm:text-lg">
+                {uploadType === 'issue' ? 'Upload Drawing Files' : 'Upload Revised Files'}
               </DialogTitle>
             </DialogHeader>
             <div className="space-y-4 py-4">
-              <p className="text-sm text-slate-600">
+              <p className="text-xs sm:text-sm text-slate-600">
                 {uploadType === 'issue' 
-                  ? 'Please upload the PDF file of this drawing before issuing it.'
-                  : 'Please upload the revised PDF file to complete the resolution.'}
+                  ? 'Upload drawing files (.pdf, .dwg, .dxf) before issuing.'
+                  : 'Upload revised files to complete the resolution.'}
               </p>
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-                <p className="text-sm text-blue-800 font-medium">
+                <p className="text-xs sm:text-sm text-blue-800 font-medium truncate">
                   {selectedFileDrawing?.name}
                 </p>
                 <p className="text-xs text-blue-600 mt-1">
