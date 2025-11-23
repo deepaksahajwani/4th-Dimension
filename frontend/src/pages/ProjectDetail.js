@@ -2027,22 +2027,39 @@ export default function ProjectDetail({ user, onLogout }) {
                 </p>
               </div>
               <div>
-                <Label>Select PDF File * (Max 50MB)</Label>
+                <Label>Select PDF Files * (Max 50MB each)</Label>
                 <Input
                   type="file"
                   accept=".pdf"
-                  onChange={(e) => setSelectedFile(e.target.files[0])}
+                  onChange={(e) => setSelectedFiles(Array.from(e.target.files))}
                   className="mt-1"
                   disabled={uploadingFile}
+                  multiple
                 />
-                {selectedFile && (
+                {selectedFiles.length > 0 && (
                   <div className="mt-2 space-y-2">
                     <p className="text-xs text-green-600">
-                      ✓ Selected: {selectedFile.name}
+                      ✓ Selected {selectedFiles.length} file(s):
                     </p>
-                    <p className="text-xs text-slate-500">
-                      Size: {(selectedFile.size / (1024 * 1024)).toFixed(2)} MB
-                    </p>
+                    {selectedFiles.map((file, index) => (
+                      <div key={index} className="flex items-center justify-between bg-slate-50 px-2 py-1 rounded text-xs">
+                        <span className="truncate max-w-[200px]">{file.name}</span>
+                        <div className="flex items-center gap-2">
+                          <span className="text-slate-500">({(file.size / (1024 * 1024)).toFixed(1)}MB)</span>
+                          <button
+                            onClick={() => {
+                              const newFiles = selectedFiles.filter((_, i) => i !== index);
+                              setSelectedFiles(newFiles);
+                            }}
+                            className="text-red-600 hover:text-red-800"
+                            type="button"
+                            disabled={uploadingFile}
+                          >
+                            <X className="w-3 h-3" />
+                          </button>
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 )}
                 {uploadingFile && (
