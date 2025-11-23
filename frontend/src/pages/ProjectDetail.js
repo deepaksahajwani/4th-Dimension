@@ -1754,7 +1754,8 @@ export default function ProjectDetail({ user, onLogout }) {
                   className="w-full p-3 border rounded-lg min-h-[100px] focus:outline-none focus:ring-2 focus:ring-purple-500"
                 />
                 <div className="flex justify-between items-center mt-3">
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    {/* File Attachment */}
                     <input
                       type="file"
                       accept="image/*,.pdf"
@@ -1769,6 +1770,68 @@ export default function ProjectDetail({ user, onLogout }) {
                       <Upload className="w-4 h-4 mr-2" />
                       Attach File
                     </label>
+                    
+                    {/* Voice Recording */}
+                    <div className="flex items-center gap-2">
+                      {!isRecording && !audioBlob && (
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={startRecording}
+                          className="text-red-600 border-red-200 hover:bg-red-50"
+                        >
+                          <Mic className="w-4 h-4 mr-2" />
+                          Voice Note
+                        </Button>
+                      )}
+                      
+                      {isRecording && (
+                        <div className="flex items-center gap-2 bg-red-50 px-3 py-2 rounded-lg border border-red-200">
+                          <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse"></div>
+                          <span className="text-sm text-red-700 font-mono">
+                            {formatTime(recordingTime)}
+                          </span>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            onClick={stopRecording}
+                            className="text-red-700 hover:bg-red-100 h-6 w-6 p-0"
+                          >
+                            <Square className="w-3 h-3" />
+                          </Button>
+                        </div>
+                      )}
+                      
+                      {audioBlob && !isRecording && (
+                        <div className="flex items-center gap-2 bg-blue-50 px-3 py-2 rounded-lg border border-blue-200">
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            onClick={playVoiceNote}
+                            className="text-blue-700 hover:bg-blue-100 h-6 w-6 p-0"
+                            disabled={playingAudio}
+                          >
+                            {playingAudio ? <Pause className="w-3 h-3" /> : <Play className="w-3 h-3" />}
+                          </Button>
+                          <span className="text-sm text-blue-700">
+                            🎙️ {formatTime(recordingTime)} voice note
+                          </span>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            onClick={clearVoiceNote}
+                            className="text-blue-700 hover:bg-blue-100 h-6 w-6 p-0"
+                          >
+                            <X className="w-3 h-3" />
+                          </Button>
+                        </div>
+                      )}
+                    </div>
+                    
                     {referenceFile && (
                       <span className="text-xs text-slate-600 flex items-center gap-2">
                         📎 {referenceFile.name}
