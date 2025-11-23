@@ -2083,7 +2083,7 @@ export default function ProjectDetail({ user, onLogout }) {
                 variant="outline" 
                 onClick={() => {
                   setUploadDialogOpen(false);
-                  setSelectedFile(null);
+                  setSelectedFiles([]);
                   setSelectedFileDrawing(null);
                 }}
                 disabled={uploadingFile}
@@ -2092,12 +2092,14 @@ export default function ProjectDetail({ user, onLogout }) {
               </Button>
               <Button 
                 onClick={handleFileUpload}
-                disabled={!selectedFile || uploadingFile}
+                disabled={selectedFiles.length === 0 || uploadingFile}
                 className="bg-blue-600 hover:bg-blue-700 text-white"
               >
                 {uploadingFile 
                   ? `Uploading ${uploadProgress}%...` 
-                  : uploadType === 'issue' ? 'Upload for Review' : 'Upload Resolved'}
+                  : uploadType === 'issue' 
+                    ? `Upload ${selectedFiles.length > 0 ? selectedFiles.length : ''} for Review`
+                    : `Upload ${selectedFiles.length > 0 ? selectedFiles.length : ''} Resolved`}
               </Button>
             </DialogFooter>
           </DialogContent>
