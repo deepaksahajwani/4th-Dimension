@@ -285,6 +285,7 @@ export default function Projects({ user, onLogout }) {
       project_types: project.project_types || [],
       status: project.status || 'Lead',
       client_id: project.client_id || '',
+      project_manager_id: project.project_manager_id || '',
       lead_architect_id: project.lead_architect_id || '',
       start_date: project.start_date ? project.start_date.split('T')[0] : '',
       end_date: project.end_date ? project.end_date.split('T')[0] : '',
