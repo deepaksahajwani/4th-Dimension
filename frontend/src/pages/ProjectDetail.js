@@ -1878,10 +1878,11 @@ export default function ProjectDetail({ user, onLogout }) {
                     )}
                     <Button
                       onClick={handleSubmitComment}
+                      disabled={submittingComment}
                       className="bg-purple-600 hover:bg-purple-700"
                     >
                       <Send className="w-4 h-4 mr-2" />
-                      {editingComment ? 'Update' : 'Post'}
+                      {submittingComment ? 'Posting...' : (editingComment ? 'Update' : 'Post')}
                     </Button>
                   </div>
                 </div>
