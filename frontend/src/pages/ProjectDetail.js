@@ -76,6 +76,13 @@ export default function ProjectDetail({ user, onLogout }) {
   const [editingComment, setEditingComment] = useState(null);
   const [loadingComments, setLoadingComments] = useState(false);
   const [referenceFile, setReferenceFile] = useState(null);
+  
+  // Voice recording states
+  const [isRecording, setIsRecording] = useState(false);
+  const [audioBlob, setAudioBlob] = useState(null);
+  const [mediaRecorder, setMediaRecorder] = useState(null);
+  const [recordingTime, setRecordingTime] = useState(0);
+  const [playingAudio, setPlayingAudio] = useState(false);
   const [revisionFormData, setRevisionFormData] = useState({
     revision_notes: '',
     revision_due_date: ''
