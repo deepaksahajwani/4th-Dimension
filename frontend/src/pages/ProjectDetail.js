@@ -2027,10 +2027,10 @@ export default function ProjectDetail({ user, onLogout }) {
                 </p>
               </div>
               <div>
-                <Label>Select PDF Files * (Max 50MB each)</Label>
+                <Label>Select Drawing Files * (Max 50MB each)</Label>
                 <Input
                   type="file"
-                  accept=".pdf"
+                  accept=".pdf,.dwg,.dxf,.dwf,.dgn"
                   onChange={(e) => setSelectedFiles(Array.from(e.target.files))}
                   className="mt-1"
                   disabled={uploadingFile}
