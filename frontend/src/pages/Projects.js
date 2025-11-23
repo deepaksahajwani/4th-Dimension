@@ -489,13 +489,13 @@ export default function Projects({ user, onLogout }) {
               <DialogTitle>{editingProject ? 'Edit Project' : 'Create New Project'}</DialogTitle>
             </DialogHeader>
             
-            <form onSubmit={handleSubmit}>
+            <form onSubmit={handleSubmit} className="space-y-6">
               <Tabs value={activeTab} onValueChange={setActiveTab}>
-                <TabsList className="grid grid-cols-3 w-full">
-                  <TabsTrigger value="basic">Basic Info</TabsTrigger>
-                  <TabsTrigger value="contacts">Contacts</TabsTrigger>
-                  <TabsTrigger value="brands">Brands</TabsTrigger>
-                  <TabsTrigger value="contractors">Contractors</TabsTrigger>
+                <TabsList className="grid grid-cols-2 sm:grid-cols-4 w-full gap-1">
+                  <TabsTrigger value="basic" className="text-xs sm:text-sm px-2 py-2">Basic Info</TabsTrigger>
+                  <TabsTrigger value="team" className="text-xs sm:text-sm px-2 py-2">Team</TabsTrigger>
+                  <TabsTrigger value="contractors" className="text-xs sm:text-sm px-2 py-2">Contractors</TabsTrigger>
+                  <TabsTrigger value="brands" className="text-xs sm:text-sm px-2 py-2">Brands</TabsTrigger>
                 </TabsList>
 
                 {/* Basic Info Tab */}
