@@ -595,11 +595,6 @@ export default function ProjectDetail({ user, onLogout }) {
     const secs = seconds % 60;
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
-    } catch (error) {
-      console.error('Comment error:', error);
-      toast.error(formatErrorMessage(error, 'Failed to save comment'));
-    }
-  };
 
   const handleEditComment = (comment) => {
     setEditingComment(comment);
