@@ -2027,39 +2027,41 @@ export default function ProjectDetail({ user, onLogout }) {
                 </p>
               </div>
               <div>
-                <Label>Select Drawing Files * (Max 50MB each)</Label>
+                <Label className="text-xs sm:text-sm font-medium">Select Drawing Files * (Max 50MB each)</Label>
                 <Input
                   type="file"
                   accept=".pdf,.dwg,.dxf,.dwf,.dgn"
                   onChange={(e) => setSelectedFiles(Array.from(e.target.files))}
-                  className="mt-1"
+                  className="mt-2 text-xs sm:text-sm"
                   disabled={uploadingFile}
                   multiple
                 />
                 {selectedFiles.length > 0 && (
-                  <div className="mt-2 space-y-2">
-                    <p className="text-xs text-green-600">
+                  <div className="mt-3 space-y-2">
+                    <p className="text-xs text-green-600 font-medium">
                       ✓ Selected {selectedFiles.length} file(s):
                     </p>
-                    {selectedFiles.map((file, index) => (
-                      <div key={index} className="flex items-center justify-between bg-slate-50 px-2 py-1 rounded text-xs">
-                        <span className="truncate max-w-[200px]">{file.name}</span>
-                        <div className="flex items-center gap-2">
-                          <span className="text-slate-500">({(file.size / (1024 * 1024)).toFixed(1)}MB)</span>
+                    <div className="max-h-32 overflow-y-auto space-y-1">
+                      {selectedFiles.map((file, index) => (
+                        <div key={index} className="flex items-center justify-between bg-slate-50 px-2 py-1.5 rounded text-xs">
+                          <div className="flex-1 min-w-0">
+                            <span className="truncate block">{file.name}</span>
+                            <span className="text-slate-500">({(file.size / (1024 * 1024)).toFixed(1)}MB)</span>
+                          </div>
                           <button
                             onClick={() => {
                               const newFiles = selectedFiles.filter((_, i) => i !== index);
                               setSelectedFiles(newFiles);
                             }}
-                            className="text-red-600 hover:text-red-800"
+                            className="text-red-600 hover:text-red-800 ml-2 p-1"
                             type="button"
                             disabled={uploadingFile}
                           >
                             <X className="w-3 h-3" />
                           </button>
                         </div>
-                      </div>
-                    ))}
+                      ))}
+                    </div>
                   </div>
                 )}
                 {uploadingFile && (
