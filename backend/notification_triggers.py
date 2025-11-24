@@ -669,6 +669,137 @@ Quick Actions:
         logger.error(f"Error sending voice_note_added notification: {str(e)}")
 
 
+async def notify_project_onboarding(project_id: str, creator_id: str):
+    """
+    Notify all project stakeholders when they are onboarded to a new project
+    """
+    try:
+        # Get project details
+        project = await db.projects.find_one({"id": project_id}, {"_id": 0})
+        if not project:
+            logger.warning(f"Project {project_id} not found")
+            return
+        
+        # Get all assigned stakeholders
+        stakeholder_ids = set()
+        
+        # Add team members
+        if project.get("lead_architect_id"):
+            stakeholder_ids.add(project["lead_architect_id"])
+        if project.get("project_manager_id"):
+            stakeholder_ids.add(project["project_manager_id"])
+        
+        # Add assigned contractors
+        assigned_contractors = project.get("assigned_contractors", {})
+        if isinstance(assigned_contractors, dict):
+            stakeholder_ids.update(assigned_contractors.values())
+        
+        # Add client
+        if project.get("client_id"):
+            stakeholder_ids.add(project["client_id"])
+        
+        # Remove the creator (don't notify them)
+        stakeholder_ids.discard(creator_id)
+        
+        app_url = os.environ.get('FRONTEND_URL', 'https://architect-pm.preview.emergentagent.com')
+        project_link = f"{app_url}/projects/{project_id}"
+        
+        message = f"""🎉 NEW PROJECT ASSIGNED
+
+Project: {project.get("name", "Unknown Project")}
+You have been assigned to this project!
+
+👆 VIEW PROJECT: {project_link}
+
+📋 Your Role: Team Member
+📅 Start Date: {project.get('start_date', 'Not set')}
+🎯 First Milestone: Layout Plan (Due in 3 days)
+
+Welcome to the team! 🏗️
+
+- 4th Dimension Team"""
+        
+        # Send to all stakeholders
+        for user_id in stakeholder_ids:
+            user = await db.users.find_one({"id": user_id}, {"_id": 0})
+            if user and user.get("mobile"):
+                result = whatsapp_service.send_message(user["mobile"], message)
+                await save_notification_log(
+                    user_id=user_id,
+                    phone_number=user["mobile"],
+                    message_type="project_onboarding",
+                    message_body=message,
+                    project_id=project_id,
+                    result=result
+                )
+        
+        logger.info(f"Project onboarding notifications sent for project {project_id}")
+    
+    except Exception as e:
+        logger.error(f"Error sending project onboarding notification: {str(e)}")
+
+
+async def notify_drawing_due_soon(project_id: str, drawing_name: str, due_date: datetime):
+    """
+    Notify owner and team leader about upcoming drawing due date
+    """
+    try:
+        # Get project details
+        project = await db.projects.find_one({"id": project_id}, {"_id": 0})
+        if not project:
+            logger.warning(f"Project {project_id} not found")
+            return
+        
+        # Get owner and team leader
+        notify_user_ids = set()
+        
+        # Add owner
+        owner = await db.users.find_one({"is_owner": True}, {"_id": 0})
+        if owner:
+            notify_user_ids.add(owner["id"])
+        
+        # Add team leader/lead architect
+        if project.get("lead_architect_id"):
+            notify_user_ids.add(project["lead_architect_id"])
+        
+        app_url = os.environ.get('FRONTEND_URL', 'https://architect-pm.preview.emergentagent.com')
+        project_link = f"{app_url}/projects/{project_id}"
+        
+        formatted_due_date = due_date.strftime("%B %d, %Y")
+        
+        message = f"""📐 DRAWING DUE SOON
+
+Project: {project.get("name", "Unknown Project")}
+Drawing: {drawing_name}
+📅 Due Date: {formatted_due_date}
+
+⏰ This is the first drawing milestone for the project.
+
+👆 VIEW PROJECT: {project_link}
+
+🚀 Ready to start? Upload the drawing when ready!
+
+- 4th Dimension Team"""
+        
+        for user_id in notify_user_ids:
+            user = await db.users.find_one({"id": user_id}, {"_id": 0})
+            if user and user.get("mobile"):
+                result = whatsapp_service.send_message(user["mobile"], message)
+                await save_notification_log(
+                    user_id=user_id,
+                    phone_number=user["mobile"],
+                    message_type="drawing_due_soon",
+                    message_body=message,
+                    project_id=project_id,
+                    result=result
+                )
+        
+        logger.info(f"Drawing due date notifications sent for project {project_id}")
+    
+    except Exception as e:
+        logger.error(f"Error sending drawing due date notification: {str(e)}")
+
+
 # Export all notification functions
 __all__ = [
     'notify_user_registered',
