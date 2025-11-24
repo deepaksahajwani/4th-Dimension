@@ -450,6 +450,7 @@ class DrawingComment(BaseModel):
 class DrawingCommentCreate(BaseModel):
     drawing_id: str
     comment_text: str
+    requires_revision: Optional[bool] = False
 
 class DrawingCommentUpdate(BaseModel):
     comment_text: str
