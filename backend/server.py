@@ -2815,6 +2815,20 @@ async def create_drawing_comment(
     
     await db.drawing_comments.insert_one(comment_dict)
     
+    # If comment requires revision, update drawing status
+    if comment_data.requires_revision:
+        await db.project_drawings.update_one(
+            {"id": drawing_id},
+            {
+                "$set": {
+                    "has_pending_revision": True,
+                    "status": "revision_needed",
+                    "updated_at": datetime.now(timezone.utc).isoformat()
+                }
+            }
+        )
+        logger.info(f"Drawing {drawing_id} marked for revision due to comment")
+    
     # Increment comment count and unread comments on drawing
     await db.project_drawings.update_one(
         {"id": drawing_id},
