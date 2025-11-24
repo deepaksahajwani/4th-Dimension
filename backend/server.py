@@ -2305,33 +2305,54 @@ async def create_project(project_data: NewProjectCreate, current_user: User = De
     
     await db.projects.insert_one(project_dict)
     
-    # Auto-generate sequential drawings from templates based on project types
-    for project_type in project_data.project_types:
-        template_drawings = get_template_drawings(project_type)
-        if template_drawings:
-            for sequence_num, drawing_name in enumerate(template_drawings, start=1):
-                # Calculate due date (7 days after project start or today)
-                base_date = project.start_date if project.start_date else datetime.now(timezone.utc)
-                due_date = base_date + timedelta(days=7 * sequence_num)
-                
-                drawing = ProjectDrawing(
-                    project_id=project.id,
-                    category=project_type,
-                    name=drawing_name,
-                    status=DrawingStatus.PLANNED,
-                    due_date=due_date,
-                    is_issued=False,
-                    revision_count=0,
-                    sequence_number=sequence_num,
-                    is_active=True if sequence_num == 1 else False  # Only first drawing is active
-                )
-                drawing_dict = drawing.model_dump()
-                # Convert datetimes to ISO strings
-                for field in ['created_at', 'updated_at', 'due_date', 'issued_date']:
-                    if drawing_dict.get(field):
-                        drawing_dict[field] = drawing_dict[field].isoformat() if isinstance(drawing_dict[field], datetime) else drawing_dict[field]
-                
-                await db.project_drawings.insert_one(drawing_dict)
+    # Auto-create the first 3 standard drawings with proper sequence and due dates
+    standard_drawings = [
+        {"name": "Layout Plan", "category": "Layout", "due_days": 3},
+        {"name": "Elevation Views", "category": "Elevation", "due_days": 6}, 
+        {"name": "Working Drawings", "category": "Working", "due_days": 9}
+    ]
+    
+    base_date = project.start_date if project.start_date else datetime.now(timezone.utc)
+    
+    for sequence_num, drawing_info in enumerate(standard_drawings, start=1):
+        due_date = base_date + timedelta(days=drawing_info["due_days"])
+        
+        drawing = ProjectDrawing(
+            project_id=project.id,
+            category=drawing_info["category"],
+            name=drawing_info["name"],
+            status=DrawingStatus.PLANNED,
+            due_date=due_date,
+            is_issued=False,
+            revision_count=0,
+            sequence_number=sequence_num,
+            is_active=True if sequence_num == 1 else False,  # Only first drawing is active
+            assigned_to=project.lead_architect_id,  # Assign to lead architect
+            priority="high" if sequence_num == 1 else "medium"
+        )
+        drawing_dict = drawing.model_dump()
+        
+        # Convert datetimes to ISO strings
+        for field in ['created_at', 'updated_at', 'due_date', 'issued_date']:
+            if drawing_dict.get(field):
+                drawing_dict[field] = drawing_dict[field].isoformat() if isinstance(drawing_dict[field], datetime) else drawing_dict[field]
+        
+        await db.project_drawings.insert_one(drawing_dict)
+    
+    # Send WhatsApp notifications to all project stakeholders about onboarding
+    try:
+        from notification_triggers import notify_project_onboarding
+        await notify_project_onboarding(project.id, current_user.id)
+    except Exception as e:
+        logger.warning(f"Failed to send project onboarding notifications: {e}")
+    
+    # Notify owner and team leader about first drawing due date
+    try:
+        from notification_triggers import notify_drawing_due_soon
+        if project.lead_architect_id and project.lead_architect_id != current_user.id:
+            await notify_drawing_due_soon(project.id, "Layout Plan", due_date=base_date + timedelta(days=3))
+    except Exception as e:
+        logger.warning(f"Failed to send drawing due date notification: {e}")
     
     # Auto-generate drawings from presets if preset_id provided (legacy support)
     if project_data.checklist_preset_id:
