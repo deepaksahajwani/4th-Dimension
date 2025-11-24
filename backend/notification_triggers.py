@@ -342,7 +342,7 @@ async def notify_task_assigned(task_id: str, assignee_id: str, project_id: str):
             try:
                 deadline_dt = datetime.fromisoformat(deadline_str.replace("Z", "+00:00"))
                 deadline_str = deadline_dt.strftime("%d %b %Y, %I:%M %p")
-            except:
+            except Exception:
                 pass
         
         # Generate enhanced task assignment message with deep link
