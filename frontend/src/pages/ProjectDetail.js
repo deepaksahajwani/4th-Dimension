@@ -86,6 +86,9 @@ export default function ProjectDetail({ user, onLogout }) {
   const [mediaRecorder, setMediaRecorder] = useState(null);
   const [recordingTime, setRecordingTime] = useState(0);
   const [playingAudio, setPlayingAudio] = useState(false);
+  
+  // Comment revision state
+  const [markForRevision, setMarkForRevision] = useState(false);
   const [revisionFormData, setRevisionFormData] = useState({
     revision_notes: '',
     revision_due_date: ''
