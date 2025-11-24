@@ -266,15 +266,56 @@ export default function ProjectDetail({ user, onLogout }) {
       const blob = await response.blob();
       const blobUrl = window.URL.createObjectURL(blob);
       
-      // Open in new window (works best on iOS)
-      const newWindow = window.open(blobUrl, '_blank');
-      
-      if (newWindow) {
+      // Try to open inline first, fallback to new tab
+      try {
+        // Create temporary iframe for PDF viewing (works on mobile)
+        const iframe = document.createElement('iframe');
+        iframe.style.position = 'fixed';
+        iframe.style.top = '0';
+        iframe.style.left = '0';
+        iframe.style.width = '100%';
+        iframe.style.height = '100%';
+        iframe.style.zIndex = '9999';
+        iframe.style.border = 'none';
+        iframe.style.backgroundColor = '#000';
+        iframe.src = blobUrl;
+        
+        // Add close button overlay
+        const closeBtn = document.createElement('button');
+        closeBtn.innerHTML = '✕ Close PDF';
+        closeBtn.style.position = 'fixed';
+        closeBtn.style.top = '10px';
+        closeBtn.style.right = '10px';
+        closeBtn.style.zIndex = '10000';
+        closeBtn.style.padding = '8px 16px';
+        closeBtn.style.backgroundColor = '#fff';
+        closeBtn.style.border = '1px solid #ccc';
+        closeBtn.style.borderRadius = '4px';
+        closeBtn.style.cursor = 'pointer';
+        closeBtn.style.fontSize = '14px';
+        closeBtn.style.fontWeight = 'bold';
+        
+        closeBtn.onclick = () => {
+          document.body.removeChild(iframe);
+          document.body.removeChild(closeBtn);
+          window.URL.revokeObjectURL(blobUrl);
+        };
+        
+        document.body.appendChild(iframe);
+        document.body.appendChild(closeBtn);
         toast.success('PDF opened successfully');
-        // Cleanup blob URL after window opens
-        setTimeout(() => window.URL.revokeObjectURL(blobUrl), 1000);
-      } else {
-        toast.error('Please allow popups to view PDF');
+        
+      } catch (error) {
+        // Fallback to download if iframe fails
+        console.log('Iframe failed, downloading instead');
+        const a = document.createElement('a');
+        a.href = blobUrl;
+        a.download = `${drawing.name}.pdf`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(blobUrl);
+        toast.success('PDF downloaded');
       }
       
     } catch (error) {
