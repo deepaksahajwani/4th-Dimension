@@ -810,5 +810,7 @@ __all__ = [
     'notify_milestone_completed',
     'notify_payment_due',
     'notify_site_visit_scheduled',
-    'notify_voice_note_added'
+    'notify_voice_note_added',
+    'notify_project_onboarding',
+    'notify_drawing_due_soon'
 ]
