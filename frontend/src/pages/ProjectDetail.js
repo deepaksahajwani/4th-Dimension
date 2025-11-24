@@ -1314,16 +1314,20 @@ export default function ProjectDetail({ user, onLogout }) {
                               </Button>
                             )}
                             
-                            {/* Revise/Resolve button */}
+                            {/* Comment/Revision button */}
                             {(drawing.is_issued || drawing.has_pending_revision || drawing.revision_count > 0) && (
                               <Button
                                 variant="outline"
                                 size="sm"
                                 onClick={() => {
                                   if (drawing.has_pending_revision) {
-                                    handleResolveRevision(drawing);
+                                    // Resolve function - upload revised files
+                                    setUploadType('resolve');
+                                    setSelectedFileDrawing(drawing);
+                                    setUploadDialogOpen(true);
                                   } else {
-                                    handleOpenRevisionDialog(drawing);
+                                    // Open comment dialog for revision feedback
+                                    handleOpenComments(drawing);
                                   }
                                 }}
                                 className={`flex-1 sm:flex-none text-xs h-8 ${
@@ -1331,7 +1335,7 @@ export default function ProjectDetail({ user, onLogout }) {
                                   "border-amber-500 text-amber-600"
                                 }`}
                               >
-                                {drawing.has_pending_revision ? "Resolve" : "Revise"}
+                                {drawing.has_pending_revision ? "Resolve" : "Comment"}
                               </Button>
                             )}
                             {drawing.revision_history && drawing.revision_history.length > 0 && (
