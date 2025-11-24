@@ -546,6 +546,7 @@ export default function ProjectDetail({ user, onLogout }) {
       setNewCommentText('');
       setEditingComment(null);
       setReferenceFiles([]); // Clear reference files after successful submission
+      setMarkForRevision(false); // Clear revision flag
       clearVoiceNote(); // Clear voice note after successful submission
       await fetchComments(selectedCommentDrawing.id);
       
