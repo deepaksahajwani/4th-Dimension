@@ -1944,6 +1944,28 @@ export default function ProjectDetail({ user, onLogout }) {
                       </div>
                     )}
                   </div>
+                  
+                  {/* Revision Required Checkbox */}
+                  {!editingComment && selectedCommentDrawing?.is_issued && (
+                    <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 mt-3">
+                      <label className="flex items-center gap-3 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={markForRevision}
+                          onChange={(e) => setMarkForRevision(e.target.checked)}
+                          className="w-4 h-4 text-amber-600 border-amber-300 rounded focus:ring-amber-500"
+                        />
+                        <div>
+                          <span className="text-sm font-medium text-amber-800">
+                            🔄 Mark drawing for revision
+                          </span>
+                          <p className="text-xs text-amber-700 mt-1">
+                            Check this if the drawing needs changes and should return to "Revision Needed" status
+                          </p>
+                        </div>
+                      </label>
+                    </div>
+                  )}
                   <div className="flex gap-2">
                     {editingComment && (
                       <Button
