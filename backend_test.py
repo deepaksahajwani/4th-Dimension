@@ -2994,6 +2994,9 @@ class BackendTester:
         # Weekly Targets feature test (NEW - as requested in review)
         self.test_weekly_targets_feature()
         
+        # Auto-Drawing Creation Fix test (NEW - as requested in review)
+        self.test_auto_drawing_creation_fix()
+        
         # PDF Download endpoint test (NEW - as requested in review)
         self.test_pdf_download_endpoint()
         
