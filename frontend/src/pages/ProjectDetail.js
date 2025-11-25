@@ -1016,16 +1016,21 @@ export default function ProjectDetail({ user, onLogout }) {
               </Button>
             )}
             
-            {/* STATE 4: APPROVED - Show ISSUE button */}
+            {/* STATE 4: APPROVED - Show ISSUE button with recipient selection */}
             {drawing.is_approved && !drawing.is_issued && drawing.has_pending_revision !== true && (
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => handleToggleIssued(drawing)}
+                onClick={() => {
+                  setSelectedIssueDrawing(drawing);
+                  // Load available recipients based on drawing category
+                  loadRecipientsForCategory(drawing.category);
+                  setIssueDialogOpen(true);
+                }}
                 className="flex-1 sm:flex-none text-xs h-8 border-blue-500 text-blue-600"
                 title="Issue Drawing"
               >
-                Issue
+                Issue Drawing
               </Button>
             )}
             
