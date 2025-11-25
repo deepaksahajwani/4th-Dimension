@@ -192,14 +192,14 @@ export default function ProjectDetail({ user, onLogout }) {
         });
       }
       
-      // Add project team members if available
-      if (project?.project_team && Array.isArray(project.project_team)) {
-        project.project_team.forEach(member => {
-          // Avoid duplicates
-          if (!recipients.find(r => r.id === member.user_id)) {
+      // Add other team members from allTeamMembers (excluding already added)
+      if (allTeamMembers && Array.isArray(allTeamMembers)) {
+        allTeamMembers.forEach(member => {
+          // Avoid duplicates (skip if already added as owner or team leader)
+          if (!recipients.find(r => r.id === member.id)) {
             recipients.push({
-              id: member.user_id,
-              name: `${member.user_name || 'Team Member'} (${member.role || 'Team'})`,
+              id: member.id,
+              name: `${member.name} (${member.role || 'Team Member'})`,
               type: 'team_member',
               role: member.role || 'Team Member'
             });
