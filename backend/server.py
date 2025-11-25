@@ -2375,7 +2375,14 @@ async def create_project(project_data: NewProjectCreate, current_user: User = De
     try:
         from notification_triggers import notify_drawing_due_soon
         if project.lead_architect_id and project.lead_architect_id != current_user.id:
-            await notify_drawing_due_soon(project.id, "Layout Plan", due_date=base_date + timedelta(days=3))
+            # Get the first drawing name for notification
+            first_drawing_name = "First Drawing"
+            if project.project_types:
+                first_type = project.project_types[0]
+                if first_type in project_type_drawings:
+                    first_drawing_name = project_type_drawings[first_type][0]["name"]
+            
+            await notify_drawing_due_soon(project.id, first_drawing_name, due_date=base_date + timedelta(days=3))
     except Exception as e:
         logger.warning(f"Failed to send drawing due date notification: {e}")
     
