@@ -2505,6 +2505,7 @@ class BackendTester:
                     
                     # Comment 3: Another text comment
                     comment3_data = {
+                        "drawing_id": drawing_id,
                         "comment_text": "Overall design looks good, minor adjustments needed.",
                         "requires_revision": False
                     }
