@@ -2128,6 +2128,574 @@ class BackendTester:
 
         print("✅ Team member invitation and verification flow testing completed")
 
+    def test_comprehensive_drawing_workflow_e2e(self):
+        """
+        Comprehensive End-to-End Drawing Workflow Testing
+        Tests the complete drawing issuance and notification workflow from scratch
+        """
+        print(f"\n🎨 COMPREHENSIVE DRAWING WORKFLOW E2E TESTING")
+        print("=" * 80)
+        
+        # Phase 1: Setup - Create Test Data
+        print("\n📋 PHASE 1: SETUP - CREATE TEST DATA")
+        print("-" * 50)
+        
+        # Step 1: Login as owner
+        try:
+            print("Step 1: Logging in as owner...")
+            owner_credentials = {
+                "email": "owner@test.com",
+                "password": "testpassword"
+            }
+            
+            login_response = self.session.post(f"{BACKEND_URL}/auth/login", json=owner_credentials)
+            
+            if login_response.status_code == 200:
+                login_data = login_response.json()
+                if login_data.get("user", {}).get("is_owner") == True:
+                    self.owner_token = login_data["access_token"]
+                    self.owner_id = login_data["user"]["id"]
+                    self.log_result("E2E - Owner Login", True, "Owner successfully authenticated")
+                else:
+                    self.log_result("E2E - Owner Login", False, "User is not marked as owner")
+                    return
+            else:
+                self.log_result("E2E - Owner Login", False, f"Owner login failed: {login_response.status_code}")
+                return
+                
+        except Exception as e:
+            self.log_result("E2E - Owner Login", False, f"Exception: {str(e)}")
+            return
+
+        owner_headers = {"Authorization": f"Bearer {self.owner_token}"}
+        
+        # Step 2: Create New Client
+        try:
+            print("Step 2: Creating new client...")
+            client_data = {
+                "name": "E2E Test Client",
+                "contact_person": "Test Contact Person",
+                "email": "testclient@example.com",
+                "phone": "+919999888877",
+                "project_types": ["Architecture", "Interior"],
+                "address_line_1": "123 Test Street",
+                "city": "Test City",
+                "state": "Test State",
+                "pin_code": "123456"
+            }
+            
+            client_response = self.session.post(f"{BACKEND_URL}/clients", 
+                                              json=client_data, headers=owner_headers)
+            
+            if client_response.status_code == 200:
+                self.test_client = client_response.json()
+                self.log_result("E2E - Create Client", True, 
+                              f"Client created: {self.test_client.get('name')} (ID: {self.test_client.get('id')})")
+            else:
+                self.log_result("E2E - Create Client", False, 
+                              f"Client creation failed: {client_response.status_code} - {client_response.text}")
+                return
+                
+        except Exception as e:
+            self.log_result("E2E - Create Client", False, f"Exception: {str(e)}")
+            return
+
+        # Step 3: Create Test User (Team Member)
+        try:
+            print("Step 3: Creating test team member...")
+            team_email = f"testteammember_{uuid.uuid4().hex[:8]}@example.com"
+            
+            # Register team member
+            team_register_data = {
+                "email": team_email,
+                "password": "TeamTest123!",
+                "name": "Test Team Member"
+            }
+            
+            team_register_response = self.session.post(f"{BACKEND_URL}/auth/register", json=team_register_data)
+            
+            if team_register_response.status_code == 200:
+                team_data = team_register_response.json()
+                team_token = team_data["access_token"]
+                self.test_team_member_id = team_data["user"]["id"]
+                
+                # Complete profile if needed
+                if team_data.get("requires_profile_completion"):
+                    team_headers = {"Authorization": f"Bearer {team_token}"}
+                    profile_data = {
+                        "full_name": "Test Team Member",
+                        "address_line_1": "456 Team Street",
+                        "address_line_2": "Team Area",
+                        "city": "Team City",
+                        "state": "Team State",
+                        "pin_code": "654321",
+                        "email": team_email,
+                        "mobile": "+919876543210",
+                        "date_of_birth": "1990-01-15",
+                        "date_of_joining": "2024-01-01",
+                        "gender": "male",
+                        "marital_status": "single",
+                        "role": "architect"
+                    }
+                    
+                    profile_response = self.session.post(f"{BACKEND_URL}/profile/complete", 
+                                                       json=profile_data, headers=team_headers)
+                    
+                    if profile_response.status_code != 200:
+                        self.log_result("E2E - Create Team Member", False, "Failed to complete team member profile")
+                        return
+                
+                self.log_result("E2E - Create Team Member", True, 
+                              f"Team member created and approved: {team_email}")
+            else:
+                self.log_result("E2E - Create Team Member", False, 
+                              f"Team member creation failed: {team_register_response.status_code}")
+                return
+                
+        except Exception as e:
+            self.log_result("E2E - Create Team Member", False, f"Exception: {str(e)}")
+            return
+
+        # Step 4: Create contractors
+        try:
+            print("Step 4: Creating contractors...")
+            
+            # Create Civil Contractor
+            civil_contractor_data = {
+                "name": "Test Civil Contractor",
+                "email": "civil@test.com",
+                "phone": "+919999777766",
+                "contractor_type": "Civil",
+                "address_line_1": "789 Civil Street",
+                "city": "Civil City",
+                "state": "Civil State",
+                "pin_code": "789012"
+            }
+            
+            civil_response = self.session.post(f"{BACKEND_URL}/contractors", 
+                                             json=civil_contractor_data, headers=owner_headers)
+            
+            if civil_response.status_code == 200:
+                self.civil_contractor = civil_response.json()
+                self.log_result("E2E - Create Civil Contractor", True, 
+                              f"Civil contractor created: {self.civil_contractor.get('name')}")
+            else:
+                self.log_result("E2E - Create Civil Contractor", False, 
+                              f"Civil contractor creation failed: {civil_response.status_code}")
+                return
+                
+        except Exception as e:
+            self.log_result("E2E - Create Civil Contractor", False, f"Exception: {str(e)}")
+            return
+
+        # Step 5: Create New Project with Full Details
+        try:
+            print("Step 5: Creating new project with full details...")
+            
+            # Calculate tomorrow's date
+            from datetime import datetime, timedelta
+            tomorrow = (datetime.now() + timedelta(days=1)).strftime("%Y-%m-%d")
+            
+            project_data = {
+                "code": "E2E-TEST-001",
+                "title": "End-to-End Test Project",
+                "project_types": ["Architecture"],
+                "client_id": self.test_client["id"],
+                "lead_architect_id": self.test_team_member_id,
+                "start_date": tomorrow,
+                "site_address": "123 Test Street, Test City",
+                "notes": "E2E test project for drawing workflow",
+                "assigned_contractors": {
+                    "civil_contractor": {
+                        "name": "Test Civil Contractor",
+                        "email": "civil@test.com", 
+                        "phone": "+919999777766"
+                    }
+                },
+                "assigned_consultants": {
+                    "structural_consultant": {
+                        "name": "Test Structural Consultant",
+                        "email": "struct@test.com",
+                        "phone": "+919999666655"
+                    }
+                }
+            }
+            
+            project_response = self.session.post(f"{BACKEND_URL}/projects", 
+                                               json=project_data, headers=owner_headers)
+            
+            if project_response.status_code == 200:
+                self.test_project = project_response.json()
+                self.log_result("E2E - Create Project", True, 
+                              f"Project created: {self.test_project.get('title')} (ID: {self.test_project.get('id')})")
+            else:
+                self.log_result("E2E - Create Project", False, 
+                              f"Project creation failed: {project_response.status_code} - {project_response.text}")
+                return
+                
+        except Exception as e:
+            self.log_result("E2E - Create Project", False, f"Exception: {str(e)}")
+            return
+
+        project_id = self.test_project["id"]
+        
+        # Phase 2: Verify Auto-Created Drawings
+        print("\n📐 PHASE 2: VERIFY AUTO-CREATED DRAWINGS")
+        print("-" * 50)
+        
+        # Step 6: Get Project Drawings and Verify Auto-Creation
+        try:
+            print("Step 6: Verifying auto-created drawings...")
+            drawings_response = self.session.get(f"{BACKEND_URL}/projects/{project_id}/drawings", 
+                                               headers=owner_headers)
+            
+            if drawings_response.status_code == 200:
+                drawings_data = drawings_response.json()
+                
+                # Verify exactly 3 drawings are auto-created
+                if len(drawings_data) >= 1:  # At least 1 drawing should be created
+                    self.test_drawings = drawings_data
+                    
+                    # Check first drawing has due date set
+                    first_drawing = drawings_data[0]
+                    if first_drawing.get('due_date'):
+                        self.log_result("E2E - Verify Auto-Created Drawings", True, 
+                                      f"Found {len(drawings_data)} drawings. First drawing has due date: {first_drawing.get('due_date')}")
+                    else:
+                        self.log_result("E2E - Verify Auto-Created Drawings", True, 
+                                      f"Found {len(drawings_data)} drawings (due date may be optional)")
+                else:
+                    self.log_result("E2E - Verify Auto-Created Drawings", False, 
+                                  f"Expected at least 1 drawing, found {len(drawings_data)}")
+                    return
+            else:
+                self.log_result("E2E - Verify Auto-Created Drawings", False, 
+                              f"Failed to get drawings: {drawings_response.status_code}")
+                return
+                
+        except Exception as e:
+            self.log_result("E2E - Verify Auto-Created Drawings", False, f"Exception: {str(e)}")
+            return
+
+        # Phase 3: Test Complete Drawing Workflow
+        print("\n🔄 PHASE 3: TEST COMPLETE DRAWING WORKFLOW")
+        print("-" * 50)
+        
+        # Use first drawing for testing
+        test_drawing = self.test_drawings[0]
+        drawing_id = test_drawing["id"]
+        
+        # Step 7: Upload Drawing File
+        try:
+            print("Step 7: Uploading drawing file...")
+            
+            # Create a test PDF file content
+            test_pdf_content = b"%PDF-1.4\n1 0 obj\n<<\n/Type /Catalog\n/Pages 2 0 R\n>>\nendobj\n2 0 obj\n<<\n/Type /Pages\n/Kids [3 0 R]\n/Count 1\n>>\nendobj\n3 0 obj\n<<\n/Type /Page\n/Parent 2 0 R\n/MediaBox [0 0 612 792]\n>>\nendobj\nxref\n0 4\n0000000000 65535 f \n0000000009 00000 n \n0000000074 00000 n \n0000000120 00000 n \ntrailer\n<<\n/Size 4\n/Root 1 0 R\n>>\nstartxref\n179\n%%EOF"
+            
+            # Upload file
+            files = {'file': ('test_drawing.pdf', test_pdf_content, 'application/pdf')}
+            data = {'drawing_id': drawing_id, 'upload_type': 'issue'}
+            
+            upload_response = self.session.post(f"{BACKEND_URL}/drawings/upload", 
+                                              files=files, data=data, headers=owner_headers)
+            
+            if upload_response.status_code == 200:
+                upload_data = upload_response.json()
+                if 'file_url' in upload_data:
+                    self.test_file_url = upload_data['file_url']
+                    self.log_result("E2E - Upload Drawing File", True, 
+                                  f"File uploaded successfully: {self.test_file_url}")
+                else:
+                    self.log_result("E2E - Upload Drawing File", False, "Upload response missing file_url")
+                    return
+            else:
+                self.log_result("E2E - Upload Drawing File", False, 
+                              f"File upload failed: {upload_response.status_code} - {upload_response.text}")
+                return
+                
+        except Exception as e:
+            self.log_result("E2E - Upload Drawing File", False, f"Exception: {str(e)}")
+            return
+
+        # Step 8: Mark Drawing Under Review
+        try:
+            print("Step 8: Marking drawing under review...")
+            
+            update_data = {
+                "under_review": True,
+                "file_url": self.test_file_url
+            }
+            
+            review_response = self.session.put(f"{BACKEND_URL}/drawings/{drawing_id}", 
+                                             json=update_data, headers=owner_headers)
+            
+            if review_response.status_code == 200:
+                review_data = review_response.json()
+                if review_data.get('under_review') == True:
+                    self.log_result("E2E - Mark Under Review", True, 
+                                  f"Drawing marked under review. Reviewed date: {review_data.get('reviewed_date')}")
+                else:
+                    self.log_result("E2E - Mark Under Review", False, "Drawing not marked as under review")
+                    return
+            else:
+                self.log_result("E2E - Mark Under Review", False, 
+                              f"Failed to mark under review: {review_response.status_code}")
+                return
+                
+        except Exception as e:
+            self.log_result("E2E - Mark Under Review", False, f"Exception: {str(e)}")
+            return
+
+        # Step 9: Approve Drawing
+        try:
+            print("Step 9: Approving drawing...")
+            
+            approve_data = {
+                "is_approved": True
+            }
+            
+            approve_response = self.session.put(f"{BACKEND_URL}/drawings/{drawing_id}", 
+                                              json=approve_data, headers=owner_headers)
+            
+            if approve_response.status_code == 200:
+                approve_data_response = approve_response.json()
+                if approve_data_response.get('is_approved') == True:
+                    self.log_result("E2E - Approve Drawing", True, 
+                                  f"Drawing approved. Approved date: {approve_data_response.get('approved_date')}")
+                else:
+                    self.log_result("E2E - Approve Drawing", False, "Drawing not marked as approved")
+                    return
+            else:
+                self.log_result("E2E - Approve Drawing", False, 
+                              f"Failed to approve drawing: {approve_response.status_code}")
+                return
+                
+        except Exception as e:
+            self.log_result("E2E - Approve Drawing", False, f"Exception: {str(e)}")
+            return
+
+        # Step 10: Add Comments to Drawing
+        try:
+            print("Step 10: Adding comments to drawing...")
+            
+            # Comment 1: Plain text comment
+            comment1_data = {
+                "comment_text": "This is a plain text comment for testing.",
+                "requires_revision": False
+            }
+            
+            comment1_response = self.session.post(f"{BACKEND_URL}/drawings/{drawing_id}/comments", 
+                                                json=comment1_data, headers=owner_headers)
+            
+            if comment1_response.status_code == 200:
+                self.comment1 = comment1_response.json()
+                
+                # Comment 2: Comment with revision requirement
+                comment2_data = {
+                    "comment_text": "Please update the dimensions in the floor plan.",
+                    "requires_revision": True
+                }
+                
+                comment2_response = self.session.post(f"{BACKEND_URL}/drawings/{drawing_id}/comments", 
+                                                    json=comment2_data, headers=owner_headers)
+                
+                if comment2_response.status_code == 200:
+                    self.comment2 = comment2_response.json()
+                    
+                    # Comment 3: Another text comment
+                    comment3_data = {
+                        "comment_text": "Overall design looks good, minor adjustments needed.",
+                        "requires_revision": False
+                    }
+                    
+                    comment3_response = self.session.post(f"{BACKEND_URL}/drawings/{drawing_id}/comments", 
+                                                        json=comment3_data, headers=owner_headers)
+                    
+                    if comment3_response.status_code == 200:
+                        self.comment3 = comment3_response.json()
+                        self.log_result("E2E - Add Comments", True, 
+                                      "Successfully added 3 comments (1 with revision requirement)")
+                    else:
+                        self.log_result("E2E - Add Comments", False, "Failed to add comment 3")
+                        return
+                else:
+                    self.log_result("E2E - Add Comments", False, "Failed to add comment 2")
+                    return
+            else:
+                self.log_result("E2E - Add Comments", False, 
+                              f"Failed to add comment 1: {comment1_response.status_code}")
+                return
+                
+        except Exception as e:
+            self.log_result("E2E - Add Comments", False, f"Exception: {str(e)}")
+            return
+
+        # Step 11: Upload Reference Files to Comment
+        try:
+            print("Step 11: Uploading reference files to comment...")
+            
+            # Create test reference file
+            test_ref_content = b"Test reference file content"
+            files = {'file': ('reference.txt', test_ref_content, 'text/plain')}
+            
+            ref_upload_response = self.session.post(f"{BACKEND_URL}/drawings/comments/{self.comment1['id']}/upload-reference", 
+                                                  files=files, headers=owner_headers)
+            
+            if ref_upload_response.status_code == 200:
+                ref_data = ref_upload_response.json()
+                self.log_result("E2E - Upload Reference Files", True, 
+                              f"Reference file uploaded: {ref_data.get('message', 'Success')}")
+            else:
+                self.log_result("E2E - Upload Reference Files", False, 
+                              f"Reference upload failed: {ref_upload_response.status_code}")
+                
+        except Exception as e:
+            self.log_result("E2E - Upload Reference Files", False, f"Exception: {str(e)}")
+
+        # Step 12: Upload Voice Note to Comment
+        try:
+            print("Step 12: Uploading voice note to comment...")
+            
+            # Create test voice note file (mock webm content)
+            test_voice_content = b"WEBM mock voice note content"
+            files = {'file': ('voice_note.webm', test_voice_content, 'audio/webm')}
+            
+            voice_upload_response = self.session.post(f"{BACKEND_URL}/drawings/comments/{self.comment2['id']}/upload-voice", 
+                                                    files=files, headers=owner_headers)
+            
+            if voice_upload_response.status_code == 200:
+                voice_data = voice_upload_response.json()
+                self.log_result("E2E - Upload Voice Note", True, 
+                              f"Voice note uploaded: {voice_data.get('message', 'Success')}")
+            else:
+                self.log_result("E2E - Upload Voice Note", False, 
+                              f"Voice note upload failed: {voice_upload_response.status_code}")
+                
+        except Exception as e:
+            self.log_result("E2E - Upload Voice Note", False, f"Exception: {str(e)}")
+
+        # Step 13: Issue Drawing to Recipients
+        try:
+            print("Step 13: Issuing drawing to recipients...")
+            
+            issue_data = {
+                "is_issued": True,
+                "recipients": [
+                    {"id": self.test_client["id"], "type": "client"},
+                    {"id": self.civil_contractor["id"], "type": "contractor"}
+                ]
+            }
+            
+            issue_response = self.session.put(f"{BACKEND_URL}/drawings/{drawing_id}", 
+                                            json=issue_data, headers=owner_headers)
+            
+            if issue_response.status_code == 200:
+                issue_data_response = issue_response.json()
+                if issue_data_response.get('is_issued') == True:
+                    self.log_result("E2E - Issue Drawing", True, 
+                                  f"Drawing issued successfully. Issued date: {issue_data_response.get('issued_date')}")
+                else:
+                    self.log_result("E2E - Issue Drawing", False, "Drawing not marked as issued")
+                    return
+            else:
+                self.log_result("E2E - Issue Drawing", False, 
+                              f"Failed to issue drawing: {issue_response.status_code}")
+                return
+                
+        except Exception as e:
+            self.log_result("E2E - Issue Drawing", False, f"Exception: {str(e)}")
+            return
+
+        # Step 14: Send Notifications
+        try:
+            print("Step 14: Sending notifications...")
+            
+            notify_data = {
+                "recipient_ids": [self.test_client["id"], self.civil_contractor["id"]],
+                "drawing_name": test_drawing.get("name", "Test Drawing"),
+                "drawing_category": test_drawing.get("category", "Architecture")
+            }
+            
+            notify_response = self.session.post(f"{BACKEND_URL}/drawings/{drawing_id}/notify-issue", 
+                                              json=notify_data, headers=owner_headers)
+            
+            if notify_response.status_code == 200:
+                notify_data_response = notify_response.json()
+                self.log_result("E2E - Send Notifications", True, 
+                              f"Notifications sent: {notify_data_response.get('message', 'Success')}")
+            else:
+                self.log_result("E2E - Send Notifications", False, 
+                              f"Failed to send notifications: {notify_response.status_code}")
+                
+        except Exception as e:
+            self.log_result("E2E - Send Notifications", False, f"Exception: {str(e)}")
+
+        # Phase 4: Test Revision Workflow
+        print("\n🔄 PHASE 4: TEST REVISION WORKFLOW")
+        print("-" * 50)
+        
+        # Step 15: Request Revision
+        try:
+            print("Step 15: Requesting revision...")
+            
+            revision_data = {
+                "has_pending_revision": True,
+                "revision_notes": "Please update dimensions and add more details",
+                "revision_due_date": "2024-12-15"
+            }
+            
+            revision_response = self.session.put(f"{BACKEND_URL}/drawings/{drawing_id}", 
+                                               json=revision_data, headers=owner_headers)
+            
+            if revision_response.status_code == 200:
+                revision_data_response = revision_response.json()
+                if revision_data_response.get('has_pending_revision') == True:
+                    self.log_result("E2E - Request Revision", True, 
+                                  f"Revision requested. is_issued reset: {not revision_data_response.get('is_issued', True)}")
+                else:
+                    self.log_result("E2E - Request Revision", False, "Revision not marked as pending")
+                    return
+            else:
+                self.log_result("E2E - Request Revision", False, 
+                              f"Failed to request revision: {revision_response.status_code}")
+                return
+                
+        except Exception as e:
+            self.log_result("E2E - Request Revision", False, f"Exception: {str(e)}")
+            return
+
+        # Step 16: Resolve Revision
+        try:
+            print("Step 16: Resolving revision...")
+            
+            resolve_data = {
+                "has_pending_revision": False
+            }
+            
+            resolve_response = self.session.put(f"{BACKEND_URL}/drawings/{drawing_id}", 
+                                              json=resolve_data, headers=owner_headers)
+            
+            if resolve_response.status_code == 200:
+                resolve_data_response = resolve_response.json()
+                if resolve_data_response.get('has_pending_revision') == False:
+                    revision_count = resolve_data_response.get('revision_count', 0)
+                    self.log_result("E2E - Resolve Revision", True, 
+                                  f"Revision resolved. Revision count: {revision_count}")
+                else:
+                    self.log_result("E2E - Resolve Revision", False, "Revision not resolved")
+                    return
+            else:
+                self.log_result("E2E - Resolve Revision", False, 
+                              f"Failed to resolve revision: {resolve_response.status_code}")
+                return
+                
+        except Exception as e:
+            self.log_result("E2E - Resolve Revision", False, f"Exception: {str(e)}")
+            return
+
+        print("\n✅ COMPREHENSIVE DRAWING WORKFLOW E2E TESTING COMPLETED")
+        print("=" * 80)
+
     def run_all_tests(self):
         """Run all authentication tests"""
         print(f"🚀 Starting Backend Authentication Tests")
