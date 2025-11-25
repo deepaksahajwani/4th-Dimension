@@ -739,6 +739,126 @@ async def notify_drawing_issued(
 ):
     """
     Send WhatsApp notifications when a drawing is issued to selected recipients
+    """
+    try:
+        # Get project details
+        project = await db.projects.find_one({"id": project_id}, {"_id": 0})
+        if not project:
+            logger.warning(f"Project {project_id} not found")
+            return
+        
+        # Get issuer details
+        issuer = await db.users.find_one({"id": issued_by_id}, {"_id": 0})
+        issuer_name = issuer.get("name", "Team Member") if issuer else "Team Member"
+        
+        app_url = os.environ.get('FRONTEND_URL', 'https://architect-pm.preview.emergentagent.com')
+        project_link = f"{app_url}/projects/{project_id}"
+        
+        message = f"""📐 DRAWING ISSUED
+
+Project: {project.get("name", "Unknown Project")}
+Drawing: {drawing_name}
+Category: {drawing_category}
+Issued by: {issuer_name}
+
+📋 This drawing has been issued and is ready for review.
+
+👆 VIEW PROJECT: {project_link}
+
+Quick Actions:
+💬 Add Comment | ✅ Approve | 📥 Download PDF
+
+- 4th Dimension Team"""
+        
+        # Send to each recipient
+        for user_id in recipient_ids:
+            user = await db.users.find_one({"id": user_id}, {"_id": 0})
+            if user and user.get("mobile"):
+                result = whatsapp_service.send_message(user["mobile"], message)
+                await save_notification_log(
+                    user_id=user_id,
+                    phone_number=user["mobile"],
+                    message_type="drawing_issued",
+                    message_body=message,
+                    project_id=project_id,
+                    result=result
+                )
+        
+        logger.info(f"Drawing issued notifications sent for project {project_id}")
+    
+    except Exception as e:
+        logger.error(f"Error sending drawing issued notification: {str(e)}")
+
+
+async def notify_next_drawing_available(project_id: str, drawing_name: str, sequence_number: int):
+    """
+    Notify team when next drawing becomes available
+    """
+    try:
+        # Get project details
+        project = await db.projects.find_one({"id": project_id}, {"_id": 0})
+        if not project:
+            logger.warning(f"Project {project_id} not found")
+            return
+        
+        # Get owner and team leader
+        notify_user_ids = set()
+        
+        # Add owner
+        owner = await db.users.find_one({"is_owner": True}, {"_id": 0})
+        if owner:
+            notify_user_ids.add(owner["id"])
+        
+        # Add team leader/lead architect
+        if project.get("lead_architect_id"):
+            notify_user_ids.add(project["lead_architect_id"])
+        
+        app_url = os.environ.get('FRONTEND_URL', 'https://architect-pm.preview.emergentagent.com')
+        project_link = f"{app_url}/projects/{project_id}"
+        
+        message = f"""🔓 NEXT DRAWING UNLOCKED
+
+Project: {project.get("name", "Unknown Project")}
+Drawing: {drawing_name}
+Sequence: #{sequence_number}
+
+✅ Previous drawing issued successfully!
+📐 This drawing is now ready to work on.
+
+👆 VIEW PROJECT: {project_link}
+
+🚀 Ready to start the next milestone!
+
+- 4th Dimension Team"""
+        
+        for user_id in notify_user_ids:
+            user = await db.users.find_one({"id": user_id}, {"_id": 0})
+            if user and user.get("mobile"):
+                result = whatsapp_service.send_message(user["mobile"], message)
+                await save_notification_log(
+                    user_id=user_id,
+                    phone_number=user["mobile"],
+                    message_type="next_drawing_available",
+                    message_body=message,
+                    project_id=project_id,
+                    result=result
+                )
+        
+        logger.info(f"Next drawing available notifications sent for project {project_id}")
+    
+    except Exception as e:
+        logger.error(f"Error sending next drawing available notification: {str(e)}")
+
+
+async def notify_drawing_issued(
+    project_id: str,
+    drawing_name: str,
+    drawing_category: str,
+    recipient_ids: List[str],
+    issued_by_id: str
+):
+    """
+    Send WhatsApp notifications when a drawing is issued to selected recipients
     
     Args:
         project_id: Project ID
