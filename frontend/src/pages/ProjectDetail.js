@@ -156,123 +156,101 @@ export default function ProjectDetail({ user, onLogout }) {
   };
 
   const loadRecipientsForCategory = async (category) => {
-    try {
-      console.log('Loading recipients for category:', category);
-      console.log('Project data:', project);
-      
-      const recipients = [];
-      
-      // Always include the current user (owner)
-      if (user) {
-        recipients.push({
-          id: user.id || 'owner',
-          name: user.name || 'Owner',
-          type: 'owner',
-          role: user.role || 'Owner'
-        });
-      }
-      
-      // Add client if available
-      if (client) {
-        recipients.push({
-          id: client.id,
-          name: client.name || 'Project Client',
-          type: 'client',
-          role: 'Client'
-        });
-      }
-      
-      // Add team leader/project manager if assigned
-      if (teamLeader) {
-        recipients.push({
-          id: teamLeader.id,
-          name: `${teamLeader.name} (Team Leader)`,
-          type: 'team_leader',
-          role: 'Team Leader'
-        });
-      }
-      
-      // Add other team members from allTeamMembers (excluding already added)
-      if (allTeamMembers && Array.isArray(allTeamMembers)) {
-        allTeamMembers.forEach(member => {
-          // Avoid duplicates (skip if already added as owner or team leader)
-          if (!recipients.find(r => r.id === member.id)) {
-            recipients.push({
-              id: member.id,
-              name: `${member.name} (${member.role || 'Team Member'})`,
-              type: 'team_member',
-              role: member.role || 'Team Member'
-            });
-          }
-        });
-      }
-      
-      // Add contractors based on drawing category
-      const categoryContractorMapping = {
-        'Architecture': ['Civil', 'Structural'],
-        'Interior': ['Tile and Marble', 'Furniture', 'Kitchen', 'Modular'],
-        'Landscape': ['Landscape'],
-        'Planning': ['Civil']
-      };
-      
-      const relevantContractorTypes = categoryContractorMapping[category] || ['Civil'];
-      
-      // Add relevant contractors from project assigned_contractors
-      if (project && project.assigned_contractors) {
-        relevantContractorTypes.forEach(contractorType => {
-          const contractorId = project.assigned_contractors[contractorType];
-          if (contractorId) {
-            // For now, add contractor with basic info - we could fetch full details if needed
-            recipients.push({
-              id: contractorId,
-              name: `${contractorType} Contractor`,
-              type: 'contractor',
-              role: contractorType
-            });
-          }
-        });
-        
-        // Also add all assigned contractors regardless of category for flexibility
-        Object.entries(project.assigned_contractors).forEach(([contractorType, contractorId]) => {
-          if (contractorId && !recipients.find(r => r.id === contractorId)) {
-            recipients.push({
-              id: contractorId,
-              name: `${contractorType} Contractor`,
-              type: 'contractor',
-              role: contractorType
-            });
-          }
-        });
-      }
-      
-      console.log('Loaded recipients:', recipients);
-      setAvailableRecipients(recipients);
-      setSelectedRecipients([]); // Reset selection
-      
-    } catch (error) {
-      console.error('Error loading recipients:', error);
-      // Provide fallback recipients
-      const fallbackRecipients = [
-        {
-          id: user?.id || 'owner',
-          name: user?.name || 'Owner',
-          type: 'owner',
-          role: 'Owner'
-        }
-      ];
-      
-      if (client) {
-        fallbackRecipients.push({
-          id: client.id,
-          name: client.name || 'Project Client',
-          type: 'client',
-          role: 'Client'
-        });
-      }
-      
-      setAvailableRecipients(fallbackRecipients);
-      toast.warning('Using default recipients due to loading error');
+    console.log('Loading recipients for category:', category);
+    console.log('Project data:', project);
+    console.log('Client data:', client);
+    console.log('Team Leader:', teamLeader);
+    console.log('User:', user);
+    
+    const recipients = [];
+    
+    // Always include the current user (owner)
+    if (user) {
+      recipients.push({
+        id: user.id || 'owner',
+        name: user.name || 'Owner',
+        type: 'owner',
+        role: user.role || 'Owner'
+      });
     }
+    
+    // Add client if available
+    if (client) {
+      recipients.push({
+        id: client.id,
+        name: client.name || 'Project Client',
+        type: 'client',
+        role: 'Client'
+      });
+    }
+    
+    // Add team leader/project manager if assigned
+    if (teamLeader) {
+      recipients.push({
+        id: teamLeader.id,
+        name: `${teamLeader.name} (Team Leader)`,
+        type: 'team_leader',
+        role: 'Team Leader'
+      });
+    }
+    
+    // Add other team members from allTeamMembers (excluding already added)
+    if (allTeamMembers && Array.isArray(allTeamMembers)) {
+      allTeamMembers.forEach(member => {
+        // Avoid duplicates (skip if already added as owner or team leader)
+        if (member && member.id && !recipients.find(r => r.id === member.id)) {
+          recipients.push({
+            id: member.id,
+            name: `${member.name || 'Team Member'} (${member.role || 'Team Member'})`,
+            type: 'team_member',
+            role: member.role || 'Team Member'
+          });
+        }
+      });
+    }
+    
+    // Add contractors based on drawing category
+    const categoryContractorMapping = {
+      'Architecture': ['Civil', 'Structural'],
+      'Interior': ['Tile and Marble', 'Furniture', 'Kitchen', 'Modular'],
+      'Landscape': ['Landscape'],
+      'Planning': ['Civil']
+    };
+    
+    const relevantContractorTypes = categoryContractorMapping[category] || ['Civil'];
+    
+    // Add relevant contractors from project assigned_contractors
+    if (project && project.assigned_contractors && typeof project.assigned_contractors === 'object') {
+      relevantContractorTypes.forEach(contractorType => {
+        const contractorId = project.assigned_contractors[contractorType];
+        if (contractorId) {
+          recipients.push({
+            id: contractorId,
+            name: `${contractorType} Contractor`,
+            type: 'contractor',
+            role: contractorType
+          });
+        }
+      });
+      
+      // Also add all assigned contractors regardless of category for flexibility
+      Object.entries(project.assigned_contractors).forEach(([contractorType, contractorId]) => {
+        if (contractorId && !recipients.find(r => r.id === contractorId)) {
+          recipients.push({
+            id: contractorId,
+            name: `${contractorType} Contractor`,
+            type: 'contractor',
+            role: contractorType
+          });
+        }
+      });
+    }
+    
+    console.log('Loaded recipients:', recipients);
+    console.log('Total recipients:', recipients.length);
+    
+    setAvailableRecipients(recipients);
+    setSelectedRecipients([]); // Reset selection
   };
 
   const handleToggleIssued = async (drawing) => {
