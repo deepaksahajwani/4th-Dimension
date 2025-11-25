@@ -2492,6 +2492,7 @@ class BackendTester:
                 
                 # Comment 2: Comment with revision requirement
                 comment2_data = {
+                    "drawing_id": drawing_id,
                     "comment_text": "Please update the dimensions in the floor plan.",
                     "requires_revision": True
                 }
