@@ -3052,6 +3052,89 @@ async def upload_comment_voice_note(
     
     return {"voice_url": voice_url, "message": "Voice note uploaded successfully"}
 
+@api_router.post("/drawings/{drawing_id}/notify-issue")
+async def notify_drawing_issue(
+    drawing_id: str,
+    request_data: dict,
+    current_user: User = Depends(get_current_user)
+):
+    """Send notifications when a drawing is issued to selected recipients"""
+    try:
+        recipient_ids = request_data.get("recipient_ids", [])
+        drawing_name = request_data.get("drawing_name", "Unknown Drawing")
+        drawing_category = request_data.get("drawing_category", "")
+        
+        # Get drawing and project details
+        drawing = await db.project_drawings.find_one({"id": drawing_id}, {"_id": 0})
+        if not drawing:
+            raise HTTPException(status_code=404, detail="Drawing not found")
+        
+        project = await db.projects.find_one({"id": drawing["project_id"]}, {"_id": 0})
+        if not project:
+            raise HTTPException(status_code=404, detail="Project not found")
+        
+        # Import notification function
+        from notification_triggers import notify_drawing_issued
+        await notify_drawing_issued(
+            project_id=drawing["project_id"],
+            drawing_name=drawing_name,
+            drawing_category=drawing_category,
+            recipient_ids=recipient_ids,
+            issued_by_id=current_user.id
+        )
+        
+        return {"message": f"Notifications sent to {len(recipient_ids)} recipient(s)"}
+        
+    except Exception as e:
+        logger.error(f"Error sending drawing issue notifications: {e}")
+        raise HTTPException(status_code=500, detail="Failed to send notifications")
+
+@api_router.post("/projects/{project_id}/unlock-next-drawing")
+async def unlock_next_drawing(
+    project_id: str,
+    request_data: dict,
+    current_user: User = Depends(get_current_user)
+):
+    """Unlock the next drawing in sequence after one is issued"""
+    try:
+        current_sequence = request_data.get("current_sequence", 0)
+        
+        # Find the next drawing in sequence
+        next_drawing = await db.project_drawings.find_one({
+            "project_id": project_id,
+            "sequence_number": current_sequence + 1,
+            "deleted_at": None
+        }, {"_id": 0})
+        
+        if next_drawing:
+            # Activate the next drawing
+            await db.project_drawings.update_one(
+                {"id": next_drawing["id"]},
+                {
+                    "$set": {
+                        "is_active": True,
+                        "status": "planned",
+                        "updated_at": datetime.now(timezone.utc).isoformat()
+                    }
+                }
+            )
+            
+            # Notify team about new drawing availability
+            from notification_triggers import notify_next_drawing_available
+            await notify_next_drawing_available(
+                project_id=project_id,
+                drawing_name=next_drawing["name"],
+                sequence_number=next_drawing["sequence_number"]
+            )
+            
+            return {"message": f"Next drawing '{next_drawing['name']}' has been unlocked"}
+        else:
+            return {"message": "No more drawings in sequence"}
+            
+    except Exception as e:
+        logger.error(f"Error unlocking next drawing: {e}")
+        raise HTTPException(status_code=500, detail="Failed to unlock next drawing")
+
 @api_router.post("/drawings/{drawing_id}/mark-comments-read")
 async def mark_comments_read(
     drawing_id: str,
