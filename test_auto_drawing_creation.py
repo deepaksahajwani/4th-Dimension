@@ -120,7 +120,7 @@ class AutoDrawingTester:
                 "project_types": ["Architecture"],
                 "client_id": self.test_client["id"],
                 "start_date": "2024-12-01",
-                "status": "active",
+                "status": "Lead",
                 "site_address": "Test Site Address",
                 "notes": "Test project for auto-drawing creation"
             }
