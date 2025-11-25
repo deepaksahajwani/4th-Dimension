@@ -2400,12 +2400,12 @@ class BackendTester:
             
             if upload_response.status_code == 200:
                 upload_data = upload_response.json()
-                if 'file_url' in upload_data:
-                    self.test_file_url = upload_data['file_url']
+                if 'uploaded_files' in upload_data and len(upload_data['uploaded_files']) > 0:
+                    self.test_file_url = upload_data['uploaded_files'][0]['url']
                     self.log_result("E2E - Upload Drawing File", True, 
                                   f"File uploaded successfully: {self.test_file_url}")
                 else:
-                    self.log_result("E2E - Upload Drawing File", False, "Upload response missing file_url")
+                    self.log_result("E2E - Upload Drawing File", False, "Upload response missing uploaded_files")
                     return
             else:
                 self.log_result("E2E - Upload Drawing File", False, 
