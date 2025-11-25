@@ -2162,6 +2162,92 @@ export default function ProjectDetail({ user, onLogout }) {
           </DialogContent>
         </Dialog>
 
+        {/* Issue Drawing Dialog */}
+        <Dialog open={issueDialogOpen} onOpenChange={setIssueDialogOpen}>
+          <DialogContent className="max-w-md mx-auto">
+            <DialogHeader>
+              <DialogTitle className="text-base sm:text-lg">Issue Drawing to Recipients</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4 py-4">
+              {selectedIssueDrawing && (
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                  <p className="text-sm font-medium text-blue-800 truncate">
+                    {selectedIssueDrawing.name}
+                  </p>
+                  <p className="text-xs text-blue-600 mt-1">
+                    {selectedIssueDrawing.category}
+                  </p>
+                </div>
+              )}
+              
+              <div>
+                <Label className="text-sm font-medium">Select Recipients *</Label>
+                <p className="text-xs text-slate-500 mt-1 mb-3">
+                  Choose who should be notified about this drawing issue
+                </p>
+                
+                {availableRecipients.length === 0 ? (
+                  <p className="text-xs text-amber-600 bg-amber-50 border border-amber-200 rounded p-2">
+                    No recipients available for this drawing category
+                  </p>
+                ) : (
+                  <div className="space-y-2 max-h-48 overflow-y-auto">
+                    {availableRecipients.map((recipient) => (
+                      <label key={recipient.id} className="flex items-center gap-3 p-2 border border-slate-200 rounded hover:bg-slate-50 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={selectedRecipients.some(r => r.id === recipient.id)}
+                          onChange={(e) => {
+                            if (e.target.checked) {
+                              setSelectedRecipients([...selectedRecipients, recipient]);
+                            } else {
+                              setSelectedRecipients(selectedRecipients.filter(r => r.id !== recipient.id));
+                            }
+                          }}
+                          className="w-4 h-4 text-blue-600 border-slate-300 rounded focus:ring-blue-500"
+                        />
+                        <div className="flex-1">
+                          <p className="text-sm font-medium text-slate-900">{recipient.name}</p>
+                          <p className="text-xs text-slate-500">{recipient.role}</p>
+                        </div>
+                      </label>
+                    ))}
+                  </div>
+                )}
+                
+                {selectedRecipients.length > 0 && (
+                  <div className="mt-3 p-2 bg-green-50 border border-green-200 rounded">
+                    <p className="text-xs text-green-700 font-medium">
+                      ✓ {selectedRecipients.length} recipient(s) selected
+                    </p>
+                  </div>
+                )}
+              </div>
+            </div>
+            
+            <DialogFooter className="flex flex-col sm:flex-row gap-2">
+              <Button 
+                variant="outline" 
+                onClick={() => {
+                  setIssueDialogOpen(false);
+                  setSelectedIssueDrawing(null);
+                  setSelectedRecipients([]);
+                }}
+                className="w-full sm:w-auto text-xs sm:text-sm"
+              >
+                Cancel
+              </Button>
+              <Button 
+                onClick={handleIssueDrawingWithRecipients}
+                disabled={selectedRecipients.length === 0}
+                className="bg-green-600 hover:bg-green-700 text-white w-full sm:w-auto text-xs sm:text-sm"
+              >
+                Issue Drawing ({selectedRecipients.length})
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
         {/* Delete Project Dialog */}
         <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
           <DialogContent>
