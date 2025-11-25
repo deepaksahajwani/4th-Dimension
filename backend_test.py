@@ -2746,6 +2746,9 @@ class BackendTester:
         # Team Member Invitation and Verification Flow test (NEW - as requested in review)
         self.test_team_member_invitation_flow()
         
+        # Comprehensive E2E Drawing Workflow test (NEW - as requested in review)
+        self.test_comprehensive_drawing_workflow_e2e()
+        
         # Summary
         print("=" * 60)
         print("📊 TEST SUMMARY")
