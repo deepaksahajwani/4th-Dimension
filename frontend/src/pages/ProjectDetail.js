@@ -157,41 +157,45 @@ export default function ProjectDetail({ user, onLogout }) {
 
   const loadRecipientsForCategory = async (category) => {
     try {
-      const token = localStorage.getItem('token');
+      console.log('Loading recipients for category:', category);
+      console.log('Project data:', projectData);
       
-      // Load recipients based on drawing category and project assignments
       const recipients = [];
       
-      // Always include client
+      // Always include the owner (you)
+      recipients.push({
+        id: 'owner',
+        name: 'Ar. Deepak Sahajwani (Owner)',
+        type: 'owner',
+        role: 'Owner'
+      });
+      
+      // Add client (simplified - use basic project data)
       if (projectData?.client_id) {
-        const clientResponse = await axios.get(`${API}/clients/${projectData.client_id}`, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
+        // Use the client name from project data instead of separate API call
         recipients.push({
           id: projectData.client_id,
-          name: clientResponse.data.name,
+          name: `Client: ${projectData.client_name || 'Project Client'}`,
           type: 'client',
           role: 'Client'
         });
       }
       
       // Add project manager if assigned
-      if (projectData?.project_manager_id) {
-        const pmResponse = await axios.get(`${API}/users/${projectData.project_manager_id}`, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
+      if (projectData?.project_manager_id || projectData?.lead_architect_id) {
+        const managerId = projectData.project_manager_id || projectData.lead_architect_id;
         recipients.push({
-          id: projectData.project_manager_id,
-          name: pmResponse.data.name,
-          type: 'project_manager', 
+          id: managerId,
+          name: `Project Manager: ${projectData.project_manager_name || 'Team Leader'}`,
+          type: 'project_manager',
           role: 'Project Manager'
         });
       }
       
-      // Add contractors based on category
+      // Add contractors based on category (simplified)
       const categoryContractorMapping = {
         'Layout': 'Civil',
-        'Elevation': 'Civil',
+        'Elevation': 'Civil', 
         'Working': 'Civil',
         'Electrical': 'Electrical',
         'Plumbing': 'Plumbing',
@@ -203,47 +207,46 @@ export default function ProjectDetail({ user, onLogout }) {
       const assigned_contractors = projectData?.assigned_contractors || {};
       
       if (assigned_contractors[contractorType]) {
-        const contractorResponse = await axios.get(`${API}/contractors/${assigned_contractors[contractorType]}`, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
         recipients.push({
           id: assigned_contractors[contractorType],
-          name: contractorResponse.data.name,
+          name: `${contractorType} Contractor`,
           type: 'contractor',
           role: `${contractorType} Contractor`
         });
       }
       
-      // Add relevant consultants
-      const consultantMapping = {
-        'Structure': 'Structure',
-        'Working': 'Structure',
-        'MEP': 'MEP'
-      };
+      // Add a generic contractor option
+      recipients.push({
+        id: 'generic-contractor',
+        name: `All ${contractorType} Contractors`,
+        type: 'contractor',
+        role: `${contractorType} Contractors`
+      });
       
-      const consultantType = consultantMapping[category];
-      if (consultantType) {
-        const consultantsResponse = await axios.get(`${API}/consultants`, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
-        const relevantConsultants = consultantsResponse.data.filter(c => c.type === consultantType);
-        relevantConsultants.forEach(consultant => {
-          recipients.push({
-            id: consultant.id,
-            name: consultant.name,
-            type: 'consultant',
-            role: `${consultant.type} Consultant`
-          });
-        });
-      }
-      
+      console.log('Loaded recipients:', recipients);
       setAvailableRecipients(recipients);
       setSelectedRecipients([]); // Reset selection
       
     } catch (error) {
       console.error('Error loading recipients:', error);
-      toast.error('Failed to load recipients');
-      setAvailableRecipients([]);
+      // Provide fallback recipients instead of failing
+      const fallbackRecipients = [
+        {
+          id: 'owner',
+          name: 'Ar. Deepak Sahajwani (Owner)',
+          type: 'owner',
+          role: 'Owner'
+        },
+        {
+          id: 'client-fallback',
+          name: 'Project Client',
+          type: 'client',
+          role: 'Client'
+        }
+      ];
+      
+      setAvailableRecipients(fallbackRecipients);
+      toast.warning('Using default recipients due to loading error');
     }
   };
 
