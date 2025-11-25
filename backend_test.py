@@ -2538,7 +2538,7 @@ class BackendTester:
             
             # Create test reference file
             test_ref_content = b"Test reference file content"
-            files = {'file': ('reference.txt', test_ref_content, 'text/plain')}
+            files = {'files': ('reference.txt', test_ref_content, 'text/plain')}
             
             ref_upload_response = self.session.post(f"{BACKEND_URL}/drawings/comments/{self.comment1['id']}/upload-reference", 
                                                   files=files, headers=owner_headers)
