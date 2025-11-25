@@ -155,6 +155,18 @@ export default function ProjectDetail({ user, onLogout }) {
     }
   };
 
+  const loadRecipientsForCategory = async (category) => {
+    try {
+      // Load available recipients based on drawing category
+      // This is a placeholder function - implement based on your requirements
+      const recipients = []; // Replace with actual API call
+      setAvailableRecipients(recipients);
+    } catch (error) {
+      console.error('Error loading recipients:', error);
+      toast.error('Failed to load recipients');
+    }
+  };
+
   const handleToggleIssued = async (drawing) => {
     // If drawing is currently issued, un-issue it
     if (drawing.is_issued) {
