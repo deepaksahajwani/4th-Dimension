@@ -2560,7 +2560,7 @@ class BackendTester:
             
             # Create test voice note file (mock webm content)
             test_voice_content = b"WEBM mock voice note content"
-            files = {'file': ('voice_note.webm', test_voice_content, 'audio/webm')}
+            files = {'voice_note': ('voice_note.webm', test_voice_content, 'audio/webm')}
             
             voice_upload_response = self.session.post(f"{BACKEND_URL}/drawings/comments/{self.comment2['id']}/upload-voice", 
                                                     files=files, headers=owner_headers)
