@@ -2306,18 +2306,17 @@ class BackendTester:
                 "site_address": "123 Test Street, Test City",
                 "notes": "E2E test project for drawing workflow",
                 "assigned_contractors": {
-                    "civil_contractor": {
-                        "name": "Test Civil Contractor",
-                        "email": "civil@test.com", 
-                        "phone": "+919999777766"
-                    }
+                    "Civil": self.civil_contractor["id"]
                 },
-                "assigned_consultants": {
-                    "structural_consultant": {
-                        "name": "Test Structural Consultant",
-                        "email": "struct@test.com",
-                        "phone": "+919999666655"
-                    }
+                "civil_contractor": {
+                    "name": "Test Civil Contractor",
+                    "email": "civil@test.com", 
+                    "phone": "+919999777766"
+                },
+                "structural_consultant": {
+                    "name": "Test Structural Consultant",
+                    "email": "struct@test.com",
+                    "phone": "+919999666655"
                 }
             }
             
