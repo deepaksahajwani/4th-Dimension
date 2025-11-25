@@ -2479,6 +2479,7 @@ class BackendTester:
             
             # Comment 1: Plain text comment
             comment1_data = {
+                "drawing_id": drawing_id,
                 "comment_text": "This is a plain text comment for testing.",
                 "requires_revision": False
             }
