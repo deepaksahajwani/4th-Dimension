@@ -200,15 +200,15 @@ async def notify_drawing_uploaded(project_id: str, drawing_name: str, uploaded_b
         project_link = f"{app_url}/projects/{project_id}"
         
         message = f"""🏗️ NEW DRAWING UPLOADED
-        
+
 Project: {project.get("name", "Unknown Project")}
 Drawing: {drawing_name}
 Uploaded by: {uploader_name}
 
 👆 REVIEW NOW: {project_link}
 
-Quick Actions:
-✅ Approve | 🔄 Request Revision | 💬 Add Comment
+Next Actions:
+💬 Add Comment | 🔄 Request Revision | ✅ Approve for Issue
 
 - 4th Dimension Team"""
         
