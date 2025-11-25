@@ -561,11 +561,11 @@ test_plan:
 
   - task: "Drawing Issuance Workflow with Recipient Loading Fix"
     implemented: true
-    working: true
+    working: "NA"
     file: "frontend/src/pages/ProjectDetail.js"
-    stuck_count: 0
+    stuck_count: 1
     priority: "high"
-    needs_retesting: false
+    needs_retesting: true
     status_history:
       - working: true
         agent: "testing"
