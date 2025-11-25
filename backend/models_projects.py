@@ -258,7 +258,6 @@ class Project(BaseModel):
     
     # Contractor assignments (contractor_type: contractor_id)
     assigned_contractors: Dict[str, str] = {}  # {"Civil": "contractor_id_123", ...}
-    project_access_code: str = Field(default_factory=lambda: str(uuid.uuid4())[:12])  # Unique 12-char code for sharing
     
     created_by_id: Optional[str] = None
     owner_team_id: Optional[str] = None
