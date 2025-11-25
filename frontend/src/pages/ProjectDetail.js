@@ -209,28 +209,41 @@ export default function ProjectDetail({ user, onLogout }) {
       
       // Add contractors based on drawing category
       const categoryContractorMapping = {
-        'Architecture': ['civil_contractor', 'structural_consultant'],
-        'Interior': ['tile_marble_contractor', 'furniture_contractor', 'kitchen_contractor', 'modular_contractor'],
-        'Landscape': ['landscape_contractor', 'landscape_consultant'],
-        'Planning': ['civil_contractor']
+        'Architecture': ['Civil', 'Structural'],
+        'Interior': ['Tile and Marble', 'Furniture', 'Kitchen', 'Modular'],
+        'Landscape': ['Landscape'],
+        'Planning': ['Civil']
       };
       
-      const relevantContractorFields = categoryContractorMapping[category] || ['civil_contractor'];
+      const relevantContractorTypes = categoryContractorMapping[category] || ['Civil'];
       
-      // Add relevant contractors from project data
-      relevantContractorFields.forEach(fieldName => {
-        if (project && project[fieldName] && project[fieldName].name) {
-          const contractor = project[fieldName];
-          recipients.push({
-            id: `contractor-${fieldName}`,
-            name: contractor.name,
-            email: contractor.email,
-            phone: contractor.phone,
-            type: 'contractor',
-            role: fieldName.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())
-          });
-        }
-      });
+      // Add relevant contractors from project assigned_contractors
+      if (project && project.assigned_contractors) {
+        relevantContractorTypes.forEach(contractorType => {
+          const contractorId = project.assigned_contractors[contractorType];
+          if (contractorId) {
+            // For now, add contractor with basic info - we could fetch full details if needed
+            recipients.push({
+              id: contractorId,
+              name: `${contractorType} Contractor`,
+              type: 'contractor',
+              role: contractorType
+            });
+          }
+        });
+        
+        // Also add all assigned contractors regardless of category for flexibility
+        Object.entries(project.assigned_contractors).forEach(([contractorType, contractorId]) => {
+          if (contractorId && !recipients.find(r => r.id === contractorId)) {
+            recipients.push({
+              id: contractorId,
+              name: `${contractorType} Contractor`,
+              type: 'contractor',
+              role: contractorType
+            });
+          }
+        });
+      }
       
       console.log('Loaded recipients:', recipients);
       setAvailableRecipients(recipients);
