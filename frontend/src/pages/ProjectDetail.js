@@ -746,10 +746,70 @@ export default function ProjectDetail({ user, onLogout }) {
     }
   };
 
-  const formatTime = (seconds) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  const handleIssueDrawingWithRecipients = async () => {
+    try {
+      if (selectedRecipients.length === 0) {
+        toast.error('Please select at least one recipient');
+        return;
+      }
+      
+      const token = localStorage.getItem('token');
+      
+      // Issue the drawing
+      await axios.put(`${API}/drawings/${selectedIssueDrawing.id}`, {
+        is_issued: true,
+        issued_date: new Date().toISOString(),
+        status: 'issued',
+        recipients: selectedRecipients.map(r => ({ id: r.id, type: r.type }))
+      }, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      
+      // Send notifications to selected recipients
+      try {
+        await axios.post(`${API}/drawings/${selectedIssueDrawing.id}/notify-issue`, {
+          recipient_ids: selectedRecipients.map(r => r.id),
+          drawing_name: selectedIssueDrawing.name,
+          drawing_category: selectedIssueDrawing.category
+        }, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+      } catch (notificationError) {
+        console.warn('Failed to send notifications:', notificationError);
+      }
+      
+      // Unlock next drawing in sequence
+      await unlockNextDrawing(selectedIssueDrawing.sequence_number);
+      
+      toast.success(`Drawing issued to ${selectedRecipients.length} recipient(s)`);
+      setIssueDialogOpen(false);
+      setSelectedIssueDrawing(null);
+      setSelectedRecipients([]);
+      fetchProjectData();
+      
+    } catch (error) {
+      console.error('Error issuing drawing:', error);
+      toast.error(formatErrorMessage(error, 'Failed to issue drawing'));
+    }
+  };
+  
+  const unlockNextDrawing = async (currentSequence) => {
+    try {
+      const token = localStorage.getItem('token');
+      
+      // Find and activate the next drawing in sequence
+      await axios.post(`${API}/projects/${projectId}/unlock-next-drawing`, {
+        current_sequence: currentSequence
+      }, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      
+      console.log(`Unlocked next drawing after sequence ${currentSequence}`);
+      
+    } catch (error) {
+      console.warn('Error unlocking next drawing:', error);
+      // Don't show error to user as this is not critical
+    }
   };
 
   const handleEditComment = (comment) => {
