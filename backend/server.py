@@ -2305,39 +2305,64 @@ async def create_project(project_data: NewProjectCreate, current_user: User = De
     
     await db.projects.insert_one(project_dict)
     
-    # Auto-create the first 3 standard drawings with proper sequence and due dates
-    standard_drawings = [
-        {"name": "Layout Plan", "category": "Layout", "due_days": 3},
-        {"name": "Elevation Views", "category": "Elevation", "due_days": 6}, 
-        {"name": "Working Drawings", "category": "Working", "due_days": 9}
-    ]
+    # Auto-create 3 drawings for each project type selected
+    # Define standard drawings for each project type
+    project_type_drawings = {
+        "Architecture": [
+            {"name": "Site Plan & Layout", "due_days": 3},
+            {"name": "Floor Plans & Sections", "due_days": 7},
+            {"name": "Elevations & 3D Views", "due_days": 10}
+        ],
+        "Interior": [
+            {"name": "Space Planning & Layout", "due_days": 3},
+            {"name": "Furniture & Fixture Layout", "due_days": 7},
+            {"name": "Lighting & Electrical Plan", "due_days": 10}
+        ],
+        "Landscape": [
+            {"name": "Site Analysis & Concept", "due_days": 3},
+            {"name": "Planting & Hardscape Plan", "due_days": 7},
+            {"name": "Irrigation & Lighting Plan", "due_days": 10}
+        ],
+        "Planning": [
+            {"name": "Feasibility Study", "due_days": 3},
+            {"name": "Master Plan Layout", "due_days": 7},
+            {"name": "Zoning & Compliance Drawings", "due_days": 10}
+        ]
+    }
     
     base_date = project.start_date if project.start_date else datetime.now(timezone.utc)
+    sequence_num = 1
     
-    for sequence_num, drawing_info in enumerate(standard_drawings, start=1):
-        due_date = base_date + timedelta(days=drawing_info["due_days"])
-        
-        drawing = ProjectDrawing(
-            project_id=project.id,
-            category=drawing_info["category"],
-            name=drawing_info["name"],
-            status=DrawingStatus.PLANNED,
-            due_date=due_date,
-            is_issued=False,
-            revision_count=0,
-            sequence_number=sequence_num,
-            is_active=True if sequence_num == 1 else False,  # Only first drawing is active
-            assigned_to=project.lead_architect_id,  # Assign to lead architect
-            priority="high" if sequence_num == 1 else "medium"
-        )
-        drawing_dict = drawing.model_dump()
-        
-        # Convert datetimes to ISO strings
-        for field in ['created_at', 'updated_at', 'due_date', 'issued_date']:
-            if drawing_dict.get(field):
-                drawing_dict[field] = drawing_dict[field].isoformat() if isinstance(drawing_dict[field], datetime) else drawing_dict[field]
-        
-        await db.project_drawings.insert_one(drawing_dict)
+    # Create drawings for each selected project type
+    for project_type in project.project_types:
+        if project_type in project_type_drawings:
+            drawings_for_type = project_type_drawings[project_type]
+            
+            for drawing_info in drawings_for_type:
+                due_date = base_date + timedelta(days=drawing_info["due_days"])
+                
+                drawing = ProjectDrawing(
+                    project_id=project.id,
+                    category=project_type,  # Use project type as category
+                    name=drawing_info["name"],
+                    status=DrawingStatus.PLANNED,
+                    due_date=due_date,
+                    is_issued=False,
+                    revision_count=0,
+                    sequence_number=sequence_num,
+                    is_active=True if sequence_num == 1 else False,  # Only first drawing is active
+                    assigned_to=project.lead_architect_id,  # Assign to lead architect
+                    priority="high" if sequence_num == 1 else "medium"
+                )
+                drawing_dict = drawing.model_dump()
+                
+                # Convert datetimes to ISO strings
+                for field in ['created_at', 'updated_at', 'due_date', 'issued_date']:
+                    if drawing_dict.get(field):
+                        drawing_dict[field] = drawing_dict[field].isoformat() if isinstance(drawing_dict[field], datetime) else drawing_dict[field]
+                
+                await db.project_drawings.insert_one(drawing_dict)
+                sequence_num += 1
     
     # Send WhatsApp notifications to all project stakeholders about onboarding
     try:
