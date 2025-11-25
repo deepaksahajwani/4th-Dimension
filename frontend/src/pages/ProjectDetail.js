@@ -158,69 +158,78 @@ export default function ProjectDetail({ user, onLogout }) {
   const loadRecipientsForCategory = async (category) => {
     try {
       console.log('Loading recipients for category:', category);
-      console.log('Project data:', projectData);
+      console.log('Project data:', project);
       
       const recipients = [];
       
-      // Always include the owner (you)
-      recipients.push({
-        id: 'owner',
-        name: 'Ar. Deepak Sahajwani (Owner)',
-        type: 'owner',
-        role: 'Owner'
-      });
-      
-      // Add client (simplified - use basic project data)
-      if (projectData?.client_id) {
-        // Use the client name from project data instead of separate API call
+      // Always include the current user (owner)
+      if (user) {
         recipients.push({
-          id: projectData.client_id,
-          name: `Client: ${projectData.client_name || 'Project Client'}`,
+          id: user.id || 'owner',
+          name: user.name || 'Owner',
+          type: 'owner',
+          role: user.role || 'Owner'
+        });
+      }
+      
+      // Add client if available
+      if (client) {
+        recipients.push({
+          id: client.id,
+          name: client.name || 'Project Client',
           type: 'client',
           role: 'Client'
         });
       }
       
-      // Add project manager if assigned
-      if (projectData?.project_manager_id || projectData?.lead_architect_id) {
-        const managerId = projectData.project_manager_id || projectData.lead_architect_id;
+      // Add team leader/project manager if assigned
+      if (teamLeader) {
         recipients.push({
-          id: managerId,
-          name: `Project Manager: ${projectData.project_manager_name || 'Team Leader'}`,
-          type: 'project_manager',
-          role: 'Project Manager'
+          id: teamLeader.id,
+          name: `${teamLeader.name} (Team Leader)`,
+          type: 'team_leader',
+          role: 'Team Leader'
         });
       }
       
-      // Add contractors based on category (simplified)
+      // Add project team members if available
+      if (project?.project_team && Array.isArray(project.project_team)) {
+        project.project_team.forEach(member => {
+          // Avoid duplicates
+          if (!recipients.find(r => r.id === member.user_id)) {
+            recipients.push({
+              id: member.user_id,
+              name: `${member.user_name || 'Team Member'} (${member.role || 'Team'})`,
+              type: 'team_member',
+              role: member.role || 'Team Member'
+            });
+          }
+        });
+      }
+      
+      // Add contractors based on drawing category
       const categoryContractorMapping = {
-        'Layout': 'Civil',
-        'Elevation': 'Civil', 
-        'Working': 'Civil',
-        'Electrical': 'Electrical',
-        'Plumbing': 'Plumbing',
-        'HVAC': 'Air Conditioning',
-        'Structure': 'Civil'
+        'Architecture': ['civil_contractor', 'structural_consultant'],
+        'Interior': ['tile_marble_contractor', 'furniture_contractor', 'kitchen_contractor', 'modular_contractor'],
+        'Landscape': ['landscape_contractor', 'landscape_consultant'],
+        'Planning': ['civil_contractor']
       };
       
-      const contractorType = categoryContractorMapping[category] || 'Civil';
-      const assigned_contractors = projectData?.assigned_contractors || {};
+      const relevantContractorFields = categoryContractorMapping[category] || ['civil_contractor'];
       
-      if (assigned_contractors[contractorType]) {
-        recipients.push({
-          id: assigned_contractors[contractorType],
-          name: `${contractorType} Contractor`,
-          type: 'contractor',
-          role: `${contractorType} Contractor`
-        });
-      }
-      
-      // Add a generic contractor option
-      recipients.push({
-        id: 'generic-contractor',
-        name: `All ${contractorType} Contractors`,
-        type: 'contractor',
-        role: `${contractorType} Contractors`
+      // Add relevant contractors from project data
+      relevantContractorFields.forEach(fieldName => {
+        if (project && project[fieldName] && project[fieldName].name) {
+          const contractor = project[fieldName];
+          recipients.push({
+            id: `contractor-${fieldName}`,
+            name: contractor.name,
+            email: contractor.email,
+            phone: contractor.phone,
+            type: 'contractor',
+            role: fieldName.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())
+          });
+        }
       });
       
       console.log('Loaded recipients:', recipients);
@@ -229,21 +238,24 @@ export default function ProjectDetail({ user, onLogout }) {
       
     } catch (error) {
       console.error('Error loading recipients:', error);
-      // Provide fallback recipients instead of failing
+      // Provide fallback recipients
       const fallbackRecipients = [
         {
-          id: 'owner',
-          name: 'Ar. Deepak Sahajwani (Owner)',
+          id: user?.id || 'owner',
+          name: user?.name || 'Owner',
           type: 'owner',
           role: 'Owner'
-        },
-        {
-          id: 'client-fallback',
-          name: 'Project Client',
-          type: 'client',
-          role: 'Client'
         }
       ];
+      
+      if (client) {
+        fallbackRecipients.push({
+          id: client.id,
+          name: client.name || 'Project Client',
+          type: 'client',
+          role: 'Client'
+        });
+      }
       
       setAvailableRecipients(fallbackRecipients);
       toast.warning('Using default recipients due to loading error');
