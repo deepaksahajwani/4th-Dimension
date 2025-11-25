@@ -157,13 +157,93 @@ export default function ProjectDetail({ user, onLogout }) {
 
   const loadRecipientsForCategory = async (category) => {
     try {
-      // Load available recipients based on drawing category
-      // This is a placeholder function - implement based on your requirements
-      const recipients = []; // Replace with actual API call
+      const token = localStorage.getItem('token');
+      
+      // Load recipients based on drawing category and project assignments
+      const recipients = [];
+      
+      // Always include client
+      if (projectData?.client_id) {
+        const clientResponse = await axios.get(`${API}/clients/${projectData.client_id}`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        recipients.push({
+          id: projectData.client_id,
+          name: clientResponse.data.name,
+          type: 'client',
+          role: 'Client'
+        });
+      }
+      
+      // Add project manager if assigned
+      if (projectData?.project_manager_id) {
+        const pmResponse = await axios.get(`${API}/users/${projectData.project_manager_id}`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        recipients.push({
+          id: projectData.project_manager_id,
+          name: pmResponse.data.name,
+          type: 'project_manager', 
+          role: 'Project Manager'
+        });
+      }
+      
+      // Add contractors based on category
+      const categoryContractorMapping = {
+        'Layout': 'Civil',
+        'Elevation': 'Civil',
+        'Working': 'Civil',
+        'Electrical': 'Electrical',
+        'Plumbing': 'Plumbing',
+        'HVAC': 'Air Conditioning',
+        'Structure': 'Civil'
+      };
+      
+      const contractorType = categoryContractorMapping[category] || 'Civil';
+      const assigned_contractors = projectData?.assigned_contractors || {};
+      
+      if (assigned_contractors[contractorType]) {
+        const contractorResponse = await axios.get(`${API}/contractors/${assigned_contractors[contractorType]}`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        recipients.push({
+          id: assigned_contractors[contractorType],
+          name: contractorResponse.data.name,
+          type: 'contractor',
+          role: `${contractorType} Contractor`
+        });
+      }
+      
+      // Add relevant consultants
+      const consultantMapping = {
+        'Structure': 'Structure',
+        'Working': 'Structure',
+        'MEP': 'MEP'
+      };
+      
+      const consultantType = consultantMapping[category];
+      if (consultantType) {
+        const consultantsResponse = await axios.get(`${API}/consultants`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        const relevantConsultants = consultantsResponse.data.filter(c => c.type === consultantType);
+        relevantConsultants.forEach(consultant => {
+          recipients.push({
+            id: consultant.id,
+            name: consultant.name,
+            type: 'consultant',
+            role: `${consultant.type} Consultant`
+          });
+        });
+      }
+      
       setAvailableRecipients(recipients);
+      setSelectedRecipients([]); // Reset selection
+      
     } catch (error) {
       console.error('Error loading recipients:', error);
       toast.error('Failed to load recipients');
+      setAvailableRecipients([]);
     }
   };
 
