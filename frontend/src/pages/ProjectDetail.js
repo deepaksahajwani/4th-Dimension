@@ -89,6 +89,12 @@ export default function ProjectDetail({ user, onLogout }) {
   
   // Comment revision state
   const [markForRevision, setMarkForRevision] = useState(false);
+  
+  // Issue drawing states
+  const [issueDialogOpen, setIssueDialogOpen] = useState(false);
+  const [selectedIssueDrawing, setSelectedIssueDrawing] = useState(null);
+  const [selectedRecipients, setSelectedRecipients] = useState([]);
+  const [availableRecipients, setAvailableRecipients] = useState([]);
   const [revisionFormData, setRevisionFormData] = useState({
     revision_notes: '',
     revision_due_date: ''
