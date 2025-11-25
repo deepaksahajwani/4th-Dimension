@@ -1316,26 +1316,6 @@ export default function ProjectDetail({ user, onLogout }) {
                   )}
                 </div>
                 
-                {/* Project Access Code (Owner Only) */}
-                {user?.is_owner && project.project_access_code && (
-                  <div className="mb-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                    <p className="text-xs text-blue-600 font-medium mb-1">Project Access Code (Share with Contractors/Clients)</p>
-                    <div className="flex items-center gap-2">
-                      <span className="font-mono text-sm font-bold text-blue-900">{project.project_access_code}</span>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => {
-                          navigator.clipboard.writeText(project.project_access_code);
-                          toast.success('Access code copied!');
-                        }}
-                        className="h-6 px-2 text-xs border-blue-300"
-                      >
-                        Copy
-                      </Button>
-                    </div>
-                  </div>
-                )}
                 <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-slate-900 mb-1 sm:mb-2 break-words">{project.title}</h1>
                 {client && (
                   <p className="text-sm sm:text-base lg:text-lg text-slate-600 truncate">{client.name}</p>
