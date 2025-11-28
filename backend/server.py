@@ -4278,7 +4278,7 @@ async def get_notifications(current_user: User = Depends(get_current_user), limi
 @api_router.get("/dashboard/weekly-progress/{user_id}")
 async def get_weekly_progress(
     user_id: str,
-    current_user: dict = Depends(get_current_user)
+    current_user: User = Depends(get_current_user)
 ):
     """
     Get weekly task progress for a team member
