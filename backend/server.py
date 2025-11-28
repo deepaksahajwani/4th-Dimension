@@ -4557,12 +4557,12 @@ async def mark_task_complete(
 async def block_drawing(
     drawing_id: str,
     data: dict,
-    current_user: dict = Depends(get_current_user)
+    current_user: User = Depends(get_current_user)
 ):
     """Block a drawing (exclude from progress tracking)"""
     try:
         # Only owner or team leader can block
-        if current_user.get("role") not in ["owner", "team_leader"]:
+        if current_user.role not in ["owner", "team_leader"]:
             raise HTTPException(status_code=403, detail="Access denied")
         
         await db.project_drawings.update_one(
