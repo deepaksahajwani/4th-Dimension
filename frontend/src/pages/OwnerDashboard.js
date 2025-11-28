@@ -314,15 +314,9 @@ export default function OwnerDashboard({ user, onLogout }) {
             <div className="flex items-center gap-3">
               <Button 
                 onClick={() => navigate('/weekly-dashboard')}
-                variant="outline"
+                className="bg-blue-600 hover:bg-blue-700 text-white"
               >
                 📊 Weekly View
-              </Button>
-              <Button 
-                onClick={() => navigate('/dashboard')}
-                variant="outline"
-              >
-                Back
               </Button>
             </div>
           </div>
