@@ -141,7 +141,8 @@ export default function OwnerDashboard({ user, onLogout }) {
       setLoading(false);
     } catch (error) {
       console.error('Error fetching data:', error);
-      toast.error('Failed to load dashboard');
+      console.error('Error details:', error.response?.data);
+      toast.error(`Failed to load dashboard: ${error.response?.data?.detail || error.message}`);
       setLoading(false);
     }
   };
