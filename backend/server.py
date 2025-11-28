@@ -4585,12 +4585,12 @@ async def block_drawing(
 
 @api_router.get("/dashboard/team-overview")
 async def get_team_overview(
-    current_user: dict = Depends(get_current_user)
+    current_user: User = Depends(get_current_user)
 ):
     """Get overview of all team members' progress (owner only)"""
     try:
         # Only owner can view team overview
-        if current_user.get("role") != "owner":
+        if current_user.role != "owner":
             raise HTTPException(status_code=403, detail="Access denied")
         
         # Get all team members
