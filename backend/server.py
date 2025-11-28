@@ -4288,7 +4288,7 @@ async def get_weekly_progress(
     """
     try:
         # Only owner can view others' progress, users can view their own
-        if current_user["id"] != user_id and current_user.get("role") != "owner":
+        if current_user.id != user_id and current_user.role != "owner":
             raise HTTPException(status_code=403, detail="Access denied")
         
         from datetime import datetime, timedelta
