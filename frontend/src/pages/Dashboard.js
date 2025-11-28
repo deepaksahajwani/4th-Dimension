@@ -175,13 +175,21 @@ export default function Dashboard({ user, onLogout }) {
     <Layout user={user} onLogout={onLogout}>
       <div>
         {/* Header */}
-        <div className="mb-4 sm:mb-6">
-          <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-slate-900">
-            {user?.is_owner ? 'Team Dashboard' : "Today's Focus"}
-          </h1>
-          <p className="text-sm sm:text-base text-slate-600 mt-1">
-            {user?.is_owner ? 'Overview of team performance and activities' : `What needs your attention today - ${new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })}`}
-          </p>
+        <div className="mb-4 sm:mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div>
+            <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-slate-900">
+              {user?.is_owner ? 'Team Dashboard' : "Today's Focus"}
+            </h1>
+            <p className="text-sm sm:text-base text-slate-600 mt-1">
+              {user?.is_owner ? 'Overview of team performance and activities' : `What needs your attention today - ${new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })}`}
+            </p>
+          </div>
+          <Button 
+            onClick={() => navigate('/weekly-dashboard')}
+            className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white shadow-lg whitespace-nowrap"
+          >
+            📊 Weekly Tasks
+          </Button>
         </div>
 
         {/* Stats Grid */}
