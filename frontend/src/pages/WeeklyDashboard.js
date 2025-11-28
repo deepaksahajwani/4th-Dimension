@@ -53,15 +53,23 @@ export default function WeeklyDashboard({ user, onLogout }) {
   const fetchDashboardData = async () => {
     try {
       const token = localStorage.getItem('token');
+      if (!user || !user.id) {
+        console.error('User not loaded yet');
+        setLoading(false);
+        return;
+      }
+      console.log('Fetching dashboard for user:', user.id);
       const response = await axios.get(
         `${API}/api/dashboard/weekly-progress/${user.id}`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
+      console.log('Dashboard data received:', response.data);
       setDashboardData(response.data);
       setLoading(false);
     } catch (error) {
       console.error('Error fetching dashboard:', error);
-      toast.error('Failed to load dashboard');
+      console.error('Error details:', error.response?.data);
+      toast.error(`Failed to load dashboard: ${error.response?.data?.detail || error.message}`);
       setLoading(false);
     }
   };
