@@ -207,8 +207,11 @@ export default function WeeklyDashboard({ user, onLogout }) {
                   Assign Task
                 </Button>
               )}
-              <Button variant="outline" onClick={() => navigate('/dashboard')}>
-                Back
+              <Button 
+                variant="outline" 
+                onClick={() => navigate('/owner-dashboard')}
+              >
+                Owner Dashboard
               </Button>
             </div>
           </div>
