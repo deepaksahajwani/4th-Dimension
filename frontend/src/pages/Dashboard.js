@@ -25,8 +25,13 @@ export default function Dashboard({ user, onLogout }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    // Redirect owners to Owner Dashboard
+    if (user?.role === 'owner') {
+      navigate('/owner-dashboard');
+      return;
+    }
     fetchData();
-  }, []);
+  }, [user]);
 
   const fetchData = async () => {
     try {
