@@ -4459,3 +4459,443 @@ async def get_notification_stats(current_user: dict = Depends(get_current_user))
         logger.error(f"Get notification stats error: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
+
+# ==================== TASK MANAGEMENT & DASHBOARD ====================
+
+@api_router.get("/dashboard/weekly-progress/{user_id}")
+async def get_weekly_progress(
+    user_id: str,
+    current_user: dict = Depends(get_current_user)
+):
+    """
+    Get weekly task progress for a team member
+    - Calculates progress based on drawing complexity (Simple=1, Medium=2, Complex=3)
+    - Excludes blocked drawings
+    - Separates ad-hoc tasks
+    """
+    try:
+        # Only owner can view others' progress, users can view their own
+        if current_user["id"] != user_id and current_user.get("role") != "owner":
+            raise HTTPException(status_code=403, detail="Access denied")
+        
+        from datetime import datetime, timedelta
+        
+        # Get current week start (Monday)
+        now = datetime.now(timezone.utc)
+        week_start = now - timedelta(days=now.weekday())  # Monday
+        week_start = week_start.replace(hour=0, minute=1, second=0, microsecond=0)
+        week_end = week_start + timedelta(days=7)
+        
+        # Get current ISO week
+        current_week = week_start.strftime("%Y-W%W")
+        
+        # Find all projects where user is assigned as team leader
+        projects = await db.projects.find(
+            {
+                "lead_architect_id": user_id,
+                "deleted_at": None
+            },
+            {"_id": 0}
+        ).to_list(100)
+        
+        project_ids = [p["id"] for p in projects]
+        
+        # Get all pending drawings for these projects (not issued, not blocked)
+        drawings = await db.project_drawings.find(
+            {
+                "project_id": {"$in": project_ids},
+                "is_issued": False,
+                "is_blocked": False,
+                "deleted_at": None
+            },
+            {"_id": 0}
+        ).to_list(1000)
+        
+        # Get all ad-hoc tasks assigned this week
+        ad_hoc_tasks = await db.tasks.find(
+            {
+                "assigned_to_id": user_id,
+                "is_ad_hoc": True,
+                "week_assigned": current_week,
+                "status": {"$nin": ["Closed", "Resolved"]},
+                "deleted_at": None
+            },
+            {"_id": 0}
+        ).to_list(100)
+        
+        # Calculate drawing points
+        complexity_points = {"Simple": 1, "Medium": 2, "Complex": 3}
+        
+        total_points = 0
+        completed_points = 0
+        
+        projects_progress = []
+        
+        for project in projects:
+            project_drawings = [d for d in drawings if d["project_id"] == project["id"]]
+            
+            if not project_drawings:
+                continue
+            
+            project_total = 0
+            project_completed = 0
+            drawing_details = []
+            
+            for drawing in project_drawings:
+                points = complexity_points.get(drawing.get("complexity", "Medium"), 2)
+                project_total += points
+                total_points += points
+                
+                if drawing.get("is_issued") or drawing.get("is_approved"):
+                    project_completed += points
+                    completed_points += points
+                    status = "✅ Completed"
+                elif drawing.get("under_review"):
+                    status = "🟡 Under Review"
+                elif drawing.get("file_url"):
+                    status = "🟢 Uploaded"
+                else:
+                    status = "🔴 Pending"
+                
+                drawing_details.append({
+                    "id": drawing["id"],
+                    "name": drawing["name"],
+                    "category": drawing["category"],
+                    "complexity": drawing.get("complexity", "Medium"),
+                    "points": points,
+                    "status": status,
+                    "due_date": drawing.get("due_date"),
+                    "is_completed": drawing.get("is_issued") or drawing.get("is_approved")
+                })
+            
+            project_progress = (project_completed / project_total * 100) if project_total > 0 else 0
+            
+            projects_progress.append({
+                "project_id": project["id"],
+                "project_title": project["title"],
+                "project_code": project["code"],
+                "client_name": project.get("client_name"),
+                "total_points": project_total,
+                "completed_points": project_completed,
+                "progress_percentage": round(project_progress, 1),
+                "drawings": drawing_details
+            })
+        
+        # Calculate overall progress
+        overall_progress = (completed_points / total_points * 100) if total_points > 0 else 0
+        
+        # Process ad-hoc tasks
+        ad_hoc_completed = len([t for t in ad_hoc_tasks if t.get("status") in ["Closed", "Resolved"]])
+        ad_hoc_total = len(ad_hoc_tasks)
+        ad_hoc_progress = (ad_hoc_completed / ad_hoc_total * 100) if ad_hoc_total > 0 else 0
+        
+        ad_hoc_details = []
+        for task in ad_hoc_tasks:
+            # Calculate urgency
+            due = task.get("due_date_time")
+            urgency = "🔴 URGENT"
+            if due:
+                due_dt = datetime.fromisoformat(due) if isinstance(due, str) else due
+                hours_until_due = (due_dt - now).total_seconds() / 3600
+                if hours_until_due > 48:
+                    urgency = "📌 NORMAL"
+                elif hours_until_due > 24:
+                    urgency = "🟡 SOON"
+                elif hours_until_due > 2:
+                    urgency = "🟠 TODAY"
+                else:
+                    urgency = "🔴 URGENT"
+            
+            ad_hoc_details.append({
+                "id": task["id"],
+                "title": task["title"],
+                "description": task.get("description"),
+                "priority": task.get("priority"),
+                "status": task.get("status"),
+                "due_date_time": task.get("due_date_time"),
+                "urgency": urgency,
+                "is_completed": task.get("status") in ["Closed", "Resolved"],
+                "project_id": task.get("project_id")
+            })
+        
+        return {
+            "user_id": user_id,
+            "week_start": week_start.isoformat(),
+            "week_end": week_end.isoformat(),
+            "current_week": current_week,
+            "overall": {
+                "total_points": total_points,
+                "completed_points": completed_points,
+                "progress_percentage": round(overall_progress, 1),
+                "projects_count": len(projects_progress)
+            },
+            "projects": projects_progress,
+            "ad_hoc_tasks": {
+                "total": ad_hoc_total,
+                "completed": ad_hoc_completed,
+                "progress_percentage": round(ad_hoc_progress, 1),
+                "tasks": ad_hoc_details
+            }
+        }
+    
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Get weekly progress error: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@api_router.post("/tasks/ad-hoc")
+async def create_ad_hoc_task(
+    task: TaskCreate,
+    current_user: dict = Depends(get_current_user)
+):
+    """Create an ad-hoc task (owner only)"""
+    try:
+        # Only owner can create ad-hoc tasks
+        if current_user.get("role") != "owner":
+            raise HTTPException(status_code=403, detail="Only owner can create ad-hoc tasks")
+        
+        from datetime import datetime
+        
+        # Get current ISO week
+        now = datetime.now(timezone.utc)
+        week_start = now - timedelta(days=now.weekday())
+        current_week = week_start.strftime("%Y-W%W")
+        
+        # Get assigned user info
+        assigned_user = await db.users.find_one(
+            {"id": task.assigned_to_id},
+            {"_id": 0, "name": 1, "email": 1, "mobile": 1}
+        )
+        
+        if not assigned_user:
+            raise HTTPException(status_code=404, detail="Assigned user not found")
+        
+        # Create task
+        task_dict = task.model_dump()
+        task_dict["id"] = str(uuid.uuid4())
+        task_dict["created_by_id"] = current_user["id"]
+        task_dict["created_by_name"] = current_user.get("name")
+        task_dict["assigned_to_name"] = assigned_user.get("name")
+        task_dict["is_ad_hoc"] = True
+        task_dict["week_assigned"] = current_week
+        task_dict["created_at"] = datetime.now(timezone.utc).isoformat()
+        task_dict["updated_at"] = datetime.now(timezone.utc).isoformat()
+        
+        await db.tasks.insert_one(task_dict)
+        
+        # Send notification
+        try:
+            from notification_triggers import notify_task_assigned
+            await notify_task_assigned(
+                task_dict["id"],
+                assigned_user.get("name"),
+                task.title,
+                task.due_date_time
+            )
+        except Exception as e:
+            logger.warning(f"Failed to send task notification: {e}")
+        
+        return task_dict
+    
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Create ad-hoc task error: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@api_router.put("/tasks/{task_id}/complete")
+async def mark_task_complete(
+    task_id: str,
+    current_user: dict = Depends(get_current_user)
+):
+    """Mark a task as complete"""
+    try:
+        task = await db.tasks.find_one({"id": task_id}, {"_id": 0})
+        
+        if not task:
+            raise HTTPException(status_code=404, detail="Task not found")
+        
+        # Only assigned user or owner can complete
+        if task["assigned_to_id"] != current_user["id"] and current_user.get("role") != "owner":
+            raise HTTPException(status_code=403, detail="Access denied")
+        
+        await db.tasks.update_one(
+            {"id": task_id},
+            {"$set": {
+                "status": "Resolved",
+                "completed_at": datetime.now(timezone.utc).isoformat(),
+                "updated_at": datetime.now(timezone.utc).isoformat()
+            }}
+        )
+        
+        return {"success": True, "message": "Task marked as complete"}
+    
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Mark task complete error: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@api_router.put("/drawings/{drawing_id}/block")
+async def block_drawing(
+    drawing_id: str,
+    data: dict,
+    current_user: dict = Depends(get_current_user)
+):
+    """Block a drawing (exclude from progress tracking)"""
+    try:
+        # Only owner or team leader can block
+        if current_user.get("role") not in ["owner", "team_leader"]:
+            raise HTTPException(status_code=403, detail="Access denied")
+        
+        await db.project_drawings.update_one(
+            {"id": drawing_id},
+            {"$set": {
+                "is_blocked": data.get("is_blocked", True),
+                "blocked_reason": data.get("blocked_reason"),
+                "updated_at": datetime.now(timezone.utc).isoformat()
+            }}
+        )
+        
+        return {"success": True, "message": "Drawing status updated"}
+    
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Block drawing error: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@api_router.get("/dashboard/team-overview")
+async def get_team_overview(
+    current_user: dict = Depends(get_current_user)
+):
+    """Get overview of all team members' progress (owner only)"""
+    try:
+        # Only owner can view team overview
+        if current_user.get("role") != "owner":
+            raise HTTPException(status_code=403, detail="Access denied")
+        
+        # Get all team members
+        team_members = await db.users.find(
+            {
+                "role": {"$in": ["architect", "team_leader", "interior_designer", "drafter"]},
+                "approval_status": "approved"
+            },
+            {"_id": 0, "id": 1, "name": 1, "role": 1, "email": 1}
+        ).to_list(100)
+        
+        team_progress = []
+        
+        for member in team_members:
+            # Get their weekly progress
+            progress_data = await get_weekly_progress(member["id"], current_user)
+            
+            team_progress.append({
+                "user_id": member["id"],
+                "name": member["name"],
+                "role": member["role"],
+                "email": member["email"],
+                "overall_progress": progress_data["overall"]["progress_percentage"],
+                "total_points": progress_data["overall"]["total_points"],
+                "completed_points": progress_data["overall"]["completed_points"],
+                "projects_count": progress_data["overall"]["projects_count"],
+                "ad_hoc_tasks": progress_data["ad_hoc_tasks"]["total"],
+                "status": "🟢 On Track" if progress_data["overall"]["progress_percentage"] >= 75 else 
+                         "🟡 Needs Attention" if progress_data["overall"]["progress_percentage"] >= 50 else 
+                         "🔴 Behind Schedule"
+            })
+        
+        # Sort by progress percentage
+        team_progress.sort(key=lambda x: x["overall_progress"], reverse=True)
+        
+        return {
+            "team_members": team_progress,
+            "total_team_size": len(team_progress),
+            "avg_progress": sum([t["overall_progress"] for t in team_progress]) / len(team_progress) if team_progress else 0
+        }
+    
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Get team overview error: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@api_router.get("/dashboard/historical/{user_id}")
+async def get_historical_progress(
+    user_id: str,
+    current_user: dict = Depends(get_current_user)
+):
+    """Get 4 weeks + monthly + yearly progress history"""
+    try:
+        # Only owner can view others' history, users can view their own
+        if current_user["id"] != user_id and current_user.get("role") != "owner":
+            raise HTTPException(status_code=403, detail="Access denied")
+        
+        from datetime import datetime, timedelta
+        
+        # This would require storing weekly snapshots
+        # For now, return placeholder structure
+        # TODO: Implement weekly snapshot storage in weekly reset job
+        
+        now = datetime.now(timezone.utc)
+        
+        # Last 4 weeks
+        weekly_history = []
+        for i in range(4):
+            week_start = now - timedelta(weeks=i+1, days=now.weekday())
+            weekly_history.append({
+                "week": week_start.strftime("%Y-W%W"),
+                "week_start": week_start.isoformat(),
+                "progress_percentage": 0,  # TODO: Fetch from snapshots
+                "total_points": 0,
+                "completed_points": 0
+            })
+        
+        # Monthly data (current financial year)
+        # Financial year: April to March
+        current_month = now.month
+        if current_month >= 4:
+            fy_start_year = now.year
+        else:
+            fy_start_year = now.year - 1
+        
+        monthly_history = []
+        for month_offset in range(12):
+            month_date = datetime(fy_start_year, 4, 1) + timedelta(days=30*month_offset)
+            if month_date > now:
+                break
+            monthly_history.append({
+                "month": month_date.strftime("%B %Y"),
+                "progress_percentage": 0,  # TODO: Implement
+                "drawings_completed": 0,
+                "projects_handled": 0
+            })
+        
+        # Yearly summary
+        yearly_summary = {
+            "financial_year": f"{fy_start_year}-{fy_start_year+1}",
+            "total_drawings_completed": 0,  # TODO: Calculate
+            "total_projects": 0,
+            "avg_completion_rate": 0,
+            "consistency_score": 0
+        }
+        
+        return {
+            "user_id": user_id,
+            "weekly_history": weekly_history,
+            "monthly_history": monthly_history,
+            "yearly_summary": yearly_summary
+        }
+    
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Get historical progress error: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
