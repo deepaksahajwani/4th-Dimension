@@ -649,6 +649,6 @@ export default function WeeklyDashboard({ user, onLogout }) {
           </div>
         </DialogContent>
       </Dialog>
-    </div>
+    </Layout>
   );
 }
