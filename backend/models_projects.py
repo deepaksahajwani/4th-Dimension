@@ -382,6 +382,11 @@ class ProjectDrawing(BaseModel):
     project_id: str
     category: str  # Architecture, Interior, Landscape, Planning
     name: str  # Drawing name/title
+    complexity: str = "Medium"  # Simple, Medium, Complex (for progress weighting)
+    assigned_to_id: Optional[str] = None  # Team member assigned to this drawing
+    assigned_to_name: Optional[str] = None  # Team member name for display
+    is_blocked: bool = False  # True if waiting for external input (excluded from progress)
+    blocked_reason: Optional[str] = None  # Why is it blocked
     under_review: bool = False  # True when PDF uploaded for review (before approval)
     reviewed_date: Optional[datetime] = None
     is_approved: bool = False  # True when drawing is approved (ready to issue)
