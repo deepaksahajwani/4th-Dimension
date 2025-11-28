@@ -500,13 +500,13 @@ class Task(BaseModel):
     updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 class TaskCreate(BaseModel):
-    project_id: str
+    project_id: Optional[str] = None  # Can be project-specific or general
     title: str
     description: Optional[str] = None
     category: TaskCategory
     priority: Priority = Priority.MEDIUM
-    assigned_to_id: Optional[str] = None
-    due_date: Optional[str] = None
+    assigned_to_id: str  # Must assign to someone
+    due_date_time: str  # ISO datetime string with time
     related_drawing_id: Optional[str] = None
 
 class SiteVisit(BaseModel):
