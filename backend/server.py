@@ -4522,7 +4522,7 @@ async def create_ad_hoc_task(
 @api_router.put("/tasks/{task_id}/complete")
 async def mark_task_complete(
     task_id: str,
-    current_user: dict = Depends(get_current_user)
+    current_user: User = Depends(get_current_user)
 ):
     """Mark a task as complete"""
     try:
@@ -4532,7 +4532,7 @@ async def mark_task_complete(
             raise HTTPException(status_code=404, detail="Task not found")
         
         # Only assigned user or owner can complete
-        if task["assigned_to_id"] != current_user["id"] and current_user.get("role") != "owner":
+        if task["assigned_to_id"] != current_user.id and current_user.role != "owner":
             raise HTTPException(status_code=403, detail="Access denied")
         
         await db.tasks.update_one(
