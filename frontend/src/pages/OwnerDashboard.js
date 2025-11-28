@@ -740,6 +740,6 @@ export default function OwnerDashboard({ user, onLogout }) {
           </div>
         </DialogContent>
       </Dialog>
-    </div>
+    </Layout>
   );
 }
