@@ -4488,8 +4488,8 @@ async def create_ad_hoc_task(
         # Create task
         task_dict = task.model_dump()
         task_dict["id"] = str(uuid.uuid4())
-        task_dict["created_by_id"] = current_user["id"]
-        task_dict["created_by_name"] = current_user.get("name")
+        task_dict["created_by_id"] = current_user.id
+        task_dict["created_by_name"] = current_user.name
         task_dict["assigned_to_name"] = assigned_user.get("name")
         task_dict["is_ad_hoc"] = True
         task_dict["week_assigned"] = current_week
