@@ -18,6 +18,7 @@ import ForgotPassword from './pages/ForgotPassword';
 import ResetPassword from './pages/ResetPassword';
 import Dashboard from './pages/Dashboard';
 import ExternalDashboard from './pages/ExternalDashboard';
+import WeeklyDashboard from './pages/WeeklyDashboard';
 import WorkTracker from './pages/WorkTracker';
 import MyWork from './pages/MyWork';
 import AssignTargets from './pages/AssignTargets';
