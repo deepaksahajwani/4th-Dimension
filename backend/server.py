@@ -4642,12 +4642,12 @@ async def get_team_overview(
 @api_router.get("/dashboard/historical/{user_id}")
 async def get_historical_progress(
     user_id: str,
-    current_user: dict = Depends(get_current_user)
+    current_user: User = Depends(get_current_user)
 ):
     """Get 4 weeks + monthly + yearly progress history"""
     try:
         # Only owner can view others' history, users can view their own
-        if current_user["id"] != user_id and current_user.get("role") != "owner":
+        if current_user.id != user_id and current_user.role != "owner":
             raise HTTPException(status_code=403, detail="Access denied")
         
         from datetime import datetime, timedelta
