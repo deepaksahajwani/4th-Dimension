@@ -66,6 +66,11 @@ class DrawingStatus(str, Enum):
     APPROVED = "Approved"
     ISSUED = "Issued"
 
+class DrawingComplexity(str, Enum):
+    SIMPLE = "Simple"  # 1 point
+    MEDIUM = "Medium"  # 2 points
+    COMPLEX = "Complex"  # 3 points
+
 class TaskCategory(str, Enum):
     DRAWING = "Drawing"
     SITE_ISSUE = "SiteIssue"
