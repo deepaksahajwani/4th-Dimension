@@ -4461,12 +4461,12 @@ async def get_weekly_progress(
 @api_router.post("/tasks/ad-hoc")
 async def create_ad_hoc_task(
     task: TaskCreate,
-    current_user: dict = Depends(get_current_user)
+    current_user: User = Depends(get_current_user)
 ):
     """Create an ad-hoc task (owner only)"""
     try:
         # Only owner can create ad-hoc tasks
-        if current_user.get("role") != "owner":
+        if current_user.role != "owner":
             raise HTTPException(status_code=403, detail="Only owner can create ad-hoc tasks")
         
         from datetime import datetime
