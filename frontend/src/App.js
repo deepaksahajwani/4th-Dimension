@@ -225,6 +225,14 @@ function App() {
               }
             />
             <Route
+              path="/owner-dashboard"
+              element={
+                <ProtectedRoute>
+                  <OwnerDashboard user={user} onLogout={handleLogout} />
+                </ProtectedRoute>
+              }
+            />
+            <Route
               path="/work-tracker"
               element={
                 <ProtectedRoute>
