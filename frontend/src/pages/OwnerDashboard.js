@@ -305,30 +305,25 @@ export default function OwnerDashboard({ user, onLogout }) {
     : 0;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
-      {/* Header */}
-      <div className="bg-white shadow-sm border-b sticky top-0 z-20">
-        <div className="max-w-full mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-4">
+    <Layout user={user} onLogout={onLogout}>
+      <div className="max-w-full mx-auto">
+        {/* Header */}
+        <div className="mb-6">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
-              <h1 className="text-2xl font-bold text-slate-900">Owner Command Center</h1>
-              <p className="text-sm text-slate-600">
+              <h1 className="text-2xl sm:text-3xl font-bold text-slate-900">Owner Command Center</h1>
+              <p className="text-sm sm:text-base text-slate-600 mt-1">
                 Manage all projects and team members
               </p>
             </div>
-            <div className="flex items-center gap-3">
-              <Button 
-                onClick={() => navigate('/weekly-dashboard')}
-                className="bg-blue-600 hover:bg-blue-700 text-white"
-              >
-                📊 Weekly View
-              </Button>
-            </div>
+            <Button 
+              onClick={() => navigate('/weekly-dashboard')}
+              className="bg-blue-600 hover:bg-blue-700 text-white"
+            >
+              📊 Weekly View
+            </Button>
           </div>
         </div>
-      </div>
-
-      <div className="max-w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Quick Stats */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
           <div className="bg-white rounded-xl shadow-md p-6 border-l-4 border-blue-500">
