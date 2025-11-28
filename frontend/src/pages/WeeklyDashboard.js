@@ -85,7 +85,10 @@ export default function WeeklyDashboard({ user, onLogout }) {
       const response = await axios.get(`${API}/api/users`, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      setTeamMembers(response.data.filter(u => u.approval_status === 'approved'));
+      const approvedMembers = response.data.filter(u => 
+        u.approval_status === 'approved' && u.role !== 'owner'
+      );
+      setTeamMembers(approvedMembers);
     } catch (error) {
       console.error('Error fetching team members:', error);
     }
