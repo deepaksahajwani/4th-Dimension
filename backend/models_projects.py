@@ -481,15 +481,21 @@ class ChecklistItem(BaseModel):
 class Task(BaseModel):
     model_config = ConfigDict(extra="ignore")
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
-    project_id: str
+    project_id: Optional[str] = None  # Optional - tasks can be non-project-specific
     title: str
     description: Optional[str] = None
     category: TaskCategory
     status: TaskStatus = TaskStatus.OPEN
     priority: Priority = Priority.MEDIUM
     assigned_to_id: Optional[str] = None  # TeamMember ID
-    due_date: Optional[datetime] = None
+    assigned_to_name: Optional[str] = None  # For display
+    due_date_time: Optional[datetime] = None  # Exact date and time for due
     related_drawing_id: Optional[str] = None  # ProjectDrawing ID
+    created_by_id: str  # Owner who created the task
+    created_by_name: Optional[str] = None
+    is_ad_hoc: bool = False  # True if owner-assigned mid-week task
+    week_assigned: Optional[str] = None  # ISO week (e.g., "2024-W48") for tracking
+    completed_at: Optional[datetime] = None
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
