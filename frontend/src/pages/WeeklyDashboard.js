@@ -237,11 +237,11 @@ export default function WeeklyDashboard({ user, onLogout }) {
           <div className="w-full bg-slate-200 rounded-full h-6 overflow-hidden">
             <div 
               className="bg-gradient-to-r from-blue-500 to-blue-600 h-6 rounded-full transition-all duration-500 flex items-center justify-center"
-              style={{ width: `${dashboardData?.overall.progress_percentage}%` }}
+              style={{ width: `${dashboardData?.overall.progress_percentage || 0}%` }}
             >
-              {dashboardData?.overall.progress_percentage > 10 && (
+              {(dashboardData?.overall.progress_percentage || 0) > 10 && (
                 <span className="text-xs font-bold text-white">
-                  {dashboardData?.overall.progress_percentage}%
+                  {dashboardData?.overall.progress_percentage || 0}%
                 </span>
               )}
             </div>
