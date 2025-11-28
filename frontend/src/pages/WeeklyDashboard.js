@@ -251,19 +251,19 @@ export default function WeeklyDashboard({ user, onLogout }) {
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-6">
             <div className="text-center p-3 bg-blue-50 rounded-lg">
               <div className="text-2xl font-bold text-blue-600">
-                {dashboardData?.overall.projects_count}
+                {dashboardData?.overall.projects_count || 0}
               </div>
               <div className="text-xs text-slate-600">Active Projects</div>
             </div>
             <div className="text-center p-3 bg-green-50 rounded-lg">
               <div className="text-2xl font-bold text-green-600">
-                {dashboardData?.overall.completed_points}
+                {dashboardData?.overall.completed_points || 0}
               </div>
               <div className="text-xs text-slate-600">Points Done</div>
             </div>
             <div className="text-center p-3 bg-orange-50 rounded-lg">
               <div className="text-2xl font-bold text-orange-600">
-                {dashboardData?.overall.total_points - dashboardData?.overall.completed_points}
+                {(dashboardData?.overall.total_points || 0) - (dashboardData?.overall.completed_points || 0)}
               </div>
               <div className="text-xs text-slate-600">Points Pending</div>
             </div>
