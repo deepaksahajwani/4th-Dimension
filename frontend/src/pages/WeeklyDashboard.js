@@ -227,7 +227,7 @@ export default function WeeklyDashboard({ user, onLogout }) {
             </div>
             <div className="text-right">
               <div className="text-3xl font-bold text-blue-600">
-                {dashboardData?.overall.progress_percentage}%
+                {dashboardData?.overall.progress_percentage || 0}%
               </div>
               <div className="text-xs text-slate-500">Overall Progress</div>
             </div>
