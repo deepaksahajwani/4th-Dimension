@@ -296,7 +296,7 @@ export default function OwnerDashboard({ user, onLogout }) {
 
   const criticalProjects = projects.filter(p => p.status === 'critical').length;
   const totalProgress = projects.length > 0 
-    ? Math.round(projects.reduce((sum, p) => sum + p.progress, 0) / projects.length)
+    ? Math.round(projects.reduce((sum, p) => sum + (p.progress || 0), 0) / projects.length)
     : 0;
 
   return (
