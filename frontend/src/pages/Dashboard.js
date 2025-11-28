@@ -15,6 +15,7 @@ const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
 
 export default function Dashboard({ user, onLogout }) {
+  const navigate = useNavigate();
   const [dailyTasks, setDailyTasks] = useState([]);
   const [weeklyTargets, setWeeklyTargets] = useState([]);
   const [weeklyRating, setWeeklyRating] = useState(null);
