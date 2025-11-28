@@ -133,7 +133,10 @@ export default function OwnerDashboard({ user, onLogout }) {
       const membersRes = await axios.get(`${API}/api/users`, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      setTeamMembers(membersRes.data.filter(m => m.approval_status === 'approved'));
+      const approvedMembers = membersRes.data.filter(m => 
+        m.approval_status === 'approved' && m.role !== 'owner'
+      );
+      setTeamMembers(approvedMembers);
       
       setLoading(false);
     } catch (error) {
