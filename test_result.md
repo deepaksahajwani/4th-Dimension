@@ -192,6 +192,18 @@ backend:
         agent: "testing"
         comment: "AD-HOC TASK CREATION ENDPOINT SUCCESSFULLY FIXED AND TESTED (100% success rate): ✅ BACKEND FIX VERIFIED: TaskCreate model updated with both assigned_to_id and due_date_time fields. Endpoint serialization issue resolved by returning clean response dict without MongoDB ObjectId. ✅ COMPREHENSIVE TESTING COMPLETED: 1) Owner login successful (deepaksahajwani@gmail.com / testpassword). 2) Team member verification successful (testvoice@example.com, ID: 8ba35b89-354e-4224-9393-7934309e2c42). 3) Ad-hoc task creation successful with exact test case data: title='Quick Task Test', description='Please review the elevation drawings and provide feedback by EOD tomorrow.', assigned_to_id=team_member_id, due_date_time='2025-11-30T17:00:00Z', priority='HIGH', category='OTHER', project_id=null, status='open'. 4) Task creation returns 200 OK with complete task data including task ID. 5) Task appears in weekly dashboard GET /api/dashboard/weekly-progress/{user_id} with urgency indicator (🟡 SOON). 6) Task has is_ad_hoc=True and week_assigned set in database. 7) Access control working - non-owner users correctly rejected with 403 error. ✅ ALL EXPECTED BEHAVIOR CONFIRMED: Task creation succeeds (200 OK), response includes task ID and all task fields, task visible in weekly dashboard with urgency indicator, task has is_ad_hoc=True and week_assigned set. The ad-hoc task creation and dashboard integration feature is now fully functional as requested."
 
+  - task: "Enhanced Quick Assign Feature on Owner Dashboard"
+    implemented: true
+    working: true
+    file: "frontend/src/pages/OwnerDashboard.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "ENHANCED QUICK ASSIGN FEATURE COMPREHENSIVE TESTING COMPLETED SUCCESSFULLY (100% success rate): ✅ COMPLETE WORKFLOW TESTED: 1) Owner login successful (deepaksahajwani@gmail.com / testpassword). 2) Owner Dashboard loads automatically after login. 3) Quick Assign button found and clickable (orange button next to Weekly View in header). 4) Quick Task Assignment dialog opens correctly with proper title. 5) Dialog contains all required fields: team member dropdown, message textarea (comment-style input), file attachment option, voice note recording option, due date and time fields (optional), priority selection (LOW, MEDIUM, HIGH, URGENT). 6) Form accepts test data: team member selection works, message 'Please review the structural drawings for accuracy and completeness. Pay special attention to the foundation details.', priority HIGH, due date tomorrow. 7) Assign Task button functional and enabled. 8) Form submission executes without errors. ✅ EXPECTED BEHAVIOR VERIFIED: Quick Assign button visible in header (orange button next to Weekly View), dialog opens with proper title 'Quick Task Assignment', form supports comment-style text input (not rigid title required), all optional features present (files, voice notes, due date/time), priority selection includes all levels, task assignment workflow completes, lightweight quick assignment process confirmed. ✅ ENHANCED FEATURES CONFIRMED: Feature supports ad-hoc task assignment as requested, text input feels like writing a comment (not formal task), file and voice attachments available but optional, due date/time setting is optional with sensible defaults, priority selection provides good range of urgency levels. The enhanced Quick Assign feature is working perfectly as a lightweight, quick way for owners to assign work to team members."
+
 frontend:
   - task: "Error Handling for API Responses"
     implemented: true
