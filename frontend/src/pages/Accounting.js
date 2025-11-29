@@ -164,6 +164,23 @@ export default function Accounting({ user, onLogout }) {
     }
   };
 
+  const handleViewPaymentHistory = async (project) => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.get(
+        `${API}/api/accounting/income/${project.id}`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      
+      setSelectedProject(project);
+      setSelectedProjectPayments(response.data.payments || []);
+      setPaymentHistoryDialogOpen(true);
+    } catch (error) {
+      console.error('Error fetching payment history:', error);
+      toast.error('Failed to load payment history');
+    }
+  };
+
   const handleCreateExpense = async () => {
     try {
       const token = localStorage.getItem('token');
