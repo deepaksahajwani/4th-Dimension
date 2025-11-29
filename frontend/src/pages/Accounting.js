@@ -697,6 +697,69 @@ export default function Accounting({ user, onLogout }) {
             </div>
           </DialogContent>
         </Dialog>
+
+        {/* Payment History Dialog */}
+        <Dialog open={paymentHistoryDialogOpen} onOpenChange={setPaymentHistoryDialogOpen}>
+          <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>Payment History - {selectedProject?.title}</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4">
+              {selectedProjectPayments.length === 0 ? (
+                <div className="text-center py-8 text-slate-500">
+                  <FileText className="w-12 h-12 mx-auto mb-3 text-slate-300" />
+                  <p>No payment history yet</p>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {selectedProjectPayments.sort((a, b) => 
+                    new Date(b.payment_date) - new Date(a.payment_date)
+                  ).map((payment, index) => (
+                    <Card key={payment.id || index} className="p-4">
+                      <div className="flex justify-between items-start mb-2">
+                        <div>
+                          <p className="font-medium text-lg text-green-600">
+                            {formatCurrency(payment.amount)}
+                          </p>
+                          <p className="text-sm text-slate-600">
+                            {new Date(payment.payment_date).toLocaleDateString('en-IN', {
+                              day: 'numeric',
+                              month: 'short',
+                              year: 'numeric'
+                            })}
+                          </p>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-sm font-medium text-slate-900">{payment.payment_mode}</p>
+                          {payment.reference_number && (
+                            <p className="text-xs text-slate-500">Ref: {payment.reference_number}</p>
+                          )}
+                        </div>
+                      </div>
+                      {payment.bank_account && (
+                        <p className="text-sm text-slate-600">Bank: {payment.bank_account}</p>
+                      )}
+                      {payment.notes && (
+                        <p className="text-sm text-slate-600 mt-2 italic">{payment.notes}</p>
+                      )}
+                    </Card>
+                  ))}
+                </div>
+              )}
+              
+              <div className="border-t pt-4 mt-4">
+                <div className="flex justify-between items-center">
+                  <span className="font-medium text-slate-900">Total Received:</span>
+                  <span className="text-xl font-bold text-green-600">
+                    {formatCurrency(
+                      selectedProjectPayments.reduce((sum, p) => sum + (p.amount || 0), 0)
+                    )}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
       </div>
     </Layout>
   );
