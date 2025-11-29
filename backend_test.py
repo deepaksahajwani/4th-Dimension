@@ -1459,13 +1459,12 @@ class BackendTester:
                 team_headers = {"Authorization": f"Bearer {team_token}"}
                 
                 unauthorized_task_data = {
-                    "project_id": self.project_id,
+                    "project_id": self.project_id or "",
                     "title": "Unauthorized ad-hoc task",
                     "description": "This should not be allowed",
-                    "category": "GENERAL",
-                    "priority": "MEDIUM",
-                    "assigned_to_id": self.team_member_id,
-                    "due_date_time": due_date_iso
+                    "assigned_to": self.team_member_id,
+                    "due_date": due_date_iso,
+                    "priority": "medium"
                 }
                 
                 unauthorized_response = self.session.post(f"{BACKEND_URL}/tasks/ad-hoc", 
