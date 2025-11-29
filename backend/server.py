@@ -4302,17 +4302,6 @@ async def create_site_issue(issue_data: SiteIssueCreate, current_user: User = De
         issue_dict['due_date'] = issue_dict['due_date'].isoformat()
     await db.site_issues.insert_one(issue_dict)
     return issue
-
-# Notifications
-@api_router.get("/notifications")
-async def get_notifications(current_user: User = Depends(get_current_user), limit: int = 50):
-    notifications = await db.notifications.find({}, {"_id": 0}).sort("sent_at", -1).limit(limit).to_list(limit)
-    for n in notifications:
-        if isinstance(n.get('sent_at'), str):
-            n['sent_at'] = datetime.fromisoformat(n['sent_at'])
-    return notifications
-
-
 # Include the router in the main app
 # ==================== TASK MANAGEMENT & DASHBOARD ====================
 
