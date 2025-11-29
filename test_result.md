@@ -177,6 +177,18 @@ backend:
         agent: "testing"
         comment: "COMPREHENSIVE END-TO-END DRAWING WORKFLOW WITH NOTIFICATIONS TESTED SUCCESSFULLY (100% success rate - 16/16 tests passed): ✅ PHASE 1 - SETUP: Created test owner (owner@test.com), new client (E2E Test Client), team member (testteammember_*@example.com), civil contractor, and complete project with contractors/consultants. ✅ PHASE 2 - AUTO-CREATED DRAWINGS: Verified 3 drawings auto-created when project created, first drawing has due date (3 days from creation). ✅ PHASE 3 - COMPLETE WORKFLOW: Successfully uploaded PDF file to drawing, marked under review (reviewed_date set), approved drawing (approved_date set), added 3 comments (1 with revision requirement), uploaded reference files to comment, uploaded voice note (.webm) to comment, issued drawing to client and contractor recipients (issued_date set), sent WhatsApp notifications to 2 recipients. ✅ PHASE 4 - REVISION WORKFLOW: Requested revision (has_pending_revision=true, is_issued reset to false), resolved revision (has_pending_revision=false, revision_count incremented to 1). ✅ ALL CRITICAL FEATURES WORKING: File uploads (PDF/reference/voice), comment system with revision flags, drawing state management (Pending→Under Review→Approved→Issued), notification system, revision workflow, auto-drawing creation, contractor/consultant assignment. Complete drawing issuance and notification workflow functioning perfectly from project creation to final issuance with WhatsApp notifications."
 
+  - task: "Ad-Hoc Task Creation and Dashboard Integration"
+    implemented: true
+    working: false
+    file: "backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: false
+        agent: "testing"
+        comment: "CRITICAL BACKEND BUG IDENTIFIED IN AD-HOC TASK ENDPOINT: ❌ ISSUE: POST /api/tasks/ad-hoc endpoint has a critical implementation bug. The endpoint tries to access 'task.assigned_to_id' (line 4481) but the TaskCreate model only has 'assigned_to' field (line 271). ✅ AUTHENTICATION: Owner login successful (deepaksahajwani@gmail.com). ✅ TEAM MEMBER VERIFICATION: Target team member found (testvoice@example.com, ID: 8ba35b89-354e-4224-9393-7934309e2c42). ❌ ROOT CAUSE: Model mismatch - the ad-hoc endpoint expects TaskCreate model with 'assigned_to_id' field but the actual TaskCreate model (server.py line 267-273) has 'assigned_to' field. This causes AttributeError: 'TaskCreate' object has no attribute 'assigned_to_id'. ❌ IMPACT: Ad-hoc task creation completely non-functional. Users cannot create ad-hoc tasks. ✅ WORKAROUND NEEDED: Backend code needs to be fixed to either use 'assigned_to' from TaskCreate model or update TaskCreate model to use 'assigned_to_id'. ✅ DASHBOARD ENDPOINT: GET /api/dashboard/weekly-progress/{user_id} endpoint exists and has proper structure for ad-hoc tasks display. The ad-hoc task creation feature is blocked by this critical backend implementation bug."
+
 frontend:
   - task: "Error Handling for API Responses"
     implemented: true
