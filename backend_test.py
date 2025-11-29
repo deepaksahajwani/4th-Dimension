@@ -1457,8 +1457,8 @@ class BackendTester:
                     "project_id": self.project_id or "",
                     "title": "Unauthorized ad-hoc task",
                     "description": "This should not be allowed",
-                    "assigned_to": self.team_member_id,
-                    "due_date": due_date_iso,
+                    "assigned_to_id": self.team_member_id,
+                    "due_date_time": "2025-11-30T17:00:00Z",
                     "priority": "medium"
                 }
                 
