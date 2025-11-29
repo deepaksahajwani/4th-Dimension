@@ -741,6 +741,129 @@ export default function Accounting({ user, onLogout }) {
           </DialogContent>
         </Dialog>
 
+
+
+        {/* Income Account Dialog */}
+        <Dialog open={incomeAccountDialogOpen} onOpenChange={setIncomeAccountDialogOpen}>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle>Create Income Account</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4">
+              <div>
+                <Label>Account Name</Label>
+                <input
+                  type="text"
+                  className="w-full mt-1 px-3 py-2 border border-slate-300 rounded-lg"
+                  value={incomeAccountForm.name}
+                  onChange={(e) => setIncomeAccountForm({...incomeAccountForm, name: e.target.value})}
+                  placeholder="e.g., Consultation Fees, Referral Income, Interest"
+                />
+              </div>
+              <div>
+                <Label>Description</Label>
+                <textarea
+                  className="w-full mt-1 px-3 py-2 border border-slate-300 rounded-lg"
+                  rows="3"
+                  value={incomeAccountForm.description}
+                  onChange={(e) => setIncomeAccountForm({...incomeAccountForm, description: e.target.value})}
+                />
+              </div>
+              <Button onClick={handleCreateIncomeAccount} className="w-full">
+                Create Account
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        {/* Income Entry Dialog */}
+        <Dialog open={incomeEntryDialogOpen} onOpenChange={setIncomeEntryDialogOpen}>
+          <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>Add Income Entry</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4">
+              <div>
+                <Label>Income Account *</Label>
+                <select
+                  className="w-full mt-1 px-3 py-2 border border-slate-300 rounded-lg"
+                  value={incomeEntryForm.income_account_id}
+                  onChange={(e) => setIncomeEntryForm({...incomeEntryForm, income_account_id: e.target.value})}
+                >
+                  <option value="">Select Account</option>
+                  {incomeAccounts.map((account) => (
+                    <option key={account.id} value={account.id}>{account.name}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <Label>Amount *</Label>
+                <input
+                  type="number"
+                  className="w-full mt-1 px-3 py-2 border border-slate-300 rounded-lg"
+                  value={incomeEntryForm.amount}
+                  onChange={(e) => setIncomeEntryForm({...incomeEntryForm, amount: e.target.value})}
+                />
+              </div>
+              <div>
+                <Label>Income Date *</Label>
+                <input
+                  type="date"
+                  className="w-full mt-1 px-3 py-2 border border-slate-300 rounded-lg"
+                  value={incomeEntryForm.income_date}
+                  onChange={(e) => setIncomeEntryForm({...incomeEntryForm, income_date: e.target.value})}
+                />
+              </div>
+              <div>
+                <Label>Description *</Label>
+                <textarea
+                  className="w-full mt-1 px-3 py-2 border border-slate-300 rounded-lg"
+                  rows="2"
+                  value={incomeEntryForm.description}
+                  onChange={(e) => setIncomeEntryForm({...incomeEntryForm, description: e.target.value})}
+                />
+              </div>
+              <div>
+                <Label>Payment Mode</Label>
+                <select
+                  className="w-full mt-1 px-3 py-2 border border-slate-300 rounded-lg"
+                  value={incomeEntryForm.payment_mode}
+                  onChange={(e) => setIncomeEntryForm({...incomeEntryForm, payment_mode: e.target.value})}
+                >
+                  <option>Cash</option>
+                  <option>Bank Transfer</option>
+                  <option>Cheque</option>
+                  <option>UPI</option>
+                  <option>Card</option>
+                  <option>Other</option>
+                </select>
+              </div>
+              <div>
+                <Label>Source Name</Label>
+                <input
+                  type="text"
+                  className="w-full mt-1 px-3 py-2 border border-slate-300 rounded-lg"
+                  value={incomeEntryForm.source_name}
+                  onChange={(e) => setIncomeEntryForm({...incomeEntryForm, source_name: e.target.value})}
+                  placeholder="Who paid or source of income"
+                />
+              </div>
+              <div>
+                <Label>Bank Account / Reference</Label>
+                <input
+                  type="text"
+                  className="w-full mt-1 px-3 py-2 border border-slate-300 rounded-lg"
+                  value={incomeEntryForm.reference_number}
+                  onChange={(e) => setIncomeEntryForm({...incomeEntryForm, reference_number: e.target.value})}
+                />
+              </div>
+              <Button onClick={handleCreateIncomeEntry} className="w-full">
+                Add Income
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+
         {/* Expense Account Dialog */}
         <Dialog open={expenseAccountDialogOpen} onOpenChange={setExpenseAccountDialogOpen}>
           <DialogContent className="max-w-md">
