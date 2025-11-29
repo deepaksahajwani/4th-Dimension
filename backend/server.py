@@ -531,13 +531,17 @@ async def register(user_data: UserRegister):
 @api_router.post("/auth/login")
 async def login(credentials: UserLogin):
     user_doc = await db.users.find_one({"email": credentials.email})
+    logger.info(f"Login attempt for: {credentials.email}, user found: {bool(user_doc)}")
     if not user_doc:
         raise HTTPException(status_code=401, detail="Invalid email or password")
     
+    logger.info(f"Has password_hash: {bool(user_doc.get('password_hash'))}")
     if not user_doc.get('password_hash'):
         raise HTTPException(status_code=401, detail="Please use Google login")
     
-    if not verify_password(credentials.password, user_doc['password_hash']):
+    password_valid = verify_password(credentials.password, user_doc['password_hash'])
+    logger.info(f"Password valid: {password_valid}")
+    if not password_valid:
         raise HTTPException(status_code=401, detail="Invalid email or password")
     
     access_token = create_access_token(data={"sub": credentials.email})
