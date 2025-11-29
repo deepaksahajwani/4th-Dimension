@@ -1299,6 +1299,7 @@ class BackendTester:
             expected_title = message[:80]  # First 80 characters
             
             task_data = {
+                "project_id": self.project_id,  # Use project if available, None if not
                 "title": expected_title,
                 "description": message,  # Full message as description
                 "category": "GENERAL",  # Using TaskCategory enum
