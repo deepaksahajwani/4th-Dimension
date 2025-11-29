@@ -4724,6 +4724,375 @@ async def block_drawing(
     """Block a drawing (exclude from progress tracking)"""
     try:
         # Only owner or team leader can block
+
+
+# ==================== ACCOUNTING ENDPOINTS (OWNER ONLY) ====================
+
+@api_router.get("/accounting/income")
+async def get_all_project_income(
+    current_user: User = Depends(get_current_user)
+):
+    """Get income tracking for all projects (owner only)"""
+    try:
+        if current_user.role != "owner":
+            raise HTTPException(status_code=403, detail="Only owner can access accounting")
+        
+        income_records = await db.project_income.find({}, {"_id": 0}).to_list(1000)
+        
+        # Calculate pending amounts
+        for record in income_records:
+            record['pending_amount'] = record.get('total_fee', 0) - record.get('received_amount', 0)
+        
+        return income_records
+    
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Get project income error: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@api_router.get("/accounting/income/{project_id}")
+async def get_project_income(
+    project_id: str,
+    current_user: User = Depends(get_current_user)
+):
+    """Get income details for a specific project"""
+    try:
+        if current_user.role != "owner":
+            raise HTTPException(status_code=403, detail="Only owner can access accounting")
+        
+        income = await db.project_income.find_one({"project_id": project_id}, {"_id": 0})
+        
+        if not income:
+            # Return empty record if not exists
+            project = await db.projects.find_one({"id": project_id}, {"_id": 0, "title": 1})
+            return {
+                "project_id": project_id,
+                "project_name": project.get('title') if project else None,
+                "total_fee": 0,
+                "received_amount": 0,
+                "pending_amount": 0,
+                "payments": []
+            }
+        
+        income['pending_amount'] = income.get('total_fee', 0) - income.get('received_amount', 0)
+        return income
+    
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Get project income error: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@api_router.post("/accounting/income/{project_id}")
+async def update_project_income(
+    project_id: str,
+    data: dict,
+    current_user: User = Depends(get_current_user)
+):
+    """Update income details for a project"""
+    try:
+        if current_user.role != "owner":
+            raise HTTPException(status_code=403, detail="Only owner can access accounting")
+        
+        # Get project name
+        project = await db.projects.find_one({"id": project_id}, {"_id": 0, "title": 1})
+        if not project:
+            raise HTTPException(status_code=404, detail="Project not found")
+        
+        # Check if income record exists
+        existing = await db.project_income.find_one({"project_id": project_id})
+        
+        update_data = {
+            "project_id": project_id,
+            "project_name": project['title'],
+            "total_fee": data.get('total_fee', 0),
+            "received_amount": data.get('received_amount', 0),
+            "pending_amount": data.get('total_fee', 0) - data.get('received_amount', 0),
+            "notes": data.get('notes'),
+            "updated_at": datetime.now(timezone.utc).isoformat()
+        }
+        
+        if existing:
+            # Update existing
+            await db.project_income.update_one(
+                {"project_id": project_id},
+                {"$set": update_data}
+            )
+        else:
+            # Create new
+            update_data["id"] = str(uuid.uuid4())
+            update_data["payments"] = []
+            update_data["created_at"] = datetime.now(timezone.utc).isoformat()
+            await db.project_income.insert_one(update_data)
+        
+        return {"success": True, "data": update_data}
+    
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Update project income error: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@api_router.post("/accounting/income/{project_id}/payment")
+async def add_payment(
+    project_id: str,
+    payment: dict,
+    current_user: User = Depends(get_current_user)
+):
+    """Add a payment entry to project income"""
+    try:
+        if current_user.role != "owner":
+            raise HTTPException(status_code=403, detail="Only owner can access accounting")
+        
+        payment_entry = {
+            "id": str(uuid.uuid4()),
+            "amount": payment['amount'],
+            "payment_date": payment['payment_date'],
+            "payment_mode": payment['payment_mode'],
+            "bank_account": payment.get('bank_account'),
+            "reference_number": payment.get('reference_number'),
+            "notes": payment.get('notes'),
+            "created_at": datetime.now(timezone.utc).isoformat()
+        }
+        
+        # Add to payments array and update received_amount
+        result = await db.project_income.update_one(
+            {"project_id": project_id},
+            {
+                "$push": {"payments": payment_entry},
+                "$inc": {"received_amount": payment['amount']},
+                "$set": {"updated_at": datetime.now(timezone.utc).isoformat()}
+            }
+        )
+        
+        if result.matched_count == 0:
+            raise HTTPException(status_code=404, detail="Income record not found")
+        
+        return {"success": True, "payment": payment_entry}
+    
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Add payment error: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+# Expense Accounts
+@api_router.get("/accounting/expense-accounts")
+async def get_expense_accounts(
+    current_user: User = Depends(get_current_user)
+):
+    """Get all expense accounts (owner only)"""
+    try:
+        if current_user.role != "owner":
+            raise HTTPException(status_code=403, detail="Only owner can access accounting")
+        
+        accounts = await db.expense_accounts.find({}, {"_id": 0}).to_list(1000)
+        return accounts
+    
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Get expense accounts error: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@api_router.post("/accounting/expense-accounts")
+async def create_expense_account(
+    account: dict,
+    current_user: User = Depends(get_current_user)
+):
+    """Create a new expense account"""
+    try:
+        if current_user.role != "owner":
+            raise HTTPException(status_code=403, detail="Only owner can access accounting")
+        
+        account_data = {
+            "id": str(uuid.uuid4()),
+            "name": account['name'],
+            "description": account.get('description'),
+            "total_expenses": 0.0,
+            "is_active": True,
+            "created_at": datetime.now(timezone.utc).isoformat(),
+            "updated_at": datetime.now(timezone.utc).isoformat()
+        }
+        
+        await db.expense_accounts.insert_one(account_data)
+        
+        return {"success": True, "account": account_data}
+    
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Create expense account error: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@api_router.put("/accounting/expense-accounts/{account_id}")
+async def update_expense_account(
+    account_id: str,
+    account: dict,
+    current_user: User = Depends(get_current_user)
+):
+    """Update an expense account"""
+    try:
+        if current_user.role != "owner":
+            raise HTTPException(status_code=403, detail="Only owner can access accounting")
+        
+        result = await db.expense_accounts.update_one(
+            {"id": account_id},
+            {"$set": {
+                "name": account['name'],
+                "description": account.get('description'),
+                "is_active": account.get('is_active', True),
+                "updated_at": datetime.now(timezone.utc).isoformat()
+            }}
+        )
+        
+        if result.matched_count == 0:
+            raise HTTPException(status_code=404, detail="Expense account not found")
+        
+        return {"success": True}
+    
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Update expense account error: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+# Expenses
+@api_router.get("/accounting/expenses")
+async def get_expenses(
+    current_user: User = Depends(get_current_user),
+    expense_account_id: Optional[str] = None
+):
+    """Get all expenses (owner only)"""
+    try:
+        if current_user.role != "owner":
+            raise HTTPException(status_code=403, detail="Only owner can access accounting")
+        
+        query = {}
+        if expense_account_id:
+            query["expense_account_id"] = expense_account_id
+        
+        expenses = await db.expenses.find(query, {"_id": 0}).sort("expense_date", -1).to_list(1000)
+        return expenses
+    
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Get expenses error: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@api_router.post("/accounting/expenses")
+async def create_expense(
+    expense: dict,
+    current_user: User = Depends(get_current_user)
+):
+    """Create a new expense entry"""
+    try:
+        if current_user.role != "owner":
+            raise HTTPException(status_code=403, detail="Only owner can access accounting")
+        
+        # Get expense account name
+        account = await db.expense_accounts.find_one(
+            {"id": expense['expense_account_id']}, 
+            {"_id": 0, "name": 1}
+        )
+        
+        if not account:
+            raise HTTPException(status_code=404, detail="Expense account not found")
+        
+        # Get project name if project_id provided
+        project_name = None
+        if expense.get('project_id'):
+            project = await db.projects.find_one(
+                {"id": expense['project_id']}, 
+                {"_id": 0, "title": 1}
+            )
+            project_name = project.get('title') if project else None
+        
+        expense_data = {
+            "id": str(uuid.uuid4()),
+            "expense_account_id": expense['expense_account_id'],
+            "expense_account_name": account['name'],
+            "amount": expense['amount'],
+            "expense_date": expense['expense_date'],
+            "description": expense['description'],
+            "payment_mode": expense['payment_mode'],
+            "bank_account": expense.get('bank_account'),
+            "reference_number": expense.get('reference_number'),
+            "vendor_name": expense.get('vendor_name'),
+            "project_id": expense.get('project_id'),
+            "project_name": project_name,
+            "notes": expense.get('notes'),
+            "created_at": datetime.now(timezone.utc).isoformat(),
+            "updated_at": datetime.now(timezone.utc).isoformat()
+        }
+        
+        await db.expenses.insert_one(expense_data)
+        
+        # Update total in expense account
+        await db.expense_accounts.update_one(
+            {"id": expense['expense_account_id']},
+            {
+                "$inc": {"total_expenses": expense['amount']},
+                "$set": {"updated_at": datetime.now(timezone.utc).isoformat()}
+            }
+        )
+        
+        return {"success": True, "expense": expense_data}
+    
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Create expense error: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@api_router.get("/accounting/summary")
+async def get_accounting_summary(
+    current_user: User = Depends(get_current_user)
+):
+    """Get accounting summary (owner only)"""
+    try:
+        if current_user.role != "owner":
+            raise HTTPException(status_code=403, detail="Only owner can access accounting")
+        
+        # Get total income
+        income_records = await db.project_income.find({}, {"_id": 0}).to_list(1000)
+        total_fee = sum(r.get('total_fee', 0) for r in income_records)
+        total_received = sum(r.get('received_amount', 0) for r in income_records)
+        total_pending = total_fee - total_received
+        
+        # Get total expenses
+        expense_accounts = await db.expense_accounts.find({}, {"_id": 0}).to_list(1000)
+        total_expenses = sum(a.get('total_expenses', 0) for a in expense_accounts)
+        
+        return {
+            "income": {
+                "total_fee": total_fee,
+                "received": total_received,
+                "pending": total_pending
+            },
+            "expenses": {
+                "total": total_expenses
+            },
+            "net": total_received - total_expenses
+        }
+    
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Get accounting summary error: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
         if current_user.role not in ["owner", "team_leader"]:
             raise HTTPException(status_code=403, detail="Access denied")
         
