@@ -4844,14 +4844,18 @@ async def update_project_income(
                 {"project_id": project_id},
                 {"$set": update_data}
             )
+            record_id = existing.get('id')
         else:
             # Create new
-            update_data["id"] = str(uuid.uuid4())
+            record_id = str(uuid.uuid4())
+            update_data["id"] = record_id
             update_data["payments"] = []
             update_data["created_at"] = datetime.now(timezone.utc).isoformat()
             await db.project_income.insert_one(update_data)
         
-        return {"success": True, "data": update_data}
+        # Fetch and return the record without _id
+        result = await db.project_income.find_one({"id": record_id}, {"_id": 0})
+        return {"success": True, "data": result}
     
     except HTTPException:
         raise
