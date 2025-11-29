@@ -219,32 +219,67 @@ export default function OwnerDashboard({ user, onLogout }) {
   const startRecording = async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      mediaRecorderRef.current = new MediaRecorder(stream);
-      audioChunksRef.current = [];
-
-      mediaRecorderRef.current.ondataavailable = (event) => {
-        audioChunksRef.current.push(event.data);
+      const recorder = new MediaRecorder(stream, { mimeType: 'audio/webm' });
+      
+      recorder.onstart = () => {
+        setIsRecording(true);
+        setRecordingTime(0);
       };
-
-      mediaRecorderRef.current.onstop = () => {
-        const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
-        setAudioBlob(audioBlob);
+      
+      recorder.ondataavailable = (event) => {
+        if (event.data.size > 0) {
+          setAudioBlob(event.data);
+        }
+      };
+      
+      recorder.onstop = () => {
+        setIsRecording(false);
         stream.getTracks().forEach(track => track.stop());
       };
-
-      mediaRecorderRef.current.start();
-      setIsRecording(true);
+      
+      setMediaRecorder(recorder);
+      recorder.start();
+      
+      // Start timer
+      const timer = setInterval(() => {
+        setRecordingTime(prev => prev + 1);
+      }, 1000);
+      
+      // Store timer to clear later
+      recorder.timer = timer;
+      
     } catch (error) {
-      console.error('Error starting recording:', error);
       toast.error('Could not access microphone');
+      console.error('Recording error:', error);
     }
   };
 
   const stopRecording = () => {
-    if (mediaRecorderRef.current && isRecording) {
-      mediaRecorderRef.current.stop();
-      setIsRecording(false);
+    if (mediaRecorder && mediaRecorder.state === 'recording') {
+      mediaRecorder.stop();
+      clearInterval(mediaRecorder.timer);
     }
+  };
+
+  const clearVoiceNote = () => {
+    setAudioBlob(null);
+    setRecordingTime(0);
+    setPlayingAudio(false);
+  };
+
+  const playVoiceNote = () => {
+    if (audioBlob) {
+      const audio = new Audio(URL.createObjectURL(audioBlob));
+      setPlayingAudio(true);
+      audio.play();
+      audio.onended = () => setPlayingAudio(false);
+    }
+  };
+
+  const formatTime = (seconds) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
   const handleQuickAssign = async () => {
