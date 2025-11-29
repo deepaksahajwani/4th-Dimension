@@ -55,6 +55,21 @@ export default function Accounting({ user, onLogout }) {
     reference_number: '',
     notes: ''
   });
+  const [incomeAccountForm, setIncomeAccountForm] = useState({
+    name: '',
+    description: ''
+  });
+  const [incomeEntryForm, setIncomeEntryForm] = useState({
+    income_account_id: '',
+    amount: '',
+    income_date: new Date().toISOString().split('T')[0],
+    description: '',
+    payment_mode: 'Bank Transfer',
+    bank_account: '',
+    reference_number: '',
+    source_name: '',
+    notes: ''
+  });
   const [expenseAccountForm, setExpenseAccountForm] = useState({
     name: '',
     description: ''
