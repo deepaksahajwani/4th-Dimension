@@ -763,6 +763,43 @@ export default function OwnerDashboard({ user, onLogout }) {
               </div>
             </div>
 
+            {/* Due Date & Time (Optional) */}
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <Label className="text-xs text-slate-600">Due Date (Optional)</Label>
+                <input
+                  type="date"
+                  className="w-full mt-1 px-3 py-2 border border-slate-300 rounded-lg text-sm"
+                  value={dueDate}
+                  onChange={(e) => setDueDate(e.target.value)}
+                />
+              </div>
+              <div>
+                <Label className="text-xs text-slate-600">Due Time (Optional)</Label>
+                <input
+                  type="time"
+                  className="w-full mt-1 px-3 py-2 border border-slate-300 rounded-lg text-sm"
+                  value={dueTime}
+                  onChange={(e) => setDueTime(e.target.value)}
+                />
+              </div>
+            </div>
+
+            {/* Priority (Optional) */}
+            <div>
+              <Label className="text-xs text-slate-600">Priority</Label>
+              <select
+                className="w-full mt-1 px-3 py-2 border border-slate-300 rounded-lg text-sm"
+                value={priority}
+                onChange={(e) => setPriority(e.target.value)}
+              >
+                <option value="LOW">🟢 Low</option>
+                <option value="MEDIUM">🟡 Medium</option>
+                <option value="HIGH">🟠 High</option>
+                <option value="URGENT">🔴 Urgent</option>
+              </select>
+            </div>
+
             {/* Action Buttons */}
             <div className="flex gap-3 pt-4">
               <Button
