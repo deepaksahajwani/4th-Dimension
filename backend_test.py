@@ -1288,23 +1288,16 @@ class BackendTester:
         try:
             print("Step 3: Creating ad-hoc task...")
             
-            # Calculate tomorrow at 5 PM
-            from datetime import datetime, timedelta
-            tomorrow = datetime.now() + timedelta(days=1)
-            due_date_time = tomorrow.replace(hour=17, minute=0, second=0, microsecond=0)
-            due_date_iso = due_date_time.isoformat()
-            
-            # Simple text message that should be used as title (first 80 chars)
-            message = "Please review the architectural drawings for the new residential project and provide feedback on the structural elements and design compliance."
-            expected_title = message[:80]  # First 80 characters
-            
+            # Use the exact test case from the review request
             task_data = {
-                "project_id": self.project_id or "",  # Use project if available, empty string if not
-                "title": expected_title,
-                "description": message,  # Full message as description
-                "assigned_to": self.team_member_id,  # Old model uses assigned_to
-                "due_date": due_date_iso,  # Old model uses due_date
-                "priority": "high"  # Old model uses lowercase string
+                "title": "Quick Task Test",
+                "description": "Please review the elevation drawings and provide feedback by EOD tomorrow.",
+                "assigned_to_id": self.team_member_id,  # Updated to use assigned_to_id
+                "due_date_time": "2025-11-30T17:00:00Z",  # Updated to use due_date_time
+                "priority": "HIGH",
+                "category": "OTHER",
+                "project_id": None,
+                "status": "open"
             }
             
             create_response = self.session.post(f"{BACKEND_URL}/tasks/ad-hoc", 
