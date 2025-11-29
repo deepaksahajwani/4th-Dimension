@@ -3235,6 +3235,320 @@ class BackendTester:
         print("\n✅ COMPREHENSIVE DRAWING WORKFLOW E2E TESTING COMPLETED")
         print("=" * 80)
 
+    def test_in_app_notification_system(self):
+        """Test in-app notification system for task assignment as requested in review"""
+        print(f"\n🔔 Testing In-App Notification System for Task Assignment")
+        print("=" * 70)
+        
+        # Step 1: Login as owner (deepaksahajwani@gmail.com / Deepak@2025)
+        try:
+            print("Step 1: Logging in as owner...")
+            owner_credentials = {
+                "email": "deepaksahajwani@gmail.com",
+                "password": "Deepak@2025"
+            }
+            
+            login_response = self.session.post(f"{BACKEND_URL}/auth/login", json=owner_credentials)
+            
+            if login_response.status_code == 200:
+                login_data = login_response.json()
+                
+                # Verify this is actually an owner
+                if login_data.get("user", {}).get("is_owner") == True:
+                    self.owner_token = login_data["access_token"]
+                    self.owner_id = login_data["user"]["id"]
+                    self.log_result("Notification System - Owner Login", True, 
+                                  f"Owner successfully authenticated: {login_data['user']['name']}")
+                else:
+                    self.log_result("Notification System - Owner Login", False, 
+                                  "User is not marked as owner")
+                    return
+            else:
+                self.log_result("Notification System - Owner Login", False, 
+                              f"Owner login failed: {login_response.status_code} - {login_response.text}")
+                return
+                
+        except Exception as e:
+            self.log_result("Notification System - Owner Login", False, f"Exception: {str(e)}")
+            return
+
+        owner_headers = {"Authorization": f"Bearer {self.owner_token}"}
+        
+        # Step 2: Verify testvoice@example.com user exists
+        try:
+            print("Step 2: Verifying testvoice@example.com user exists...")
+            target_email = "testvoice@example.com"
+            
+            # Check if team member exists
+            users_response = self.session.get(f"{BACKEND_URL}/users", headers=owner_headers)
+            
+            if users_response.status_code == 200:
+                users_data = users_response.json()
+                
+                # Find the specific team member
+                voice_user = None
+                for user in users_data:
+                    if user.get("email") == target_email:
+                        voice_user = user
+                        break
+                
+                if voice_user:
+                    self.voice_user_id = voice_user["id"]
+                    self.log_result("Notification System - Verify Voice User", True, 
+                                  f"Voice Test User found: {voice_user.get('name')} (ID: {self.voice_user_id})")
+                else:
+                    self.log_result("Notification System - Verify Voice User", False, 
+                                  f"User with email {target_email} not found")
+                    return
+            else:
+                self.log_result("Notification System - Verify Voice User", False, 
+                              f"Failed to get users: {users_response.status_code}")
+                return
+                
+        except Exception as e:
+            self.log_result("Notification System - Verify Voice User", False, f"Exception: {str(e)}")
+            return
+
+        # Step 3: Create an ad-hoc task assigned to testvoice@example.com
+        try:
+            print("Step 3: Creating ad-hoc task assigned to Voice Test User...")
+            
+            task_data = {
+                "title": "Review Notification System",
+                "description": "Please test the new in-app notification system and provide feedback on its functionality.",
+                "assigned_to_id": self.voice_user_id,
+                "due_date_time": "2025-12-01T18:00:00Z",
+                "priority": "HIGH",
+                "category": "REVIEW",
+                "project_id": None,
+                "status": "open"
+            }
+            
+            create_response = self.session.post(f"{BACKEND_URL}/tasks/ad-hoc", 
+                                              json=task_data, headers=owner_headers)
+            
+            if create_response.status_code == 200:
+                created_task = create_response.json()
+                self.task_id = created_task["id"]
+                
+                # Verify task was created successfully
+                if created_task.get("is_ad_hoc") == True and created_task.get("assigned_to_id") == self.voice_user_id:
+                    self.log_result("Notification System - Create Task", True, 
+                                  f"Ad-hoc task created successfully. Task ID: {self.task_id}")
+                else:
+                    self.log_result("Notification System - Create Task", False, 
+                                  "Task created but properties are incorrect")
+                    return
+            else:
+                self.log_result("Notification System - Create Task", False, 
+                              f"Task creation failed: {create_response.status_code} - {create_response.text}")
+                return
+                
+        except Exception as e:
+            self.log_result("Notification System - Create Task", False, f"Exception: {str(e)}")
+            return
+
+        # Step 4: Verify notification is created in the notifications collection
+        try:
+            print("Step 4: Verifying notification was created in database...")
+            
+            # Login as the voice user to check their notifications
+            voice_credentials = {
+                "email": "testvoice@example.com",
+                "password": "testpassword"  # Assuming standard test password
+            }
+            
+            voice_login_response = self.session.post(f"{BACKEND_URL}/auth/login", json=voice_credentials)
+            
+            if voice_login_response.status_code == 200:
+                voice_login_data = voice_login_response.json()
+                voice_token = voice_login_data["access_token"]
+                voice_headers = {"Authorization": f"Bearer {voice_token}"}
+                
+                # Get notifications for the voice user
+                notifications_response = self.session.get(f"{BACKEND_URL}/notifications", headers=voice_headers)
+                
+                if notifications_response.status_code == 200:
+                    notifications = notifications_response.json()
+                    
+                    # Find the notification for our task
+                    task_notification = None
+                    for notification in notifications:
+                        if (notification.get("related_id") == self.task_id and 
+                            notification.get("type") == "task_assigned"):
+                            task_notification = notification
+                            break
+                    
+                    if task_notification:
+                        # Verify notification fields
+                        required_fields = ["user_id", "type", "title", "message", "is_read"]
+                        field_checks = [
+                            (task_notification.get("user_id") == self.voice_user_id, "user_id matches testvoice@example.com user ID"),
+                            (task_notification.get("type") == "task_assigned", "type is 'task_assigned'"),
+                            (task_notification.get("title") is not None, "title is set"),
+                            (task_notification.get("message") is not None, "message is set"),
+                            (task_notification.get("is_read") == False, "is_read is false"),
+                            (task_notification.get("related_id") == self.task_id, "related_id matches task ID"),
+                            (task_notification.get("created_by_id") == self.owner_id, "created_by_id matches owner ID")
+                        ]
+                        
+                        failed_checks = [msg for check, msg in field_checks if not check]
+                        
+                        if not failed_checks:
+                            self.notification_id = task_notification["id"]
+                            self.log_result("Notification System - Verify Notification Created", True, 
+                                          f"Notification created with correct fields. Title: '{task_notification['title']}', Message: '{task_notification['message']}'")
+                        else:
+                            self.log_result("Notification System - Verify Notification Created", False, 
+                                          f"Notification field validation failed: {'; '.join(failed_checks)}")
+                            return
+                    else:
+                        self.log_result("Notification System - Verify Notification Created", False, 
+                                      f"No notification found for task {self.task_id}. Found {len(notifications)} total notifications")
+                        return
+                else:
+                    self.log_result("Notification System - Verify Notification Created", False, 
+                                  f"Failed to get notifications: {notifications_response.status_code}")
+                    return
+            else:
+                self.log_result("Notification System - Verify Notification Created", False, 
+                              f"Voice user login failed: {voice_login_response.status_code}")
+                return
+                
+        except Exception as e:
+            self.log_result("Notification System - Verify Notification Created", False, f"Exception: {str(e)}")
+            return
+
+        # Step 5: Test GET /api/notifications endpoint
+        try:
+            print("Step 5: Testing GET /api/notifications endpoint...")
+            
+            notifications_response = self.session.get(f"{BACKEND_URL}/notifications", headers=voice_headers)
+            
+            if notifications_response.status_code == 200:
+                notifications = notifications_response.json()
+                
+                # Verify our notification is in the list
+                found_notification = any(
+                    n.get("id") == self.notification_id for n in notifications
+                )
+                
+                if found_notification:
+                    self.log_result("Notification System - GET Notifications", True, 
+                                  f"Notification appears in team member's notifications list ({len(notifications)} total)")
+                else:
+                    self.log_result("Notification System - GET Notifications", False, 
+                                  "Notification not found in notifications list")
+            else:
+                self.log_result("Notification System - GET Notifications", False, 
+                              f"GET notifications failed: {notifications_response.status_code}")
+                
+        except Exception as e:
+            self.log_result("Notification System - GET Notifications", False, f"Exception: {str(e)}")
+
+        # Step 6: Test GET /api/notifications/unread-count endpoint
+        try:
+            print("Step 6: Testing GET /api/notifications/unread-count endpoint...")
+            
+            unread_count_response = self.session.get(f"{BACKEND_URL}/notifications/unread-count", headers=voice_headers)
+            
+            if unread_count_response.status_code == 200:
+                count_data = unread_count_response.json()
+                unread_count = count_data.get("count", 0)
+                
+                if unread_count >= 1:
+                    self.log_result("Notification System - GET Unread Count", True, 
+                                  f"Unread count endpoint returns count = {unread_count} (includes our notification)")
+                else:
+                    self.log_result("Notification System - GET Unread Count", False, 
+                                  f"Unread count is {unread_count}, expected at least 1")
+            else:
+                self.log_result("Notification System - GET Unread Count", False, 
+                              f"GET unread count failed: {unread_count_response.status_code}")
+                
+        except Exception as e:
+            self.log_result("Notification System - GET Unread Count", False, f"Exception: {str(e)}")
+
+        # Step 7: Mark notification as read
+        try:
+            print("Step 7: Marking notification as read...")
+            
+            mark_read_response = self.session.put(f"{BACKEND_URL}/notifications/{self.notification_id}/read", 
+                                                headers=voice_headers)
+            
+            if mark_read_response.status_code == 200:
+                self.log_result("Notification System - Mark as Read", True, 
+                              "Notification successfully marked as read")
+            else:
+                self.log_result("Notification System - Mark as Read", False, 
+                              f"Mark as read failed: {mark_read_response.status_code} - {mark_read_response.text}")
+                return
+                
+        except Exception as e:
+            self.log_result("Notification System - Mark as Read", False, f"Exception: {str(e)}")
+            return
+
+        # Step 8: Verify unread count is now 0 (or decreased by 1)
+        try:
+            print("Step 8: Verifying unread count decreased after marking as read...")
+            
+            # Get unread count again
+            final_count_response = self.session.get(f"{BACKEND_URL}/notifications/unread-count", headers=voice_headers)
+            
+            if final_count_response.status_code == 200:
+                final_count_data = final_count_response.json()
+                final_unread_count = final_count_data.get("count", 0)
+                
+                # The count should be one less than before (or 0 if it was 1)
+                if final_unread_count == unread_count - 1:
+                    self.log_result("Notification System - Verify Count Decreased", True, 
+                                  f"Unread count correctly decreased from {unread_count} to {final_unread_count}")
+                else:
+                    self.log_result("Notification System - Verify Count Decreased", False, 
+                                  f"Unread count is {unread_count}, expected {unread_count - 1}")
+            else:
+                self.log_result("Notification System - Verify Count Decreased", False, 
+                              f"Final count check failed: {final_count_response.status_code}")
+                
+        except Exception as e:
+            self.log_result("Notification System - Verify Count Decreased", False, f"Exception: {str(e)}")
+
+        # Step 9: Verify notification is marked as read in database
+        try:
+            print("Step 9: Verifying notification is marked as read in database...")
+            
+            # Get notifications again to verify the read status
+            verify_response = self.session.get(f"{BACKEND_URL}/notifications", headers=voice_headers)
+            
+            if verify_response.status_code == 200:
+                notifications = verify_response.json()
+                
+                # Find our notification
+                updated_notification = None
+                for notification in notifications:
+                    if notification.get("id") == self.notification_id:
+                        updated_notification = notification
+                        break
+                
+                if updated_notification:
+                    if updated_notification.get("is_read") == True:
+                        self.log_result("Notification System - Verify Read Status", True, 
+                                      "Notification correctly marked as read in database")
+                    else:
+                        self.log_result("Notification System - Verify Read Status", False, 
+                                      "Notification is_read field is still False")
+                else:
+                    self.log_result("Notification System - Verify Read Status", False, 
+                                  "Notification not found in updated list")
+            else:
+                self.log_result("Notification System - Verify Read Status", False, 
+                              f"Failed to verify read status: {verify_response.status_code}")
+                
+        except Exception as e:
+            self.log_result("Notification System - Verify Read Status", False, f"Exception: {str(e)}")
+
+        print("✅ In-App Notification System testing completed")
+
     def run_all_tests(self):
         """Run all authentication tests"""
         print(f"🚀 Starting Backend Authentication Tests")
