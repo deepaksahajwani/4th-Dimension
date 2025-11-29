@@ -500,6 +500,78 @@ export default function Accounting({ user, onLogout }) {
           </div>
         )}
 
+
+        {/* Other Income Tab */}
+        {activeTab === 'other-income' && (
+          <div>
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-semibold text-slate-900">Income Accounts</h2>
+              <Button onClick={() => setIncomeAccountDialogOpen(true)}>
+                <Plus className="w-4 h-4 mr-2" />
+                New Account
+              </Button>
+            </div>
+
+            {/* Income Accounts */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+              {incomeAccounts.map((account) => (
+                <Card key={account.id} className="p-4">
+                  <h3 className="font-semibold text-slate-900 mb-1">{account.name}</h3>
+                  {account.description && (
+                    <p className="text-sm text-slate-600 mb-2">{account.description}</p>
+                  )}
+                  <p className="text-2xl font-bold text-blue-600">
+                    {formatCurrency(account.total_income)}
+                  </p>
+                </Card>
+              ))}
+            </div>
+
+            {/* Add Income Entry Button */}
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-semibold text-slate-900">Recent Income Entries</h2>
+              <Button onClick={() => setIncomeEntryDialogOpen(true)}>
+                <Plus className="w-4 h-4 mr-2" />
+                Add Income
+              </Button>
+            </div>
+
+            {/* Income Entries List */}
+            <Card className="overflow-hidden">
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead className="bg-slate-50">
+                    <tr>
+                      <th className="px-4 py-3 text-left text-sm font-medium text-slate-600">Date</th>
+                      <th className="px-4 py-3 text-left text-sm font-medium text-slate-600">Description</th>
+                      <th className="px-4 py-3 text-left text-sm font-medium text-slate-600">Account</th>
+                      <th className="px-4 py-3 text-left text-sm font-medium text-slate-600">Source</th>
+                      <th className="px-4 py-3 text-right text-sm font-medium text-slate-600">Amount</th>
+                      <th className="px-4 py-3 text-left text-sm font-medium text-slate-600">Mode</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-200">
+                    {incomeEntries.map((entry) => (
+                      <tr key={entry.id} className="hover:bg-slate-50">
+                        <td className="px-4 py-3 text-sm text-slate-900">
+                          {new Date(entry.income_date).toLocaleDateString()}
+                        </td>
+                        <td className="px-4 py-3 text-sm text-slate-900">{entry.description}</td>
+                        <td className="px-4 py-3 text-sm text-slate-600">{entry.income_account_name}</td>
+                        <td className="px-4 py-3 text-sm text-slate-600">{entry.source_name || '-'}</td>
+                        <td className="px-4 py-3 text-sm font-medium text-blue-600 text-right">
+                          {formatCurrency(entry.amount)}
+                        </td>
+                        <td className="px-4 py-3 text-sm text-slate-600">{entry.payment_mode}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </Card>
+          </div>
+        )}
+
         {/* Expenses Tab */}
         {activeTab === 'expenses' && (
           <div>
