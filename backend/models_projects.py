@@ -904,6 +904,36 @@ class Expense(BaseModel):
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
+class IncomeAccount(BaseModel):
+    """Income account/category for non-project income"""
+    model_config = ConfigDict(extra="ignore")
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    name: str
+    description: Optional[str] = None
+    total_income: float = 0.0  # Sum of all income in this account
+    is_active: bool = True
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+class IncomeEntry(BaseModel):
+    """Individual income entry for non-project income"""
+    model_config = ConfigDict(extra="ignore")
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    income_account_id: str
+    income_account_name: Optional[str] = None
+    
+    amount: float
+    income_date: str  # Date string
+    description: str
+    payment_mode: PaymentMode
+    bank_account: Optional[str] = None
+    reference_number: Optional[str] = None
+    source_name: Optional[str] = None  # Source of income
+    
+    notes: Optional[str] = None
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
     # Individual alert preferences
     notify_user_registered: bool = True
     notify_drawing_uploaded: bool = True
