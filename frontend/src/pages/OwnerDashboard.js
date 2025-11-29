@@ -55,8 +55,9 @@ export default function OwnerDashboard({ user, onLogout }) {
   const [dueDate, setDueDate] = useState('');
   const [dueTime, setDueTime] = useState('');
   const [priority, setPriority] = useState('MEDIUM');
-  const mediaRecorderRef = useRef(null);
-  const audioChunksRef = useRef([]);
+  const [mediaRecorder, setMediaRecorder] = useState(null);
+  const [recordingTime, setRecordingTime] = useState(0);
+  const [playingAudio, setPlayingAudio] = useState(false);
 
   useEffect(() => {
     if (user?.role !== 'owner') {
