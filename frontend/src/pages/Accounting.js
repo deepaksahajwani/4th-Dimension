@@ -355,33 +355,46 @@ export default function Accounting({ user, onLogout }) {
                         <span className="font-medium text-orange-600">{formatCurrency(pending)}</span>
                       </div>
                     </div>
-                    <div className="flex gap-2 mt-4">
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        className="flex-1"
-                        onClick={() => {
-                          setSelectedProject(project);
-                          setIncomeForm({
-                            total_fee: totalFee || '',
-                            received_amount: received || '',
-                            notes: income?.notes || ''
-                          });
-                          setIncomeDialogOpen(true);
-                        }}
-                      >
-                        Edit Fees
-                      </Button>
-                      {pending > 0 && (
+                    <div className="space-y-2 mt-4">
+                      <div className="flex gap-2">
                         <Button
                           size="sm"
+                          variant="outline"
                           className="flex-1"
                           onClick={() => {
                             setSelectedProject(project);
-                            setPaymentDialogOpen(true);
+                            setIncomeForm({
+                              total_fee: totalFee || '',
+                              received_amount: received || '',
+                              notes: income?.notes || ''
+                            });
+                            setIncomeDialogOpen(true);
                           }}
                         >
-                          Add Payment
+                          Edit Fees
+                        </Button>
+                        {pending > 0 && (
+                          <Button
+                            size="sm"
+                            className="flex-1"
+                            onClick={() => {
+                              setSelectedProject(project);
+                              setPaymentDialogOpen(true);
+                            }}
+                          >
+                            Add Payment
+                          </Button>
+                        )}
+                      </div>
+                      {received > 0 && (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="w-full"
+                          onClick={() => handleViewPaymentHistory(project)}
+                        >
+                          <FileText className="w-4 h-4 mr-2" />
+                          Payment History
                         </Button>
                       )}
                     </div>
