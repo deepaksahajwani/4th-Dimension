@@ -1238,9 +1238,9 @@ class BackendTester:
 
         owner_headers = {"Authorization": f"Bearer {self.owner_token}"}
         
-        # Step 2: Verify team member exists
+        # Step 2: Verify team member exists and get a project
         try:
-            print("Step 2: Verifying team member exists...")
+            print("Step 2: Verifying team member exists and getting project...")
             team_member_id = "8ba35b89-354e-4224-9393-7934309e2c42"
             team_member_email = "testvoice@example.com"
             
@@ -1269,6 +1269,16 @@ class BackendTester:
                 self.log_result("Ad-Hoc Task - Verify Team Member", False, 
                               f"Failed to get users: {users_response.status_code}")
                 return
+            
+            # Get a project for the task (optional but helps with testing)
+            projects_response = self.session.get(f"{BACKEND_URL}/projects", headers=owner_headers)
+            self.project_id = None
+            
+            if projects_response.status_code == 200:
+                projects_data = projects_response.json()
+                if len(projects_data) > 0:
+                    self.project_id = projects_data[0]["id"]
+                    print(f"   Using project: {projects_data[0].get('title', 'N/A')}")
                 
         except Exception as e:
             self.log_result("Ad-Hoc Task - Verify Team Member", False, f"Exception: {str(e)}")
