@@ -309,9 +309,8 @@ export default function WeeklyDashboard({ user, onLogout }) {
                     <div className="flex justify-between items-start">
                       <div>
                         <h3 className="text-lg font-bold">{project.project_title}</h3>
-                        <p className="text-sm text-blue-100">{project.project_code}</p>
                         {project.client_name && (
-                          <p className="text-xs text-blue-200 mt-1">Client: {project.client_name}</p>
+                          <p className="text-sm text-blue-100">Client: {project.client_name}</p>
                         )}
                       </div>
                       <div className="text-right">
