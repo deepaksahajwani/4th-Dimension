@@ -4923,8 +4923,9 @@ async def create_expense_account(
         if current_user.role != "owner":
             raise HTTPException(status_code=403, detail="Only owner can access accounting")
         
+        account_id = str(uuid.uuid4())
         account_data = {
-            "id": str(uuid.uuid4()),
+            "id": account_id,
             "name": account['name'],
             "description": account.get('description'),
             "total_expenses": 0.0,
@@ -4935,7 +4936,9 @@ async def create_expense_account(
         
         await db.expense_accounts.insert_one(account_data)
         
-        return {"success": True, "account": account_data}
+        # Return clean data without MongoDB _id
+        result = await db.expense_accounts.find_one({"id": account_id}, {"_id": 0})
+        return {"success": True, "account": result}
     
     except HTTPException:
         raise
