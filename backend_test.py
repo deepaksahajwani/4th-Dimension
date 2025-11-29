@@ -1289,7 +1289,6 @@ class BackendTester:
             expected_title = message[:80]  # First 80 characters
             
             task_data = {
-                "project_id": None,  # Ad-hoc tasks can be project-independent
                 "title": expected_title,
                 "description": message,  # Full message as description
                 "category": "GENERAL",  # Using TaskCategory enum
