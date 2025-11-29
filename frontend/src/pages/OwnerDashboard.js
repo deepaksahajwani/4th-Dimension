@@ -370,6 +370,11 @@ export default function OwnerDashboard({ user, onLogout }) {
     setDueDate('');
     setDueTime('');
     setPriority('MEDIUM');
+    setRecordingTime(0);
+    setPlayingAudio(false);
+    if (mediaRecorder && mediaRecorder.state === 'recording') {
+      stopRecording();
+    }
   };
 
   if (loading) {
