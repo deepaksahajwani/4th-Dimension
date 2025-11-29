@@ -4432,7 +4432,8 @@ async def get_weekly_progress(
                 "due_date_time": task.get("due_date_time"),
                 "urgency": urgency,
                 "is_completed": task.get("status") in ["Closed", "Resolved"],
-                "project_id": task.get("project_id")
+                "project_id": task.get("project_id"),
+                "is_ad_hoc": task.get("is_ad_hoc", True)
             })
         
         return {
