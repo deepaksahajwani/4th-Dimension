@@ -4871,9 +4871,12 @@ async def add_payment(
         if current_user.role != "owner":
             raise HTTPException(status_code=403, detail="Only owner can access accounting")
         
+        # Convert amount to float
+        payment_amount = float(payment['amount'])
+        
         payment_entry = {
             "id": str(uuid.uuid4()),
-            "amount": payment['amount'],
+            "amount": payment_amount,
             "payment_date": payment['payment_date'],
             "payment_mode": payment['payment_mode'],
             "bank_account": payment.get('bank_account'),
@@ -4887,7 +4890,7 @@ async def add_payment(
             {"project_id": project_id},
             {
                 "$push": {"payments": payment_entry},
-                "$inc": {"received_amount": payment['amount']},
+                "$inc": {"received_amount": payment_amount},
                 "$set": {"updated_at": datetime.now(timezone.utc).isoformat()}
             }
         )
