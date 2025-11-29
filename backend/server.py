@@ -1358,7 +1358,7 @@ async def get_email_preview(user_id: str = Query(None), role: str = Query(...), 
             'preferred_language': lang
         }
         
-        login_url = os.getenv('REACT_APP_BACKEND_URL', 'https://arch-collab.preview.emergentagent.com')
+        login_url = os.getenv('REACT_APP_BACKEND_URL', 'https://archplanr.preview.emergentagent.com')
         
         subject, html_content = get_translated_email_content(mock_user, login_url, lang)
         

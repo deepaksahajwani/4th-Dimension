@@ -196,7 +196,7 @@ async def notify_drawing_uploaded(project_id: str, drawing_name: str, uploaded_b
         all_user_ids.discard(uploaded_by_id)
         
         # Generate enhanced message with deep link
-        app_url = os.environ.get('FRONTEND_URL', 'https://arch-collab.preview.emergentagent.com')
+        app_url = os.environ.get('FRONTEND_URL', 'https://archplanr.preview.emergentagent.com')
         project_link = f"{app_url}/projects/{project_id}"
         
         message = f"""🏗️ NEW DRAWING UPLOADED
@@ -256,7 +256,7 @@ async def notify_new_comment(project_id: str, commenter_id: str, comment_text: s
         commenter_name = commenter.get("name", "Someone") if commenter else "Someone"
         
         # Generate enhanced comment message with deep link
-        app_url = os.environ.get('FRONTEND_URL', 'https://arch-collab.preview.emergentagent.com')
+        app_url = os.environ.get('FRONTEND_URL', 'https://archplanr.preview.emergentagent.com')
         project_link = f"{app_url}/projects/{project_id}"
         
         # Truncate comment for WhatsApp display
@@ -346,7 +346,7 @@ async def notify_task_assigned(task_id: str, assignee_id: str, project_id: str):
                 pass
         
         # Generate enhanced task assignment message with deep link
-        app_url = os.environ.get('FRONTEND_URL', 'https://arch-collab.preview.emergentagent.com')
+        app_url = os.environ.get('FRONTEND_URL', 'https://archplanr.preview.emergentagent.com')
         project_link = f"{app_url}/projects/{project_id}"
         
         # Priority emoji
@@ -560,7 +560,7 @@ async def notify_voice_note_added(project_id: str, drawing_name: str, commenter_
         all_user_ids.discard(commenter_id)
         
         # Generate enhanced message with deep link
-        app_url = os.environ.get('FRONTEND_URL', 'https://arch-collab.preview.emergentagent.com')
+        app_url = os.environ.get('FRONTEND_URL', 'https://archplanr.preview.emergentagent.com')
         project_link = f"{app_url}/projects/{project_id}"
         
         message = f"""🎤 VOICE NOTE ADDED
@@ -631,7 +631,7 @@ async def notify_project_onboarding(project_id: str, creator_id: str):
         # Remove the creator (don't notify them)
         stakeholder_ids.discard(creator_id)
         
-        app_url = os.environ.get('FRONTEND_URL', 'https://arch-collab.preview.emergentagent.com')
+        app_url = os.environ.get('FRONTEND_URL', 'https://archplanr.preview.emergentagent.com')
         project_link = f"{app_url}/projects/{project_id}"
         
         message = f"""🎉 NEW PROJECT ASSIGNED
@@ -692,7 +692,7 @@ async def notify_drawing_due_soon(project_id: str, drawing_name: str, due_date: 
         if project.get("lead_architect_id"):
             notify_user_ids.add(project["lead_architect_id"])
         
-        app_url = os.environ.get('FRONTEND_URL', 'https://arch-collab.preview.emergentagent.com')
+        app_url = os.environ.get('FRONTEND_URL', 'https://archplanr.preview.emergentagent.com')
         project_link = f"{app_url}/projects/{project_id}"
         
         formatted_due_date = due_date.strftime("%B %d, %Y")
@@ -751,7 +751,7 @@ async def notify_drawing_issued(
         issuer = await db.users.find_one({"id": issued_by_id}, {"_id": 0})
         issuer_name = issuer.get("name", "Team Member") if issuer else "Team Member"
         
-        app_url = os.environ.get('FRONTEND_URL', 'https://arch-collab.preview.emergentagent.com')
+        app_url = os.environ.get('FRONTEND_URL', 'https://archplanr.preview.emergentagent.com')
         project_link = f"{app_url}/projects/{project_id}"
         
         message = f"""📐 DRAWING ISSUED
@@ -813,7 +813,7 @@ async def notify_next_drawing_available(project_id: str, drawing_name: str, sequ
         if project.get("lead_architect_id"):
             notify_user_ids.add(project["lead_architect_id"])
         
-        app_url = os.environ.get('FRONTEND_URL', 'https://arch-collab.preview.emergentagent.com')
+        app_url = os.environ.get('FRONTEND_URL', 'https://archplanr.preview.emergentagent.com')
         project_link = f"{app_url}/projects/{project_id}"
         
         message = f"""🔓 NEXT DRAWING UNLOCKED
@@ -879,7 +879,7 @@ async def notify_drawing_issued(
         issuer_name = issuer.get("name", "Team Member") if issuer else "Team Member"
         
         # Create project link
-        frontend_url = os.getenv('REACT_APP_BACKEND_URL', 'https://arch-collab.preview.emergentagent.com')
+        frontend_url = os.getenv('REACT_APP_BACKEND_URL', 'https://archplanr.preview.emergentagent.com')
         project_link = f"{frontend_url}/projects/{project_id}"
         
         message = f"""📐 DRAWING ISSUED
@@ -948,7 +948,7 @@ async def notify_next_drawing_available(
         assigned_user_ids = list(set(assigned_user_ids))
         
         # Create project link
-        frontend_url = os.getenv('REACT_APP_BACKEND_URL', 'https://arch-collab.preview.emergentagent.com')
+        frontend_url = os.getenv('REACT_APP_BACKEND_URL', 'https://archplanr.preview.emergentagent.com')
         project_link = f"{frontend_url}/projects/{project_id}"
         
         message = f"""🔓 NEXT DRAWING UNLOCKED
