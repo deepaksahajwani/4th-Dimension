@@ -551,7 +551,22 @@ class SiteIssueCreate(BaseModel):
     related_drawing_id: Optional[str] = None
 
 class Notification(BaseModel):
+    """In-app notification model for real-time alerts"""
     model_config = ConfigDict(extra="ignore")
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    user_id: str  # Recipient user ID
+    type: str  # "task_assigned", "comment_added", "drawing_issued", "drawing_approved", etc.
+    title: str
+    message: str
+    related_id: Optional[str] = None  # Task ID, Drawing ID, Comment ID, etc.
+    related_type: Optional[str] = None  # "task", "drawing", "comment", "project"
+    project_id: Optional[str] = None
+    project_name: Optional[str] = None
+    is_read: bool = False
+    read_at: Optional[datetime] = None
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    created_by_id: Optional[str] = None
+    created_by_name: Optional[str] = None
 
 
 # ==================== WEEKLY TARGET & DAILY TASK SYSTEM ====================
