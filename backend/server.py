@@ -265,12 +265,16 @@ class Task(BaseModel):
     resolved_at: Optional[datetime] = None
 
 class TaskCreate(BaseModel):
-    project_id: str
+    project_id: Optional[str] = None
     title: str
     description: Optional[str] = None
     assigned_to: Optional[str] = None
+    assigned_to_id: Optional[str] = None  # For ad-hoc tasks
     due_date: Optional[str] = None
+    due_date_time: Optional[str] = None  # For ad-hoc tasks with specific time
     priority: str = "medium"
+    category: Optional[str] = None
+    status: Optional[str] = "open"
 
 class Reminder(BaseModel):
     model_config = ConfigDict(extra="ignore")
