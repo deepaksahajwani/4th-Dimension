@@ -829,6 +829,81 @@ class WhatsAppSettings(BaseModel):
     user_id: str
     enabled: bool = True  # Master on/off switch
     
+
+
+# ==================== ACCOUNTING MODELS ====================
+
+class PaymentMode(str, Enum):
+    CASH = "Cash"
+    BANK_TRANSFER = "Bank Transfer"
+    CHEQUE = "Cheque"
+    UPI = "UPI"
+    CARD = "Card"
+    OTHER = "Other"
+
+class ProjectIncome(BaseModel):
+    """Income/Fee tracking for projects"""
+    model_config = ConfigDict(extra="ignore")
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    project_id: str
+    project_name: Optional[str] = None
+    
+    # Fee details
+    total_fee: float = 0.0
+    received_amount: float = 0.0
+    pending_amount: float = 0.0  # Calculated field
+    
+    # Payment tracking
+    payments: List[Dict] = []  # List of payment entries
+    
+    notes: Optional[str] = None
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+class PaymentEntry(BaseModel):
+    """Individual payment entry for project income"""
+    model_config = ConfigDict(extra="ignore")
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    amount: float
+    payment_date: str  # Date string
+    payment_mode: PaymentMode
+    bank_account: Optional[str] = None
+    reference_number: Optional[str] = None
+    notes: Optional[str] = None
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+class ExpenseAccount(BaseModel):
+    """Expense account/category"""
+    model_config = ConfigDict(extra="ignore")
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    name: str
+    description: Optional[str] = None
+    total_expenses: float = 0.0  # Sum of all expenses in this account
+    is_active: bool = True
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+class Expense(BaseModel):
+    """Individual expense entry"""
+    model_config = ConfigDict(extra="ignore")
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    expense_account_id: str
+    expense_account_name: Optional[str] = None
+    
+    amount: float
+    expense_date: str  # Date string
+    description: str
+    payment_mode: PaymentMode
+    bank_account: Optional[str] = None
+    reference_number: Optional[str] = None
+    vendor_name: Optional[str] = None
+    project_id: Optional[str] = None  # Optional link to project
+    project_name: Optional[str] = None
+    
+    notes: Optional[str] = None
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
     # Individual alert preferences
     notify_user_registered: bool = True
     notify_drawing_uploaded: bool = True
