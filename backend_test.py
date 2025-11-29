@@ -1460,6 +1460,7 @@ class BackendTester:
                 team_headers = {"Authorization": f"Bearer {team_token}"}
                 
                 unauthorized_task_data = {
+                    "project_id": self.project_id,
                     "title": "Unauthorized ad-hoc task",
                     "description": "This should not be allowed",
                     "category": "GENERAL",
