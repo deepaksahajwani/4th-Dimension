@@ -335,6 +335,7 @@ test_plan:
   completed_features:
     - "External User Dashboard for Client/Contractor/Consultant/Vendor Roles"
     - "Enhanced Quick Assign Feature on Owner Dashboard"
+    - "In-App Notification System for Task Assignment"
 
   - task: "Project Type Checkboxes for Clients"
     implemented: true
