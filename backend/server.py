@@ -382,7 +382,10 @@ def create_access_token(data: dict):
     return encoded_jwt
 
 def verify_password(plain_password, hashed_password):
-    return pwd_context.verify(plain_password, hashed_password)
+    logger.info(f"Verifying password - plain length: {len(plain_password)}, hash: {hashed_password[:20]}...")
+    result = pwd_context.verify(plain_password, hashed_password)
+    logger.info(f"Verification result: {result}")
+    return result
 
 def get_password_hash(password):
     return pwd_context.hash(password)
