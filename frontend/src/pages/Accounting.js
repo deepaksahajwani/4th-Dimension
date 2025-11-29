@@ -394,7 +394,17 @@ export default function Accounting({ user, onLogout }) {
                   : 'border-transparent text-slate-600 hover:text-slate-900'
               }`}
             >
-              Income & Fees
+              Project Fees
+            </button>
+            <button
+              onClick={() => setActiveTab('other-income')}
+              className={`px-4 py-3 font-medium border-b-2 transition-colors ${
+                activeTab === 'other-income'
+                  ? 'border-blue-600 text-blue-600'
+                  : 'border-transparent text-slate-600 hover:text-slate-900'
+              }`}
+            >
+              Other Income
             </button>
             <button
               onClick={() => setActiveTab('expenses')}
