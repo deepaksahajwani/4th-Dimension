@@ -4514,7 +4514,26 @@ async def create_ad_hoc_task(
         except Exception as e:
             logger.warning(f"Failed to send task notification: {e}")
         
-        return task_dict
+        # Return clean response without MongoDB ObjectId
+        response_dict = {
+            "id": task_dict["id"],
+            "title": task_dict["title"],
+            "description": task_dict.get("description"),
+            "assigned_to_id": task_dict["assigned_to_id"],
+            "assigned_to_name": task_dict["assigned_to_name"],
+            "due_date_time": task_dict["due_date_time"],
+            "priority": task_dict["priority"],
+            "category": task_dict.get("category"),
+            "status": task_dict["status"],
+            "is_ad_hoc": task_dict["is_ad_hoc"],
+            "week_assigned": task_dict["week_assigned"],
+            "created_by_id": task_dict["created_by_id"],
+            "created_by_name": task_dict["created_by_name"],
+            "created_at": task_dict["created_at"],
+            "updated_at": task_dict["updated_at"]
+        }
+        
+        return response_dict
     
     except HTTPException:
         raise
