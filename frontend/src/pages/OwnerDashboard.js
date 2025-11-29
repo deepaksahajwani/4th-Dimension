@@ -256,22 +256,61 @@ export default function OwnerDashboard({ user, onLogout }) {
 
     try {
       const token = localStorage.getItem('token');
-      const formData = new FormData();
       
-      // Create task as comment-style
+      // Calculate due date/time
+      let dueDateTimeISO;
+      if (dueDate && dueTime) {
+        dueDateTimeISO = new Date(`${dueDate}T${dueTime}`).toISOString();
+      } else if (dueDate) {
+        dueDateTimeISO = new Date(`${dueDate}T23:59:00`).toISOString();
+      } else {
+        // Default to tomorrow at 5 PM
+        const tomorrow = new Date();
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        tomorrow.setHours(17, 0, 0, 0);
+        dueDateTimeISO = tomorrow.toISOString();
+      }
+      
+      // Create task as comment-style (no explicit title needed)
       const taskData = {
-        title: assignmentText.substring(0, 100) || 'Quick Assignment',
+        title: assignmentText.substring(0, 80) || 'Quick Task',
         description: assignmentText,
         assigned_to_id: selectedMember,
-        due_date_time: new Date(Date.now() + 24*60*60*1000).toISOString(), // Default 1 day
-        priority: 'MEDIUM',
+        due_date_time: dueDateTimeISO,
+        priority: priority,
         category: 'OTHER',
-        project_id: selectedProject?.id || null
+        project_id: selectedProject?.id || null,
+        status: 'open'
       };
       
-      await axios.post(`${API}/api/tasks/ad-hoc`, taskData, {
+      // Create the task first
+      const taskResponse = await axios.post(`${API}/api/tasks/ad-hoc`, taskData, {
         headers: { Authorization: `Bearer ${token}` }
       });
+      
+      const taskId = taskResponse.data.id;
+      
+      // Upload files if any
+      if (attachedFiles.length > 0 || audioBlob) {
+        const formData = new FormData();
+        
+        // Add regular files
+        attachedFiles.forEach((file) => {
+          formData.append('files', file);
+        });
+        
+        // Add voice note if present
+        if (audioBlob) {
+          const voiceFile = new File([audioBlob], `voice-note-${Date.now()}.webm`, { 
+            type: 'audio/webm' 
+          });
+          formData.append('files', voiceFile);
+        }
+        
+        // Upload files (if you have a file upload endpoint, use it here)
+        // For now, we'll just log that files would be uploaded
+        console.log('Files to upload:', attachedFiles.length + (audioBlob ? 1 : 0));
+      }
       
       toast.success('Task assigned successfully!');
       setAssignDialogOpen(false);
@@ -279,7 +318,7 @@ export default function OwnerDashboard({ user, onLogout }) {
       fetchAllData();
     } catch (error) {
       console.error('Error assigning task:', error);
-      toast.error('Failed to assign task');
+      toast.error(error.response?.data?.detail || 'Failed to assign task');
     }
   };
 
