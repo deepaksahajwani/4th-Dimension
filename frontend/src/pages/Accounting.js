@@ -357,6 +357,20 @@ export default function Accounting({ user, onLogout }) {
           <Card className="p-4">
             <div className="flex items-center justify-between">
               <div>
+                <p className="text-sm text-slate-600">Other Income</p>
+                <p className="text-2xl font-bold text-blue-600">
+                  {formatCurrency(summary?.income?.other_income)}
+                </p>
+              </div>
+              <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                <TrendingUp className="w-5 h-5 text-blue-600" />
+              </div>
+            </div>
+          </Card>
+
+          <Card className="p-4">
+            <div className="flex items-center justify-between">
+              <div>
                 <p className="text-sm text-slate-600">Total Expenses</p>
                 <p className="text-2xl font-bold text-red-600">
                   {formatCurrency(summary?.expenses?.total)}
