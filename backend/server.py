@@ -4503,7 +4503,27 @@ async def create_ad_hoc_task(
         
         await db.tasks.insert_one(task_dict)
         
-        # Send notification
+        # Create in-app notification
+        try:
+            notification = {
+                "id": str(uuid.uuid4()),
+                "user_id": task.assigned_to_id,
+                "type": "task_assigned",
+                "title": "New Task Assigned",
+                "message": f"{current_user.name} assigned you a task: {task.title}",
+                "related_id": task_dict["id"],
+                "related_type": "task",
+                "project_id": task.project_id,
+                "is_read": False,
+                "created_at": datetime.now(timezone.utc).isoformat(),
+                "created_by_id": current_user.id,
+                "created_by_name": current_user.name
+            }
+            await db.notifications.insert_one(notification)
+        except Exception as e:
+            logger.warning(f"Failed to create in-app notification: {e}")
+        
+        # Send WhatsApp notification
         try:
             from notification_triggers import notify_task_assigned
             await notify_task_assigned(
@@ -4513,7 +4533,7 @@ async def create_ad_hoc_task(
                 task.due_date_time
             )
         except Exception as e:
-            logger.warning(f"Failed to send task notification: {e}")
+            logger.warning(f"Failed to send WhatsApp notification: {e}")
         
         # Return clean response without MongoDB ObjectId
         response_dict = {
