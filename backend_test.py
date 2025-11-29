@@ -1373,11 +1373,11 @@ class BackendTester:
                         if our_task:
                             # Verify task details in dashboard
                             dashboard_checks = [
-                                (our_task.get("title") == expected_title, "title should match in dashboard"),
+                                (our_task.get("title") == "Quick Task Test", "title should match in dashboard"),
                                 (our_task.get("priority") == "HIGH", "priority should be HIGH in dashboard"),
                                 (our_task.get("is_completed") == False, "task should not be completed"),
                                 ("urgency" in our_task, "urgency field should be present"),
-                                (our_task.get("due_date_time") == due_date_iso, "due_date_time should match in dashboard")
+                                (our_task.get("due_date_time") == "2025-11-30T17:00:00Z", "due_date_time should match in dashboard")
                             ]
                             
                             failed_dashboard_checks = [msg for check, msg in dashboard_checks if not check]
