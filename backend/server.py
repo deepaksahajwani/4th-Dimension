@@ -5266,26 +5266,35 @@ async def get_accounting_summary(
         if current_user.role != "owner":
             raise HTTPException(status_code=403, detail="Only owner can access accounting")
         
-        # Get total income
+        # Get total project income
         income_records = await db.project_income.find({}, {"_id": 0}).to_list(1000)
         total_fee = sum(r.get('total_fee', 0) for r in income_records)
         total_received = sum(r.get('received_amount', 0) for r in income_records)
         total_pending = total_fee - total_received
         
+        # Get total other income (from income accounts)
+        income_accounts = await db.income_accounts.find({}, {"_id": 0}).to_list(1000)
+        total_other_income = sum(a.get('total_income', 0) for a in income_accounts)
+        
         # Get total expenses
         expense_accounts = await db.expense_accounts.find({}, {"_id": 0}).to_list(1000)
         total_expenses = sum(a.get('total_expenses', 0) for a in expense_accounts)
+        
+        # Calculate totals
+        total_income = total_received + total_other_income
         
         return {
             "income": {
                 "total_fee": total_fee,
                 "received": total_received,
-                "pending": total_pending
+                "pending": total_pending,
+                "other_income": total_other_income,
+                "total": total_income
             },
             "expenses": {
                 "total": total_expenses
             },
-            "net": total_received - total_expenses
+            "net": total_income - total_expenses
         }
     
     except HTTPException:
