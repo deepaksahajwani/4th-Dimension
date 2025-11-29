@@ -1313,10 +1313,12 @@ class BackendTester:
                     # Verify specific properties
                     checks = [
                         (created_task.get("is_ad_hoc") == True, "is_ad_hoc should be True"),
-                        (created_task.get("title") == expected_title, f"title should be '{expected_title}'"),
+                        (created_task.get("title") == "Quick Task Test", "title should be 'Quick Task Test'"),
                         (created_task.get("priority") == "HIGH", "priority should be HIGH"),
                         (created_task.get("assigned_to_id") == self.team_member_id, "assigned_to_id should match team member"),
-                        (created_task.get("due_date_time") == due_date_iso, "due_date_time should match")
+                        (created_task.get("due_date_time") == "2025-11-30T17:00:00Z", "due_date_time should match"),
+                        (created_task.get("category") == "OTHER", "category should be OTHER"),
+                        (created_task.get("status") == "open", "status should be open")
                     ]
                     
                     failed_checks = [msg for check, msg in checks if not check]
