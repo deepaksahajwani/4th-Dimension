@@ -1200,6 +1200,288 @@ class BackendTester:
 
         print("✅ Weekly Targets feature testing completed")
 
+    def test_ad_hoc_task_creation_and_dashboard(self):
+        """Test ad-hoc task creation endpoint and verify it appears in weekly dashboard"""
+        print(f"\n📋 Testing Ad-Hoc Task Creation and Dashboard Integration")
+        print("=" * 70)
+        
+        # Step 1: Login as owner
+        try:
+            print("Step 1: Logging in as owner...")
+            owner_credentials = {
+                "email": "deepaksahajwani@gmail.com",
+                "password": "testpassword"
+            }
+            
+            login_response = self.session.post(f"{BACKEND_URL}/auth/login", json=owner_credentials)
+            
+            if login_response.status_code == 200:
+                login_data = login_response.json()
+                
+                # Verify this is actually an owner
+                if login_data.get("user", {}).get("is_owner") == True:
+                    self.owner_token = login_data["access_token"]
+                    self.log_result("Ad-Hoc Task - Owner Login", True, 
+                                  "Owner successfully authenticated")
+                else:
+                    self.log_result("Ad-Hoc Task - Owner Login", False, 
+                                  "User is not marked as owner")
+                    return
+            else:
+                self.log_result("Ad-Hoc Task - Owner Login", False, 
+                              f"Owner login failed: {login_response.status_code} - {login_response.text}")
+                return
+                
+        except Exception as e:
+            self.log_result("Ad-Hoc Task - Owner Login", False, f"Exception: {str(e)}")
+            return
+
+        owner_headers = {"Authorization": f"Bearer {self.owner_token}"}
+        
+        # Step 2: Verify team member exists
+        try:
+            print("Step 2: Verifying team member exists...")
+            team_member_id = "8ba35b89-354e-4224-9393-7934309e2c42"
+            team_member_email = "testvoice@example.com"
+            
+            # Check if team member exists
+            users_response = self.session.get(f"{BACKEND_URL}/users", headers=owner_headers)
+            
+            if users_response.status_code == 200:
+                users_data = users_response.json()
+                
+                # Find the specific team member
+                team_member = None
+                for user in users_data:
+                    if user.get("id") == team_member_id or user.get("email") == team_member_email:
+                        team_member = user
+                        break
+                
+                if team_member:
+                    self.log_result("Ad-Hoc Task - Verify Team Member", True, 
+                                  f"Team member found: {team_member.get('name')} ({team_member.get('email')})")
+                    self.team_member_id = team_member["id"]
+                else:
+                    self.log_result("Ad-Hoc Task - Verify Team Member", False, 
+                                  f"Team member with ID {team_member_id} or email {team_member_email} not found")
+                    return
+            else:
+                self.log_result("Ad-Hoc Task - Verify Team Member", False, 
+                              f"Failed to get users: {users_response.status_code}")
+                return
+                
+        except Exception as e:
+            self.log_result("Ad-Hoc Task - Verify Team Member", False, f"Exception: {str(e)}")
+            return
+
+        # Step 3: Create ad-hoc task
+        try:
+            print("Step 3: Creating ad-hoc task...")
+            
+            # Calculate tomorrow at 5 PM
+            from datetime import datetime, timedelta
+            tomorrow = datetime.now() + timedelta(days=1)
+            due_date_time = tomorrow.replace(hour=17, minute=0, second=0, microsecond=0)
+            due_date_iso = due_date_time.isoformat()
+            
+            # Simple text message that should be used as title (first 80 chars)
+            message = "Please review the architectural drawings for the new residential project and provide feedback on the structural elements and design compliance."
+            expected_title = message[:80]  # First 80 characters
+            
+            task_data = {
+                "project_id": None,  # Ad-hoc tasks can be project-independent
+                "title": expected_title,
+                "description": message,  # Full message as description
+                "category": "GENERAL",  # Using TaskCategory enum
+                "priority": "HIGH",     # Using Priority enum
+                "assigned_to_id": self.team_member_id,
+                "due_date_time": due_date_iso
+            }
+            
+            create_response = self.session.post(f"{BACKEND_URL}/tasks/ad-hoc", 
+                                              json=task_data, headers=owner_headers)
+            
+            if create_response.status_code == 200:
+                created_task = create_response.json()
+                
+                # Verify task structure
+                required_fields = ["id", "title", "assigned_to_id", "is_ad_hoc", "due_date_time", "priority"]
+                
+                if all(field in created_task for field in required_fields):
+                    # Verify specific properties
+                    checks = [
+                        (created_task.get("is_ad_hoc") == True, "is_ad_hoc should be True"),
+                        (created_task.get("title") == expected_title, f"title should be '{expected_title}'"),
+                        (created_task.get("priority") == "HIGH", "priority should be HIGH"),
+                        (created_task.get("assigned_to_id") == self.team_member_id, "assigned_to_id should match team member"),
+                        (created_task.get("due_date_time") == due_date_iso, "due_date_time should match")
+                    ]
+                    
+                    failed_checks = [msg for check, msg in checks if not check]
+                    
+                    if not failed_checks:
+                        self.task_id = created_task["id"]
+                        self.log_result("Ad-Hoc Task - Create Task", True, 
+                                      f"Task created successfully. ID: {self.task_id}, Title: '{created_task['title'][:50]}...'")
+                    else:
+                        self.log_result("Ad-Hoc Task - Create Task", False, 
+                                      f"Task validation failed: {'; '.join(failed_checks)}")
+                        return
+                else:
+                    missing_fields = [f for f in required_fields if f not in created_task]
+                    self.log_result("Ad-Hoc Task - Create Task", False, 
+                                  f"Missing fields in response: {missing_fields}")
+                    return
+            else:
+                self.log_result("Ad-Hoc Task - Create Task", False, 
+                              f"Task creation failed: {create_response.status_code} - {create_response.text}")
+                return
+                
+        except Exception as e:
+            self.log_result("Ad-Hoc Task - Create Task", False, f"Exception: {str(e)}")
+            return
+
+        # Step 4: Verify task appears in weekly dashboard
+        try:
+            print("Step 4: Verifying task appears in weekly dashboard...")
+            
+            dashboard_response = self.session.get(f"{BACKEND_URL}/dashboard/weekly-progress/{self.team_member_id}", 
+                                                headers=owner_headers)
+            
+            if dashboard_response.status_code == 200:
+                dashboard_data = dashboard_response.json()
+                
+                # Check if ad_hoc_tasks section exists
+                if "ad_hoc_tasks" in dashboard_data:
+                    ad_hoc_section = dashboard_data["ad_hoc_tasks"]
+                    
+                    # Verify structure
+                    required_ad_hoc_fields = ["total", "completed", "progress_percentage", "tasks"]
+                    if all(field in ad_hoc_section for field in required_ad_hoc_fields):
+                        
+                        # Find our created task in the tasks list
+                        our_task = None
+                        for task in ad_hoc_section["tasks"]:
+                            if task.get("id") == self.task_id:
+                                our_task = task
+                                break
+                        
+                        if our_task:
+                            # Verify task details in dashboard
+                            dashboard_checks = [
+                                (our_task.get("title") == expected_title, "title should match in dashboard"),
+                                (our_task.get("priority") == "HIGH", "priority should be HIGH in dashboard"),
+                                (our_task.get("is_completed") == False, "task should not be completed"),
+                                ("urgency" in our_task, "urgency field should be present"),
+                                (our_task.get("due_date_time") == due_date_iso, "due_date_time should match in dashboard")
+                            ]
+                            
+                            failed_dashboard_checks = [msg for check, msg in dashboard_checks if not check]
+                            
+                            if not failed_dashboard_checks:
+                                self.log_result("Ad-Hoc Task - Dashboard Verification", True, 
+                                              f"Task appears correctly in dashboard. Total ad-hoc tasks: {ad_hoc_section['total']}, Urgency: {our_task.get('urgency')}")
+                            else:
+                                self.log_result("Ad-Hoc Task - Dashboard Verification", False, 
+                                              f"Dashboard task validation failed: {'; '.join(failed_dashboard_checks)}")
+                        else:
+                            self.log_result("Ad-Hoc Task - Dashboard Verification", False, 
+                                          f"Created task not found in dashboard. Found {len(ad_hoc_section['tasks'])} ad-hoc tasks")
+                    else:
+                        missing_ad_hoc_fields = [f for f in required_ad_hoc_fields if f not in ad_hoc_section]
+                        self.log_result("Ad-Hoc Task - Dashboard Verification", False, 
+                                      f"Missing ad_hoc_tasks fields: {missing_ad_hoc_fields}")
+                else:
+                    self.log_result("Ad-Hoc Task - Dashboard Verification", False, 
+                                  "ad_hoc_tasks section missing from dashboard response")
+            else:
+                self.log_result("Ad-Hoc Task - Dashboard Verification", False, 
+                              f"Dashboard request failed: {dashboard_response.status_code} - {dashboard_response.text}")
+                
+        except Exception as e:
+            self.log_result("Ad-Hoc Task - Dashboard Verification", False, f"Exception: {str(e)}")
+
+        # Step 5: Test access control - non-owner cannot create ad-hoc tasks
+        try:
+            print("Step 5: Testing access control...")
+            
+            # Create a regular team member for this test
+            team_email = f"adhoctest_{uuid.uuid4().hex[:8]}@example.com"
+            team_register = {
+                "email": team_email,
+                "password": "TeamTest123!",
+                "name": "Ad-Hoc Test Team Member"
+            }
+            
+            team_register_response = self.session.post(f"{BACKEND_URL}/auth/register", json=team_register)
+            
+            if team_register_response.status_code == 200:
+                team_data = team_register_response.json()
+                team_token = team_data["access_token"]
+                
+                # Complete profile if needed
+                if team_data.get("requires_profile_completion"):
+                    team_headers = {"Authorization": f"Bearer {team_token}"}
+                    profile_data = {
+                        "full_name": "Ad-Hoc Test Team Member",
+                        "address_line_1": "123 Test Street",
+                        "address_line_2": "Test Area",
+                        "city": "Test City",
+                        "state": "Test State",
+                        "pin_code": "123456",
+                        "email": team_email,
+                        "mobile": "+919876543210",
+                        "date_of_birth": "1990-01-15",
+                        "date_of_joining": "2024-01-01",
+                        "gender": "male",
+                        "marital_status": "single",
+                        "role": "architect"
+                    }
+                    
+                    profile_response = self.session.post(f"{BACKEND_URL}/profile/complete", 
+                                                       json=profile_data, headers=team_headers)
+                    
+                    if profile_response.status_code != 200:
+                        self.log_result("Ad-Hoc Task - Access Control Setup", False, 
+                                      "Failed to complete team member profile")
+                        return
+                
+                # Try to create ad-hoc task as non-owner (should fail with 403)
+                team_headers = {"Authorization": f"Bearer {team_token}"}
+                
+                unauthorized_task_data = {
+                    "project_id": None,
+                    "title": "Unauthorized ad-hoc task",
+                    "description": "This should not be allowed",
+                    "category": "GENERAL",
+                    "priority": "MEDIUM",
+                    "assigned_to_id": self.team_member_id,
+                    "due_date_time": due_date_iso
+                }
+                
+                unauthorized_response = self.session.post(f"{BACKEND_URL}/tasks/ad-hoc", 
+                                                        json=unauthorized_task_data, headers=team_headers)
+                
+                if unauthorized_response.status_code == 403:
+                    error_data = unauthorized_response.json()
+                    if "detail" in error_data and "owner" in error_data["detail"].lower():
+                        self.log_result("Ad-Hoc Task - Access Control", True, 
+                                      "Correctly rejected non-owner ad-hoc task creation")
+                    else:
+                        self.log_result("Ad-Hoc Task - Access Control", False, 
+                                      f"Wrong error message: {error_data}")
+                else:
+                    self.log_result("Ad-Hoc Task - Access Control", False, 
+                                  f"Expected 403, got {unauthorized_response.status_code}")
+            else:
+                self.log_result("Ad-Hoc Task - Access Control Setup", False, 
+                              "Failed to create team member for access control testing")
+                
+        except Exception as e:
+            self.log_result("Ad-Hoc Task - Access Control", False, f"Exception: {str(e)}")
+
+        print("✅ Ad-Hoc Task creation and dashboard integration testing completed")
+
     def test_auto_drawing_creation_fix(self):
         """Test auto-drawing creation fix - drawings should have categories matching project_types"""
         print(f"\n🎨 Testing Auto-Drawing Creation Fix")
