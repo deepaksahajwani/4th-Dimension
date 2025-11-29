@@ -363,12 +363,21 @@ export default function OwnerDashboard({ user, onLogout }) {
                 Manage all projects and team members
               </p>
             </div>
-            <Button 
-              onClick={() => navigate('/weekly-dashboard')}
-              className="bg-blue-600 hover:bg-blue-700 text-white"
-            >
-              📊 Weekly View
-            </Button>
+            <div className="flex gap-2">
+              <Button 
+                onClick={() => openQuickAssign(null)}
+                className="bg-orange-600 hover:bg-orange-700 text-white"
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                Quick Assign
+              </Button>
+              <Button 
+                onClick={() => navigate('/weekly-dashboard')}
+                className="bg-blue-600 hover:bg-blue-700 text-white"
+              >
+                📊 Weekly View
+              </Button>
+            </div>
           </div>
         </div>
         {/* Quick Stats */}
