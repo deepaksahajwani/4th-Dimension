@@ -179,7 +179,7 @@ backend:
 
   - task: "Ad-Hoc Task Creation and Dashboard Integration"
     implemented: true
-    working: false
+    working: true
     file: "backend/server.py"
     stuck_count: 0
     priority: "high"
@@ -188,6 +188,9 @@ backend:
       - working: false
         agent: "testing"
         comment: "CRITICAL BACKEND BUG IDENTIFIED IN AD-HOC TASK ENDPOINT: ❌ ISSUE: POST /api/tasks/ad-hoc endpoint has a critical implementation bug. The endpoint tries to access 'task.assigned_to_id' (line 4481) but the TaskCreate model only has 'assigned_to' field (line 271). ✅ AUTHENTICATION: Owner login successful (deepaksahajwani@gmail.com). ✅ TEAM MEMBER VERIFICATION: Target team member found (testvoice@example.com, ID: 8ba35b89-354e-4224-9393-7934309e2c42). ❌ ROOT CAUSE: Model mismatch - the ad-hoc endpoint expects TaskCreate model with 'assigned_to_id' field but the actual TaskCreate model (server.py line 267-273) has 'assigned_to' field. This causes AttributeError: 'TaskCreate' object has no attribute 'assigned_to_id'. ❌ IMPACT: Ad-hoc task creation completely non-functional. Users cannot create ad-hoc tasks. ✅ WORKAROUND NEEDED: Backend code needs to be fixed to either use 'assigned_to' from TaskCreate model or update TaskCreate model to use 'assigned_to_id'. ✅ DASHBOARD ENDPOINT: GET /api/dashboard/weekly-progress/{user_id} endpoint exists and has proper structure for ad-hoc tasks display. The ad-hoc task creation feature is blocked by this critical backend implementation bug."
+      - working: true
+        agent: "testing"
+        comment: "AD-HOC TASK CREATION ENDPOINT SUCCESSFULLY FIXED AND TESTED (100% success rate): ✅ BACKEND FIX VERIFIED: TaskCreate model updated with both assigned_to_id and due_date_time fields. Endpoint serialization issue resolved by returning clean response dict without MongoDB ObjectId. ✅ COMPREHENSIVE TESTING COMPLETED: 1) Owner login successful (deepaksahajwani@gmail.com / testpassword). 2) Team member verification successful (testvoice@example.com, ID: 8ba35b89-354e-4224-9393-7934309e2c42). 3) Ad-hoc task creation successful with exact test case data: title='Quick Task Test', description='Please review the elevation drawings and provide feedback by EOD tomorrow.', assigned_to_id=team_member_id, due_date_time='2025-11-30T17:00:00Z', priority='HIGH', category='OTHER', project_id=null, status='open'. 4) Task creation returns 200 OK with complete task data including task ID. 5) Task appears in weekly dashboard GET /api/dashboard/weekly-progress/{user_id} with urgency indicator (🟡 SOON). 6) Task has is_ad_hoc=True and week_assigned set in database. 7) Access control working - non-owner users correctly rejected with 403 error. ✅ ALL EXPECTED BEHAVIOR CONFIRMED: Task creation succeeds (200 OK), response includes task ID and all task fields, task visible in weekly dashboard with urgency indicator, task has is_ad_hoc=True and week_assigned set. The ad-hoc task creation and dashboard integration feature is now fully functional as requested."
 
 frontend:
   - task: "Error Handling for API Responses"
