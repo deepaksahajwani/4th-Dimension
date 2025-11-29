@@ -202,8 +202,15 @@ export default function Layout({ children, user, onLogout }) {
         </nav>
       </div>
 
+      {/* Desktop Top Bar */}
+      <div className="hidden lg:block fixed top-0 left-64 right-0 z-30 bg-white border-b border-slate-200">
+        <div className="flex items-center justify-end px-6 py-3">
+          <NotificationBell user={user} />
+        </div>
+      </div>
+
       {/* Main content */}
-      <div className="lg:pl-64 pt-14 lg:pt-0 pb-16 lg:pb-0">
+      <div className="lg:pl-64 pt-14 lg:pt-14 pb-16 lg:pb-0">
         <div className="p-4 sm:p-6 lg:p-8">{children}</div>
       </div>
     </div>
