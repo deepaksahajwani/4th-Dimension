@@ -49,6 +49,9 @@ export default function OwnerDashboard({ user, onLogout }) {
   const [attachedFiles, setAttachedFiles] = useState([]);
   const [isRecording, setIsRecording] = useState(false);
   const [audioBlob, setAudioBlob] = useState(null);
+  const [dueDate, setDueDate] = useState('');
+  const [dueTime, setDueTime] = useState('');
+  const [priority, setPriority] = useState('MEDIUM');
   const mediaRecorderRef = useRef(null);
   const audioChunksRef = useRef([]);
 
