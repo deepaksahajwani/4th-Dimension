@@ -4824,12 +4824,16 @@ async def update_project_income(
         # Check if income record exists
         existing = await db.project_income.find_one({"project_id": project_id})
         
+        # Convert to float
+        total_fee = float(data.get('total_fee', 0))
+        received_amount = float(data.get('received_amount', 0))
+        
         update_data = {
             "project_id": project_id,
             "project_name": project['title'],
-            "total_fee": data.get('total_fee', 0),
-            "received_amount": data.get('received_amount', 0),
-            "pending_amount": data.get('total_fee', 0) - data.get('received_amount', 0),
+            "total_fee": total_fee,
+            "received_amount": received_amount,
+            "pending_amount": total_fee - received_amount,
             "notes": data.get('notes'),
             "updated_at": datetime.now(timezone.utc).isoformat()
         }
