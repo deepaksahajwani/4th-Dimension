@@ -3941,24 +3941,6 @@ async def get_accounting_entries(current_user: User = Depends(require_owner)):
             entry['date'] = datetime.fromisoformat(entry['date'])
     return entries
 
-@api_router.get("/accounting/summary")
-async def get_accounting_summary(current_user: User = Depends(require_owner)):
-    entries = await db.accounting.find({}, {"_id": 0}).to_list(10000)
-    
-    total_receivables = sum(e['amount'] for e in entries if e['transaction_type'] == 'receivable')
-    total_payments = sum(e['amount'] for e in entries if e['transaction_type'] == 'payment')
-    total_salaries = sum(e['amount'] for e in entries if e['transaction_type'] == 'salary')
-    total_expenses = sum(e['amount'] for e in entries if e['transaction_type'] == 'expense')
-    
-    return {
-        "total_receivables": total_receivables,
-        "total_payments": total_payments,
-        "total_salaries": total_salaries,
-        "total_expenses": total_expenses,
-        "net_income": total_receivables - (total_payments + total_salaries + total_expenses)
-    }
-
-
 # ==================== DRAWING TEMPLATE ROUTES ====================
 
 @api_router.post("/drawing-templates", response_model=DrawingTemplate)
