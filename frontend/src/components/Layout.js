@@ -27,6 +27,7 @@ export default function Layout({ children, user, onLogout }) {
     { name: 'Contractors', href: '/contractors', icon: Building2 },
     { name: 'Consultants', href: '/consultants', icon: FileText },
     { name: 'Team', href: '/team', icon: Users },
+    ...(user?.is_owner ? [{ name: 'Accounting', href: '/accounting', icon: DollarSign }] : []),
   ];
 
   const mobileBottomNav = [
