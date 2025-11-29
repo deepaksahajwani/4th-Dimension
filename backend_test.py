@@ -1299,13 +1299,12 @@ class BackendTester:
             expected_title = message[:80]  # First 80 characters
             
             task_data = {
-                "project_id": self.project_id,  # Use project if available, None if not
+                "project_id": self.project_id or "",  # Use project if available, empty string if not
                 "title": expected_title,
                 "description": message,  # Full message as description
-                "category": "GENERAL",  # Using TaskCategory enum
-                "priority": "HIGH",     # Using Priority enum
-                "assigned_to_id": self.team_member_id,
-                "due_date_time": due_date_iso
+                "assigned_to": self.team_member_id,  # Old model uses assigned_to
+                "due_date": due_date_iso,  # Old model uses due_date
+                "priority": "high"  # Old model uses lowercase string
             }
             
             create_response = self.session.post(f"{BACKEND_URL}/tasks/ad-hoc", 
