@@ -168,6 +168,54 @@ export default function Accounting({ user, onLogout }) {
     }
   };
 
+  const handleCreateIncomeAccount = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      await axios.post(
+        `${API}/api/accounting/income-accounts`,
+        incomeAccountForm,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      toast.success('Income account created successfully');
+      setIncomeAccountDialogOpen(false);
+      setIncomeAccountForm({ name: '', description: '' });
+      fetchAllData();
+    } catch (error) {
+      console.error('Error creating income account:', error);
+      toast.error('Failed to create income account');
+    }
+  };
+
+  const handleCreateIncomeEntry = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      await axios.post(
+        `${API}/api/accounting/income-entries`,
+        incomeEntryForm,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      toast.success('Income entry added successfully');
+      setIncomeEntryDialogOpen(false);
+      setIncomeEntryForm({
+        income_account_id: '',
+        amount: '',
+        income_date: new Date().toISOString().split('T')[0],
+        description: '',
+        payment_mode: 'Bank Transfer',
+        bank_account: '',
+        reference_number: '',
+        source_name: '',
+        notes: ''
+      });
+      fetchAllData();
+    } catch (error) {
+      console.error('Error creating income entry:', error);
+      toast.error('Failed to create income entry');
+    }
+  };
+
   const handleCreateExpenseAccount = async () => {
     try {
       const token = localStorage.getItem('token');
