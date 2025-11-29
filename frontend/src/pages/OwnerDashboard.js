@@ -328,6 +328,9 @@ export default function OwnerDashboard({ user, onLogout }) {
     setAssignmentText('');
     setAttachedFiles([]);
     setAudioBlob(null);
+    setDueDate('');
+    setDueTime('');
+    setPriority('MEDIUM');
   };
 
   if (loading) {
