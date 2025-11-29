@@ -623,7 +623,7 @@ export default function WeeklyDashboard({ user, onLogout }) {
                 <option value="">None (General Task)</option>
                 {projects.map(project => (
                   <option key={project.id} value={project.id}>
-                    {project.title} ({project.code})
+                    {project.title}
                   </option>
                 ))}
               </select>
