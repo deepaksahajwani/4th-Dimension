@@ -2876,6 +2876,43 @@ async def create_drawing_comment(
         }
     )
     
+    # Create in-app notifications for relevant users
+    try:
+        # Get project details
+        project = await db.projects.find_one({"id": drawing.get("project_id")}, {"_id": 0})
+        if project:
+            notification_users = set()
+            
+            # Notify team leader if exists and not the commenter
+            if project.get("lead_architect_id") and project["lead_architect_id"] != current_user.id:
+                notification_users.add(project["lead_architect_id"])
+            
+            # Notify owner if not the commenter
+            owner = await db.users.find_one({"role": "owner"}, {"_id": 0, "id": 1})
+            if owner and owner["id"] != current_user.id:
+                notification_users.add(owner["id"])
+            
+            # Create notifications for each user
+            for user_id in notification_users:
+                notification = {
+                    "id": str(uuid.uuid4()),
+                    "user_id": user_id,
+                    "type": "comment_added",
+                    "title": "New Comment on Drawing",
+                    "message": f"{current_user.name} commented on {drawing.get('name', 'a drawing')} in {project.get('title', 'a project')}",
+                    "related_id": comment_dict["id"],
+                    "related_type": "comment",
+                    "project_id": drawing.get("project_id"),
+                    "project_name": project.get("title"),
+                    "is_read": False,
+                    "created_at": datetime.now(timezone.utc).isoformat(),
+                    "created_by_id": current_user.id,
+                    "created_by_name": current_user.name
+                }
+                await db.notifications.insert_one(notification)
+    except Exception as e:
+        logger.warning(f"Failed to create comment notifications: {e}")
+    
     return comment
 
 @api_router.get("/drawings/{drawing_id}/comments")
