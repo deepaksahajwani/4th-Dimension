@@ -5089,6 +5089,174 @@ async def create_expense(
         raise HTTPException(status_code=500, detail=str(e))
 
 
+
+# Income Accounts (for non-project income)
+@api_router.get("/accounting/income-accounts")
+async def get_income_accounts(
+    current_user: User = Depends(get_current_user)
+):
+    """Get all income accounts (owner only)"""
+    try:
+        if current_user.role != "owner":
+            raise HTTPException(status_code=403, detail="Only owner can access accounting")
+        
+        accounts = await db.income_accounts.find({}, {"_id": 0}).to_list(1000)
+        return accounts
+    
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Get income accounts error: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@api_router.post("/accounting/income-accounts")
+async def create_income_account(
+    account: dict,
+    current_user: User = Depends(get_current_user)
+):
+    """Create a new income account"""
+    try:
+        if current_user.role != "owner":
+            raise HTTPException(status_code=403, detail="Only owner can access accounting")
+        
+        account_data = {
+            "id": str(uuid.uuid4()),
+            "name": account['name'],
+            "description": account.get('description'),
+            "total_income": 0.0,
+            "is_active": True,
+            "created_at": datetime.now(timezone.utc).isoformat(),
+            "updated_at": datetime.now(timezone.utc).isoformat()
+        }
+        
+        await db.income_accounts.insert_one(account_data)
+        
+        return {"success": True, "account": account_data}
+    
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Create income account error: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@api_router.put("/accounting/income-accounts/{account_id}")
+async def update_income_account(
+    account_id: str,
+    account: dict,
+    current_user: User = Depends(get_current_user)
+):
+    """Update an income account"""
+    try:
+        if current_user.role != "owner":
+            raise HTTPException(status_code=403, detail="Only owner can access accounting")
+        
+        result = await db.income_accounts.update_one(
+            {"id": account_id},
+            {"$set": {
+                "name": account['name'],
+                "description": account.get('description'),
+                "is_active": account.get('is_active', True),
+                "updated_at": datetime.now(timezone.utc).isoformat()
+            }}
+        )
+        
+        if result.matched_count == 0:
+            raise HTTPException(status_code=404, detail="Income account not found")
+        
+        return {"success": True}
+    
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Update income account error: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+# Income Entries
+@api_router.get("/accounting/income-entries")
+async def get_income_entries(
+    current_user: User = Depends(get_current_user),
+    income_account_id: Optional[str] = None
+):
+    """Get all income entries (owner only)"""
+    try:
+        if current_user.role != "owner":
+            raise HTTPException(status_code=403, detail="Only owner can access accounting")
+        
+        query = {}
+        if income_account_id:
+            query["income_account_id"] = income_account_id
+        
+        entries = await db.income_entries.find(query, {"_id": 0}).sort("income_date", -1).to_list(1000)
+        return entries
+    
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Get income entries error: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@api_router.post("/accounting/income-entries")
+async def create_income_entry(
+    income_entry: dict,
+    current_user: User = Depends(get_current_user)
+):
+    """Create a new income entry"""
+    try:
+        if current_user.role != "owner":
+            raise HTTPException(status_code=403, detail="Only owner can access accounting")
+        
+        # Get income account name
+        account = await db.income_accounts.find_one(
+            {"id": income_entry['income_account_id']}, 
+            {"_id": 0, "name": 1}
+        )
+        
+        if not account:
+            raise HTTPException(status_code=404, detail="Income account not found")
+        
+        # Convert amount to float
+        income_amount = float(income_entry['amount'])
+        
+        entry_data = {
+            "id": str(uuid.uuid4()),
+            "income_account_id": income_entry['income_account_id'],
+            "income_account_name": account['name'],
+            "amount": income_amount,
+            "income_date": income_entry['income_date'],
+            "description": income_entry['description'],
+            "payment_mode": income_entry['payment_mode'],
+            "bank_account": income_entry.get('bank_account'),
+            "reference_number": income_entry.get('reference_number'),
+            "source_name": income_entry.get('source_name'),
+            "notes": income_entry.get('notes'),
+            "created_at": datetime.now(timezone.utc).isoformat(),
+            "updated_at": datetime.now(timezone.utc).isoformat()
+        }
+        
+        await db.income_entries.insert_one(entry_data)
+        
+        # Update total in income account
+        await db.income_accounts.update_one(
+            {"id": income_entry['income_account_id']},
+            {
+                "$inc": {"total_income": income_amount},
+                "$set": {"updated_at": datetime.now(timezone.utc).isoformat()}
+            }
+        )
+        
+        return {"success": True, "income_entry": entry_data}
+    
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Create income entry error: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 @api_router.get("/accounting/summary")
 async def get_accounting_summary(
     current_user: User = Depends(get_current_user)
