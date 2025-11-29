@@ -5044,11 +5044,14 @@ async def create_expense(
             )
             project_name = project.get('title') if project else None
         
+        # Convert amount to float
+        expense_amount = float(expense['amount'])
+        
         expense_data = {
             "id": str(uuid.uuid4()),
             "expense_account_id": expense['expense_account_id'],
             "expense_account_name": account['name'],
-            "amount": expense['amount'],
+            "amount": expense_amount,
             "expense_date": expense['expense_date'],
             "description": expense['description'],
             "payment_mode": expense['payment_mode'],
@@ -5068,7 +5071,7 @@ async def create_expense(
         await db.expense_accounts.update_one(
             {"id": expense['expense_account_id']},
             {
-                "$inc": {"total_expenses": expense['amount']},
+                "$inc": {"total_expenses": expense_amount},
                 "$set": {"updated_at": datetime.now(timezone.utc).isoformat()}
             }
         )
