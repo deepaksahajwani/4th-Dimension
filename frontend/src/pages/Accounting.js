@@ -99,9 +99,11 @@ export default function Accounting({ user, onLogout }) {
       const token = localStorage.getItem('token');
       const headers = { Authorization: `Bearer ${token}` };
 
-      const [summaryRes, incomeRes, expenseAccountsRes, expensesRes, projectsRes] = await Promise.all([
+      const [summaryRes, incomeRes, incomeAccountsRes, incomeEntriesRes, expenseAccountsRes, expensesRes, projectsRes] = await Promise.all([
         axios.get(`${API}/api/accounting/summary`, { headers }),
         axios.get(`${API}/api/accounting/income`, { headers }),
+        axios.get(`${API}/api/accounting/income-accounts`, { headers }),
+        axios.get(`${API}/api/accounting/income-entries`, { headers }),
         axios.get(`${API}/api/accounting/expense-accounts`, { headers }),
         axios.get(`${API}/api/accounting/expenses`, { headers }),
         axios.get(`${API}/api/projects`, { headers })
@@ -109,6 +111,8 @@ export default function Accounting({ user, onLogout }) {
 
       setSummary(summaryRes.data);
       setIncomeRecords(incomeRes.data);
+      setIncomeAccounts(incomeAccountsRes.data);
+      setIncomeEntries(incomeEntriesRes.data);
       setExpenseAccounts(expenseAccountsRes.data);
       setExpenses(expensesRes.data);
       setProjects(projectsRes.data);
