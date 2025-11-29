@@ -4724,6 +4724,25 @@ async def block_drawing(
     """Block a drawing (exclude from progress tracking)"""
     try:
         # Only owner or team leader can block
+        if current_user.role not in ["owner", "team_leader"]:
+            raise HTTPException(status_code=403, detail="Access denied")
+        
+        await db.project_drawings.update_one(
+            {"id": drawing_id},
+            {"$set": {
+                "is_blocked": data.get("is_blocked", True),
+                "blocked_reason": data.get("blocked_reason"),
+                "updated_at": datetime.now(timezone.utc).isoformat()
+            }}
+        )
+        
+        return {"success": True}
+    
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Block drawing error: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 # ==================== ACCOUNTING ENDPOINTS (OWNER ONLY) ====================
