@@ -322,6 +322,7 @@ test_plan:
   test_priority: "high_first"
   completed_features:
     - "External User Dashboard for Client/Contractor/Consultant/Vendor Roles"
+    - "Enhanced Quick Assign Feature on Owner Dashboard"
 
   - task: "Project Type Checkboxes for Clients"
     implemented: true
