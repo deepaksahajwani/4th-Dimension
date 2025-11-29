@@ -24,6 +24,8 @@ const API = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8001';
 export default function Accounting({ user, onLogout }) {
   const [summary, setSummary] = useState(null);
   const [incomeRecords, setIncomeRecords] = useState([]);
+  const [incomeAccounts, setIncomeAccounts] = useState([]);
+  const [incomeEntries, setIncomeEntries] = useState([]);
   const [expenseAccounts, setExpenseAccounts] = useState([]);
   const [expenses, setExpenses] = useState([]);
   const [activeTab, setActiveTab] = useState('income');
