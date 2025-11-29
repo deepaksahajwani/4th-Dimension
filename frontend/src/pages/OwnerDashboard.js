@@ -485,16 +485,12 @@ export default function OwnerDashboard({ user, onLogout }) {
                         <h3 className="font-bold text-lg text-slate-900 mb-1">
                           {project.title}
                         </h3>
-                        <p className="text-sm text-slate-600">{project.code}</p>
+                        {project.client_name && (
+                          <p className="text-sm text-slate-600">{project.client_name}</p>
+                        )}
                       </div>
                       {getStatusIcon(project.status)}
                     </div>
-                    
-                    {project.client_name && (
-                      <p className="text-xs text-slate-600 mt-2">
-                        Client: {project.client_name}
-                      </p>
-                    )}
                   </div>
 
                   {/* Project Stats */}
