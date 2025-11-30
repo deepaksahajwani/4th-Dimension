@@ -4905,6 +4905,125 @@ async def add_payment(
         raise HTTPException(status_code=500, detail=str(e))
 
 
+
+@api_router.put("/accounting/income/{project_id}/payment/{payment_id}")
+async def update_payment(
+    project_id: str,
+    payment_id: str,
+    payment: dict,
+    current_user: User = Depends(get_current_user)
+):
+    """Update a payment entry"""
+    try:
+        if current_user.role != "owner":
+            raise HTTPException(status_code=403, detail="Only owner can access accounting")
+        
+        # Get the income record
+        income_record = await db.project_income.find_one({"project_id": project_id})
+        if not income_record:
+            raise HTTPException(status_code=404, detail="Income record not found")
+        
+        # Find the payment in the payments array
+        payments = income_record.get('payments', [])
+        payment_index = None
+        old_amount = 0
+        
+        for i, p in enumerate(payments):
+            if p.get('id') == payment_id:
+                payment_index = i
+                old_amount = p.get('amount', 0)
+                break
+        
+        if payment_index is None:
+            raise HTTPException(status_code=404, detail="Payment not found")
+        
+        # Convert new amount to float
+        new_amount = float(payment['amount'])
+        amount_difference = new_amount - old_amount
+        
+        # Update the payment entry
+        updated_payment = {
+            "id": payment_id,
+            "amount": new_amount,
+            "payment_date": payment['payment_date'],
+            "payment_mode": payment['payment_mode'],
+            "bank_account": payment.get('bank_account'),
+            "reference_number": payment.get('reference_number'),
+            "notes": payment.get('notes'),
+            "created_at": payments[payment_index].get('created_at', datetime.now(timezone.utc).isoformat()),
+            "updated_at": datetime.now(timezone.utc).isoformat()
+        }
+        
+        # Update the payment in the array and adjust received_amount
+        await db.project_income.update_one(
+            {"project_id": project_id},
+            {
+                "$set": {
+                    f"payments.{payment_index}": updated_payment,
+                    "updated_at": datetime.now(timezone.utc).isoformat()
+                },
+                "$inc": {"received_amount": amount_difference}
+            }
+        )
+        
+        return {"success": True, "payment": updated_payment}
+    
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Update payment error: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@api_router.delete("/accounting/income/{project_id}/payment/{payment_id}")
+async def delete_payment(
+    project_id: str,
+    payment_id: str,
+    current_user: User = Depends(get_current_user)
+):
+    """Delete a payment entry"""
+    try:
+        if current_user.role != "owner":
+            raise HTTPException(status_code=403, detail="Only owner can access accounting")
+        
+        # Get the income record
+        income_record = await db.project_income.find_one({"project_id": project_id})
+        if not income_record:
+            raise HTTPException(status_code=404, detail="Income record not found")
+        
+        # Find the payment and get its amount
+        payments = income_record.get('payments', [])
+        payment_to_delete = None
+        
+        for p in payments:
+            if p.get('id') == payment_id:
+                payment_to_delete = p
+                break
+        
+        if not payment_to_delete:
+            raise HTTPException(status_code=404, detail="Payment not found")
+        
+        payment_amount = payment_to_delete.get('amount', 0)
+        
+        # Remove the payment and adjust received_amount
+        await db.project_income.update_one(
+            {"project_id": project_id},
+            {
+                "$pull": {"payments": {"id": payment_id}},
+                "$inc": {"received_amount": -payment_amount},
+                "$set": {"updated_at": datetime.now(timezone.utc).isoformat()}
+            }
+        )
+        
+        return {"success": True}
+    
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Delete payment error: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 # Expense Accounts
 @api_router.get("/accounting/expense-accounts")
 async def get_expense_accounts(
