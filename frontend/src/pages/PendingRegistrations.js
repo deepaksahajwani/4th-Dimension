@@ -39,23 +39,11 @@ export default function PendingRegistrations({ user, onLogout }) {
   const [dialogOpen, setDialogOpen] = useState(false);
 
   useEffect(() => {
-    // Wait for user object to be loaded
-    if (user === null || user === undefined) {
-      console.log('User object not loaded yet, waiting...');
-      return;
-    }
-    
-    console.log('User object:', user);
-    console.log('User role:', user?.role);
-    console.log('Is owner:', user?.is_owner);
-    
     if (user?.role !== 'owner') {
-      console.log('Access denied - user role is not owner');
       toast.error('Access denied. Owner only.');
       navigate('/dashboard');
       return;
     }
-    console.log('Access granted - fetching pending registrations');
     fetchPendingRegistrations();
     
     // Check for success/error messages from URL params
