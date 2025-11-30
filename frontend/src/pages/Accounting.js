@@ -34,12 +34,14 @@ export default function Accounting({ user, onLogout }) {
   const [incomeDialogOpen, setIncomeDialogOpen] = useState(false);
   const [selectedProject, setSelectedProject] = useState(null);
   const [paymentDialogOpen, setPaymentDialogOpen] = useState(false);
+  const [editPaymentDialogOpen, setEditPaymentDialogOpen] = useState(false);
   const [paymentHistoryDialogOpen, setPaymentHistoryDialogOpen] = useState(false);
   const [incomeAccountDialogOpen, setIncomeAccountDialogOpen] = useState(false);
   const [incomeEntryDialogOpen, setIncomeEntryDialogOpen] = useState(false);
   const [expenseAccountDialogOpen, setExpenseAccountDialogOpen] = useState(false);
   const [expenseDialogOpen, setExpenseDialogOpen] = useState(false);
   const [selectedProjectPayments, setSelectedProjectPayments] = useState([]);
+  const [editingPayment, setEditingPayment] = useState(null);
   
   // Forms
   const [incomeForm, setIncomeForm] = useState({
