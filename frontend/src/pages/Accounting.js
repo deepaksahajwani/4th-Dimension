@@ -127,18 +127,22 @@ export default function Accounting({ user, onLogout }) {
   const handleUpdateIncome = async () => {
     try {
       const token = localStorage.getItem('token');
+      // Only send total_fee and notes, received_amount is managed through payments
       await axios.post(
         `${API}/api/accounting/income/${selectedProject.id}`,
-        incomeForm,
+        {
+          total_fee: incomeForm.total_fee,
+          notes: incomeForm.notes
+        },
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
-      toast.success('Income updated successfully');
+      toast.success('Fees updated successfully');
       setIncomeDialogOpen(false);
       fetchAllData();
     } catch (error) {
       console.error('Error updating income:', error);
-      toast.error('Failed to update income');
+      toast.error('Failed to update fees');
     }
   };
 
