@@ -43,6 +43,13 @@ export default function Accounting({ user, onLogout }) {
   const [selectedProjectPayments, setSelectedProjectPayments] = useState([]);
   const [editingPayment, setEditingPayment] = useState(null);
   
+  // Detail view dialogs for summary cards
+  const [totalFeesDialogOpen, setTotalFeesDialogOpen] = useState(false);
+  const [receivedDialogOpen, setReceivedDialogOpen] = useState(false);
+  const [pendingDialogOpen, setPendingDialogOpen] = useState(false);
+  const [otherIncomeDialogOpen, setOtherIncomeDialogOpen] = useState(false);
+  const [expensesDetailDialogOpen, setExpensesDetailDialogOpen] = useState(false);
+  
   // Forms
   const [incomeForm, setIncomeForm] = useState({
     total_fee: '',
