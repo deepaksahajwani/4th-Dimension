@@ -159,6 +159,11 @@ export default function OwnerDashboard({ user, onLogout }) {
   const filterProjects = () => {
     let filtered = [...projects];
     
+    // Quick filter from stat cards
+    if (quickFilter === 'critical') {
+      filtered = filtered.filter(p => p.status === 'critical');
+    }
+    
     // Search filter
     if (searchTerm) {
       filtered = filtered.filter(p => 
@@ -181,6 +186,21 @@ export default function OwnerDashboard({ user, onLogout }) {
     });
     
     setFilteredProjects(filtered);
+  };
+
+  const handleQuickFilter = (filterType) => {
+    // Toggle filter
+    if (quickFilter === filterType) {
+      setQuickFilter(null);
+      setFilterStatus('all');
+      setSearchTerm('');
+    } else {
+      setQuickFilter(filterType);
+      if (filterType === 'critical') {
+        setFilterStatus('all');
+      }
+      setSearchTerm('');
+    }
   };
 
   const getStatusColor = (status) => {
