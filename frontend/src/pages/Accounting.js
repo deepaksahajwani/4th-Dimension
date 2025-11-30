@@ -1578,6 +1578,142 @@ export default function Accounting({ user, onLogout }) {
             </div>
           </DialogContent>
         </Dialog>
+
+        {/* Income Account Detail Dialog */}
+        <Dialog open={incomeAccountDetailOpen} onOpenChange={setIncomeAccountDetailOpen}>
+          <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>{selectedIncomeAccount?.name} - Income Details</DialogTitle>
+              <p className="text-sm text-slate-600 mt-1">
+                Total Income: <span className="font-bold text-blue-600">{formatCurrency(selectedIncomeAccount?.total_income || 0)}</span>
+              </p>
+              {selectedIncomeAccount?.description && (
+                <p className="text-sm text-slate-600 mt-1">{selectedIncomeAccount.description}</p>
+              )}
+            </DialogHeader>
+            
+            <div className="space-y-3">
+              {selectedIncomeAccount && incomeEntries.filter(e => e.income_account_id === selectedIncomeAccount.account_id).length > 0 ? (
+                incomeEntries
+                  .filter(e => e.income_account_id === selectedIncomeAccount.account_id)
+                  .sort((a, b) => new Date(b.income_date) - new Date(a.income_date))
+                  .map((entry) => (
+                    <div key={entry.entry_id} className="p-4 border border-slate-200 rounded-lg hover:bg-slate-50">
+                      <div className="flex justify-between items-start">
+                        <div className="flex-1">
+                          <h4 className="font-semibold text-slate-900">{entry.description}</h4>
+                          {entry.source_name && (
+                            <p className="text-sm text-slate-600 mt-1">From: {entry.source_name}</p>
+                          )}
+                          {entry.notes && (
+                            <p className="text-xs text-slate-500 mt-1">{entry.notes}</p>
+                          )}
+                        </div>
+                        <div className="text-right">
+                          <p className="text-xl font-bold text-blue-600">{formatCurrency(entry.amount)}</p>
+                          <p className="text-xs text-slate-600">
+                            {new Date(entry.income_date).toLocaleDateString()}
+                          </p>
+                        </div>
+                      </div>
+                      
+                      {entry.payment_mode && (
+                        <div className="mt-2 flex flex-wrap gap-4 text-sm text-slate-600">
+                          <span>Mode: {entry.payment_mode}</span>
+                          {entry.bank_account && (
+                            <span>Bank: {entry.bank_account}</span>
+                          )}
+                          {entry.reference_number && (
+                            <span>Ref: {entry.reference_number}</span>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  ))
+              ) : (
+                <p className="text-center text-slate-600 py-8">No income entries for this account</p>
+              )}
+            </div>
+            
+            <div className="flex justify-end pt-4 border-t">
+              <Button variant="outline" onClick={() => setIncomeAccountDetailOpen(false)}>
+                Close
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        {/* Expense Account Detail Dialog */}
+        <Dialog open={expenseAccountDetailOpen} onOpenChange={setExpenseAccountDetailOpen}>
+          <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>{selectedExpenseAccount?.name} - Expense Details</DialogTitle>
+              <p className="text-sm text-slate-600 mt-1">
+                Total Expenses: <span className="font-bold text-red-600">{formatCurrency(selectedExpenseAccount?.total_expenses || 0)}</span>
+              </p>
+              {selectedExpenseAccount?.description && (
+                <p className="text-sm text-slate-600 mt-1">{selectedExpenseAccount.description}</p>
+              )}
+            </DialogHeader>
+            
+            <div className="space-y-3">
+              {selectedExpenseAccount && expenses.filter(e => e.expense_account_id === selectedExpenseAccount.account_id).length > 0 ? (
+                expenses
+                  .filter(e => e.expense_account_id === selectedExpenseAccount.account_id)
+                  .sort((a, b) => new Date(b.expense_date) - new Date(a.expense_date))
+                  .map((expense) => {
+                    const project = projects.find(p => p.id === expense.project_id);
+                    return (
+                      <div key={expense.entry_id} className="p-4 border border-slate-200 rounded-lg hover:bg-slate-50">
+                        <div className="flex justify-between items-start">
+                          <div className="flex-1">
+                            <h4 className="font-semibold text-slate-900">{expense.description}</h4>
+                            <div className="flex flex-wrap gap-3 mt-1 text-sm text-slate-600">
+                              {expense.vendor_name && (
+                                <span>Vendor: {expense.vendor_name}</span>
+                              )}
+                              {project && (
+                                <span>Project: {project.title}</span>
+                              )}
+                            </div>
+                            {expense.notes && (
+                              <p className="text-xs text-slate-500 mt-1">{expense.notes}</p>
+                            )}
+                          </div>
+                          <div className="text-right">
+                            <p className="text-xl font-bold text-red-600">{formatCurrency(expense.amount)}</p>
+                            <p className="text-xs text-slate-600">
+                              {new Date(expense.expense_date).toLocaleDateString()}
+                            </p>
+                          </div>
+                        </div>
+                        
+                        {expense.payment_mode && (
+                          <div className="mt-2 flex flex-wrap gap-4 text-sm text-slate-600">
+                            <span>Mode: {expense.payment_mode}</span>
+                            {expense.bank_account && (
+                              <span>Bank: {expense.bank_account}</span>
+                            )}
+                            {expense.reference_number && (
+                              <span>Ref: {expense.reference_number}</span>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })
+              ) : (
+                <p className="text-center text-slate-600 py-8">No expenses for this account</p>
+              )}
+            </div>
+            
+            <div className="flex justify-end pt-4 border-t">
+              <Button variant="outline" onClick={() => setExpenseAccountDetailOpen(false)}>
+                Close
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
       </div>
     </Layout>
   );
