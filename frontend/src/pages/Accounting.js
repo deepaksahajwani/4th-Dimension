@@ -816,6 +816,81 @@ export default function Accounting({ user, onLogout }) {
         </Dialog>
 
 
+        {/* Edit Payment Dialog */}
+        <Dialog open={editPaymentDialogOpen} onOpenChange={setEditPaymentDialogOpen}>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle>Edit Payment - {selectedProject?.title}</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4">
+              <div>
+                <Label>Amount *</Label>
+                <input
+                  type="number"
+                  className="w-full mt-1 px-3 py-2 border border-slate-300 rounded-lg"
+                  value={paymentForm.amount}
+                  onChange={(e) => setPaymentForm({...paymentForm, amount: e.target.value})}
+                />
+              </div>
+              <div>
+                <Label>Payment Date *</Label>
+                <input
+                  type="date"
+                  className="w-full mt-1 px-3 py-2 border border-slate-300 rounded-lg"
+                  value={paymentForm.payment_date}
+                  onChange={(e) => setPaymentForm({...paymentForm, payment_date: e.target.value})}
+                />
+              </div>
+              <div>
+                <Label>Payment Mode</Label>
+                <select
+                  className="w-full mt-1 px-3 py-2 border border-slate-300 rounded-lg"
+                  value={paymentForm.payment_mode}
+                  onChange={(e) => setPaymentForm({...paymentForm, payment_mode: e.target.value})}
+                >
+                  <option>Cash</option>
+                  <option>Bank Transfer</option>
+                  <option>Cheque</option>
+                  <option>UPI</option>
+                  <option>Card</option>
+                  <option>Other</option>
+                </select>
+              </div>
+              <div>
+                <Label>Bank Account</Label>
+                <input
+                  type="text"
+                  className="w-full mt-1 px-3 py-2 border border-slate-300 rounded-lg"
+                  value={paymentForm.bank_account}
+                  onChange={(e) => setPaymentForm({...paymentForm, bank_account: e.target.value})}
+                />
+              </div>
+              <div>
+                <Label>Reference Number</Label>
+                <input
+                  type="text"
+                  className="w-full mt-1 px-3 py-2 border border-slate-300 rounded-lg"
+                  value={paymentForm.reference_number}
+                  onChange={(e) => setPaymentForm({...paymentForm, reference_number: e.target.value})}
+                />
+              </div>
+              <div>
+                <Label>Notes</Label>
+                <textarea
+                  className="w-full mt-1 px-3 py-2 border border-slate-300 rounded-lg"
+                  rows="2"
+                  value={paymentForm.notes}
+                  onChange={(e) => setPaymentForm({...paymentForm, notes: e.target.value})}
+                />
+              </div>
+              <Button onClick={handleUpdatePayment} className="w-full">
+                Update Payment
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+
+
 
         {/* Income Account Dialog */}
         <Dialog open={incomeAccountDialogOpen} onOpenChange={setIncomeAccountDialogOpen}>
