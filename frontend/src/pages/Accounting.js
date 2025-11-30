@@ -692,7 +692,14 @@ export default function Accounting({ user, onLogout }) {
             {/* Expense Accounts */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
               {expenseAccounts.map((account) => (
-                <Card key={account.id} className="p-4">
+                <Card 
+                  key={account.id} 
+                  className="p-4 cursor-pointer hover:shadow-lg transition-shadow"
+                  onClick={() => {
+                    setSelectedExpenseAccount(account);
+                    setExpenseAccountDetailOpen(true);
+                  }}
+                >
                   <h3 className="font-semibold text-slate-900 mb-1">{account.name}</h3>
                   {account.description && (
                     <p className="text-sm text-slate-600 mb-2">{account.description}</p>
@@ -700,6 +707,7 @@ export default function Accounting({ user, onLogout }) {
                   <p className="text-2xl font-bold text-red-600">
                     {formatCurrency(account.total_expenses)}
                   </p>
+                  <p className="text-xs text-red-600 mt-2">Click to view details</p>
                 </Card>
               ))}
             </div>
