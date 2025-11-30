@@ -651,22 +651,17 @@ export default function Accounting({ user, onLogout }) {
             </DialogHeader>
             <div className="space-y-4">
               <div>
-                <Label>Total Fee</Label>
+                <Label>Total Fee Amount *</Label>
                 <input
                   type="number"
                   className="w-full mt-1 px-3 py-2 border border-slate-300 rounded-lg"
                   value={incomeForm.total_fee}
                   onChange={(e) => setIncomeForm({...incomeForm, total_fee: e.target.value})}
+                  placeholder="Enter total project fee"
                 />
-              </div>
-              <div>
-                <Label>Received Amount</Label>
-                <input
-                  type="number"
-                  className="w-full mt-1 px-3 py-2 border border-slate-300 rounded-lg"
-                  value={incomeForm.received_amount}
-                  onChange={(e) => setIncomeForm({...incomeForm, received_amount: e.target.value})}
-                />
+                <p className="text-xs text-slate-500 mt-1">
+                  This is the total agreed fee for the project
+                </p>
               </div>
               <div>
                 <Label>Notes</Label>
@@ -675,7 +670,13 @@ export default function Accounting({ user, onLogout }) {
                   rows="3"
                   value={incomeForm.notes}
                   onChange={(e) => setIncomeForm({...incomeForm, notes: e.target.value})}
+                  placeholder="Add any notes about the fee structure"
                 />
+              </div>
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                <p className="text-sm text-blue-800">
+                  💡 Use "Add Payment" button to record received payments and maintain payment history
+                </p>
               </div>
               <Button onClick={handleUpdateIncome} className="w-full">
                 Update Fees
