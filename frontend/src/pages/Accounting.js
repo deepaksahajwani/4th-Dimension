@@ -464,7 +464,6 @@ export default function Accounting({ user, onLogout }) {
                             setSelectedProject(project);
                             setIncomeForm({
                               total_fee: totalFee || '',
-                              received_amount: received || '',
                               notes: income?.notes || ''
                             });
                             setIncomeDialogOpen(true);
