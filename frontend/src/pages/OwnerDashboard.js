@@ -59,6 +59,9 @@ export default function OwnerDashboard({ user, onLogout }) {
   const [mediaRecorder, setMediaRecorder] = useState(null);
   const [recordingTime, setRecordingTime] = useState(0);
   const [playingAudio, setPlayingAudio] = useState(false);
+  
+  // Progress breakdown dialog
+  const [progressDialogOpen, setProgressDialogOpen] = useState(false);
 
   useEffect(() => {
     if (user?.role !== 'owner') {
