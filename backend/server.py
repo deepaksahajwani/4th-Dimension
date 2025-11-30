@@ -4806,8 +4806,9 @@ async def update_project_income(
         # Check if income record exists
         existing = await db.project_income.find_one({"project_id": project_id})
         
-        # Convert to float
-        total_fee = float(data.get('total_fee', 0))
+        # Convert to float, handle empty strings
+        total_fee_str = data.get('total_fee', 0)
+        total_fee = float(total_fee_str) if total_fee_str and total_fee_str != '' else 0.0
         
         # When updating fees, preserve existing received_amount (don't allow manual update)
         # Received amount should only change via payment entries
