@@ -1657,9 +1657,15 @@ export default function Accounting({ user, onLogout }) {
             </DialogHeader>
             
             <div className="space-y-3">
-              {selectedExpenseAccount && expenses.filter(e => e.expense_account_id === selectedExpenseAccount.account_id).length > 0 ? (
+              {selectedExpenseAccount && expenses.filter(e => 
+                e.expense_account_id === selectedExpenseAccount.account_id || 
+                e.expense_account_name === selectedExpenseAccount.name
+              ).length > 0 ? (
                 expenses
-                  .filter(e => e.expense_account_id === selectedExpenseAccount.account_id)
+                  .filter(e => 
+                    e.expense_account_id === selectedExpenseAccount.account_id || 
+                    e.expense_account_name === selectedExpenseAccount.name
+                  )
                   .sort((a, b) => new Date(b.expense_date) - new Date(a.expense_date))
                   .map((expense) => {
                     const project = projects.find(p => p.id === expense.project_id);
