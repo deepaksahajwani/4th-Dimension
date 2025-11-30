@@ -5237,6 +5237,7 @@ async def create_income_entry(
             "updated_at": datetime.now(timezone.utc).isoformat()
         }
         
+        entry_id = entry_data["id"]
         await db.income_entries.insert_one(entry_data)
         
         # Update total in income account
@@ -5248,7 +5249,9 @@ async def create_income_entry(
             }
         )
         
-        return {"success": True, "income_entry": entry_data}
+        # Return clean data without MongoDB _id
+        result = await db.income_entries.find_one({"id": entry_id}, {"_id": 0})
+        return {"success": True, "income_entry": result}
     
     except HTTPException:
         raise
