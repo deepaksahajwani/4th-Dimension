@@ -5066,6 +5066,7 @@ async def create_expense(
             "updated_at": datetime.now(timezone.utc).isoformat()
         }
         
+        expense_id = expense_data["id"]
         await db.expenses.insert_one(expense_data)
         
         # Update total in expense account
@@ -5077,7 +5078,9 @@ async def create_expense(
             }
         )
         
-        return {"success": True, "expense": expense_data}
+        # Return clean data without MongoDB _id
+        result = await db.expenses.find_one({"id": expense_id}, {"_id": 0})
+        return {"success": True, "expense": result}
     
     except HTTPException:
         raise
