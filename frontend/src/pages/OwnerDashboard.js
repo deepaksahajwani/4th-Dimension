@@ -961,6 +961,129 @@ export default function OwnerDashboard({ user, onLogout }) {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Progress Breakdown Dialog */}
+      <Dialog open={progressDialogOpen} onOpenChange={setProgressDialogOpen}>
+        <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Project Progress Breakdown</DialogTitle>
+            <p className="text-sm text-slate-600 mt-1">
+              Average Progress: <span className="font-bold text-green-600">{totalProgress}%</span>
+            </p>
+          </DialogHeader>
+
+          <div className="space-y-4">
+            {projects.length > 0 ? (
+              <>
+                {/* Progress Summary Stats */}
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pb-4 border-b">
+                  <div className="text-center">
+                    <p className="text-2xl font-bold text-green-600">
+                      {projects.filter(p => p.progress >= 75).length}
+                    </p>
+                    <p className="text-xs text-slate-600">75%+ Complete</p>
+                  </div>
+                  <div className="text-center">
+                    <p className="text-2xl font-bold text-blue-600">
+                      {projects.filter(p => p.progress >= 50 && p.progress < 75).length}
+                    </p>
+                    <p className="text-xs text-slate-600">50-74% Complete</p>
+                  </div>
+                  <div className="text-center">
+                    <p className="text-2xl font-bold text-orange-600">
+                      {projects.filter(p => p.progress >= 25 && p.progress < 50).length}
+                    </p>
+                    <p className="text-xs text-slate-600">25-49% Complete</p>
+                  </div>
+                  <div className="text-center">
+                    <p className="text-2xl font-bold text-red-600">
+                      {projects.filter(p => p.progress < 25).length}
+                    </p>
+                    <p className="text-xs text-slate-600">Below 25%</p>
+                  </div>
+                </div>
+
+                {/* Individual Project Progress */}
+                <div className="space-y-3">
+                  {projects
+                    .sort((a, b) => b.progress - a.progress)
+                    .map((project) => (
+                      <div
+                        key={project.id}
+                        className="p-4 border border-slate-200 rounded-lg hover:bg-slate-50 cursor-pointer transition-colors"
+                        onClick={() => {
+                          setProgressDialogOpen(false);
+                          navigate(`/projects/${project.id}`);
+                        }}
+                      >
+                        <div className="flex justify-between items-start mb-2">
+                          <div className="flex-1">
+                            <h4 className="font-semibold text-slate-900">{project.title}</h4>
+                            {project.client_name && (
+                              <p className="text-xs text-slate-600">{project.client_name}</p>
+                            )}
+                          </div>
+                          <div className="flex items-center gap-2">
+                            {getStatusIcon(project.status)}
+                            <span className="text-2xl font-bold text-slate-900">
+                              {project.progress}%
+                            </span>
+                          </div>
+                        </div>
+
+                        <div className="w-full bg-slate-200 rounded-full h-3 mb-2">
+                          <div
+                            className={`h-3 rounded-full transition-all ${
+                              project.progress >= 75 ? 'bg-green-500' :
+                              project.progress >= 50 ? 'bg-blue-500' :
+                              project.progress >= 25 ? 'bg-orange-500' :
+                              'bg-red-500'
+                            }`}
+                            style={{ width: `${project.progress}%` }}
+                          ></div>
+                        </div>
+
+                        <div className="flex items-center gap-4 text-xs text-slate-600">
+                          <span className="flex items-center gap-1">
+                            <FileText className="w-3 h-3" />
+                            {project.completedDrawings}/{project.totalDrawings} drawings
+                          </span>
+                          {project.overdueDrawings > 0 && (
+                            <span className="flex items-center gap-1 text-red-600 font-medium">
+                              <AlertCircle className="w-3 h-3" />
+                              {project.overdueDrawings} overdue
+                            </span>
+                          )}
+                          <span className={`ml-auto px-2 py-0.5 rounded text-xs font-medium ${
+                            project.status === 'critical' ? 'bg-red-100 text-red-700' :
+                            project.status === 'behind' ? 'bg-orange-100 text-orange-700' :
+                            project.status === 'excellent' ? 'bg-green-100 text-green-700' :
+                            'bg-blue-100 text-blue-700'
+                          }`}>
+                            {project.status}
+                          </span>
+                        </div>
+                      </div>
+                    ))}
+                </div>
+              </>
+            ) : (
+              <div className="text-center py-8 text-slate-600">
+                <p>No projects to display</p>
+              </div>
+            )}
+          </div>
+
+          <div className="flex justify-end pt-4 border-t">
+            <Button
+              variant="outline"
+              onClick={() => setProgressDialogOpen(false)}
+            >
+              Close
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </Layout>
   );
 }
