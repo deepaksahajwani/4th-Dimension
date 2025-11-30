@@ -573,6 +573,18 @@ test_plan:
         agent: "testing"
         comment: "TEAM MEMBER DELETION FLOW TESTING COMPLETED WITH MIXED RESULTS: ✅ BACKEND FUNCTIONALITY CONFIRMED WORKING: Successfully tested DELETE /api/users/{id} endpoint via direct API calls - user 'Delete Test User' was created, found, and successfully deleted with proper 200 OK response and 'Team member deleted successfully' message. Backend delete functionality is working perfectly. ✅ FRONTEND COMPONENTS VERIFIED: ManageTeam.js page loads correctly with proper team member cards, Edit/Delete buttons are present for non-owner members, owner accounts correctly protected (no Delete buttons), proper confirmation dialog structure exists. ❌ CRITICAL FRONTEND ISSUE IDENTIFIED: The Delete button click functionality is not working in the UI. During testing, the Manage Team page loads and displays team members with Delete buttons, but clicking the Delete button does not trigger the confirmation dialog or API call. This appears to be a frontend JavaScript event handling issue, not a backend API problem. ✅ ACCESS CONTROL WORKING: Owner accounts (Test Owner, Deepak Shreechand Sahajwani) correctly do not have Delete buttons, while non-owner members (Delete Test User) do have Delete buttons. ✅ NAVIGATION WORKING: Successfully navigated from Team page to Manage Team page via the 'Manage Team' button. The issue is specifically with the Delete button click event not being handled properly in the frontend, while the backend delete API is fully functional."
 
+  - task: "Pending Registrations Page Access Control and Immediate Card Removal"
+    implemented: true
+    working: false
+    file: "frontend/src/pages/PendingRegistrations.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: false
+        agent: "testing"
+        comment: "PENDING REGISTRATIONS PAGE TESTING COMPLETED - MIXED RESULTS: ✅ ACCESS CONTROL FIX VERIFIED: Successfully fixed access control issue. Page now loads correctly with user?.role === 'owner' check. ✅ PAGE FUNCTIONALITY CONFIRMED: Page displays 'Pending Registrations' title, shows correct pending count (15-16 users), loads all user cards with approve/reject buttons, confirmation dialogs work correctly for both approve and reject actions. ✅ BACKEND API WORKING: Confirmed backend approve/reject API calls are successful - pending count decreases after actions, users are actually approved/rejected in database. ❌ CRITICAL ISSUE IDENTIFIED: The immediate UI update (card removal) is NOT working as intended. User cards do NOT disappear immediately after approval/rejection despite the setPendingUsers() call in confirmAction function. The backend processes the action correctly, but the frontend state is not updating the UI immediately. ✅ ROOT CAUSE: The issue appears to be in the frontend state management - the setPendingUsers(prevUsers => prevUsers.filter(u => u.id !== selectedUser.id)) call on line 115 is not triggering a re-render or the state update is not working correctly. RECOMMENDATION: Main agent should investigate the state update mechanism in the confirmAction function to ensure immediate UI updates work as intended."
+
   - task: "External User Dashboard for Client/Contractor/Consultant/Vendor Roles"
     implemented: true
     working: true
