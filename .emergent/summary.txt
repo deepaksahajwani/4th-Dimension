@@ -2,148 +2,187 @@
 The user, an architect, requires a comprehensive internal project management application for their firm, 4th Dimension.
 
 **PRODUCT REQUIREMENTS (Evolved):**
--   **Public Self-Registration Workflow:** A complete replacement of the old invite-only system. New users (Clients, Team Members, etc.) can self-register from a public page, undergo email OTP verification, and then await manual approval from the owner.
--   **Owner Approval System:** The owner receives an email to approve/reject new users. Upon approval, the new user receives a role-specific, multilingual welcome email.
--   **Role-Based Access:** Different user roles have different dashboard experiences, with external roles having a simplified view.
--   **Forgot Password:** A secure flow for users to reset their passwords via an email link.
--   **WhatsApp Notifications:** An alert system using Twilio to notify relevant parties of key events in the application.
--   **Core Modules:** Management of Projects, Drawings, Files, Tasks, and Vendors.
--   **Owner's Rights:** The owner must retain full administrative control, including the ability to delete any user.
+1.  **User Management & Dashboards:**
+    *   Role-based access (Owner, Team Leader, etc.).
+    *   An intuitive Owner Dashboard showing clickable project status filters and team workload.
+    *   A visual Weekly Dashboard for team members.
+2.  **Task Management:**
+    *   A comment-style system for the owner to assign ad-hoc tasks (text, file, or voice note) without a formal title.
+    *   Task visibility is role-based.
+3.  **Project & Drawing Workflow:**
+    *   A comment-based revision system with file/voice attachments.
+4.  **Accounting (Owner-Only):**
+    *   A system to track project fees (total, received, pending) with a full payment history (create, edit, delete).
+    *   A system to manage separate income and expense accounts with categorized entries.
+5.  **Social Media Management:**
+    *   An automated system to create and schedule social media posts.
+6.  **Notifications:**
+    *   Real-time, in-app notifications for key events like task assignments and comments, in addition to existing WhatsApp notifications. The latest notifications must appear at the top.
 
 **User's preferred language**: English
 
 **what currently exists?**
-The application is a full-stack React/FastAPI/MongoDB solution.
--   The public self-registration flow with owner approval via email is fully implemented and tested.
--   Phone OTP verification has been **temporarily disabled** by user request to simplify registration during development.
--   A complete Forgot Password feature is implemented and functional.
--   A multilingual email system is in place. Welcome emails are generated based on user role and preferred language, with links to view translations. Hindi and Gujarati translations have been added as a proof-of-concept.
--   The backend infrastructure for a WhatsApp notification system using Twilio is built. It includes services, database models, and triggers for new user registration and approval.
--   Due to limitations with the user's number, the WhatsApp system is currently configured to use the **Twilio Sandbox** for testing.
--   Several critical UI bugs have been fixed, most notably an issue preventing the OTP verification button from working on iPhones.
+The application is a stable full-stack React/FastAPI/MongoDB solution. All previous critical bugs, including broken dashboards and login failures, have been resolved. The agent successfully implemented a complete, multi-faceted accounting system for the owner, allowing tracking of project fees, general income/expense accounts, and detailed payment histories with full CRUD functionality. The Owner Dashboard has been enhanced with clickable statistic cards that filter the project list. A real-time, in-app notification system has also been added.
 
 **Last working item**:
--   Last item agent was working: The user decided to use the Twilio Sandbox for WhatsApp notifications after discovering that registering a dedicated business number required a paid Twilio plan. The agent configured the application to use the Sandbox and provided the user with instructions on how to activate it for their personal number ().
--   Status: **BLOCKED** (awaiting user action).
+-   Last item agent was working: Making the Avg Progress and Team Size stat cards on the Owner Dashboard interactive. The user wants the Avg Progress card to open a modal showing a breakdown of project progress, and the Team Size card to navigate to a team management page.
+-   Status: **NOT STARTED**
 -   Agent Testing Done: N
--   Which testing method agent to use? Manual testing. After the user confirms they have joined the Twilio Sandbox, the agent must trigger a test notification (e.g., a new registration) and ask the user to verify receipt of the WhatsApp message.
+-   Which testing method agent to use? Frontend testing agent or screenshot tool to verify the new interactions (dialog opening and navigation).
 -   User Testing Done: N
 
 **All Pending/In progress Issue list**:
+-   **Issue 1: Google OAuth Login Failure (P1)**
 
--   **Issue 1: Activate and Test WhatsApp Sandbox Notifications (P0)**
-    -   **Description**: The WhatsApp alert system is built but cannot be tested until the user activates the Twilio Sandbox for their phone number ().
-    -   **Next debug checklist**:
-        1.  Ask the user to confirm they have sent the join [code] message to the Twilio Sandbox WhatsApp number.
-        2.  Once confirmed, trigger an event that sends a WhatsApp message (e.g., register a new test user).
-        3.  Ask the user to verify they received the notification on WhatsApp.
-    -   **Why fix this issue and what will be achieved with the fix?**: This is the final step to validate the functionality of the WhatsApp alert system requested by the user.
+Issues Detail:
+-   **Issue 1: Google OAuth Login Failure (P1)**
+    -   **Description**: Google login fails with an authentication failed error. This has been diagnosed as a platform-level  misconfiguration.
+    -   **Attempted fixes**: None by the agent, as it requires an external fix.
+    -   **Next debug checklist**: This issue is blocked and awaiting a fix from the Emergent platform support team. No action can be taken by the agent.
+    -   **Why fix this issue and what will be achieved with the fix?**: Restores a primary login method for users.
     -   **Status**: **BLOCKED**
-    -   **Is recurring issue?**: N
-    -   **Should Test frontend/backend/both after fix?**: Backend
-    -   **Blocked on other issue**: None
-
--   **Issue 2: Cannot Delete Team Members (P1)**
-    -   **Description**: A bug carried over from a previous session. The user reported that they cannot delete team members from the Manage Team page. The delete confirmation dialog does not appear when the delete button is clicked.
-    -   **Next debug checklist**:
-        1.  Review the  handler for the delete button in .
-        2.  Investigate the state management for the  component ().
-        3.  Check the browser's developer console for any errors upon clicking the delete icon.
-    -   **Why fix this issue and what will be achieved with the fix?**: Fulfills a core requirement for the owner to have full administrative control over users.
-    -   **Status**: NOT STARTED
     -   **Is recurring issue?**: Y
     -   **Should Test frontend/backend/both after fix?**: Frontend
     -   **Blocked on other issue**: None
 
 **In progress Task List**:
--   None.
+-   **Task 1: Implement Interactive Avg Progress and Team Size Dashboard Cards (P0)**
+    -   **Where to resume**: In , modify the Avg Progress card to open a new dialog on click, and the Team Size card to navigate to a (yet-to-be-created) team page.
+    -   **What will be achieved with this?**: It will complete the user's request for a fully interactive Owner Dashboard, making navigation and data discovery more intuitive.
+    -   **Status**: NOT STARTED
+    -   **Should Test frontend/backend/both after fix?**: Frontend
+    -   **Blocked on something**: None
 
 **Upcoming and Future Tasks**
-
 -   **Upcoming Tasks:**
-    -   **(P1) Define and Implement More WhatsApp Alerts:** Once the Sandbox is working, expand the notification system to cover more events and user roles (Client, Contractor, etc.) as requested by the user.
-    -   **(P2) Fix Intermittent File Upload Bug:** Investigate user reports of file uploads getting stuck.
-    -   **(P2) Fix  Field:** Address the bug where the  field doesn't save correctly.
-    -   **(P2) Implement Voice Notes for Comments:** Add functionality for users to record and upload voice notes.
+    -   **(P1) Social Media Management:** Build the automated social media manager to create and schedule posts.
+    -   **(P2) Code Refactoring:** Refactor the monolithic  file by moving endpoints into separate router files (e.g., , ). Refactor large frontend components like  and .
 -   **Future Tasks:**
-    -   **(P3) Intelligent Task Distribution Logic.**
-    -   **(P3) Accounting System.**
-    -   **(P3) AI Drawing Checker.**
-    -   **(P3) Full-App Internationalization (i18n).**
+    -   **(P3) Voice Note WhatsApp Bridge (Postponed by user).**
+    -   **(P4) AI Drawing Checker.**
+    -   **(P4) Full-App Internationalization (i18n).**
 
 **Completed work in this session**
--   **Forgot Password Feature (DONE):** Implemented a complete, secure password reset workflow, including frontend pages (, ) and backend API endpoints.
--   **Multilingual Email System (DONE):** Created a backend structure to serve translated welcome emails. Added a language preference dropdown to the registration form and a preview page for the owner to review translated emails.
--   **WhatsApp Notification System (Initial Setup):** Built the core backend infrastructure using Twilio, including services, notification triggers, and database models. Diagnosed user's number registration issues and successfully pivoted to a functional Sandbox implementation.
--   **Critical iPhone UI Bug Fix (DONE):** Resolved a major issue where the OTP verification button was unresponsive on iPhones by re-implementing it with mobile-friendly HTML attributes and event handlers.
--   **Registration Flow Enhancements (DONE):**
-    -   Temporarily disabled phone OTP verification to streamline user testing.
-    -   Improved the registration form UI by separating the country code and mobile number fields.
--   **General Bug Fixes (DONE):**
-    -   Fixed a frontend crash by importing the  component in .
-    -   Resolved a compilation error by standardizing on the  library for toast notifications.
+-   **Dashboard & Login Bug Fixes:**
+    -   Resolved all backend  errors on dashboard endpoints by fixing a persistent  version incompatibility and incorrect database connection issues.
+    -   Correctly reset user passwords in the proper database, resolving all login failures.
+    -   Both  and  are now stable and display correct data.
+-   **Task Management Enhancements:**
+    -   Refined the Quick Assign feature to work like a comment (no title required) and use the more reliable voice note recorder from the comments module.
+-   **Real-time In-App Notifications:**
+    -   Implemented a full-stack notification system with a  component in the UI.
+    -   Notifications are generated for new tasks and comments.
+    -   Fixed a bug to ensure notifications are always sorted with the newest at the top.
+-   **Comprehensive Accounting Module:**
+    -   Created a new Accounting page for the owner.
+    -   Implemented tracking for Project Fees (Total, Received, Pending).
+    -   Added functionality to create and manage Income Accounts and Expense Accounts.
+    -   Implemented forms to record entries for both income and expenses.
+    -   Created a Payment History feature for each project with full CRUD (Create, Edit, Delete) capabilities for payment entries.
+    -   Fixed numerous bugs related to data type conversion ( to ) and MongoDB  serialization.
+-   **UI/UX Improvements:**
+    -   Made the Total Projects and Critical Projects stat cards on the Owner Dashboard clickable, allowing for quick filtering of the project list.
+    -   Replaced project codes with project names across all dashboards for better readability.
 
 **Earlier issues found/mentioned but not fixed**
--   **Issue 1: File upload gets stuck intermittently.** This was noted in the previous handoff and its existence was confirmed, but it has not been addressed yet. It is now listed in the Upcoming Tasks.
--   **Issue 2:  field not saving correctly.** This was also carried over and is now listed in the Upcoming Tasks.
+-   All issues mentioned by the user in this session were addressed, except for the blocked Google OAuth issue.
+
+**Known issue recurrence from previous fork**
+-   **Issue recurrence in previous fork**:
+    1.   on the User object (Pydantic model vs. dict): **RESOLVED**.
+    2.  Google OAuth Login Failure: **RECURRING & BLOCKED**.
+    3.  MongoDB  serialization error: This error recurred multiple times during the development of the accounting module but was fixed in each new endpoint where it appeared.
+-   **Recurrence count**: 3+ for ObjectId errors.
+-   **Status**: RESOLVED (for ObjectId), BLOCKED (for OAuth).
 
 **Code Architecture**
 
 
 **Key Technical Concepts**
--   **Integrations**: Twilio (WhatsApp API - **Sandbox Mode**).
--   **Frontend (Mobile Debugging)**: Resolved an iOS-specific button issue using , , , and replacing a UI library component with a standard HTML element for better compatibility.
--   **Internationalization (i18n)**: Implemented a basic structure for multilingual emails by separating content, logic, and translations.
--   **API Design**: Added RESTful endpoints for the forgot password flow (, , ) and for previewing translated emails.
+-   **Backend Data Validation:** Extensive use of  conversion in API endpoints to prevent  during financial calculations.
+-   **MongoDB Serialization:** Repeatedly addressed  serialization errors by ensuring API responses explicitly exclude the  field or re-fetch records after creation.
+-   **Complex Frontend State Management:** The  page manages state for multiple data sources (projects, income/expense accounts, entries), various dialogs (add/edit/history), and forms.
+-   **Component Refactoring:** Copied a known-good implementation (voice recorder) from one component () to another () to ensure consistency and reliability.
 
 **key DB schema**
--   : added 
--   : new collection 
--   : new collection 
+-   : { , , , ,  }
+-   : { , , , : [Payment] }
+-   : { , , Sun Nov 30 11:49:21 UTC 2025, ,  }
+-   : { , ,  }
+-   : { , , , Sun Nov 30 11:49:21 UTC 2025,  }
+-   : { , ,  }
+-   : { , , , Sun Nov 30 11:49:21 UTC 2025, ,  }
 
 **changes in tech stack**
--   None.
+-    was downgraded from  to  to resolve a compatibility issue.
 
 **All files**
 -   **Created:**
-    -   , : For the multilingual email feature.
-    -   , : For the WhatsApp alert system.
-    -   , , : For the forgot password and email preview features.
+    -   : A new, large page that handles all income and expense tracking.
+    -   : A new component for the real-time notification system.
 -   **Updated Heavily:**
-    -   : Completely refactored to fix a critical button bug on iOS.
-    -   : Added endpoints and logic for forgot password, email previews, and WhatsApp integration.
-    -   : Modified to include language selection and an improved mobile number input.
+    -   : Grew significantly with the addition of dozens of new endpoints for accounting, notifications, and payment history management.
+    -   : Updated with numerous new Pydantic models for the accounting and notification systems.
+    -   : Updated to add clickable stat card filters and to improve the voice note feature.
+    -   : Updated to integrate the new  component into the header.
+
+**Areas that need refactoring**:
+-   **/backend/server.py**: This monolithic file is now over 5,500 lines and is becoming unmanageable. It is critical to break it down into multiple router files based on functionality (e.g., , , ).
+-   **/frontend/src/pages/Accounting.js**: This component is extremely large and handles logic for projects, income/expense accounts, payments, and multiple dialogs. It should be broken down into smaller, more focused components (e.g., , , ).
+
+**key api endpoints**
+-   **Notifications:**
+    -   
+    -   
+-   **Accounting Summary:**
+    -   
+-   **Project Income & Payments:**
+    -   
+    -   
+    -   
+    -   
+    -   
+-   **Expense Accounts & Entries:**
+    -   
+    -   
+    -   
+-   **Income Accounts & Entries:**
+    -   
+    -   
+    -   
 
 **Critical Info for New Agent**
--   **WhatsApp is in SANDBOX mode.** This is the user's explicit choice. Do not try to use a dedicated business number. Your immediate priority is to guide the user to activate the Sandbox for their number () so you can conduct the first successful test.
--   **Phone OTP is INTENTIONALLY DISABLED.** The user requested this to simplify testing. The registration flow should only rely on email OTP. Do not attempt to fix the phone verification.
--   **Prioritize the Bug Backlog After WhatsApp.** Once the WhatsApp alert system is verified, the user wants to fix the existing bugs (Team Deletion, File Upload, ) before building new features.
+-   The user's password has been updated. Use the credentials below for testing.
+-   The immediate next task is to enhance the Owner Dashboard's stat cards as per the user's latest request.
+-   The highest priority after that should be refactoring , as its size and complexity are a major technical debt and risk future development speed.
+-   All new accounting features have been tested via  and are confirmed to be working, but a full frontend regression test would be beneficial.
+
+**documents created in this job**
+-   None.
 
 **Last 5 User Messages and any pending user messages**
-1.  **User**: I have WhatsApp business on 9913899888 - Provided context on their existing number setup.
-2.  **User**: I can register and verify 9374720431 on twillio - Proposed using a different number as the sender.
-3.  **User**: Twillio says I have to upgrade to use 9374720431 as a WhatsApp sender. Is there any workaround...? - Hit a roadblock with the new number requiring a paid plan.
-4.  **User**: Use sandbox - Made the final decision to proceed with the Twilio Sandbox.
-5.  **User**: Guide - Asked for instructions on how to proceed with the chosen path.
+1.  **User**: The edit fees section should only have the fees... Also there are some errors. (Status: **Completed**. The dialog was simplified, and related bugs were fixed.)
+2.  **User**: In the payment history I should be able to edit the entries. (Status: **Completed**. Full CRUD functionality was added to payment history.)
+3.  **User**: Nothing happens when I click on Total Projects, etc. it should open up details. (Status: **Partially Completed**. Cards now act as filters. The remaining cards are the current task.)
+4.  **User**: Avg progress should show where that percentage is coming from and team size should show my team page. (Status: **In Progress / Not Started**. This is the current 
+wtmp begins Sat Nov 29 00:29:01 2025.)
+5.  **User**: (Pending) No pending messages. The agent is ready to proceed with the last request.
 
 **Project Health Check:**
 -   **Broken**:
-    -   Team Member Deletion feature.
-    -   File uploads are reportedly intermittent.
-    -   The  field does not save correctly.
+    -   Google OAuth Login (Platform issue, Blocked)
 -   **Mocked**:
-    -   The entire WhatsApp notification system relies on the **Twilio Sandbox**. It is not production-ready and can only send messages to numbers that have explicitly opted-in.
+    -   Twilio WhatsApp notifications are still using the Sandbox environment.
 
 **Testing status**
--   Testing agent used after significant changes: NO
+-   Testing agent used after significant changes: YES (for task assignment feature)
 -   Troubleshoot agent used after agent stuck in loop: NO
 -   Test files created: None
 -   Known regressions: None.
 
 **Credentials to test flow:**
--   **Owner**: 
--   **Owner's Test WhatsApp Number**: 
--   **Twilio Credentials**: Stored in  (Account SID, Auth Token, Sandbox Number).
+-   **Owner**:  / 
+-   **Team Member**:  / 
 
 **What agent forgot to execute**
--   The plan to investigate and fix the three known bugs (Team Member Deletion, File Upload, ) was deferred to prioritize the WhatsApp integration. This bug-fixing task should be resumed after the WhatsApp Sandbox test is complete.</analysis>
+-   The agent has not yet started implementing the interactive Avg Progress and Team Size stat cards, which was the user's most recent request.</analysis>
