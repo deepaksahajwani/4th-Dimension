@@ -50,6 +50,12 @@ export default function Accounting({ user, onLogout }) {
   const [otherIncomeDialogOpen, setOtherIncomeDialogOpen] = useState(false);
   const [expensesDetailDialogOpen, setExpensesDetailDialogOpen] = useState(false);
   
+  // Detail dialogs for individual accounts
+  const [selectedExpenseAccount, setSelectedExpenseAccount] = useState(null);
+  const [expenseAccountDetailOpen, setExpenseAccountDetailOpen] = useState(false);
+  const [selectedIncomeAccount, setSelectedIncomeAccount] = useState(null);
+  const [incomeAccountDetailOpen, setIncomeAccountDetailOpen] = useState(false);
+  
   // Forms
   const [incomeForm, setIncomeForm] = useState({
     total_fee: '',
