@@ -39,7 +39,12 @@ export default function PendingRegistrations({ user, onLogout }) {
   const [dialogOpen, setDialogOpen] = useState(false);
 
   useEffect(() => {
-    // Temporarily bypass access control for testing
+    // Wait for user object to be loaded
+    if (user === null || user === undefined) {
+      console.log('User object not loaded yet, waiting...');
+      return;
+    }
+    
     console.log('User object:', user);
     console.log('User role:', user?.role);
     console.log('Is owner:', user?.is_owner);
