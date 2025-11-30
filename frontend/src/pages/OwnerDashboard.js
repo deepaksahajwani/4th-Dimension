@@ -42,6 +42,7 @@ export default function OwnerDashboard({ user, onLogout }) {
   const [filteredProjects, setFilteredProjects] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
+  const [quickFilter, setQuickFilter] = useState(null); // 'critical', 'all', etc.
   const [teamOverview, setTeamOverview] = useState(null);
   
   // Quick assign dialog
