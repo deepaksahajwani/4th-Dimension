@@ -447,7 +447,12 @@ export default function OwnerDashboard({ user, onLogout }) {
         </div>
         {/* Quick Stats */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-          <div className="bg-white rounded-xl shadow-md p-6 border-l-4 border-blue-500">
+          <div 
+            onClick={() => handleQuickFilter('all')}
+            className={`bg-white rounded-xl shadow-md p-6 border-l-4 border-blue-500 cursor-pointer transition-all hover:shadow-lg ${
+              quickFilter === 'all' ? 'ring-2 ring-blue-500' : ''
+            }`}
+          >
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-slate-600 mb-1">Total Projects</p>
@@ -455,9 +460,17 @@ export default function OwnerDashboard({ user, onLogout }) {
               </div>
               <LayoutGrid className="w-10 h-10 text-blue-500" />
             </div>
+            {quickFilter === 'all' && (
+              <p className="text-xs text-blue-600 mt-2">Showing all projects</p>
+            )}
           </div>
           
-          <div className="bg-white rounded-xl shadow-md p-6 border-l-4 border-red-500">
+          <div 
+            onClick={() => handleQuickFilter('critical')}
+            className={`bg-white rounded-xl shadow-md p-6 border-l-4 border-red-500 cursor-pointer transition-all hover:shadow-lg ${
+              quickFilter === 'critical' ? 'ring-2 ring-red-500' : ''
+            }`}
+          >
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-slate-600 mb-1">Critical Projects</p>
@@ -465,6 +478,9 @@ export default function OwnerDashboard({ user, onLogout }) {
               </div>
               <AlertCircle className="w-10 h-10 text-red-500" />
             </div>
+            {quickFilter === 'critical' && (
+              <p className="text-xs text-red-600 mt-2">Showing critical only</p>
+            )}
           </div>
           
           <div className="bg-white rounded-xl shadow-md p-6 border-l-4 border-green-500">
