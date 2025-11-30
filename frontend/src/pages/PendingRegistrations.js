@@ -97,29 +97,41 @@ export default function PendingRegistrations({ user, onLogout }) {
   const confirmAction = async () => {
     if (!selectedUser || !actionType) return;
 
+    const userIdToRemove = selectedUser.id;
+    const userName = selectedUser.name;
+
     try {
+      // Close dialog immediately for better UX
+      setDialogOpen(false);
+      
       await axios.post(`${API}/auth/approve-user-dashboard`, null, {
         params: {
-          user_id: selectedUser.id,
+          user_id: userIdToRemove,
           action: actionType
         }
       });
 
+      // Immediately remove the user from the UI
+      setPendingUsers(prevUsers => {
+        const filtered = prevUsers.filter(u => u.id !== userIdToRemove);
+        console.log('Removing user:', userIdToRemove, 'Remaining:', filtered.length);
+        return filtered;
+      });
+
       toast.success(
         actionType === 'approve' 
-          ? `${selectedUser.name} has been approved!` 
-          : `${selectedUser.name}'s registration has been rejected`
+          ? `${userName} has been approved!` 
+          : `${userName}'s registration has been rejected`
       );
-
-      // Immediately remove the user from the UI
-      setPendingUsers(prevUsers => prevUsers.filter(u => u.id !== selectedUser.id));
       
-      setDialogOpen(false);
       setSelectedUser(null);
       setActionType(null);
     } catch (error) {
       console.error('Action error:', error);
       toast.error(error.response?.data?.detail || `Failed to ${actionType} user`);
+      setDialogOpen(false);
+      setSelectedUser(null);
+      setActionType(null);
     }
   };
 
