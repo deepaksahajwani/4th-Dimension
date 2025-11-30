@@ -174,6 +174,74 @@ export default function Accounting({ user, onLogout }) {
     }
   };
 
+
+
+  const handleEditPayment = (payment) => {
+    setEditingPayment(payment);
+    setPaymentForm({
+      amount: payment.amount,
+      payment_date: payment.payment_date,
+      payment_mode: payment.payment_mode,
+      bank_account: payment.bank_account || '',
+      reference_number: payment.reference_number || '',
+      notes: payment.notes || ''
+    });
+    setEditPaymentDialogOpen(true);
+  };
+
+  const handleUpdatePayment = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      await axios.put(
+        `${API}/api/accounting/income/${selectedProject.id}/payment/${editingPayment.id}`,
+        paymentForm,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      toast.success('Payment updated successfully');
+      setEditPaymentDialogOpen(false);
+      setEditingPayment(null);
+      setPaymentForm({
+        amount: '',
+        payment_date: new Date().toISOString().split('T')[0],
+        payment_mode: 'Bank Transfer',
+        bank_account: '',
+        reference_number: '',
+        notes: ''
+      });
+      
+      // Refresh data and payment history
+      await fetchAllData();
+      await handleViewPaymentHistory(selectedProject);
+    } catch (error) {
+      console.error('Error updating payment:', error);
+      toast.error('Failed to update payment');
+    }
+  };
+
+  const handleDeletePayment = async (paymentId) => {
+    if (!confirm('Are you sure you want to delete this payment entry? This will update the received amount.')) {
+      return;
+    }
+
+    try {
+      const token = localStorage.getItem('token');
+      await axios.delete(
+        `${API}/api/accounting/income/${selectedProject.id}/payment/${paymentId}`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      toast.success('Payment deleted successfully');
+      
+      // Refresh data and payment history
+      await fetchAllData();
+      await handleViewPaymentHistory(selectedProject);
+    } catch (error) {
+      console.error('Error deleting payment:', error);
+      toast.error('Failed to delete payment');
+    }
+  };
+
   const handleCreateIncomeAccount = async () => {
     try {
       const token = localStorage.getItem('token');
