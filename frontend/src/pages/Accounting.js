@@ -1244,6 +1244,318 @@ export default function Accounting({ user, onLogout }) {
             </div>
           </DialogContent>
         </Dialog>
+
+        {/* Total Fees Detail Dialog */}
+        <Dialog open={totalFeesDialogOpen} onOpenChange={setTotalFeesDialogOpen}>
+          <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>Total Fees Breakdown</DialogTitle>
+              <p className="text-sm text-slate-600 mt-1">
+                Total: <span className="font-bold text-slate-900">{formatCurrency(summary?.income?.total_fee)}</span>
+              </p>
+            </DialogHeader>
+            
+            <div className="space-y-3">
+              {incomeRecords.length > 0 ? (
+                incomeRecords.map((record) => {
+                  const project = projects.find(p => p.id === record.project_id);
+                  return (
+                    <div key={record.project_id} className="p-4 border border-slate-200 rounded-lg hover:bg-slate-50">
+                      <div className="flex justify-between items-start">
+                        <div className="flex-1">
+                          <h4 className="font-semibold text-slate-900">{project?.title || 'Unknown Project'}</h4>
+                          {project?.client_name && (
+                            <p className="text-sm text-slate-600">{project.client_name}</p>
+                          )}
+                        </div>
+                        <div className="text-right">
+                          <p className="text-xl font-bold text-blue-600">{formatCurrency(record.total_fee)}</p>
+                          <p className="text-xs text-slate-600">Total Fee</p>
+                        </div>
+                      </div>
+                      <div className="mt-2 grid grid-cols-2 gap-2 text-sm">
+                        <div className="text-green-600">
+                          Received: {formatCurrency(record.received_amount)}
+                        </div>
+                        <div className="text-orange-600">
+                          Pending: {formatCurrency(record.total_fee - record.received_amount)}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })
+              ) : (
+                <p className="text-center text-slate-600 py-8">No project fees recorded</p>
+              )}
+            </div>
+            
+            <div className="flex justify-end pt-4 border-t">
+              <Button variant="outline" onClick={() => setTotalFeesDialogOpen(false)}>
+                Close
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        {/* Received Payments Detail Dialog */}
+        <Dialog open={receivedDialogOpen} onOpenChange={setReceivedDialogOpen}>
+          <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>Received Payments Breakdown</DialogTitle>
+              <p className="text-sm text-slate-600 mt-1">
+                Total Received: <span className="font-bold text-green-600">{formatCurrency(summary?.income?.received)}</span>
+              </p>
+            </DialogHeader>
+            
+            <div className="space-y-3">
+              {incomeRecords.filter(r => r.received_amount > 0).length > 0 ? (
+                incomeRecords
+                  .filter(r => r.received_amount > 0)
+                  .sort((a, b) => b.received_amount - a.received_amount)
+                  .map((record) => {
+                    const project = projects.find(p => p.id === record.project_id);
+                    return (
+                      <div key={record.project_id} className="p-4 border border-slate-200 rounded-lg hover:bg-slate-50">
+                        <div className="flex justify-between items-start">
+                          <div className="flex-1">
+                            <h4 className="font-semibold text-slate-900">{project?.title || 'Unknown Project'}</h4>
+                            {project?.client_name && (
+                              <p className="text-sm text-slate-600">{project.client_name}</p>
+                            )}
+                            {record.payments && record.payments.length > 0 && (
+                              <p className="text-xs text-slate-500 mt-1">
+                                {record.payments.length} payment{record.payments.length > 1 ? 's' : ''}
+                              </p>
+                            )}
+                          </div>
+                          <div className="text-right">
+                            <p className="text-xl font-bold text-green-600">{formatCurrency(record.received_amount)}</p>
+                            <p className="text-xs text-slate-600">Received</p>
+                            <p className="text-xs text-slate-500">
+                              of {formatCurrency(record.total_fee)}
+                            </p>
+                          </div>
+                        </div>
+                        
+                        {/* Show individual payments */}
+                        {record.payments && record.payments.length > 0 && (
+                          <div className="mt-3 pl-4 border-l-2 border-green-300 space-y-2">
+                            {record.payments.map((payment, idx) => (
+                              <div key={idx} className="text-sm flex justify-between">
+                                <span className="text-slate-600">
+                                  {new Date(payment.payment_date).toLocaleDateString()} - {payment.payment_mode}
+                                </span>
+                                <span className="font-medium text-green-600">
+                                  {formatCurrency(payment.amount)}
+                                </span>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })
+              ) : (
+                <p className="text-center text-slate-600 py-8">No payments received yet</p>
+              )}
+            </div>
+            
+            <div className="flex justify-end pt-4 border-t">
+              <Button variant="outline" onClick={() => setReceivedDialogOpen(false)}>
+                Close
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        {/* Pending Payments Detail Dialog */}
+        <Dialog open={pendingDialogOpen} onOpenChange={setPendingDialogOpen}>
+          <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>Pending Payments Breakdown</DialogTitle>
+              <p className="text-sm text-slate-600 mt-1">
+                Total Pending: <span className="font-bold text-orange-600">{formatCurrency(summary?.income?.pending)}</span>
+              </p>
+            </DialogHeader>
+            
+            <div className="space-y-3">
+              {incomeRecords.filter(r => (r.total_fee - r.received_amount) > 0).length > 0 ? (
+                incomeRecords
+                  .filter(r => (r.total_fee - r.received_amount) > 0)
+                  .sort((a, b) => (b.total_fee - b.received_amount) - (a.total_fee - a.received_amount))
+                  .map((record) => {
+                    const project = projects.find(p => p.id === record.project_id);
+                    const pending = record.total_fee - record.received_amount;
+                    const percentageReceived = record.total_fee > 0 ? (record.received_amount / record.total_fee) * 100 : 0;
+                    
+                    return (
+                      <div key={record.project_id} className="p-4 border border-slate-200 rounded-lg hover:bg-slate-50">
+                        <div className="flex justify-between items-start">
+                          <div className="flex-1">
+                            <h4 className="font-semibold text-slate-900">{project?.title || 'Unknown Project'}</h4>
+                            {project?.client_name && (
+                              <p className="text-sm text-slate-600">{project.client_name}</p>
+                            )}
+                          </div>
+                          <div className="text-right">
+                            <p className="text-xl font-bold text-orange-600">{formatCurrency(pending)}</p>
+                            <p className="text-xs text-slate-600">Pending</p>
+                          </div>
+                        </div>
+                        
+                        <div className="mt-3">
+                          <div className="flex justify-between text-sm mb-1">
+                            <span className="text-slate-600">Payment Progress</span>
+                            <span className="text-slate-900 font-medium">{percentageReceived.toFixed(0)}%</span>
+                          </div>
+                          <div className="w-full bg-slate-200 rounded-full h-2">
+                            <div
+                              className="bg-green-500 h-2 rounded-full"
+                              style={{ width: `${percentageReceived}%` }}
+                            ></div>
+                          </div>
+                          <div className="flex justify-between text-xs mt-1">
+                            <span className="text-green-600">Received: {formatCurrency(record.received_amount)}</span>
+                            <span className="text-slate-600">Total: {formatCurrency(record.total_fee)}</span>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })
+              ) : (
+                <p className="text-center text-slate-600 py-8">No pending payments</p>
+              )}
+            </div>
+            
+            <div className="flex justify-end pt-4 border-t">
+              <Button variant="outline" onClick={() => setPendingDialogOpen(false)}>
+                Close
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        {/* Other Income Detail Dialog */}
+        <Dialog open={otherIncomeDialogOpen} onOpenChange={setOtherIncomeDialogOpen}>
+          <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>Other Income Details</DialogTitle>
+              <p className="text-sm text-slate-600 mt-1">
+                Total Other Income: <span className="font-bold text-blue-600">{formatCurrency(summary?.income?.other_income)}</span>
+              </p>
+            </DialogHeader>
+            
+            <div className="space-y-3">
+              {incomeEntries.length > 0 ? (
+                incomeEntries
+                  .sort((a, b) => new Date(b.income_date) - new Date(a.income_date))
+                  .map((entry) => {
+                    const account = incomeAccounts.find(a => a.account_id === entry.income_account_id);
+                    return (
+                      <div key={entry.entry_id} className="p-4 border border-slate-200 rounded-lg hover:bg-slate-50">
+                        <div className="flex justify-between items-start">
+                          <div className="flex-1">
+                            <h4 className="font-semibold text-slate-900">{account?.name || 'Unknown Account'}</h4>
+                            <p className="text-sm text-slate-600 mt-1">{entry.description}</p>
+                            {entry.source_name && (
+                              <p className="text-xs text-slate-500 mt-1">From: {entry.source_name}</p>
+                            )}
+                          </div>
+                          <div className="text-right">
+                            <p className="text-xl font-bold text-blue-600">{formatCurrency(entry.amount)}</p>
+                            <p className="text-xs text-slate-600">
+                              {new Date(entry.income_date).toLocaleDateString()}
+                            </p>
+                          </div>
+                        </div>
+                        
+                        {entry.payment_mode && (
+                          <div className="mt-2 flex gap-4 text-sm text-slate-600">
+                            <span>Mode: {entry.payment_mode}</span>
+                            {entry.reference_number && (
+                              <span>Ref: {entry.reference_number}</span>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })
+              ) : (
+                <p className="text-center text-slate-600 py-8">No other income recorded</p>
+              )}
+            </div>
+            
+            <div className="flex justify-end pt-4 border-t">
+              <Button variant="outline" onClick={() => setOtherIncomeDialogOpen(false)}>
+                Close
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        {/* Expenses Detail Dialog */}
+        <Dialog open={expensesDetailDialogOpen} onOpenChange={setExpensesDetailDialogOpen}>
+          <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>Expenses Details</DialogTitle>
+              <p className="text-sm text-slate-600 mt-1">
+                Total Expenses: <span className="font-bold text-red-600">{formatCurrency(summary?.expenses?.total)}</span>
+              </p>
+            </DialogHeader>
+            
+            <div className="space-y-3">
+              {expenses.length > 0 ? (
+                expenses
+                  .sort((a, b) => new Date(b.expense_date) - new Date(a.expense_date))
+                  .map((expense) => {
+                    const account = expenseAccounts.find(a => a.account_id === expense.expense_account_id);
+                    const project = projects.find(p => p.id === expense.project_id);
+                    return (
+                      <div key={expense.entry_id} className="p-4 border border-slate-200 rounded-lg hover:bg-slate-50">
+                        <div className="flex justify-between items-start">
+                          <div className="flex-1">
+                            <h4 className="font-semibold text-slate-900">{account?.name || 'Unknown Account'}</h4>
+                            <p className="text-sm text-slate-600 mt-1">{expense.description}</p>
+                            <div className="flex gap-3 mt-1 text-xs text-slate-500">
+                              {expense.vendor_name && (
+                                <span>Vendor: {expense.vendor_name}</span>
+                              )}
+                              {project && (
+                                <span>Project: {project.title}</span>
+                              )}
+                            </div>
+                          </div>
+                          <div className="text-right">
+                            <p className="text-xl font-bold text-red-600">{formatCurrency(expense.amount)}</p>
+                            <p className="text-xs text-slate-600">
+                              {new Date(expense.expense_date).toLocaleDateString()}
+                            </p>
+                          </div>
+                        </div>
+                        
+                        {expense.payment_mode && (
+                          <div className="mt-2 flex gap-4 text-sm text-slate-600">
+                            <span>Mode: {expense.payment_mode}</span>
+                            {expense.reference_number && (
+                              <span>Ref: {expense.reference_number}</span>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })
+              ) : (
+                <p className="text-center text-slate-600 py-8">No expenses recorded</p>
+              )}
+            </div>
+            
+            <div className="flex justify-end pt-4 border-t">
+              <Button variant="outline" onClick={() => setExpensesDetailDialogOpen(false)}>
+                Close
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
       </div>
     </Layout>
   );
