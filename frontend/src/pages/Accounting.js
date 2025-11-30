@@ -1593,9 +1593,15 @@ export default function Accounting({ user, onLogout }) {
             </DialogHeader>
             
             <div className="space-y-3">
-              {selectedIncomeAccount && incomeEntries.filter(e => e.income_account_id === selectedIncomeAccount.account_id).length > 0 ? (
+              {selectedIncomeAccount && incomeEntries.filter(e => 
+                e.income_account_id === selectedIncomeAccount.account_id || 
+                e.income_account_name === selectedIncomeAccount.name
+              ).length > 0 ? (
                 incomeEntries
-                  .filter(e => e.income_account_id === selectedIncomeAccount.account_id)
+                  .filter(e => 
+                    e.income_account_id === selectedIncomeAccount.account_id || 
+                    e.income_account_name === selectedIncomeAccount.name
+                  )
                   .sort((a, b) => new Date(b.income_date) - new Date(a.income_date))
                   .map((entry) => (
                     <div key={entry.entry_id} className="p-4 border border-slate-200 rounded-lg hover:bg-slate-50">
