@@ -71,7 +71,7 @@ export default function OwnerDashboard({ user, onLogout }) {
 
   useEffect(() => {
     filterProjects();
-  }, [projects, searchTerm, filterStatus]);
+  }, [projects, searchTerm, filterStatus, quickFilter]);
 
   const fetchAllData = async () => {
     try {
