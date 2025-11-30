@@ -1081,7 +1081,7 @@ export default function Accounting({ user, onLogout }) {
                   ).map((payment, index) => (
                     <Card key={payment.id || index} className="p-4">
                       <div className="flex justify-between items-start mb-2">
-                        <div>
+                        <div className="flex-1">
                           <p className="font-medium text-lg text-green-600">
                             {formatCurrency(payment.amount)}
                           </p>
@@ -1093,11 +1093,29 @@ export default function Accounting({ user, onLogout }) {
                             })}
                           </p>
                         </div>
-                        <div className="text-right">
+                        <div className="text-right flex-1">
                           <p className="text-sm font-medium text-slate-900">{payment.payment_mode}</p>
                           {payment.reference_number && (
                             <p className="text-xs text-slate-500">Ref: {payment.reference_number}</p>
                           )}
+                        </div>
+                        <div className="flex gap-2 ml-4">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => handleEditPayment(payment)}
+                            className="text-blue-600 hover:bg-blue-50"
+                          >
+                            Edit
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => handleDeletePayment(payment.id)}
+                            className="text-red-600 hover:bg-red-50"
+                          >
+                            Delete
+                          </Button>
                         </div>
                       </div>
                       {payment.bank_account && (
