@@ -111,8 +111,9 @@ export default function PendingRegistrations({ user, onLogout }) {
           : `${selectedUser.name}'s registration has been rejected`
       );
 
-      // Refresh the list
-      fetchPendingRegistrations();
+      // Immediately remove the user from the UI
+      setPendingUsers(prevUsers => prevUsers.filter(u => u.id !== selectedUser.id));
+      
       setDialogOpen(false);
       setSelectedUser(null);
       setActionType(null);
