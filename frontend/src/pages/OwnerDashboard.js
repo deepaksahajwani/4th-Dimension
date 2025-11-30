@@ -486,7 +486,10 @@ export default function OwnerDashboard({ user, onLogout }) {
             )}
           </div>
           
-          <div className="bg-white rounded-xl shadow-md p-6 border-l-4 border-green-500">
+          <div 
+            onClick={() => setProgressDialogOpen(true)}
+            className="bg-white rounded-xl shadow-md p-6 border-l-4 border-green-500 cursor-pointer transition-all hover:shadow-lg"
+          >
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-slate-600 mb-1">Avg Progress</p>
@@ -494,9 +497,13 @@ export default function OwnerDashboard({ user, onLogout }) {
               </div>
               <TrendingUp className="w-10 h-10 text-green-500" />
             </div>
+            <p className="text-xs text-green-600 mt-2">Click to view breakdown</p>
           </div>
           
-          <div className="bg-white rounded-xl shadow-md p-6 border-l-4 border-purple-500">
+          <div 
+            onClick={() => navigate('/team')}
+            className="bg-white rounded-xl shadow-md p-6 border-l-4 border-purple-500 cursor-pointer transition-all hover:shadow-lg"
+          >
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-slate-600 mb-1">Team Size</p>
@@ -504,6 +511,7 @@ export default function OwnerDashboard({ user, onLogout }) {
               </div>
               <Users className="w-10 h-10 text-purple-500" />
             </div>
+            <p className="text-xs text-purple-600 mt-2">Click to manage team</p>
           </div>
         </div>
 
