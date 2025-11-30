@@ -4808,7 +4808,15 @@ async def update_project_income(
         
         # Convert to float
         total_fee = float(data.get('total_fee', 0))
-        received_amount = float(data.get('received_amount', 0))
+        
+        # When updating fees, preserve existing received_amount (don't allow manual update)
+        # Received amount should only change via payment entries
+        if existing:
+            received_amount = existing.get('received_amount', 0)
+            record_id = existing.get('id')
+        else:
+            received_amount = 0
+            record_id = str(uuid.uuid4())
         
         update_data = {
             "project_id": project_id,
@@ -4821,15 +4829,18 @@ async def update_project_income(
         }
         
         if existing:
-            # Update existing
+            # Update existing - only update total_fee and notes, preserve received_amount
             await db.project_income.update_one(
                 {"project_id": project_id},
-                {"$set": update_data}
+                {"$set": {
+                    "total_fee": total_fee,
+                    "pending_amount": total_fee - received_amount,
+                    "notes": update_data['notes'],
+                    "updated_at": update_data['updated_at']
+                }}
             )
-            record_id = existing.get('id')
         else:
             # Create new
-            record_id = str(uuid.uuid4())
             update_data["id"] = record_id
             update_data["payments"] = []
             update_data["created_at"] = datetime.now(timezone.utc).isoformat()
