@@ -393,7 +393,10 @@ export default function Accounting({ user, onLogout }) {
 
         {/* Summary Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
-          <Card className="p-4">
+          <Card 
+            className="p-4 cursor-pointer hover:shadow-lg transition-shadow"
+            onClick={() => setTotalFeesDialogOpen(true)}
+          >
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-slate-600">Total Fees</p>
@@ -405,9 +408,13 @@ export default function Accounting({ user, onLogout }) {
                 <FileText className="w-5 h-5 text-blue-600" />
               </div>
             </div>
+            <p className="text-xs text-blue-600 mt-2">Click to view details</p>
           </Card>
 
-          <Card className="p-4">
+          <Card 
+            className="p-4 cursor-pointer hover:shadow-lg transition-shadow"
+            onClick={() => setReceivedDialogOpen(true)}
+          >
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-slate-600">Received</p>
@@ -419,9 +426,13 @@ export default function Accounting({ user, onLogout }) {
                 <TrendingUp className="w-5 h-5 text-green-600" />
               </div>
             </div>
+            <p className="text-xs text-green-600 mt-2">Click to view details</p>
           </Card>
 
-          <Card className="p-4">
+          <Card 
+            className="p-4 cursor-pointer hover:shadow-lg transition-shadow"
+            onClick={() => setPendingDialogOpen(true)}
+          >
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-slate-600">Pending</p>
@@ -433,9 +444,13 @@ export default function Accounting({ user, onLogout }) {
                 <DollarSign className="w-5 h-5 text-orange-600" />
               </div>
             </div>
+            <p className="text-xs text-orange-600 mt-2">Click to view details</p>
           </Card>
 
-          <Card className="p-4">
+          <Card 
+            className="p-4 cursor-pointer hover:shadow-lg transition-shadow"
+            onClick={() => setOtherIncomeDialogOpen(true)}
+          >
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-slate-600">Other Income</p>
@@ -447,9 +462,13 @@ export default function Accounting({ user, onLogout }) {
                 <TrendingUp className="w-5 h-5 text-blue-600" />
               </div>
             </div>
+            <p className="text-xs text-blue-600 mt-2">Click to view details</p>
           </Card>
 
-          <Card className="p-4">
+          <Card 
+            className="p-4 cursor-pointer hover:shadow-lg transition-shadow"
+            onClick={() => setExpensesDetailDialogOpen(true)}
+          >
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-slate-600">Total Expenses</p>
@@ -461,6 +480,7 @@ export default function Accounting({ user, onLogout }) {
                 <TrendingDown className="w-5 h-5 text-red-600" />
               </div>
             </div>
+            <p className="text-xs text-red-600 mt-2">Click to view details</p>
           </Card>
         </div>
 
