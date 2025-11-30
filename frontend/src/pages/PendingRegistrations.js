@@ -39,7 +39,7 @@ export default function PendingRegistrations({ user, onLogout }) {
   const [dialogOpen, setDialogOpen] = useState(false);
 
   useEffect(() => {
-    if (!user?.is_owner) {
+    if (user?.role !== 'owner') {
       toast.error('Access denied. Owner only.');
       navigate('/dashboard');
       return;
