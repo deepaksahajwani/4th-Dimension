@@ -543,9 +543,26 @@ export default function OwnerDashboard({ user, onLogout }) {
         {/* Projects Grid */}
         <div>
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-bold text-slate-900">
-              All Projects ({filteredProjects.length})
-            </h2>
+            <div className="flex items-center gap-3">
+              <h2 className="text-xl font-bold text-slate-900">
+                All Projects ({filteredProjects.length})
+              </h2>
+              {quickFilter && (
+                <div className="flex items-center gap-2">
+                  <span className={`px-3 py-1 rounded-full text-sm font-medium ${
+                    quickFilter === 'critical' ? 'bg-red-100 text-red-700' : 'bg-blue-100 text-blue-700'
+                  }`}>
+                    {quickFilter === 'critical' ? '🔴 Critical Projects' : '📊 All Projects'}
+                  </span>
+                  <button
+                    onClick={() => handleQuickFilter(null)}
+                    className="text-slate-500 hover:text-slate-700"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+              )}
+            </div>
             <div className="text-sm text-slate-600">
               Showing {filteredProjects.length} of {projects.length}
             </div>
