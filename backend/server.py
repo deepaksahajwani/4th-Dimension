@@ -1230,8 +1230,11 @@ async def approve_reject_user(user_id: str, action: str):
             # Send approval notification to user
             await send_approval_notification(user, approved=True)
             
-            # Send WhatsApp notification
-            await notification_triggers.notify_user_approved(user_id)
+            # Send WhatsApp notification (don't fail if WhatsApp is not configured)
+            try:
+                await notification_triggers.notify_user_approved(user_id)
+            except Exception as e:
+                print(f"WhatsApp notification failed (non-critical): {str(e)}")
             
             # Redirect to success page (preserves owner's login state)
             user_name_encoded = __import__('urllib.parse').quote(user['name'])
