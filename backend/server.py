@@ -439,34 +439,6 @@ async def require_admin(current_user: User = Depends(get_current_user)):
     return current_user
 
 
-# ==================== INJECT DEPENDENCIES INTO MODULAR ROUTERS ====================
-
-# Create a function that returns db
-def get_database():
-    return db
-
-# Inject dependencies into router modules
-files.get_current_user = get_current_user
-files.get_db = get_database
-
-consultants.get_current_user = get_current_user
-consultants.get_db = get_database
-
-contractors.get_current_user = get_current_user
-contractors.require_owner = require_owner
-contractors.get_db = get_database
-
-clients.get_current_user = get_current_user
-clients.require_owner = require_owner
-clients.get_db = get_database
-
-# Include routers in main API router
-api_router.include_router(files.router)
-api_router.include_router(consultants.router)
-api_router.include_router(contractors.router)
-api_router.include_router(clients.router)
-
-
 # ==================== AUTH ROUTES ====================
 
 @api_router.post("/auth/register")
