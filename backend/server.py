@@ -1267,9 +1267,65 @@ async def approve_user_from_dashboard(
     current_user: User = Depends(require_owner)
 ):
     """
-    Approve or reject user from owner dashboard
+    Approve or reject user from owner dashboard - returns JSON response
     """
-    return await approve_reject_user(user_id, action)
+    try:
+        if action not in ['approve', 'reject']:
+            raise HTTPException(status_code=400, detail="Invalid action")
+        
+        user = await db.users.find_one({"id": user_id}, {"_id": 0})
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+        
+        if action == 'approve':
+            await db.users.update_one(
+                {"id": user_id},
+                {"$set": {
+                    "approval_status": "approved",
+                    "is_validated": True
+                }}
+            )
+            
+            # Send approval notification to user
+            try:
+                await send_approval_notification(user, approved=True)
+            except Exception as e:
+                print(f"Email notification failed (non-critical): {str(e)}")
+            
+            # Send WhatsApp notification (don't fail if WhatsApp is not configured)
+            try:
+                await notification_triggers.notify_user_approved(user_id)
+            except Exception as e:
+                print(f"WhatsApp notification failed (non-critical): {str(e)}")
+            
+            return {
+                "success": True,
+                "message": f"{user['name']} has been approved successfully"
+            }
+        else:
+            await db.users.update_one(
+                {"id": user_id},
+                {"$set": {
+                    "approval_status": "rejected"
+                }}
+            )
+            
+            # Send rejection notification to user
+            try:
+                await send_approval_notification(user, approved=False)
+            except Exception as e:
+                print(f"Email notification failed (non-critical): {str(e)}")
+            
+            return {
+                "success": True,
+                "message": f"{user['name']}'s registration has been rejected"
+            }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"Approval error: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
 
 @api_router.get("/auth/pending-registrations")
 async def get_pending_registrations(current_user: User = Depends(require_owner)):
