@@ -77,6 +77,9 @@ app = FastAPI(title="Architecture Firm Management System")
 # Create a router with the /api prefix
 api_router = APIRouter(prefix="/api")
 
+# Include modular routers (will inject dependencies after they're defined)
+# Dependencies will be injected after get_current_user and require_owner are defined
+
 
 # ==================== MODELS ====================
 
