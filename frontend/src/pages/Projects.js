@@ -91,21 +91,28 @@ export default function Projects({ user, onLogout }) {
   const fetchData = async () => {
     try {
       const [projectsRes, clientsRes, contactTypesRes, teamRes, contractorsRes, consultantsRes] = await Promise.all([
-        axios.get(`${API}/projects`),
-        axios.get(`${API}/clients`),
-        axios.get(`${API}/contact-types`),
-        axios.get(`${API}/users`),
-        axios.get(`${API}/contractors`),
-        axios.get(`${API}/consultants`)
+        axios.get(`${API}/projects`).catch(() => ({ data: [] })),
+        axios.get(`${API}/clients`).catch(() => ({ data: [] })),
+        axios.get(`${API}/contact-types`).catch(() => ({ data: [] })),
+        axios.get(`${API}/users`).catch(() => ({ data: [] })),
+        axios.get(`${API}/contractors`).catch(() => ({ data: [] })),
+        axios.get(`${API}/consultants`).catch(() => ({ data: [] }))
       ]);
-      setProjects(projectsRes.data);
-      setClients(clientsRes.data);
-      setContactTypes(contactTypesRes.data);
-      setTeamMembers(teamRes.data);
-      setContractors(contractorsRes.data);
-      setConsultants(consultantsRes.data);
+      setProjects(projectsRes.data || []);
+      setClients(clientsRes.data || []);
+      setContactTypes(contactTypesRes.data || []);
+      setTeamMembers(teamRes.data || []);
+      setContractors(contractorsRes.data || []);
+      setConsultants(consultantsRes.data || []);
     } catch (error) {
-      toast.error('Failed to fetch data');
+      console.error('Error fetching projects data:', error);
+      // Don't show error toast - let empty states handle it
+      setProjects([]);
+      setClients([]);
+      setContactTypes([]);
+      setTeamMembers([]);
+      setContractors([]);
+      setConsultants([]);
     } finally {
       setLoading(false);
     }
