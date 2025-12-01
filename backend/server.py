@@ -43,9 +43,6 @@ from email_templates import get_welcome_email_content
 from email_translations import TRANSLATIONS
 import notification_triggers
 
-# Import modular routers
-from routes import files, consultants, contractors, clients
-
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
 
