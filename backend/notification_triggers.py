@@ -9,20 +9,10 @@ from typing import List, Optional, Dict
 from datetime import datetime, timezone
 from motor.motor_asyncio import AsyncIOMotorClient
 
+# Import WhatsApp service - will be initialized after .env loads
+from whatsapp_service import whatsapp_service, templates
+
 logger = logging.getLogger(__name__)
-
-# Lazy import to ensure .env is loaded first
-_whatsapp_service = None
-_templates = None
-
-def get_whatsapp_service():
-    """Lazy load WhatsApp service after environment is initialized"""
-    global _whatsapp_service, _templates
-    if _whatsapp_service is None:
-        from whatsapp_service import whatsapp_service, templates
-        _whatsapp_service = whatsapp_service
-        _templates = templates
-    return _whatsapp_service, _templates
 
 # Database connection
 mongo_url = os.environ.get('MONGO_URL')
