@@ -346,8 +346,5 @@ class NotificationTemplates:
         )
 
 
-# Create service instance - will initialize when imported (after .env is loaded)
-whatsapp_service = WhatsAppNotificationService()
-
 # Export for easy access
 templates = NotificationTemplates()
