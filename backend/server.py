@@ -41,10 +41,12 @@ from models_projects import (
 from drawing_templates import get_template_drawings
 from email_templates import get_welcome_email_content
 from email_translations import TRANSLATIONS
-import notification_triggers
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
+
+# Import notification_triggers AFTER loading .env so WhatsApp service can access credentials
+import notification_triggers
 
 # MongoDB connection
 mongo_url = os.environ['MONGO_URL']
