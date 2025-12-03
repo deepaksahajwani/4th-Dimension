@@ -10,6 +10,12 @@ from typing import Optional, Dict, List
 from datetime import datetime, timezone
 from twilio.rest import Client
 from twilio.base.exceptions import TwilioRestException
+from pathlib import Path
+from dotenv import load_dotenv
+
+# Ensure .env is loaded before accessing credentials
+ROOT_DIR = Path(__file__).parent
+load_dotenv(ROOT_DIR / '.env')
 
 logger = logging.getLogger(__name__)
 
