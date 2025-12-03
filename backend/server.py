@@ -517,6 +517,34 @@ async def register(user_data: UserRegister):
     
     await db.users.insert_one(user_dict)
     
+    # Send notification to owner about new registration (if not owner registering)
+    if not is_owner_email:
+        try:
+            # Create in-app notification for owner
+            owner = await db.users.find_one({"is_owner": True}, {"_id": 0})
+            if owner:
+                notification = {
+                    "id": str(uuid4()),
+                    "user_id": owner["id"],
+                    "message": f"New registration: {user.name} ({user.email}) - Role: {detected_role}",
+                    "link": "/pending-registrations",
+                    "is_read": False,
+                    "created_at": datetime.now(timezone.utc).isoformat()
+                }
+                await db.notifications.insert_one(notification)
+                
+                # Send WhatsApp notification to owner (non-blocking)
+                try:
+                    await notification_triggers.notify_owner_new_registration(
+                        user.name,
+                        user.email,
+                        detected_role
+                    )
+                except Exception as e:
+                    print(f"WhatsApp notification failed (non-critical): {str(e)}")
+        except Exception as e:
+            print(f"Failed to notify owner about new registration: {str(e)}")
+    
     # Create token
     access_token = create_access_token(data={"sub": user.email})
     
