@@ -19,16 +19,22 @@ class WhatsAppNotificationService:
     
     def __init__(self):
         """Initialize Twilio client with credentials from environment"""
-        self.account_sid = os.getenv('TWILIO_ACCOUNT_SID')
-        self.auth_token = os.getenv('TWILIO_AUTH_TOKEN')
-        self.whatsapp_number = os.getenv('TWILIO_WHATSAPP_NUMBER', 'whatsapp:+919913899888')
+        # Use os.environ instead of os.getenv to ensure .env is loaded
+        self.account_sid = os.environ.get('TWILIO_ACCOUNT_SID')
+        self.auth_token = os.environ.get('TWILIO_AUTH_TOKEN')
+        self.whatsapp_number = os.environ.get('TWILIO_WHATSAPP_NUMBER', 'whatsapp:+14155238886')
         
         if not self.account_sid or not self.auth_token:
             logger.warning("Twilio credentials not found - WhatsApp notifications will be disabled")
             self.client = None
         else:
-            self.client = Client(self.account_sid, self.auth_token)
-            logger.info("WhatsApp Notification Service initialized")
+            try:
+                self.client = Client(self.account_sid, self.auth_token)
+                logger.info(f"✅ WhatsApp Notification Service initialized (Sandbox mode)")
+                logger.info(f"   Using WhatsApp number: {self.whatsapp_number}")
+            except Exception as e:
+                logger.error(f"Failed to initialize Twilio client: {str(e)}")
+                self.client = None
     
     def validate_indian_phone(self, phone_number: str) -> bool:
         """
