@@ -990,6 +990,45 @@ Sequence: #{sequence_number}
         logger.error(f"Error sending next drawing available notification: {str(e)}")
 
 
+async def notify_owner_new_registration(user_name: str, user_email: str, role: str):
+    """
+    Notify owner when a new user registers
+    """
+    try:
+        # Get owner
+        owner = await get_db().users.find_one({"is_owner": True}, {"_id": 0})
+        
+        if not owner:
+            logger.warning("Owner not found - cannot send registration notification")
+            return
+        
+        # Prepare message
+        message = (
+            f"🔔 *New Registration*\n\n"
+            f"Name: {user_name}\n"
+            f"Email: {user_email}\n"
+            f"Role: {role}\n\n"
+            f"Please review and approve in the Pending Registrations section."
+        )
+        
+        # Send WhatsApp to owner
+        result = whatsapp_service.send_message(owner["mobile"], message)
+        
+        # Log the notification
+        await save_notification_log(
+            user_id=owner["id"],
+            notification_type="notify_owner_new_registration",
+            message=message,
+            mobile_number=owner["mobile"],
+            result=result
+        )
+        
+        logger.info(f"New registration notification sent to owner for: {user_name}")
+        
+    except Exception as e:
+        logger.error(f"Error sending new registration notification to owner: {str(e)}")
+
+
 # Export all notification functions
 __all__ = [
     'notify_user_registered',
@@ -1004,5 +1043,6 @@ __all__ = [
     'notify_project_onboarding',
     'notify_drawing_due_soon',
     'notify_drawing_issued',
-    'notify_next_drawing_available'
+    'notify_next_drawing_available',
+    'notify_owner_new_registration'
 ]
