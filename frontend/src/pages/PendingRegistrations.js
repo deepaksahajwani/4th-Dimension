@@ -335,34 +335,65 @@ export default function PendingRegistrations({ user, onLogout }) {
 
         {/* Confirmation Dialog */}
         <AlertDialog open={dialogOpen} onOpenChange={setDialogOpen}>
-          <AlertDialogContent>
+          <AlertDialogContent className="max-w-md">
             <AlertDialogHeader>
               <AlertDialogTitle>
-                {actionType === 'approve' ? 'Approve Registration?' : 'Reject Registration?'}
+                {actionType === 'approve' ? 'Approve Registration' : 'Reject Registration?'}
               </AlertDialogTitle>
-              <AlertDialogDescription>
-                {actionType === 'approve' ? (
-                  <>
-                    Are you sure you want to approve <strong>{selectedUser?.name}</strong>'s registration?
-                    <br /><br />
-                    They will receive an email notification and will be able to log in immediately.
-                  </>
-                ) : (
-                  <>
-                    Are you sure you want to reject <strong>{selectedUser?.name}</strong>'s registration?
-                    <br /><br />
-                    They will receive an email notification about the rejection.
-                  </>
-                )}
+              <AlertDialogDescription asChild>
+                <div>
+                  {actionType === 'approve' ? (
+                    <>
+                      <p className="mb-4">
+                        Approve <strong>{selectedUser?.name}</strong> and assign their specific role in your team.
+                      </p>
+                      
+                      {/* Role Selection */}
+                      <div className="space-y-3 mb-4">
+                        <Label htmlFor="role-select" className="text-sm font-medium text-slate-900">
+                          Assign Specific Role *
+                        </Label>
+                        <Select value={selectedRole} onValueChange={setSelectedRole}>
+                          <SelectTrigger id="role-select" className="w-full">
+                            <SelectValue placeholder="Select role..." />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {Object.entries(getAvailableRoles(selectedUser?.role)).map(([key, label]) => (
+                              <SelectItem key={key} value={key}>
+                                {label}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <p className="text-xs text-slate-500">
+                          This will help track their responsibilities and appear on their profile.
+                        </p>
+                      </div>
+
+                      <p className="text-sm text-slate-600">
+                        They will receive an email notification and can log in immediately.
+                      </p>
+                    </>
+                  ) : (
+                    <>
+                      <p>
+                        Are you sure you want to reject <strong>{selectedUser?.name}</strong>'s registration?
+                      </p>
+                      <p className="mt-2 text-sm text-slate-600">
+                        They will receive an email notification about the rejection.
+                      </p>
+                    </>
+                  )}
+                </div>
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
-              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogCancel onClick={() => setSelectedRole('')}>Cancel</AlertDialogCancel>
               <AlertDialogAction
                 onClick={confirmAction}
                 className={actionType === 'approve' ? 'bg-green-600 hover:bg-green-700' : 'bg-red-600 hover:bg-red-700'}
               >
-                {actionType === 'approve' ? 'Approve' : 'Reject'}
+                {actionType === 'approve' ? 'Approve & Assign' : 'Reject'}
               </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>
