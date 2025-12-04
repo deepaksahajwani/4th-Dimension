@@ -17,6 +17,14 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Label } from '@/components/ui/label';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
@@ -27,6 +35,43 @@ const ROLE_LABELS = {
   contractor: 'Contractor',
   vendor: 'Vendor',
   consultant: 'Consultant'
+};
+
+// Specific roles for team members
+const TEAM_MEMBER_ROLES = {
+  architect: 'Architect',
+  interior_designer: 'Interior Designer',
+  drafter: 'Drafter',
+  team_leader: 'Team Leader',
+  site_engineer: 'Site Engineer',
+  project_manager: 'Project Manager',
+  team_member: 'Team Member (General)'
+};
+
+// Specific roles for contractors
+const CONTRACTOR_ROLES = {
+  civil_contractor: 'Civil Contractor',
+  electrical_contractor: 'Electrical Contractor',
+  plumbing_contractor: 'Plumbing Contractor',
+  hvac_contractor: 'HVAC Contractor',
+  structural_contractor: 'Structural Contractor',
+  interior_contractor: 'Interior Contractor',
+  painting_contractor: 'Painting Contractor',
+  flooring_contractor: 'Flooring Contractor',
+  contractor: 'Contractor (General)'
+};
+
+// Specific roles for consultants
+const CONSULTANT_ROLES = {
+  structural_consultant: 'Structural Consultant',
+  mep_consultant: 'MEP Consultant',
+  electrical_consultant: 'Electrical Consultant',
+  plumbing_consultant: 'Plumbing Consultant',
+  landscape_consultant: 'Landscape Consultant',
+  interior_consultant: 'Interior Design Consultant',
+  sustainability_consultant: 'Sustainability Consultant',
+  fire_safety_consultant: 'Fire Safety Consultant',
+  consultant: 'Consultant (General)'
 };
 
 export default function PendingRegistrations({ user, onLogout }) {
