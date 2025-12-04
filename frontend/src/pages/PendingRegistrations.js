@@ -82,6 +82,7 @@ export default function PendingRegistrations({ user, onLogout }) {
   const [selectedUser, setSelectedUser] = useState(null);
   const [actionType, setActionType] = useState(null); // 'approve' or 'reject'
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [selectedRole, setSelectedRole] = useState('');
 
   useEffect(() => {
     if (user?.role !== 'owner') {
