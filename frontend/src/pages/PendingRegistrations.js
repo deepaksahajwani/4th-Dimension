@@ -144,6 +144,12 @@ export default function PendingRegistrations({ user, onLogout }) {
   const confirmAction = async () => {
     if (!selectedUser || !actionType) return;
 
+    // Validate role selection for approval
+    if (actionType === 'approve' && !selectedRole) {
+      toast.error('Please select a specific role for the user');
+      return;
+    }
+
     const userIdToRemove = selectedUser.id;
     const userName = selectedUser.name;
 
@@ -154,7 +160,8 @@ export default function PendingRegistrations({ user, onLogout }) {
       await axios.post(`${API}/auth/approve-user-dashboard`, null, {
         params: {
           user_id: userIdToRemove,
-          action: actionType
+          action: actionType,
+          role: actionType === 'approve' ? selectedRole : undefined
         }
       });
 
@@ -167,19 +174,38 @@ export default function PendingRegistrations({ user, onLogout }) {
 
       toast.success(
         actionType === 'approve' 
-          ? `${userName} has been approved!` 
+          ? `${userName} has been approved as ${getRoleLabel(selectedRole)}!` 
           : `${userName}'s registration has been rejected`
       );
       
       setSelectedUser(null);
       setActionType(null);
+      setSelectedRole('');
     } catch (error) {
       console.error('Action error:', error);
       toast.error(error.response?.data?.detail || `Failed to ${actionType} user`);
       setDialogOpen(false);
       setSelectedUser(null);
       setActionType(null);
+      setSelectedRole('');
     }
+  };
+
+  // Helper function to get role label
+  const getRoleLabel = (role) => {
+    return TEAM_MEMBER_ROLES[role] || CONTRACTOR_ROLES[role] || CONSULTANT_ROLES[role] || role;
+  };
+
+  // Get available roles based on user type
+  const getAvailableRoles = (userRole) => {
+    if (userRole === 'team_member') {
+      return TEAM_MEMBER_ROLES;
+    } else if (userRole === 'contractor') {
+      return CONTRACTOR_ROLES;
+    } else if (userRole === 'consultant') {
+      return CONSULTANT_ROLES;
+    }
+    return {};
   };
 
   if (loading) {
