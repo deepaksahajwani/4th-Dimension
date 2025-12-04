@@ -131,6 +131,7 @@ export default function PendingRegistrations({ user, onLogout }) {
   const handleApproveClick = (user) => {
     setSelectedUser(user);
     setActionType('approve');
+    setSelectedRole(user.role); // Default to current role
     setDialogOpen(true);
   };
 
