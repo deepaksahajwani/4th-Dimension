@@ -1294,10 +1294,12 @@ async def approve_reject_user(user_id: str, action: str):
 async def approve_user_from_dashboard(
     user_id: str = Query(...),
     action: str = Query(...),
+    role: str = Query(None),
     current_user: User = Depends(require_owner)
 ):
     """
     Approve or reject user from owner dashboard - returns JSON response
+    Can optionally assign a specific role during approval
     """
     try:
         if action not in ['approve', 'reject']:
@@ -1308,12 +1310,18 @@ async def approve_user_from_dashboard(
             raise HTTPException(status_code=404, detail="User not found")
         
         if action == 'approve':
+            update_data = {
+                "approval_status": "approved",
+                "is_validated": True
+            }
+            
+            # If a specific role is provided, update it
+            if role:
+                update_data["role"] = role
+            
             await db.users.update_one(
                 {"id": user_id},
-                {"$set": {
-                    "approval_status": "approved",
-                    "is_validated": True
-                }}
+                {"$set": update_data}
             )
             
             # Send approval notification to user
