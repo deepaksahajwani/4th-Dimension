@@ -5661,11 +5661,13 @@ async def get_team_overview(
         if current_user.role != "owner":
             raise HTTPException(status_code=403, detail="Access denied")
         
-        # Get all team members (excluding owner, client, contractor, consultant, vendor)
+        # Get all approved users excluding owner, client, contractor, consultant, vendor
+        # This includes all team member roles (architects, designers, drafters, etc.)
         team_members = await db.users.find(
             {
-                "role": {"$in": ["team_member", "architect", "team_leader", "interior_designer", "drafter"]},
-                "approval_status": "approved"
+                "role": {"$nin": ["owner", "client", "contractor", "consultant", "vendor"]},
+                "approval_status": "approved",
+                "is_owner": {"$ne": True}
             },
             {"_id": 0, "id": 1, "name": 1, "role": 1, "email": 1}
         ).to_list(100)
