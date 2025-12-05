@@ -2367,6 +2367,7 @@ async def create_project(project_data: NewProjectCreate, current_user: User = De
         project_types=project_data.project_types,
         status=project_data.status,
         client_id=project_data.client_id,
+        team_leader_id=project_data.team_leader_id,
         lead_architect_id=project_data.lead_architect_id,
         project_manager_id=project_data.project_manager_id,
         start_date=datetime.fromisoformat(project_data.start_date) if project_data.start_date else None,
@@ -2405,6 +2406,13 @@ async def create_project(project_data: NewProjectCreate, current_user: User = De
             project_dict[field] = project_dict[field].isoformat() if isinstance(project_dict[field], datetime) else project_dict[field]
     
     await db.projects.insert_one(project_dict)
+    
+    # Send project creation notifications
+    try:
+        from notification_triggers_v2 import notify_project_creation
+        await notify_project_creation(project.id)
+    except Exception as e:
+        logger.error(f"Error sending project creation notification: {str(e)}")
     
     # Auto-create 3 drawings for each project type selected
     # Define standard drawings for each project type
