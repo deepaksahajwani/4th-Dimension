@@ -291,66 +291,36 @@ export default function Clients({ user, onLogout }) {
               <DialogTitle>Invite Client to Register</DialogTitle>
             </DialogHeader>
             <form onSubmit={handleInviteClient} className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="col-span-2">
-                  <Label>Client Name *</Label>
-                  <Input
-                    value={formData.name}
-                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                    required
-                    placeholder="ABC Constructions"
-                  />
-                </div>
-                <div>
-                  <Label>Contact Person</Label>
-                  <Input
-                    value={formData.contact_person}
-                    onChange={(e) => setFormData({ ...formData, contact_person: e.target.value })}
-                    placeholder="Mr. John Doe"
-                  />
-                </div>
-                <div>
-                  <Label>Phone</Label>
-                  <Input
-                    value={formData.phone}
-                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                    placeholder="+91 98765 43210"
-                  />
-                </div>
-                <div className="col-span-2">
-                  <Label>Email</Label>
-                  <Input
-                    type="email"
-                    value={formData.email}
-                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                    placeholder="contact@client.com"
-                  />
-                </div>
-                <div className="col-span-2">
-                  <Label>Address</Label>
-                  <textarea
-                    className="flex min-h-[80px] w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm"
-                    value={formData.address}
-                    onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                    placeholder="Complete address"
-                  />
-                </div>
-                <div className="col-span-2">
-                  <Label>Notes</Label>
-                  <textarea
-                    className="flex min-h-[60px] w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm"
-                    value={formData.notes}
-                    onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-                    placeholder="Additional notes"
-                  />
-                </div>
+              <p className="text-sm text-slate-600">
+                Send a WhatsApp invitation to the client to register themselves with complete details.
+              </p>
+              <div>
+                <Label>Client Name *</Label>
+                <Input
+                  value={inviteForm.name}
+                  onChange={(e) => setInviteForm({ ...inviteForm, name: e.target.value })}
+                  required
+                  placeholder="John Doe"
+                />
+              </div>
+              <div>
+                <Label>Phone Number (with country code) *</Label>
+                <Input
+                  value={inviteForm.phone}
+                  onChange={(e) => setInviteForm({ ...inviteForm, phone: e.target.value })}
+                  required
+                  placeholder="+919876543210"
+                />
+                <p className="text-xs text-slate-500 mt-1">
+                  WhatsApp invitation will be sent to this number
+                </p>
               </div>
               <DialogFooter>
-                <Button type="button" variant="outline" onClick={() => setAddDialogOpen(false)}>
+                <Button type="button" variant="outline" onClick={() => setInviteDialogOpen(false)}>
                   Cancel
                 </Button>
                 <Button type="submit" className="bg-orange-500 hover:bg-orange-600">
-                  Add Client
+                  Send Invitation
                 </Button>
               </DialogFooter>
             </form>
