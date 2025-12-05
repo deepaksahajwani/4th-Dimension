@@ -73,7 +73,7 @@ export default function Consultants({ user, onLogout }) {
       return;
     }
 
-    try:
+    try {
       await axios.post(`${API}/invite/send`, null, {
         params: {
           name: inviteForm.name,
