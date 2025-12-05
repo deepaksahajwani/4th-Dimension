@@ -123,7 +123,7 @@ export default function Contractors({ user, onLogout }) {
       pan_number: contractor.pan_number || '',
       notes: contractor.notes || ''
     });
-    setDialogOpen(true);
+    setEditDialogOpen(true);
   };
 
   const handleDelete = async (contractorId) => {
