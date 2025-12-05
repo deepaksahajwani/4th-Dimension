@@ -234,6 +234,14 @@ function App() {
               }
             />
             <Route
+              path="/client-dashboard"
+              element={
+                <ProtectedRoute>
+                  <ClientDashboard user={user} onLogout={handleLogout} />
+                </ProtectedRoute>
+              }
+            />
+            <Route
               path="/work-tracker"
               element={
                 <ProtectedRoute>
