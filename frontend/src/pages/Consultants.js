@@ -59,40 +59,56 @@ export default function Consultants({ user, onLogout }) {
     }
   };
 
-  const handleOpenDialog = (consultant = null) => {
-    if (consultant) {
-      setEditingConsultant(consultant);
-      setFormData({
-        name: consultant.name || '',
-        type: consultant.type || '',
-        company_name: consultant.company_name || '',
-        email: consultant.email || '',
-        phone: consultant.phone || '',
-        alternate_phone: consultant.alternate_phone || '',
-        address: consultant.address || '',
-        specialization: consultant.specialization || '',
-        license_number: consultant.license_number || '',
-        notes: consultant.notes || ''
-      });
-    } else {
-      setEditingConsultant(null);
-      setFormData({
-        name: '',
-        type: '',
-        company_name: '',
-        email: '',
-        phone: '',
-        alternate_phone: '',
-        address: '',
-        specialization: '',
-        license_number: '',
-        notes: ''
-      });
+  const handleInviteConsultant = async (e) => {
+    e.preventDefault();
+    
+    if (!inviteForm.name || !inviteForm.phone) {
+      toast.error('Please enter name and phone number');
+      return;
     }
-    setDialogOpen(true);
+
+    const phoneRegex = /^\+?[1-9]\d{9,14}$/;
+    if (!phoneRegex.test(inviteForm.phone.replace(/\s/g, ''))) {
+      toast.error('Please enter a valid phone number with country code (e.g., +919876543210)');
+      return;
+    }
+
+    try:
+      await axios.post(`${API}/invite/send`, null, {
+        params: {
+          name: inviteForm.name,
+          phone: inviteForm.phone,
+          invitee_type: 'consultant'
+        }
+      });
+      
+      toast.success(`WhatsApp invite sent to ${inviteForm.name}!`, { duration: 5000 });
+      setInviteDialogOpen(false);
+      setInviteForm({ name: '', phone: '' });
+    } catch (error) {
+      console.error('Invite error:', error);
+      toast.error(error.response?.data?.detail || 'Failed to send invite');
+    }
   };
 
-  const handleSubmit = async (e) => {
+  const handleOpenEditDialog = (consultant) => {
+    setEditingConsultant(consultant);
+    setFormData({
+      name: consultant.name || '',
+      type: consultant.type || '',
+      company_name: consultant.company_name || '',
+      email: consultant.email || '',
+      phone: consultant.phone || '',
+      alternate_phone: consultant.alternate_phone || '',
+      address: consultant.address || '',
+      specialization: consultant.specialization || '',
+      license_number: consultant.license_number || '',
+      notes: consultant.notes || ''
+    });
+    setEditDialogOpen(true);
+  };
+
+  const handleEditSubmit = async (e) => {
     e.preventDefault();
     
     if (!formData.name || !formData.type) {
@@ -103,21 +119,12 @@ export default function Consultants({ user, onLogout }) {
     try {
       const token = localStorage.getItem('token');
       
-      if (editingConsultant) {
-        // Update
-        await axios.put(`${API}/consultants/${editingConsultant.id}`, formData, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
-        toast.success('Consultant updated successfully');
-      } else {
-        // Create
-        await axios.post(`${API}/consultants`, formData, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
-        toast.success('Consultant added successfully');
-      }
+      await axios.put(`${API}/consultants/${editingConsultant.id}`, formData, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      toast.success('Consultant updated successfully');
       
-      setDialogOpen(false);
+      setEditDialogOpen(false);
       fetchConsultants();
     } catch (error) {
       console.error('Error saving consultant:', error);
