@@ -129,25 +129,44 @@ export default function Team({ user, onLogout }) {
   const handleInviteTeamMember = async (e) => {
     e.preventDefault();
     
-    if (!inviteForm.name || !inviteForm.email || !inviteForm.phone || !inviteForm.role) {
-      toast.error('Please fill in all fields');
+    if (!inviteForm.name || !inviteForm.phone) {
+      toast.error('Please enter name and phone number');
+      return;
+    }
+
+    // Validate phone number format
+    const phoneRegex = /^\+?[1-9]\d{9,14}$/;
+    if (!phoneRegex.test(inviteForm.phone.replace(/\s/g, ''))) {
+      toast.error('Please enter a valid phone number with country code (e.g., +919876543210)');
       return;
     }
 
     setInviting(true);
     try {
-      const response = await axios.post(`${API}/team/invite`, inviteForm);
+      await axios.post(`${API}/invite/send`, null, {
+        params: {
+          name: inviteForm.name,
+          phone: inviteForm.phone,
+          invitee_type: inviteForm.invitee_type
+        }
+      });
       
-      toast.success('Team member invited! Verification emails and SMS sent.', {
+      const typeLabels = {
+        'team_member': 'team member',
+        'client': 'client',
+        'contractor': 'contractor',
+        'consultant': 'consultant'
+      };
+      
+      toast.success(`WhatsApp invite sent to ${inviteForm.name} (${typeLabels[inviteForm.invitee_type]})!`, {
         duration: 5000
       });
       
       setInviteDialogOpen(false);
-      setInviteForm({ name: '', email: '', phone: '', role: '' });
-      fetchTeamMembers();
+      setInviteForm({ name: '', phone: '', invitee_type: 'team_member' });
     } catch (error) {
       console.error('Invite error:', error);
-      toast.error(error.response?.data?.detail || 'Failed to invite team member');
+      toast.error(error.response?.data?.detail || 'Failed to send invite');
     } finally {
       setInviting(false);
     }
