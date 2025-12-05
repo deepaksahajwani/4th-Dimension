@@ -24,7 +24,7 @@ def get_language_toggle_bar(user_id: str, role: str, backend_url: str) -> str:
 
 def get_welcome_email_content(user: dict, login_url: str) -> tuple[str, str]:
     """
-    Generate role-specific welcome email content
+    Generate role-specific welcome email content (English only)
     Returns: (subject, html_content)
     """
     
@@ -33,17 +33,12 @@ def get_welcome_email_content(user: dict, login_url: str) -> tuple[str, str]:
     email = user['email']
     user_id = user.get('id', '')
     registered_via = user.get('registered_via', 'email')
-    preferred_language = user.get('preferred_language', 'en')
-    backend_url = os.getenv('REACT_APP_BACKEND_URL', login_url)
     
     # Common styling
     header_style = "text-align: center; margin-bottom: 30px;"
     section_style = "background: #F3F4F6; padding: 25px; border-radius: 10px; margin: 25px 0;"
     feature_style = "background: white; padding: 15px; border-radius: 8px; margin: 10px 0; border-left: 4px solid #4F46E5;"
     button_style = "display: inline-block; background: #4F46E5; color: white; padding: 15px 40px; text-decoration: none; border-radius: 8px; margin-top: 20px; font-weight: bold; font-size: 16px;"
-    
-    # Language toggle bar
-    language_toggle = get_language_toggle_bar(user_id, role, backend_url)
     
     # Login credentials section
     credentials_html = f"""
