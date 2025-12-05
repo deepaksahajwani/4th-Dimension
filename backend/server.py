@@ -2630,6 +2630,11 @@ async def update_project(
     current_user: User = Depends(get_current_user)
 ):
     """Update project details"""
+    # Get existing project to check for new contractors/consultants
+    existing_project = await db.projects.find_one({"id": project_id}, {"_id": 0})
+    if not existing_project:
+        raise HTTPException(status_code=404, detail="Project not found")
+    
     update_dict = {k: v for k, v in project_data.model_dump().items() if v is not None}
     
     # Auto-archive if end_date is being set
@@ -2651,6 +2656,48 @@ async def update_project(
     
     if result.matched_count == 0:
         raise HTTPException(status_code=404, detail="Project not found")
+    
+    # Check if contractors or consultants were added and send notifications
+    try:
+        from notification_triggers_v2 import notify_contractor_consultant_added
+        
+        # Check assigned_contractors
+        if update_dict.get('assigned_contractors'):
+            existing_contractors = existing_project.get('assigned_contractors', {})
+            new_contractors = update_dict['assigned_contractors']
+            
+            # Find newly added contractors
+            for contractor_type, contractor_id in new_contractors.items():
+                if contractor_id and contractor_id != existing_contractors.get(contractor_type):
+                    # New contractor added
+                    await notify_contractor_consultant_added(
+                        project_id=project_id,
+                        person_id=contractor_id,
+                        person_type='contractor'
+                    )
+        
+        # Check for consultants (structural_consultant, etc.)
+        consultant_fields = ['structural_consultant', 'electrical_consultant', 'plumbing_consultant', 
+                            'landscape_consultant', 'mep_consultant']
+        
+        for field in consultant_fields:
+            if update_dict.get(field):
+                new_consultant = update_dict[field]
+                existing_consultant = existing_project.get(field)
+                
+                # If consultant has an id field and it's new
+                if isinstance(new_consultant, dict) and new_consultant.get('id'):
+                    consultant_id = new_consultant['id']
+                    existing_id = existing_consultant.get('id') if isinstance(existing_consultant, dict) else None
+                    
+                    if consultant_id != existing_id:
+                        await notify_contractor_consultant_added(
+                            project_id=project_id,
+                            person_id=consultant_id,
+                            person_type='consultant'
+                        )
+    except Exception as e:
+        logger.error(f"Error sending contractor/consultant notification: {str(e)}")
     
     return {"message": "Project updated successfully"}
 
