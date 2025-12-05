@@ -241,9 +241,9 @@ export default function Contractors({ user, onLogout }) {
             <CardContent className="p-12 text-center">
               <Building2 className="w-16 h-16 text-slate-300 mx-auto mb-4" />
               <h3 className="text-lg font-medium text-slate-900 mb-2">No Contractors Yet</h3>
-              <p className="text-slate-600 mb-4">Add your first contractor to get started</p>
+              <p className="text-slate-600 mb-4">Invite your first contractor to get started</p>
               {user?.is_owner && (
-                <Button onClick={() => setDialogOpen(true)} className="bg-orange-500 hover:bg-orange-600">
+                <Button onClick={() => setInviteDialogOpen(true)} className="bg-orange-500 hover:bg-orange-600">
                   <Plus className="w-4 h-4 mr-2" />
                   Add Contractor
                 </Button>
