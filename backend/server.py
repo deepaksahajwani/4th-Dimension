@@ -568,6 +568,19 @@ async def login(credentials: UserLogin):
     if not user_doc:
         raise HTTPException(status_code=401, detail="Invalid email or password")
     
+    # Check approval status
+    approval_status = user_doc.get('approval_status', 'approved')
+    if approval_status == 'rejected':
+        raise HTTPException(
+            status_code=403, 
+            detail="Your registration was rejected. Please contact admin or register again with updated information."
+        )
+    elif approval_status == 'pending':
+        raise HTTPException(
+            status_code=403, 
+            detail="Your registration is pending approval. Please wait for admin approval."
+        )
+    
     if not user_doc.get('password_hash'):
         raise HTTPException(status_code=401, detail="Please use Google login")
     
