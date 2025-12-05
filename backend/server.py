@@ -1324,17 +1324,12 @@ async def approve_user_from_dashboard(
                 {"$set": update_data}
             )
             
-            # Send approval notification to user
+            # Send approval notification using new system
             try:
-                await send_approval_notification(user, approved=True)
+                from notification_triggers_v2 import notify_user_approval
+                await notify_user_approval(user_id)
             except Exception as e:
-                print(f"Email notification failed (non-critical): {str(e)}")
-            
-            # Send WhatsApp notification (don't fail if WhatsApp is not configured)
-            try:
-                await notification_triggers.notify_user_approved(user_id)
-            except Exception as e:
-                print(f"WhatsApp notification failed (non-critical): {str(e)}")
+                print(f"Approval notification failed (non-critical): {str(e)}")
             
             return {
                 "success": True,
