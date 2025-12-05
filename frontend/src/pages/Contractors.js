@@ -21,8 +21,13 @@ const CONTRACTOR_TYPES = [
 export default function Contractors({ user, onLogout }) {
   const [contractors, setContractors] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [dialogOpen, setDialogOpen] = useState(false);
+  const [inviteDialogOpen, setInviteDialogOpen] = useState(false);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [editingContractor, setEditingContractor] = useState(null);
+  const [inviteForm, setInviteForm] = useState({
+    name: '',
+    phone: ''
+  });
   const [formData, setFormData] = useState({
     name: '',
     contractor_type: '',
