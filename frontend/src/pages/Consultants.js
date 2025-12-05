@@ -274,15 +274,56 @@ export default function Consultants({ user, onLogout }) {
           </div>
         )}
 
-        {/* Add/Edit Dialog */}
-        <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+        {/* Invite Consultant Dialog */}
+        <Dialog open={inviteDialogOpen} onOpenChange={setInviteDialogOpen}>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle>Invite Consultant to Register</DialogTitle>
+            </DialogHeader>
+            <form onSubmit={handleInviteConsultant} className="space-y-4">
+              <p className="text-sm text-slate-600">
+                Send a WhatsApp invitation to the consultant to register themselves with complete details.
+              </p>
+              <div>
+                <Label>Consultant Name *</Label>
+                <Input
+                  value={inviteForm.name}
+                  onChange={(e) => setInviteForm({ ...inviteForm, name: e.target.value })}
+                  required
+                  placeholder="Dr. John Consultant"
+                />
+              </div>
+              <div>
+                <Label>Phone Number (with country code) *</Label>
+                <Input
+                  value={inviteForm.phone}
+                  onChange={(e) => setInviteForm({ ...inviteForm, phone: e.target.value })}
+                  required
+                  placeholder="+919876543210"
+                />
+                <p className="text-xs text-slate-500 mt-1">
+                  WhatsApp invitation will be sent to this number
+                </p>
+              </div>
+              <DialogFooter>
+                <Button type="button" variant="outline" onClick={() => setInviteDialogOpen(false)}>
+                  Cancel
+                </Button>
+                <Button type="submit" className="bg-blue-500 hover:bg-blue-600">
+                  Send Invitation
+                </Button>
+              </DialogFooter>
+            </form>
+          </DialogContent>
+        </Dialog>
+
+        {/* Edit Consultant Dialog */}
+        <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
           <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle>
-                {editingConsultant ? 'Edit Consultant' : 'Add New Consultant'}
-              </DialogTitle>
+              <DialogTitle>Edit Consultant</DialogTitle>
             </DialogHeader>
-            <form onSubmit={handleSubmit}>
+            <form onSubmit={handleEditSubmit}>
               <div className="grid gap-4 py-4">
                 <div className="grid grid-cols-2 gap-4">
                   <div>
