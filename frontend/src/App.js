@@ -20,6 +20,7 @@ import Dashboard from './pages/Dashboard';
 import ExternalDashboard from './pages/ExternalDashboard';
 import WeeklyDashboard from './pages/WeeklyDashboard';
 import OwnerDashboard from './pages/OwnerDashboard';
+import ClientDashboard from './pages/ClientDashboard';
 import WorkTracker from './pages/WorkTracker';
 import MyWork from './pages/MyWork';
 import AssignTargets from './pages/AssignTargets';
