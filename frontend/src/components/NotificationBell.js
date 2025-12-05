@@ -176,13 +176,23 @@ export default function NotificationBell({ user }) {
           )}
         </button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent className="w-96 max-h-[500px] overflow-y-auto" align="end">
-        <div className="p-3 border-b border-slate-200 flex items-center justify-between">
+      <DropdownMenuContent 
+        className="w-96 max-h-[500px] overflow-y-auto p-0" 
+        align="end"
+        onInteractOutside={(e) => {
+          // Prevent closing when clicking inside
+          e.preventDefault();
+        }}
+      >
+        <div className="p-3 border-b border-slate-200 flex items-center justify-between sticky top-0 bg-white z-10">
           <h3 className="font-semibold text-slate-900">Notifications</h3>
           {unreadCount > 0 && (
             <button
-              onClick={markAllAsRead}
-              className="text-xs text-blue-600 hover:text-blue-700"
+              onClick={(e) => {
+                e.stopPropagation();
+                markAllAsRead();
+              }}
+              className="text-xs text-blue-600 hover:text-blue-700 font-medium"
             >
               Mark all as read
             </button>
@@ -196,37 +206,43 @@ export default function NotificationBell({ user }) {
           </div>
         ) : (
           <div className="divide-y divide-slate-100">
-            {notifications.map((notification) => (
-              <DropdownMenuItem
-                key={notification.id}
-                onClick={() => handleNotificationClick(notification)}
-                className={`p-3 cursor-pointer hover:bg-slate-50 ${
-                  !notification.is_read ? 'bg-blue-50' : ''
-                }`}
-              >
-                <div className="flex items-start gap-3">
-                  <div className={`w-2 h-2 rounded-full mt-2 ${
-                    !notification.is_read ? 'bg-blue-600' : 'bg-transparent'
-                  }`} />
-                  <div className="flex-1">
-                    <p className="font-medium text-sm text-slate-900">
-                      {notification.title}
-                    </p>
-                    <p className="text-xs text-slate-600 mt-1">
-                      {notification.message}
-                    </p>
-                    {notification.project_name && (
-                      <p className="text-xs text-slate-500 mt-1">
-                        Project: {notification.project_name}
-                      </p>
+            {notifications.map((notification) => {
+              const isUnread = !notification.read && !notification.is_read;
+              return (
+                <div
+                  key={notification.id}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleNotificationClick(notification);
+                  }}
+                  className={`p-3 cursor-pointer hover:bg-slate-50 transition-colors ${
+                    isUnread ? 'bg-blue-50 border-l-4 border-l-blue-600' : ''
+                  }`}
+                >
+                  <div className="flex items-start gap-3">
+                    {isUnread && (
+                      <div className="w-2 h-2 rounded-full bg-blue-600 mt-2 flex-shrink-0" />
                     )}
-                    <p className="text-xs text-slate-400 mt-1">
-                      {formatTimeAgo(notification.created_at)}
-                    </p>
+                    <div className="flex-1 min-w-0">
+                      <p className={`text-sm text-slate-900 ${isUnread ? 'font-bold' : 'font-medium'}`}>
+                        {notification.title}
+                      </p>
+                      <p className={`text-xs mt-1 line-clamp-2 ${isUnread ? 'text-slate-700' : 'text-slate-600'}`}>
+                        {notification.message}
+                      </p>
+                      {notification.project_name && (
+                        <p className="text-xs text-slate-500 mt-1">
+                          📁 {notification.project_name}
+                        </p>
+                      )}
+                      <p className="text-xs text-slate-400 mt-1">
+                        {formatTimeAgo(notification.created_at)}
+                      </p>
+                    </div>
                   </div>
                 </div>
-              </DropdownMenuItem>
-            ))}
+              );
+            })}
           </div>
         )}
       </DropdownMenuContent>
