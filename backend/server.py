@@ -38,6 +38,7 @@ from models_projects import (
     Contractor, ContractorCreate, ContractorType,
     Vendor, VendorCreate, VendorUpdate, VendorType
 )
+from models_coclients import CoClient, CoClientCreate
 from drawing_templates import get_template_drawings
 from email_templates import get_welcome_email_content
 from email_translations import TRANSLATIONS
