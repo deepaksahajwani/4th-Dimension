@@ -64,7 +64,9 @@ export default function OwnerDashboard({ user, onLogout }) {
   const [progressDialogOpen, setProgressDialogOpen] = useState(false);
 
   useEffect(() => {
-    if (user?.role !== 'owner') {
+    if (!user) return; // Wait for user to load
+    
+    if (user.role !== 'owner' && !user.is_owner) {
       toast.error('Access denied. Owner only.');
       navigate('/dashboard');
       return;
