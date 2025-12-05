@@ -578,19 +578,25 @@ export default function Projects({ user, onLogout }) {
                       </select>
                     </div>
                     <div>
-                      <Label className="text-sm font-medium">Team Leader</Label>
+                      <Label className="text-sm font-medium">Team Leader *</Label>
                       <select
                         className="flex h-10 w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm mt-1"
-                        value={formData.lead_architect_id}
-                        onChange={(e) => setFormData({ ...formData, lead_architect_id: e.target.value })}
+                        value={formData.team_leader_id}
+                        onChange={(e) => setFormData({ ...formData, team_leader_id: e.target.value })}
+                        required
                       >
-                        <option value="">Select team leader (optional)</option>
-                        {teamMembers.map((member) => (
-                          <option key={member.id} value={member.id}>
-                            {member.name} {member.role ? `(${member.role.replace(/_/g, ' ')})` : ''}
-                          </option>
-                        ))}
+                        <option value="">Select team leader</option>
+                        {teamMembers
+                          .filter(member => member.approval_status === 'approved' && 
+                            (member.role === 'team_leader' || member.role === 'owner' || 
+                             member.role === 'architect' || member.role === 'project_manager'))
+                          .map((member) => (
+                            <option key={member.id} value={member.id}>
+                              {member.name} {member.role ? `(${member.role.replace(/_/g, ' ')})` : ''}
+                            </option>
+                          ))}
                       </select>
+                      <p className="text-xs text-slate-500 mt-1">Team leader will receive all project notifications</p>
                     </div>
                   </div>
 
