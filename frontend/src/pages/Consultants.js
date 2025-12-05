@@ -208,7 +208,7 @@ export default function Consultants({ user, onLogout }) {
                                 <Button
                                   variant="ghost"
                                   size="sm"
-                                  onClick={() => handleOpenDialog(consultant)}
+                                  onClick={() => handleOpenEditDialog(consultant)}
                                 >
                                   <Edit className="w-4 h-4" />
                                 </Button>
