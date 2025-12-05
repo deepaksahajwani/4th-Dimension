@@ -1133,13 +1133,47 @@ async def send_registration_complete_email(user_data: dict):
 
 import verification_service
 
+@api_router.post("/invite/send")
+async def send_invite(
+    name: str,
+    phone: str,
+    invitee_type: str,
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Send WhatsApp invite to register
+    invitee_type: 'team_member', 'client', 'contractor', 'consultant'
+    """
+    try:
+        from invite_service import send_registration_invite
+        
+        result = await send_registration_invite(
+            name=name,
+            phone=phone,
+            invitee_type=invitee_type,
+            invited_by_name=current_user.name
+        )
+        
+        if result['success']:
+            return {
+                "success": True,
+                "message": result['message']
+            }
+        else:
+            raise HTTPException(status_code=500, detail=result['message'])
+            
+    except Exception as e:
+        logger.error(f"Error sending invite: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 @api_router.post("/team/invite")
 async def invite_team_member(
     invite_data: InviteTeamMember,
     current_user: User = Depends(require_owner)
 ):
     """
-    Owner invites team member - sends verification email and SMS
+    Owner invites team member - sends verification email and SMS (OLD METHOD)
     """
     try:
         # Check if user already exists
