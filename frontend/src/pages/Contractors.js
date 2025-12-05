@@ -245,7 +245,7 @@ export default function Contractors({ user, onLogout }) {
               {user?.is_owner && (
                 <Button onClick={() => setInviteDialogOpen(true)} className="bg-orange-500 hover:bg-orange-600">
                   <Plus className="w-4 h-4 mr-2" />
-                  Add Contractor
+                  Invite Contractor
                 </Button>
               )}
             </CardContent>
