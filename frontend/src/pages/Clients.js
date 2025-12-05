@@ -276,21 +276,21 @@ export default function Clients({ user, onLogout }) {
         {clients.length === 0 && (
           <div className="text-center py-12">
             <Users className="w-16 h-16 mx-auto text-slate-300 mb-4" />
-            <p className="text-slate-500 mb-4">No clients yet. Add your first client to get started.</p>
-            <Button onClick={() => setAddDialogOpen(true)} className="bg-orange-500 hover:bg-orange-600">
+            <p className="text-slate-500 mb-4">No clients yet. Invite your first client to get started.</p>
+            <Button onClick={() => setInviteDialogOpen(true)} className="bg-orange-500 hover:bg-orange-600">
               <Plus className="w-4 h-4 mr-2" />
-              Add Client
+              Invite Client
             </Button>
           </div>
         )}
 
-        {/* Add Client Dialog */}
-        <Dialog open={addDialogOpen} onOpenChange={setAddDialogOpen}>
-          <DialogContent className="max-w-2xl">
+        {/* Invite Client Dialog */}
+        <Dialog open={inviteDialogOpen} onOpenChange={setInviteDialogOpen}>
+          <DialogContent className="max-w-md">
             <DialogHeader>
-              <DialogTitle>Add New Client</DialogTitle>
+              <DialogTitle>Invite Client to Register</DialogTitle>
             </DialogHeader>
-            <form onSubmit={handleAddClient} className="space-y-4">
+            <form onSubmit={handleInviteClient} className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div className="col-span-2">
                   <Label>Client Name *</Label>
