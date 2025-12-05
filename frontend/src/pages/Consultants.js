@@ -430,11 +430,11 @@ export default function Consultants({ user, onLogout }) {
                 </div>
               </div>
               <DialogFooter>
-                <Button type="button" variant="outline" onClick={() => setDialogOpen(false)}>
+                <Button type="button" variant="outline" onClick={() => setEditDialogOpen(false)}>
                   Cancel
                 </Button>
-                <Button type="submit">
-                  {editingConsultant ? 'Update' : 'Add'} Consultant
+                <Button type="submit" className="bg-blue-500 hover:bg-blue-600">
+                  Update Consultant
                 </Button>
               </DialogFooter>
             </form>
