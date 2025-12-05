@@ -34,10 +34,10 @@ export default function NotificationBell({ user }) {
   const fetchUnreadCount = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await axios.get(`${API}/api/notifications/unread-count`, {
+      const response = await axios.get(`${API}/api/notifications/unread-count?user_id=${user.id}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      setUnreadCount(response.data.count);
+      setUnreadCount(response.data.unread_count || response.data.count || 0);
     } catch (error) {
       console.error('Error fetching unread count:', error);
     }
