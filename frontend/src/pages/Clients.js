@@ -173,9 +173,9 @@ export default function Clients({ user, onLogout }) {
             <h1 className="text-3xl font-bold text-slate-900">Clients</h1>
             <p className="text-slate-600 mt-1">Manage your client database</p>
           </div>
-          <Button onClick={() => setAddDialogOpen(true)} className="bg-orange-500 hover:bg-orange-600">
+          <Button onClick={() => setInviteDialogOpen(true)} className="bg-orange-500 hover:bg-orange-600">
             <Plus className="w-4 h-4 mr-2" />
-            Add Client
+            Invite Client
           </Button>
         </div>
 
