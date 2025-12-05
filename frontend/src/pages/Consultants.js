@@ -264,9 +264,9 @@ export default function Consultants({ user, onLogout }) {
                   <Briefcase className="w-16 h-16 mx-auto text-slate-300 mb-4" />
                   <h3 className="text-lg font-medium text-slate-900 mb-2">No consultants yet</h3>
                   <p className="text-slate-600 mb-4">Start by adding your first consultant</p>
-                  <Button onClick={() => handleOpenDialog()}>
+                  <Button onClick={() => setInviteDialogOpen(true)} className="bg-blue-500 hover:bg-blue-600">
                     <Plus className="w-4 h-4 mr-2" />
-                    Add Consultant
+                    Invite Consultant
                   </Button>
                 </CardContent>
               </Card>
