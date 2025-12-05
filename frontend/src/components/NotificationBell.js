@@ -117,8 +117,33 @@ export default function NotificationBell({ user }) {
   };
 
   const handleNotificationClick = (notification) => {
+    // Mark as read
     markAsRead(notification.id);
-    // You can add navigation logic here based on notification type
+    
+    // Close dropdown
+    setOpen(false);
+    
+    // Navigate based on notification link or type
+    if (notification.link) {
+      window.location.href = notification.link;
+    } else {
+      // Fallback navigation based on notification type
+      const typeToRoute = {
+        'user_registration': '/pending-registrations',
+        'user_approved': '/dashboard',
+        'project_created': '/projects',
+        'drawing_issued': '/projects',
+        'drawing_approved': '/projects',
+        'drawing_comment': '/projects',
+        'contractor_added': '/projects',
+        'consultant_added': '/projects',
+        'fees_paid_client': '/accounting',
+        'fees_received': '/accounting'
+      };
+      
+      const route = typeToRoute[notification.type] || '/dashboard';
+      window.location.href = route;
+    }
   };
 
   const handleOpenChange = (isOpen) => {
