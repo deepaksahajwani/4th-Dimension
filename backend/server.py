@@ -5770,6 +5770,104 @@ async def get_historical_progress(
         }
         
         return {
+
+
+# ===============================
+# CO-CLIENTS / ASSOCIATE CLIENTS
+# ===============================
+
+from models_coclients import CoClient, CoClientCreate
+
+@api_router.post("/projects/{project_id}/co-clients")
+async def add_co_client(
+    project_id: str,
+    co_client: CoClientCreate,
+    current_user: dict = Depends(get_current_user)
+):
+    """Add a co-client/associate client to a project"""
+    try:
+        # Verify project exists and user has access
+        project = await db.projects.find_one({"id": project_id}, {"_id": 0})
+        if not project:
+            raise HTTPException(status_code=404, detail="Project not found")
+        
+        # Only owner or main client can add co-clients
+        if not current_user.get('is_owner') and current_user.get('id') != project.get('client_id'):
+            raise HTTPException(status_code=403, detail="Access denied")
+        
+        # Create co-client record
+        co_client_data = {
+            "id": str(uuid.uuid4()),
+            "project_id": project_id,
+            "main_client_id": project.get('client_id'),
+            "name": co_client.name,
+            "email": co_client.email,
+            "phone": co_client.phone,
+            "relationship": co_client.relationship,
+            "notes": co_client.notes,
+            "created_at": datetime.now(timezone.utc),
+            "created_by": current_user.get('id')
+        }
+        
+        await db.co_clients.insert_one(co_client_data)
+        
+        return {"message": "Co-client added successfully", "co_client": co_client_data}
+        
+    except Exception as e:
+        logger.error(f"Add co-client error: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@api_router.get("/projects/{project_id}/co-clients")
+async def get_project_co_clients(
+    project_id: str,
+    current_user: dict = Depends(get_current_user)
+):
+    """Get all co-clients for a project"""
+    try:
+        # Verify project access
+        project = await db.projects.find_one({"id": project_id}, {"_id": 0})
+        if not project:
+            raise HTTPException(status_code=404, detail="Project not found")
+        
+        # Get co-clients
+        co_clients = await db.co_clients.find(
+            {"project_id": project_id},
+            {"_id": 0}
+        ).to_list(100)
+        
+        return co_clients
+        
+    except Exception as e:
+        logger.error(f"Get co-clients error: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@api_router.delete("/co-clients/{co_client_id}")
+async def remove_co_client(
+    co_client_id: str,
+    current_user: dict = Depends(get_current_user)
+):
+    """Remove a co-client"""
+    try:
+        # Get co-client
+        co_client = await db.co_clients.find_one({"id": co_client_id}, {"_id": 0})
+        if not co_client:
+            raise HTTPException(status_code=404, detail="Co-client not found")
+        
+        # Only owner or main client can remove
+        project = await db.projects.find_one({"id": co_client.get('project_id')}, {"_id": 0})
+        if not current_user.get('is_owner') and current_user.get('id') != project.get('client_id'):
+            raise HTTPException(status_code=403, detail="Access denied")
+        
+        await db.co_clients.delete_one({"id": co_client_id})
+        
+        return {"message": "Co-client removed successfully"}
+        
+    except Exception as e:
+        logger.error(f"Remove co-client error: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
             "user_id": user_id,
             "weekly_history": weekly_history,
             "monthly_history": monthly_history,
