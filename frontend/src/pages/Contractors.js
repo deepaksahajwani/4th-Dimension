@@ -461,13 +461,13 @@ export default function Contractors({ user, onLogout }) {
               </div>
               <DialogFooter>
                 <Button type="button" variant="outline" onClick={() => {
-                  setDialogOpen(false);
+                  setEditDialogOpen(false);
                   resetForm();
                 }}>
                   Cancel
                 </Button>
                 <Button type="submit" className="bg-orange-500 hover:bg-orange-600">
-                  {editingContractor ? 'Update' : 'Create'} Contractor
+                  Update Contractor
                 </Button>
               </DialogFooter>
             </form>
