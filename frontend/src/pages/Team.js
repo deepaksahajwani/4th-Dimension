@@ -60,9 +60,8 @@ export default function Team({ user, onLogout }) {
   const [inviting, setInviting] = useState(false);
   const [inviteForm, setInviteForm] = useState({
     name: '',
-    email: '',
     phone: '',
-    role: ''
+    invitee_type: 'team_member'
   });
 
   useEffect(() => {
