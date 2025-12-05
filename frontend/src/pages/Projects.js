@@ -588,8 +588,8 @@ export default function Projects({ user, onLogout }) {
                         <option value="">Select team leader</option>
                         {teamMembers
                           .filter(member => member.approval_status === 'approved' && 
-                            (member.role === 'team_leader' || member.role === 'owner' || 
-                             member.role === 'architect' || member.role === 'project_manager'))
+                            member.role !== 'client' && member.role !== 'contractor' && 
+                            member.role !== 'vendor' && member.role !== 'consultant')
                           .map((member) => (
                             <option key={member.id} value={member.id}>
                               {member.name} {member.role ? `(${member.role.replace(/_/g, ' ')})` : ''}
