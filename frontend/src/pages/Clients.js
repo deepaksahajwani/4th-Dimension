@@ -65,16 +65,36 @@ export default function Clients({ user, onLogout }) {
     }
   };
 
-  const handleAddClient = async (e) => {
+  const handleInviteClient = async (e) => {
     e.preventDefault();
+    
+    if (!inviteForm.name || !inviteForm.phone) {
+      toast.error('Please enter name and phone number');
+      return;
+    }
+
+    // Validate phone number format
+    const phoneRegex = /^\+?[1-9]\d{9,14}$/;
+    if (!phoneRegex.test(inviteForm.phone.replace(/\s/g, ''))) {
+      toast.error('Please enter a valid phone number with country code (e.g., +919876543210)');
+      return;
+    }
+
     try {
-      await axios.post(`${API}/clients`, formData);
-      toast.success('Client added successfully');
-      setAddDialogOpen(false);
-      setFormData({ name: '', contact_person: '', phone: '', email: '', address: '', notes: '', archived: false });
-      fetchClients();
+      await axios.post(`${API}/invite/send`, null, {
+        params: {
+          name: inviteForm.name,
+          phone: inviteForm.phone,
+          invitee_type: 'client'
+        }
+      });
+      
+      toast.success(`WhatsApp invite sent to ${inviteForm.name}!`, { duration: 5000 });
+      setInviteDialogOpen(false);
+      setInviteForm({ name: '', phone: '' });
     } catch (error) {
-      toast.error(formatErrorMessage(error, 'Failed to add client'));
+      console.error('Invite error:', error);
+      toast.error(error.response?.data?.detail || 'Failed to send invite');
     }
   };
 
