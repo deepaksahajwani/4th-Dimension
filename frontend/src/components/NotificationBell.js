@@ -103,11 +103,17 @@ export default function NotificationBell({ user }) {
   const markAllAsRead = async () => {
     try {
       const token = localStorage.getItem('token');
-      await axios.put(`${API}/api/notifications/mark-all-read`, {}, {
+      const unreadIds = notifications.filter(n => !n.read && !n.is_read).map(n => n.id);
+      
+      if (unreadIds.length === 0) return;
+      
+      await axios.patch(`${API}/api/notifications/mark-read`, {
+        notification_ids: unreadIds
+      }, {
         headers: { Authorization: `Bearer ${token}` }
       });
       
-      setNotifications(prev => prev.map(n => ({ ...n, is_read: true })));
+      setNotifications(prev => prev.map(n => ({ ...n, read: true, is_read: true })));
       setUnreadCount(0);
       toast.success('All notifications marked as read');
     } catch (error) {
