@@ -72,7 +72,7 @@ export default function NotificationBell({ user }) {
   };
 
   const fetchNotifications = async () => {
-    try:
+    try {
       const token = localStorage.getItem('token');
       const response = await axios.get(`${API}/api/notifications?user_id=${user.id}&limit=20`, {
         headers: { Authorization: `Bearer ${token}` }
