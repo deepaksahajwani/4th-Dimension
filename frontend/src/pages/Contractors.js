@@ -324,13 +324,56 @@ export default function Contractors({ user, onLogout }) {
           </div>
         )}
 
-        {/* Add/Edit Dialog */}
-        <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+        {/* Invite Contractor Dialog */}
+        <Dialog open={inviteDialogOpen} onOpenChange={setInviteDialogOpen}>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle>Invite Contractor to Register</DialogTitle>
+            </DialogHeader>
+            <form onSubmit={handleInviteContractor} className="space-y-4">
+              <p className="text-sm text-slate-600">
+                Send a WhatsApp invitation to the contractor to register themselves with complete details.
+              </p>
+              <div>
+                <Label>Contractor Name *</Label>
+                <Input
+                  value={inviteForm.name}
+                  onChange={(e) => setInviteForm({ ...inviteForm, name: e.target.value })}
+                  required
+                  placeholder="John Contractor"
+                />
+              </div>
+              <div>
+                <Label>Phone Number (with country code) *</Label>
+                <Input
+                  value={inviteForm.phone}
+                  onChange={(e) => setInviteForm({ ...inviteForm, phone: e.target.value })}
+                  required
+                  placeholder="+919876543210"
+                />
+                <p className="text-xs text-slate-500 mt-1">
+                  WhatsApp invitation will be sent to this number
+                </p>
+              </div>
+              <DialogFooter>
+                <Button type="button" variant="outline" onClick={() => setInviteDialogOpen(false)}>
+                  Cancel
+                </Button>
+                <Button type="submit" className="bg-orange-500 hover:bg-orange-600">
+                  Send Invitation
+                </Button>
+              </DialogFooter>
+            </form>
+          </DialogContent>
+        </Dialog>
+
+        {/* Edit Contractor Dialog */}
+        <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
           <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle>{editingContractor ? 'Edit Contractor' : 'Add New Contractor'}</DialogTitle>
+              <DialogTitle>Edit Contractor</DialogTitle>
             </DialogHeader>
-            <form onSubmit={handleSubmit}>
+            <form onSubmit={handleEditSubmit}>
               <div className="space-y-4 py-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
