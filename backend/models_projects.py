@@ -315,6 +315,7 @@ class ProjectUpdate(BaseModel):
     title: Optional[str] = None
     project_types: Optional[List[str]] = None
     status: Optional[ProjectStatus] = None
+    team_leader_id: Optional[str] = None
     lead_architect_id: Optional[str] = None
     project_manager_id: Optional[str] = None
     start_date: Optional[str] = None
