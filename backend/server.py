@@ -5776,8 +5776,6 @@ async def get_historical_progress(
 # CO-CLIENTS / ASSOCIATE CLIENTS
 # ===============================
 
-from models_coclients import CoClient, CoClientCreate
-
 @api_router.post("/projects/{project_id}/co-clients")
 async def add_co_client(
     project_id: str,
