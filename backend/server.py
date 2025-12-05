@@ -4878,16 +4878,20 @@ async def mark_all_notifications_read(
 
 @api_router.get("/notifications/unread-count")
 async def get_unread_count(
+    user_id: str = None,
     current_user: User = Depends(get_current_user)
 ):
     """Get count of unread notifications"""
     try:
+        # Use provided user_id or current_user.id
+        target_user_id = user_id if user_id else current_user.id
+        
         count = await db.notifications.count_documents({
-            "user_id": current_user.id,
-            "is_read": False
+            "user_id": target_user_id,
+            "read": False
         })
         
-        return {"count": count}
+        return {"unread_count": count, "count": count}  # Return both for compatibility
     
     except Exception as e:
         logger.error(f"Get unread count error: {str(e)}")
