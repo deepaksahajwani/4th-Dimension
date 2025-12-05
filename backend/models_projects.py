@@ -227,6 +227,7 @@ class Project(BaseModel):
     project_types: List[str] = []  # Multiple types: Architecture, Interior, Landscape, Planning
     status: ProjectStatus = ProjectStatus.LEAD
     client_id: str
+    team_leader_id: Optional[str] = None  # Team Leader User ID (REQUIRED for notifications)
     lead_architect_id: Optional[str] = None  # TeamMember ID
     project_manager_id: Optional[str] = None  # TeamMember ID
     start_date: Optional[datetime] = None
