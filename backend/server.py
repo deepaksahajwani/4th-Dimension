@@ -705,10 +705,17 @@ async def public_register(registration_data: PublicRegistration):
     Step 1: Submit registration details and send OTPs
     """
     try:
-        # Check if user already exists
+        # Check if user already exists with approved status
         existing_user = await db.users.find_one({"email": registration_data.email}, {"_id": 0})
         if existing_user:
-            raise HTTPException(status_code=400, detail="Email already registered")
+            # Allow re-registration for rejected users
+            if existing_user.get('approval_status') == 'rejected':
+                # Delete the rejected user to allow fresh registration
+                await db.users.delete_one({"email": registration_data.email})
+            elif existing_user.get('approval_status') == 'approved':
+                raise HTTPException(status_code=400, detail="Email already registered. Please login instead.")
+            elif existing_user.get('approval_status') == 'pending':
+                raise HTTPException(status_code=400, detail="Registration pending approval. Please wait for admin approval.")
         
         # Check if there's a pending registration
         pending_reg = await db.pending_registrations.find_one({"email": registration_data.email}, {"_id": 0})
