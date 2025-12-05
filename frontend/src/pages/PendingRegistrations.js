@@ -37,14 +37,28 @@ const ROLE_LABELS = {
   consultant: 'Consultant'
 };
 
-// Specific roles for team members
+// Specific roles for team members (complete list)
 const TEAM_MEMBER_ROLES = {
+  senior_architect: 'Senior Architect',
+  senior_interior_designer: 'Senior Interior Designer',
+  associate_architect: 'Associate Architect',
+  associate_interior_designer: 'Associate Interior Designer',
+  junior_architect: 'Junior Architect',
+  junior_interior_designer: 'Junior Interior Designer',
   architect: 'Architect',
   interior_designer: 'Interior Designer',
+  landscape_designer: 'Landscape Designer',
+  '3d_visualizer': '3D Visualizer',
   drafter: 'Drafter',
-  team_leader: 'Team Leader',
   site_engineer: 'Site Engineer',
+  site_supervisor: 'Site Supervisor',
   project_manager: 'Project Manager',
+  team_leader: 'Team Leader',
+  intern: 'Intern',
+  administrator: 'Administrator',
+  human_resource: 'Human Resource',
+  accountant: 'Accountant',
+  office_staff: 'Office Staff',
   team_member: 'Team Member (General)'
 };
 
