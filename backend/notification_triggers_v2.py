@@ -126,26 +126,22 @@ async def notify_user_approval(user_id: str):
         # Notify approved user (welcome)
         user_message = message_templates.user_approved_registrant(user_name)
         
-        email_html = f"""
-        <html>
-            <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
-                <h2 style="color: #4CAF50;">Welcome to 4th Dimension!</h2>
-                <p>{user_message.replace(chr(10), '<br>')}</p>
-                <p><a href="{APP_URL}" style="background-color: #4CAF50; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: inline-block; margin-top: 10px;">Login Now</a></p>
-            </body>
-        </html>
-        """
+        # Generate professional HTML email template (English only)
+        login_url = f"{APP_URL}"
+        email_subject, email_html = get_welcome_email_content(user, login_url)
         
+        # Send WhatsApp notification
         if user_mobile:
             await notification_service.send_whatsapp(user_mobile, user_message)
         
+        # Send professional HTML email
         await notification_service.send_email(
             to_email=user_email,
-            subject="Account Approved - Welcome to 4th Dimension",
+            subject=email_subject,
             html_content=email_html
         )
         
-        logger.info(f"User approval notifications sent for {user_name}")
+        logger.info(f"User approval notifications sent for {user_name} with professional HTML template")
         
     except Exception as e:
         logger.error(f"Error in notify_user_approval: {str(e)}")
