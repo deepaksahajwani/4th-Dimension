@@ -5770,7 +5770,10 @@ async def get_historical_progress(
             "consistency_score": 0
         }
         
-        return {
+        return {"status": "placeholder"}
+    except Exception as e:
+        logger.error(f"Get notification stats error: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 # ===============================
