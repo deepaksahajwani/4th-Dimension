@@ -9,6 +9,7 @@ from typing import List, Optional, Dict
 from datetime import datetime, timezone
 from motor.motor_asyncio import AsyncIOMotorClient
 from notification_service import notification_service, message_templates, APP_URL
+from email_templates import get_welcome_email_content
 
 logger = logging.getLogger(__name__)
 
