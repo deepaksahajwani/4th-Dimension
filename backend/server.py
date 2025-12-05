@@ -1962,7 +1962,11 @@ async def complete_profile(
 
 @api_router.get("/users", response_model=List[User])
 async def get_users(current_user: User = Depends(get_current_user)):
-    users = await db.users.find({}, {"_id": 0, "password_hash": 0}).to_list(1000)
+    # Only return approved users (exclude pending and rejected)
+    users = await db.users.find(
+        {"approval_status": "approved"}, 
+        {"_id": 0, "password_hash": 0}
+    ).to_list(1000)
     for user in users:
         if isinstance(user.get('created_at'), str):
             user['created_at'] = datetime.fromisoformat(user['created_at'])
