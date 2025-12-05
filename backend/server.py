@@ -3239,8 +3239,6 @@ async def notify_drawing_issue(
     """Send notifications when a drawing is issued to selected recipients"""
     try:
         recipient_ids = request_data.get("recipient_ids", [])
-        drawing_name = request_data.get("drawing_name", "Unknown Drawing")
-        drawing_category = request_data.get("drawing_category", "")
         
         # Get drawing and project details
         drawing = await db.project_drawings.find_one({"id": drawing_id}, {"_id": 0})
@@ -3251,12 +3249,11 @@ async def notify_drawing_issue(
         if not project:
             raise HTTPException(status_code=404, detail="Project not found")
         
-        # Import notification function
-        from notification_triggers import notify_drawing_issued
+        # Import new notification function
+        from notification_triggers_v2 import notify_drawing_issued
         await notify_drawing_issued(
             project_id=drawing["project_id"],
-            drawing_name=drawing_name,
-            drawing_category=drawing_category,
+            drawing_id=drawing_id,
             recipient_ids=recipient_ids,
             issued_by_id=current_user.id
         )
