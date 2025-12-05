@@ -277,6 +277,7 @@ class ProjectCreate(BaseModel):
     project_types: List[str] = []
     status: ProjectStatus = ProjectStatus.LEAD
     client_id: str
+    team_leader_id: str  # REQUIRED - Team Leader User ID
     lead_architect_id: Optional[str] = None
     project_manager_id: Optional[str] = None
     start_date: Optional[str] = None
