@@ -20,8 +20,13 @@ const CONSULTANT_TYPES = [
 export default function Consultants({ user, onLogout }) {
   const [consultants, setConsultants] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [dialogOpen, setDialogOpen] = useState(false);
+  const [inviteDialogOpen, setInviteDialogOpen] = useState(false);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [editingConsultant, setEditingConsultant] = useState(null);
+  const [inviteForm, setInviteForm] = useState({
+    name: '',
+    phone: ''
+  });
   const [formData, setFormData] = useState({
     name: '',
     type: '',
