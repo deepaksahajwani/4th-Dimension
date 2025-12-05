@@ -162,9 +162,9 @@ export default function Consultants({ user, onLogout }) {
             <h1 className="text-3xl font-bold text-slate-900">Consultants</h1>
             <p className="text-slate-600 mt-1">Manage your project consultants and specialists</p>
           </div>
-          <Button onClick={() => handleOpenDialog()}>
+          <Button onClick={() => setInviteDialogOpen(true)} className="bg-blue-500 hover:bg-blue-600">
             <Plus className="w-4 h-4 mr-2" />
-            Add Consultant
+            Invite Consultant
           </Button>
         </div>
 
