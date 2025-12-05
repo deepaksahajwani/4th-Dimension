@@ -20,10 +20,14 @@ export default function Clients({ user, onLogout }) {
   const location = useLocation();
   const [clients, setClients] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [addDialogOpen, setAddDialogOpen] = useState(false);
+  const [inviteDialogOpen, setInviteDialogOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [selectedClient, setSelectedClient] = useState(null);
+  const [inviteForm, setInviteForm] = useState({
+    name: '',
+    phone: ''
+  });
   const [formData, setFormData] = useState({
     name: '',
     contact_person: '',
