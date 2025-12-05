@@ -946,16 +946,12 @@ async def set_password_after_otp(password_data: SetPasswordAfterOTP):
         # Delete pending registration
         await db.pending_registrations.delete_one({"email": password_data.email})
         
-        # Send approval request email to owner
-        owner = await db.users.find_one({"is_owner": True}, {"_id": 0})
-        if owner:
-            await send_approval_request_email(owner['email'], user_dict)
-        
-        # Send WhatsApp notification to owner
-        await notification_triggers.notify_user_registered(user_dict)
-        
-        # Send welcome email to user
-        await send_registration_complete_email(user_dict)
+        # Send registration notifications using new system
+        try:
+            from notification_triggers_v2 import notify_user_registration
+            await notify_user_registration(user_dict)
+        except Exception as e:
+            print(f"Registration notification failed (non-critical): {str(e)}")
         
         return {
             "message": "Registration complete. Awaiting owner approval.",
