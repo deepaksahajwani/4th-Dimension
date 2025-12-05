@@ -35,6 +35,7 @@ export default function Projects({ user, onLogout }) {
     project_types: [],
     status: 'Lead',
     client_id: '',
+    team_leader_id: '',
     project_manager_id: '',
     lead_architect_id: '',
     start_date: '',
