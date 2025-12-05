@@ -5869,12 +5869,6 @@ async def remove_co_client(
     except Exception as e:
         logger.error(f"Remove co-client error: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
-
-            "user_id": user_id,
-            "weekly_history": weekly_history,
-            "monthly_history": monthly_history,
-            "yearly_summary": yearly_summary
-        }
     
     except HTTPException:
         raise
