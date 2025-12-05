@@ -5682,6 +5682,10 @@ async def get_historical_progress(
 
 app.include_router(api_router)
 
+# Include notifications and payments router
+from api_notifications_payments import notifications_payments_router
+app.include_router(notifications_payments_router, prefix="/api")
+
 # Mount uploads directory for serving static files
 from pathlib import Path
 uploads_path = Path(__file__).parent / "uploads"
