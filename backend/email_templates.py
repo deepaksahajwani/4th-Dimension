@@ -237,8 +237,6 @@ def get_welcome_email_content(user: dict, login_url: str) -> tuple[str, str]:
                         <p style="color: #6B7280; font-size: 16px;">4th Dimension - Architecture & Design</p>
                     </div>
                     
-                    {language_toggle}
-                    
                     <h2 style="color: #1F2937; font-size: 24px;">Dear {name},</h2>
                     
                     <p style="font-size: 16px; line-height: 1.8;">Welcome to the 4th Dimension contractor network! We're pleased to partner with you and look forward to successful project collaborations. Your expertise is crucial to bringing our architectural visions to life.</p>
