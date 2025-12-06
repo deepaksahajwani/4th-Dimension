@@ -158,14 +158,20 @@ export default function PendingRegistrations({ user, onLogout }) {
   const confirmAction = async () => {
     if (!selectedUser || !actionType) return;
 
-    // Validate role selection for approval
-    if (actionType === 'approve' && !selectedRole) {
+    // For clients/vendors, role assignment is not needed
+    const needsRoleSelection = selectedUser.role === 'team_member' || selectedUser.role === 'contractor' || selectedUser.role === 'consultant';
+    
+    // Validate role selection for approval (only for team members, contractors, consultants)
+    if (actionType === 'approve' && needsRoleSelection && !selectedRole) {
       toast.error('Please select a specific role for the user');
       return;
     }
 
     const userIdToRemove = selectedUser.id;
     const userName = selectedUser.name;
+    
+    // For clients and vendors, use their registration role as-is
+    const finalRole = needsRoleSelection ? selectedRole : selectedUser.role;
 
     try {
       // Close dialog immediately for better UX
@@ -175,7 +181,7 @@ export default function PendingRegistrations({ user, onLogout }) {
         params: {
           user_id: userIdToRemove,
           action: actionType,
-          role: actionType === 'approve' ? selectedRole : undefined
+          role: actionType === 'approve' ? finalRole : undefined
         }
       });
 
@@ -188,7 +194,7 @@ export default function PendingRegistrations({ user, onLogout }) {
 
       toast.success(
         actionType === 'approve' 
-          ? `${userName} has been approved as ${getRoleLabel(selectedRole)}!` 
+          ? `${userName} has been approved as ${getRoleLabel(finalRole)}!` 
           : `${userName}'s registration has been rejected`
       );
       
