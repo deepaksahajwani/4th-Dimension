@@ -3534,12 +3534,28 @@ async def create_contractor(
 
 @api_router.get("/contractors")
 async def get_contractors(current_user: User = Depends(get_current_user)):
-    """Get all contractors"""
+    """Get all approved contractors"""
     contractors = await db.contractors.find(
         {"deleted_at": None},
         {"_id": 0}
     ).to_list(1000)
-    return contractors
+    
+    # Filter out contractors whose user accounts are not approved
+    approved_contractors = []
+    for contractor in contractors:
+        if contractor.get('user_id'):
+            user = await db.users.find_one(
+                {"id": contractor['user_id']}, 
+                {"_id": 0, "approval_status": 1}
+            )
+            # Only include if user is approved
+            if user and user.get('approval_status') == 'approved':
+                approved_contractors.append(contractor)
+        else:
+            # Contractor created manually without user account - always show
+            approved_contractors.append(contractor)
+    
+    return approved_contractors
 
 @api_router.get("/contractors/{contractor_id}")
 async def get_contractor(
