@@ -194,11 +194,21 @@ export default function PendingRegistrations({ user, onLogout }) {
         return filtered;
       });
 
-      toast.success(
-        actionType === 'approve' 
-          ? `${userName} has been approved as ${getRoleLabel(finalRole)}!` 
-          : `${userName}'s registration has been rejected`
-      );
+      if (actionType === 'approve') {
+        toast.success(`${userName} has been approved as ${getRoleLabel(finalRole)}!`);
+        
+        // If approved user is a client, show project creation prompt
+        if (selectedUser.role === 'client') {
+          setApprovedClient({
+            id: userIdToRemove,
+            name: userName,
+            email: selectedUser.email
+          });
+          setShowProjectPrompt(true);
+        }
+      } else {
+        toast.success(`${userName}'s registration has been rejected`);
+      }
       
       setSelectedUser(null);
       setActionType(null);
