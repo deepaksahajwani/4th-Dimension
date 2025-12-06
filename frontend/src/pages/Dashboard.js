@@ -72,20 +72,20 @@ export default function Dashboard({ user, onLogout }) {
           try {
             const drawingsRes = await axios.get(`${API}/projects/${project.id}/drawings`);
             // Get drawings that are:
-            // 1. Assigned to this user OR project is led by this user
+            // 1. Assigned to this user OR project is led by this user (check both lead_architect_id and team_leader_id)
             // 2. Not issued yet OR has pending revisions
-            // 3. Status is PLANNED or IN_PROGRESS
+            // 3. Status is PLANNED or IN_PROGRESS (if status exists)
             const myDrawings = drawingsRes.data.filter(d => {
-              const isAssignedToMe = d.assigned_to === user.id || project.lead_architect_id === user.id;
+              // Check if user is assigned or is the project lead/team leader
+              const isAssignedToMe = d.assigned_to === user.id || 
+                                    project.lead_architect_id === user.id || 
+                                    project.team_leader_id === user.id;
               const needsWork = !d.is_issued || d.has_pending_revision;
-              const isActive = ['PLANNED', 'IN_PROGRESS'].includes(d.status);
-              return isAssignedToMe && needsWork && isActive;
-              if (!d.due_date) return false;
+              const isActive = !d.status || ['PLANNED', 'IN_PROGRESS'].includes(d.status);
               
-              const dueDate = new Date(d.due_date);
-              return dueDate <= threeDaysFromNow;
+              return isAssignedToMe && needsWork && isActive;
             });
-            allDrawings.push(...urgentDrawings.map(d => ({ ...d, project })));
+            allDrawings.push(...myDrawings.map(d => ({ ...d, project })));
           } catch (error) {
             console.error(`Failed to fetch drawings for project ${project.id}:`, error);
           }
