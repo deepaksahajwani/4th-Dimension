@@ -25,7 +25,8 @@ export default function Consultants({ user, onLogout }) {
   const [editingConsultant, setEditingConsultant] = useState(null);
   const [inviteForm, setInviteForm] = useState({
     name: '',
-    phone: ''
+    countryCode: '+91',
+    phoneNumber: ''
   });
   const [formData, setFormData] = useState({
     name: '',
