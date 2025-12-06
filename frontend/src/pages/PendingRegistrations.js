@@ -439,7 +439,7 @@ export default function PendingRegistrations({ user, onLogout }) {
                 Create Project Now
               </AlertDialogAction>
             </AlertDialogFooter>
-          </DialogContent>
+          </AlertDialogContent>
         </AlertDialog>
 
         {/* Confirmation Dialog */}
