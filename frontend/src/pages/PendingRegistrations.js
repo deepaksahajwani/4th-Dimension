@@ -433,7 +433,9 @@ export default function PendingRegistrations({ user, onLogout }) {
                 onClick={confirmAction}
                 className={actionType === 'approve' ? 'bg-green-600 hover:bg-green-700' : 'bg-red-600 hover:bg-red-700'}
               >
-                {actionType === 'approve' ? 'Approve & Assign' : 'Reject'}
+                {actionType === 'approve' 
+                  ? (selectedUser?.role === 'client' || selectedUser?.role === 'vendor' ? 'Approve' : 'Approve & Assign')
+                  : 'Reject'}
               </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>
