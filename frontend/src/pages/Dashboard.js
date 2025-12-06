@@ -410,8 +410,8 @@ export default function Dashboard({ user, onLogout }) {
               <Card>
                 <CardHeader className="pb-3 sm:pb-4">
                   <CardTitle className="text-base sm:text-lg flex items-center gap-2">
-                    <FileText className="w-4 h-4 sm:w-5 sm:h-5 text-red-600" />
-                    Urgent Drawings (Due within 3 days)
+                    <FileText className="w-4 h-4 sm:w-5 sm:h-5 text-orange-600" />
+                    My Pending Drawings ({pendingDrawings.length})
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="p-3 sm:p-6">
