@@ -4378,7 +4378,12 @@ async def delete_consultant(
         {"$set": {"deleted_at": datetime.now(timezone.utc).isoformat()}}
     )
     
-    return {"message": "Consultant deleted successfully"}
+    # Delete the associated user account (if exists)
+    if existing.get('user_id'):
+        await db.users.delete_one({"id": existing['user_id']})
+        print(f"✅ Deleted user account for consultant: {existing.get('name')}")
+    
+    return {"message": "Consultant and associated user account deleted successfully"}
 
 # Checklist Presets
 @api_router.get("/checklist-presets", response_model=List[ChecklistPreset])
