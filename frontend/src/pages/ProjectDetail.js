@@ -1461,11 +1461,12 @@ export default function ProjectDetail({ user, onLogout }) {
 
         {/* Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid grid-cols-4 w-full">
+          <TabsList className="grid grid-cols-5 w-full">
             <TabsTrigger value="urgent" className="text-xs sm:text-sm">Urgent</TabsTrigger>
             <TabsTrigger value="drawings" className="text-xs sm:text-sm">All</TabsTrigger>
             <TabsTrigger value="info" className="text-xs sm:text-sm">Info</TabsTrigger>
             <TabsTrigger value="brands" className="text-xs sm:text-sm">Brands</TabsTrigger>
+            <TabsTrigger value="coclients" className="text-xs sm:text-sm">Co-Clients</TabsTrigger>
           </TabsList>
 
           {/* Urgent Drawings Tab - Sorted by Due Date */}
