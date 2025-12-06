@@ -324,6 +324,16 @@ function App() {
                 </ProtectedRoute>
               }
             />
+
+            <Route
+              path="/notifications"
+              element={
+                <ProtectedRoute>
+                  <Notifications user={user} onLogout={handleLogout} />
+                </ProtectedRoute>
+              }
+            />
+
             <Route
               path="/team/manage"
               element={
