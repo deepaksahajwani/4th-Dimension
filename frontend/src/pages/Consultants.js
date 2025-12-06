@@ -7,6 +7,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
 import { Plus, UserCheck, Phone, Mail, Edit, Trash2, Briefcase } from 'lucide-react';
+import PhoneInput, { combinePhoneNumber } from '@/components/PhoneInput';
 import { toast } from 'sonner';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
