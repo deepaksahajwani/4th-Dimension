@@ -161,7 +161,7 @@ export default function Team({ user, onLogout }) {
       toast.success(`WhatsApp invite sent to ${inviteForm.name} (${typeLabels[inviteForm.invitee_type]})!`, {
         duration: 5000
       });
-      setInviteModalOpen(false);
+      setInviteDialogOpen(false);
       setInviteForm({ name: '', countryCode: '+91', phoneNumber: '', invitee_type: 'team_member' });
     } catch (error) {
       console.error('Error sending invite:', error);
