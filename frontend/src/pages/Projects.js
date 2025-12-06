@@ -876,6 +876,10 @@ export default function Projects({ user, onLogout }) {
                   onClick={() => {
                     setDialogOpen(false);
                     resetForm();
+                    // If we came from pending registrations, go back there
+                    if (location.state?.returnTo) {
+                      navigate(location.state.returnTo);
+                    }
                   }}
                 >
                   Cancel
