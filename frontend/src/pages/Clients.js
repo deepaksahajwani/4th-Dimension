@@ -306,18 +306,18 @@ export default function Clients({ user, onLogout }) {
                   placeholder="John Doe"
                 />
               </div>
-              <div>
-                <Label>Phone Number (with country code) *</Label>
-                <Input
-                  value={inviteForm.phone}
-                  onChange={(e) => setInviteForm({ ...inviteForm, phone: e.target.value })}
-                  required
-                  placeholder="+919876543210"
-                />
-                <p className="text-xs text-slate-500 mt-1">
-                  WhatsApp invitation will be sent to this number
-                </p>
-              </div>
+              <PhoneInput
+                label="Phone Number"
+                countryCode={inviteForm.countryCode}
+                phoneNumber={inviteForm.phoneNumber}
+                onCountryCodeChange={(code) => setInviteForm({ ...inviteForm, countryCode: code })}
+                onPhoneNumberChange={(number) => setInviteForm({ ...inviteForm, phoneNumber: number })}
+                required
+                placeholder="9876543210"
+              />
+              <p className="text-xs text-slate-500">
+                WhatsApp invitation will be sent to this number
+              </p>
               <DialogFooter>
                 <Button type="button" variant="outline" onClick={() => setInviteDialogOpen(false)}>
                   Cancel
