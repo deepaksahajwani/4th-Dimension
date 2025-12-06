@@ -294,18 +294,15 @@ export default function Team({ user, onLogout }) {
                 />
               </div>
 
-              <div>
-                <Label htmlFor="phone">Phone Number *</Label>
-                <Input
-                  id="phone"
-                  type="tel"
-                  value={inviteForm.phone}
-                  onChange={(e) => setInviteForm({...inviteForm, phone: e.target.value})}
-                  placeholder="+919876543210"
-                  required
-                />
-                <p className="text-xs text-slate-500 mt-1">Include country code (e.g., +91 for India)</p>
-              </div>
+              <PhoneInput
+                label="Phone Number"
+                countryCode={inviteForm.countryCode}
+                phoneNumber={inviteForm.phoneNumber}
+                onCountryCodeChange={(code) => setInviteForm({ ...inviteForm, countryCode: code })}
+                onPhoneNumberChange={(number) => setInviteForm({ ...inviteForm, phoneNumber: number })}
+                required
+                placeholder="9876543210"
+              />
 
               <div className="bg-green-50 border border-green-200 rounded-lg p-3">
                 <p className="text-sm text-green-800">
