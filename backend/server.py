@@ -2298,11 +2298,27 @@ async def archive_client(client_id: str, archived: bool = True, current_user: Us
 
 @api_router.delete("/clients/{client_id}")
 async def delete_client(client_id: str, current_user: User = Depends(require_owner)):
-    """Permanently delete client (soft delete) and unlink from projects"""
+    """Permanently delete client (soft delete) - Only if no active projects exist"""
     # Get client to find associated user_id
     client = await db.clients.find_one({"id": client_id}, {"_id": 0})
     if not client:
         raise HTTPException(status_code=404, detail="Client not found")
+    
+    # Check for active (non-archived) projects
+    active_projects = await db.projects.find({
+        "client_id": client_id,
+        "$or": [
+            {"archived": False},
+            {"archived": {"$exists": False}}
+        ]
+    }, {"_id": 0, "name": 1}).to_list(10)
+    
+    if active_projects:
+        project_names = ", ".join([p.get('name', 'Unnamed') for p in active_projects])
+        raise HTTPException(
+            status_code=400, 
+            detail=f"Cannot delete client. Active projects exist: {project_names}. Please archive these projects first."
+        )
     
     # Soft delete the client
     await db.clients.update_one(
@@ -2314,12 +2330,6 @@ async def delete_client(client_id: str, current_user: User = Depends(require_own
     if client.get('user_id'):
         await db.users.delete_one({"id": client['user_id']})
         print(f"✅ Deleted user account for client: {client.get('name')}")
-    
-    # Set client_id to null in related projects (cascade)
-    await db.projects.update_many(
-        {"client_id": client_id},
-        {"$set": {"client_id": None}}
-    )
     
     return {"message": "Client and associated user account deleted successfully"}
 
