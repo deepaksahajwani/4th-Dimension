@@ -97,10 +97,10 @@ export default function VerifyOTP() {
   const handleButtonClick = (e) => {
     e.preventDefault();
     e.stopPropagation();
-    console.log('Button click handler', { emailOTP, length: emailOTP.length, loading });
+    console.log('Button click handler', { emailOTP, phoneOTP, loading });
     
-    if (loading || emailOTP.length !== 6) {
-      toast.error('Please enter complete 6-digit OTP');
+    if (loading || emailOTP.length !== 6 || phoneOTP.length !== 6) {
+      toast.error('Please enter both complete 6-digit OTPs');
       return;
     }
     
