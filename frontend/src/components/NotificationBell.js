@@ -168,33 +168,25 @@ export default function NotificationBell({ user }) {
             {notifications.length === 0 ? (
               <div className="p-8 text-center text-slate-500">
                 <Bell className="w-12 h-12 mx-auto mb-2 text-slate-300" />
-                <p className="text-sm">No notifications yet</p>
+                <p className="text-sm font-medium text-slate-900 mb-1">All caught up!</p>
+                <p className="text-xs">No unread notifications</p>
               </div>
             ) : (
               <div className="divide-y divide-slate-100">
                 {notifications.map((notification) => {
-                  const isUnread = !notification.read;
                   return (
                     <div
                       key={notification.id}
                       onClick={() => handleNotificationClick(notification)}
-                      className={`p-4 cursor-pointer hover:bg-slate-50 transition-colors ${
-                        isUnread ? 'bg-blue-50 border-l-4 border-l-blue-600' : ''
-                      }`}
+                      className="p-4 cursor-pointer hover:bg-slate-50 transition-colors bg-blue-50 border-l-4 border-l-blue-600"
                     >
                       <div className="flex items-start gap-3">
-                        {isUnread && (
-                          <div className="w-2 h-2 rounded-full bg-blue-600 mt-2 flex-shrink-0" />
-                        )}
+                        <div className="w-2 h-2 rounded-full bg-blue-600 mt-2 flex-shrink-0" />
                         <div className="flex-1 min-w-0">
-                          <p className={`text-sm text-slate-900 mb-1 ${
-                            isUnread ? 'font-bold' : 'font-medium'
-                          }`}>
-                            {notification.title}
+                          <p className="text-sm text-slate-900 mb-1 font-bold">
+                            {notification.title || 'Notification'}
                           </p>
-                          <p className={`text-xs mb-2 line-clamp-2 ${
-                            isUnread ? 'text-slate-700' : 'text-slate-600'
-                          }`}>
+                          <p className="text-xs mb-2 line-clamp-2 text-slate-700">
                             {notification.message}
                           </p>
                           <p className="text-xs text-slate-400">
@@ -207,6 +199,19 @@ export default function NotificationBell({ user }) {
                 })}
               </div>
             )}
+          </div>
+
+          {/* Footer with View All button */}
+          <div className="p-3 border-t border-slate-200 bg-slate-50 rounded-b-lg">
+            <button
+              onClick={() => {
+                setIsOpen(false);
+                navigate('/notifications');
+              }}
+              className="w-full text-center text-sm font-medium text-blue-600 hover:text-blue-700 py-2 hover:bg-blue-50 rounded transition-colors"
+            >
+              View All Notifications
+            </button>
           </div>
         </div>
       )}
