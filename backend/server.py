@@ -1392,16 +1392,13 @@ async def approve_user_from_dashboard(
                 {"$set": update_data}
             )
             
-            # Send approval notification using new system
-            try:
-                from notification_triggers_v2 import notify_user_approval
-                await notify_user_approval(user_id)
-            except Exception as e:
-                print(f"Approval notification failed (non-critical): {str(e)}")
+            # NOTE: Notification is now sent separately via /send-approval-notification
+            # This allows owner to create project first before notifying client
             
             return {
                 "success": True,
-                "message": f"{user['name']} has been approved successfully"
+                "message": f"{user['name']} has been approved successfully",
+                "user_role": user.get('role')
             }
         else:
             await db.users.update_one(
