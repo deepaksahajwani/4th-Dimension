@@ -5961,8 +5961,9 @@ async def add_co_client(
             raise HTTPException(status_code=403, detail="Access denied")
         
         # Create co-client record
+        co_client_id = str(uuid.uuid4())
         co_client_data = {
-            "id": str(uuid.uuid4()),
+            "id": co_client_id,
             "project_id": project_id,
             "main_client_id": project.get('client_id'),
             "name": co_client.name,
@@ -5976,10 +5977,14 @@ async def add_co_client(
         
         await db.co_clients.insert_one(co_client_data)
         
-        # Convert datetime to ISO string for JSON serialization
-        co_client_data['created_at'] = co_client_data['created_at'].isoformat()
+        # Fetch the inserted document without _id
+        inserted_co_client = await db.co_clients.find_one({"id": co_client_id}, {"_id": 0})
         
-        return {"message": "Co-client added successfully", "co_client": co_client_data}
+        # Convert datetime to ISO string for JSON serialization
+        if inserted_co_client and inserted_co_client.get('created_at'):
+            inserted_co_client['created_at'] = inserted_co_client['created_at'].isoformat()
+        
+        return {"message": "Co-client added successfully", "co_client": inserted_co_client}
         
     except Exception as e:
         logger.error(f"Add co-client error: {str(e)}")
