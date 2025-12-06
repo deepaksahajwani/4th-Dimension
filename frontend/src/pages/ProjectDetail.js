@@ -99,6 +99,17 @@ export default function ProjectDetail({ user, onLogout }) {
     revision_notes: '',
     revision_due_date: ''
   });
+  
+  // Co-Client states
+  const [coClients, setCoClients] = useState([]);
+  const [coClientDialogOpen, setCoClientDialogOpen] = useState(false);
+  const [coClientFormData, setCoClientFormData] = useState({
+    name: '',
+    email: '',
+    phone: '',
+    relationship: 'Family Member',
+    notes: ''
+  });
 
   useEffect(() => {
     fetchProjectData();
