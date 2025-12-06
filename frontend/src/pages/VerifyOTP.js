@@ -196,17 +196,10 @@ export default function VerifyOTP() {
             {/* Verify Button */}
             <button
               type="button"
-              disabled={loading || emailOTP.length !== 6}
+              disabled={loading || emailOTP.length !== 6 || phoneOTP.length !== 6}
               onClick={handleButtonClick}
-              onTouchEnd={(e) => {
-                e.preventDefault();
-                console.log('Touch end on button');
-                if (!loading && emailOTP.length === 6) {
-                  handleButtonClick(e);
-                }
-              }}
               className={`w-full py-6 text-white font-bold text-lg rounded-lg transition-all ${
-                loading || emailOTP.length !== 6
+                loading || emailOTP.length !== 6 || phoneOTP.length !== 6
                   ? 'bg-gray-300 cursor-not-allowed opacity-50'
                   : 'bg-orange-500 hover:bg-orange-600 active:bg-orange-700 cursor-pointer shadow-lg'
               }`}
@@ -217,7 +210,7 @@ export default function VerifyOTP() {
                 WebkitUserSelect: 'none'
               }}
             >
-              {loading ? 'Verifying...' : emailOTP.length === 6 ? '✓ Verify Email OTP' : `Enter OTP (${emailOTP.length}/6)`}
+              {loading ? 'Verifying...' : (emailOTP.length === 6 && phoneOTP.length === 6) ? '✓ Verify Both OTPs' : `Enter Both OTPs (${emailOTP.length + phoneOTP.length}/12)`}
             </button>
 
             {/* Resend Link */}
