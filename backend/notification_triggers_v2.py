@@ -247,7 +247,7 @@ async def notify_project_creation(project_id: str):
                     
                     <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #E5E7EB; text-align: center;">
                         <p style="color: #9CA3AF; font-size: 12px; margin: 5px 0;">
-                            © 4th Dimension - Architecture & Design Excellence
+                            © 4th Dimension - Design Excellence
                         </p>
                     </div>
                 </div>
