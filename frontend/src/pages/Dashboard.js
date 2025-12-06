@@ -508,22 +508,6 @@ export default function Dashboard({ user, onLogout }) {
               </Card>
             )}
 
-            {/* WhatsApp Notifications Placeholder */}
-            <Card className="bg-gradient-to-br from-green-50 to-green-100 border-green-200">
-              <CardContent className="p-3 sm:p-4">
-                <div className="flex items-center gap-2 sm:gap-3">
-                  <Bell className="w-4 h-4 sm:w-5 sm:h-5 text-green-600" />
-                  <div className="flex-1 min-w-0">
-                    <p className="text-xs sm:text-sm font-medium text-green-900">
-                      WhatsApp Reminders
-                    </p>
-                    <p className="text-[10px] sm:text-xs text-green-700 mt-0.5">
-                      Coming soon! Daily task notifications
-                    </p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
           </div>
         </div>
 
