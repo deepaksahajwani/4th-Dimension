@@ -142,6 +142,10 @@ export default function ProjectDetail({ user, onLogout }) {
         const clientRes = await axios.get(`${API}/clients/${projectRes.data.client_id}`);
         setClient(clientRes.data);
       }
+      
+      // Fetch co-clients
+      const coClientsRes = await axios.get(`${API}/projects/${projectId}/co-clients?t=${timestamp}`);
+      setCoClients(coClientsRes.data);
     } catch (error) {
       toast.error('Failed to load project data');
       console.error(error);
