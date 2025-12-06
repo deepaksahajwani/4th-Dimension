@@ -389,25 +389,29 @@ export default function PendingRegistrations({ user, onLogout }) {
           setShowProjectPrompt(open);
         }}>
           <AlertDialogContent className="max-w-md">
-            <DialogHeader>
-              <DialogTitle>✅ Client Approved Successfully!</DialogTitle>
-              <p className="text-slate-600 mt-2">
-                <strong>{approvedClient?.name}</strong> has been approved as a client.
-              </p>
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mt-3">
-                <p className="text-sm text-blue-900 font-medium mb-2">
-                  Would you like to create their project now?
-                </p>
-                <p className="text-xs text-blue-700">
-                  Creating a project immediately will give them something to see when they log in.
-                </p>
-              </div>
-              <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 mt-2">
-                <p className="text-xs text-amber-800">
-                  <strong>Note:</strong> Approval notification will be sent after you make a choice. Until a project is created, they'll see a professional welcome screen.
-                </p>
-              </div>
-            </DialogHeader>
+            <AlertDialogHeader>
+              <AlertDialogTitle>✅ Client Approved Successfully!</AlertDialogTitle>
+              <AlertDialogDescription asChild>
+                <div className="space-y-3">
+                  <p className="text-slate-600">
+                    <strong>{approvedClient?.name}</strong> has been approved as a client.
+                  </p>
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                    <p className="text-sm text-blue-900 font-medium mb-2">
+                      Would you like to create their project now?
+                    </p>
+                    <p className="text-xs text-blue-700">
+                      Creating a project immediately will give them something to see when they log in.
+                    </p>
+                  </div>
+                  <div className="bg-amber-50 border border-amber-200 rounded-lg p-3">
+                    <p className="text-xs text-amber-800">
+                      <strong>Note:</strong> Approval notification will be sent after you make a choice. Until a project is created, they'll see a professional welcome screen.
+                    </p>
+                  </div>
+                </div>
+              </AlertDialogDescription>
+            </AlertDialogHeader>
             <DialogFooter>
               <Button
                 variant="outline"
