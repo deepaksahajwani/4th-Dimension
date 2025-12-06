@@ -1428,6 +1428,39 @@ async def approve_user_from_dashboard(
         print(f"Approval error: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
+
+@api_router.post("/auth/send-approval-notification")
+async def send_approval_notification_endpoint(
+    user_id: str = Query(...),
+    current_user: User = Depends(require_owner)
+):
+    """
+    Send approval notification to user after owner dismisses project creation prompt
+    This separates approval from notification for better UX
+    """
+    try:
+        user = await db.users.find_one({"id": user_id}, {"_id": 0})
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+        
+        if user.get('approval_status') != 'approved':
+            raise HTTPException(status_code=400, detail="User is not approved")
+        
+        # Send approval notification
+        try:
+            from notification_triggers_v2 import notify_user_approval
+            await notify_user_approval(user_id)
+            return {"success": True, "message": "Notification sent successfully"}
+        except Exception as e:
+            print(f"Approval notification failed: {str(e)}")
+            raise HTTPException(status_code=500, detail=f"Failed to send notification: {str(e)}")
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"Notification error: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
 @api_router.get("/auth/pending-registrations")
 async def get_pending_registrations(current_user: User = Depends(require_owner)):
     """
