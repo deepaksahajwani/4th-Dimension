@@ -1721,6 +1721,91 @@ export default function ProjectDetail({ user, onLogout }) {
               </CardContent>
             </Card>
           </TabsContent>
+
+          {/* Co-Clients Tab */}
+          <TabsContent value="coclients" className="mt-6">
+            <Card>
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle>Co-Clients / Associate Clients</CardTitle>
+                    <p className="text-sm text-slate-600 mt-1">
+                      Additional people who can view and comment on this project (without access to financial details)
+                    </p>
+                  </div>
+                  {(user?.is_owner || (client && user?.email === client.email)) && (
+                    <Button 
+                      onClick={() => setCoClientDialogOpen(true)}
+                      className="bg-orange-500 hover:bg-orange-600"
+                    >
+                      <Plus className="w-4 h-4 mr-2" />
+                      Add Co-Client
+                    </Button>
+                  )}
+                </div>
+              </CardHeader>
+              <CardContent>
+                {coClients.length > 0 ? (
+                  <div className="space-y-3">
+                    {coClients.map((coClient) => (
+                      <Card key={coClient.id} className="border border-slate-200">
+                        <CardContent className="p-4">
+                          <div className="flex items-start justify-between">
+                            <div className="flex-1">
+                              <div className="flex items-center gap-2 mb-2">
+                                <h4 className="font-medium text-slate-900">{coClient.name}</h4>
+                                <span className="px-2 py-0.5 text-xs bg-blue-100 text-blue-700 rounded">
+                                  {coClient.relationship}
+                                </span>
+                              </div>
+                              <div className="space-y-1 text-sm text-slate-600">
+                                <p className="flex items-center gap-2">
+                                  <span className="font-medium">Email:</span> {coClient.email}
+                                </p>
+                                {coClient.phone && (
+                                  <p className="flex items-center gap-2">
+                                    <span className="font-medium">Phone:</span> {coClient.phone}
+                                  </p>
+                                )}
+                                {coClient.notes && (
+                                  <p className="flex items-center gap-2">
+                                    <span className="font-medium">Notes:</span> {coClient.notes}
+                                  </p>
+                                )}
+                                <p className="text-xs text-slate-500 mt-2">
+                                  Added on {new Date(coClient.created_at).toLocaleDateString()}
+                                </p>
+                              </div>
+                            </div>
+                            {(user?.is_owner || (client && user?.email === client.email)) && (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleRemoveCoClient(coClient.id)}
+                                className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </Button>
+                            )}
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-12">
+                    <Users className="w-16 h-16 text-slate-300 mx-auto mb-4" />
+                    <p className="text-slate-500">No co-clients added yet</p>
+                    {(user?.is_owner || (client && user?.email === client.email)) && (
+                      <p className="text-sm text-slate-400 mt-2">
+                        Add co-clients to give others view/comment access to this project
+                      </p>
+                    )}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
         </Tabs>
 
         {/* Add Drawing Dialog */}
