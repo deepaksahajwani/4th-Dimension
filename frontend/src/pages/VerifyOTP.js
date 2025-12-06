@@ -156,31 +156,40 @@ export default function VerifyOTP() {
               </p>
             </div>
 
-            {/* Phone OTP - Temporarily Hidden */}
-            {/* <div className="space-y-2">
+            {/* Phone OTP */}
+            <div className="space-y-2">
               <Label htmlFor="phone_otp" className="flex items-center gap-2">
                 <Smartphone className="w-4 h-4 text-orange-500" />
                 Phone OTP
               </Label>
               <Input
                 id="phone_otp"
-                type="text"
+                type="tel"
+                inputMode="numeric"
+                pattern="[0-9]*"
                 maxLength="6"
                 value={phoneOTP}
-                onChange={(e) => setPhoneOTP(e.target.value.replace(/\D/g, ''))}
+                onChange={(e) => {
+                  const value = e.target.value.replace(/\D/g, '');
+                  setPhoneOTP(value);
+                }}
                 placeholder="Enter 6-digit OTP"
                 className="text-center text-2xl tracking-widest font-bold"
                 required
+                autoComplete="one-time-code"
               />
               <p className="text-xs text-slate-500">
                 Check your phone for SMS
               </p>
-            </div> */}
+              <p className="text-xs text-slate-600 mt-1">
+                Digits entered: <strong className={phoneOTP.length === 6 ? 'text-green-600' : 'text-orange-600'}>{phoneOTP.length}/6</strong>
+              </p>
+            </div>
 
             {/* Info Box */}
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
               <p className="text-xs text-blue-800">
-                <strong>Note:</strong> Phone verification is temporarily disabled for faster registration. Email OTP is valid for 1 hour.
+                <strong>Security:</strong> Both email and phone OTPs are required to verify your identity. OTPs are valid for 1 hour.
               </p>
             </div>
 
