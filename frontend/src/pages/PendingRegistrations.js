@@ -412,17 +412,16 @@ export default function PendingRegistrations({ user, onLogout }) {
                 </div>
               </AlertDialogDescription>
             </AlertDialogHeader>
-            <DialogFooter>
-              <Button
-                variant="outline"
+            <AlertDialogFooter>
+              <AlertDialogCancel
                 onClick={async () => {
                   await handlePromptDismiss();
                   setShowProjectPrompt(false);
                 }}
               >
                 I'll Do It Later
-              </Button>
-              <Button
+              </AlertDialogCancel>
+              <AlertDialogAction
                 onClick={async () => {
                   await handlePromptDismiss();
                   setShowProjectPrompt(false);
@@ -438,8 +437,8 @@ export default function PendingRegistrations({ user, onLogout }) {
                 className="bg-blue-600 hover:bg-blue-700"
               >
                 Create Project Now
-              </Button>
-            </DialogFooter>
+              </AlertDialogAction>
+            </AlertDialogFooter>
           </DialogContent>
         </AlertDialog>
 
