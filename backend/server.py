@@ -5986,7 +5986,7 @@ async def add_co_client(
 @api_router.get("/projects/{project_id}/co-clients")
 async def get_project_co_clients(
     project_id: str,
-    current_user: dict = Depends(get_current_user)
+    current_user: User = Depends(get_current_user)
 ):
     """Get all co-clients for a project"""
     try:
