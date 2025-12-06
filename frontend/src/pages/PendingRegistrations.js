@@ -366,50 +366,61 @@ export default function PendingRegistrations({ user, onLogout }) {
         )}
 
         {/* Project Creation Prompt Dialog (After Client Approval) */}
-        <AlertDialog open={showProjectPrompt} onOpenChange={setShowProjectPrompt}>
+        <AlertDialog open={showProjectPrompt} onOpenChange={(open) => {
+          if (!open) {
+            handlePromptDismiss();
+          }
+          setShowProjectPrompt(open);
+        }}>
           <AlertDialogContent className="max-w-md">
-            <AlertDialogHeader>
-              <AlertDialogTitle>✅ Client Approved Successfully!</AlertDialogTitle>
-              <AlertDialogDescription asChild>
-                <div className="space-y-3">
-                  <p>
-                    <strong>{approvedClient?.name}</strong> has been approved as a client.
-                  </p>
-                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                    <p className="text-sm text-blue-900 font-medium mb-2">
-                      Would you like to create their project now?
-                    </p>
-                    <p className="text-xs text-blue-700">
-                      Creating a project immediately will give them something to see when they log in.
-                    </p>
-                  </div>
-                </div>
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel onClick={() => {
-                setShowProjectPrompt(false);
-                setApprovedClient(null);
-              }}>
+            <DialogHeader>
+              <DialogTitle>✅ Client Approved Successfully!</DialogTitle>
+              <p className="text-slate-600 mt-2">
+                <strong>{approvedClient?.name}</strong> has been approved as a client.
+              </p>
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mt-3">
+                <p className="text-sm text-blue-900 font-medium mb-2">
+                  Would you like to create their project now?
+                </p>
+                <p className="text-xs text-blue-700">
+                  Creating a project immediately will give them something to see when they log in.
+                </p>
+              </div>
+              <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 mt-2">
+                <p className="text-xs text-amber-800">
+                  <strong>Note:</strong> Approval notification will be sent after you make a choice. Until a project is created, they'll see a professional welcome screen.
+                </p>
+              </div>
+            </DialogHeader>
+            <DialogFooter>
+              <Button
+                variant="outline"
+                onClick={async () => {
+                  await handlePromptDismiss();
+                  setShowProjectPrompt(false);
+                }}
+              >
                 I'll Do It Later
-              </AlertDialogCancel>
-              <AlertDialogAction
-                onClick={() => {
+              </Button>
+              <Button
+                onClick={async () => {
+                  await handlePromptDismiss();
                   setShowProjectPrompt(false);
                   // Navigate to projects page with client pre-selected
                   navigate('/projects', { 
                     state: { 
                       createProject: true, 
-                      preSelectedClient: approvedClient 
+                      preSelectedClient: approvedClient,
+                      returnTo: '/pending-registrations'
                     } 
                   });
                 }}
                 className="bg-blue-600 hover:bg-blue-700"
               >
                 Create Project Now
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
+              </Button>
+            </DialogFooter>
+          </DialogContent>
         </AlertDialog>
 
         {/* Confirmation Dialog */}
