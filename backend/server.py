@@ -4394,10 +4394,26 @@ async def delete_consultant(
     consultant_id: str,
     current_user: User = Depends(get_current_user)
 ):
-    """Soft delete consultant"""
+    """Soft delete consultant - Only if no active projects exist"""
     existing = await db.consultants.find_one({"id": consultant_id}, {"_id": 0})
     if not existing:
         raise HTTPException(status_code=404, detail="Consultant not found")
+    
+    # Check for active projects where this consultant is assigned
+    active_projects = await db.projects.find({
+        "consultants": consultant_id,
+        "$or": [
+            {"archived": False},
+            {"archived": {"$exists": False}}
+        ]
+    }, {"_id": 0, "name": 1}).to_list(10)
+    
+    if active_projects:
+        project_names = ", ".join([p.get('name', 'Unnamed') for p in active_projects])
+        raise HTTPException(
+            status_code=400, 
+            detail=f"Cannot delete consultant. Active projects exist: {project_names}. Please archive these projects first."
+        )
     
     await db.consultants.update_one(
         {"id": consultant_id},
