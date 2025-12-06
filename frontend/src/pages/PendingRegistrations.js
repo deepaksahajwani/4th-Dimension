@@ -364,35 +364,55 @@ export default function PendingRegistrations({ user, onLogout }) {
                 <div>
                   {actionType === 'approve' ? (
                     <>
-                      <p className="mb-4">
-                        Approve <strong>{selectedUser?.name}</strong> and assign their specific role in your team.
-                      </p>
-                      
-                      {/* Role Selection */}
-                      <div className="space-y-3 mb-4">
-                        <Label htmlFor="role-select" className="text-sm font-medium text-slate-900">
-                          Assign Specific Role *
-                        </Label>
-                        <Select value={selectedRole} onValueChange={setSelectedRole}>
-                          <SelectTrigger id="role-select" className="w-full">
-                            <SelectValue placeholder="Select role..." />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {Object.entries(getAvailableRoles(selectedUser?.role)).map(([key, label]) => (
-                              <SelectItem key={key} value={key}>
-                                {label}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        <p className="text-xs text-slate-500">
-                          This will help track their responsibilities and appear on their profile.
-                        </p>
-                      </div>
+                      {/* For clients and vendors - simple approval */}
+                      {selectedUser?.role === 'client' || selectedUser?.role === 'vendor' ? (
+                        <>
+                          <p className="mb-4">
+                            Approve <strong>{selectedUser?.name}</strong> as a <strong>{ROLE_LABELS[selectedUser?.role]}</strong>?
+                          </p>
+                          <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
+                            <p className="text-sm text-blue-800">
+                              ✓ They will have access to their projects and can view/comment on drawings.
+                            </p>
+                          </div>
+                          <p className="text-sm text-slate-600">
+                            They will receive an email notification and can log in immediately.
+                          </p>
+                        </>
+                      ) : (
+                        /* For team members, contractors, consultants - role selection needed */
+                        <>
+                          <p className="mb-4">
+                            Approve <strong>{selectedUser?.name}</strong> and assign their specific role.
+                          </p>
+                          
+                          {/* Role Selection */}
+                          <div className="space-y-3 mb-4">
+                            <Label htmlFor="role-select" className="text-sm font-medium text-slate-900">
+                              Assign Specific Role *
+                            </Label>
+                            <Select value={selectedRole} onValueChange={setSelectedRole}>
+                              <SelectTrigger id="role-select" className="w-full">
+                                <SelectValue placeholder="Select role..." />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {Object.entries(getAvailableRoles(selectedUser?.role)).map(([key, label]) => (
+                                  <SelectItem key={key} value={key}>
+                                    {label}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                            <p className="text-xs text-slate-500">
+                              This will help track their responsibilities and appear on their profile.
+                            </p>
+                          </div>
 
-                      <p className="text-sm text-slate-600">
-                        They will receive an email notification and can log in immediately.
-                      </p>
+                          <p className="text-sm text-slate-600">
+                            They will receive an email notification and can log in immediately.
+                          </p>
+                        </>
+                      )}
                     </>
                   ) : (
                     <>
