@@ -9,6 +9,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Plus, Users, Mail, Phone, FolderOpen, Edit, Archive, Trash2, ArchiveRestore } from 'lucide-react';
+import PhoneInput, { combinePhoneNumber } from '@/components/PhoneInput';
 import { toast } from 'sonner';
 import { formatErrorMessage } from '@/utils/errorHandler';
 
