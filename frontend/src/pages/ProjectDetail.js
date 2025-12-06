@@ -2561,6 +2561,91 @@ export default function ProjectDetail({ user, onLogout }) {
             </DialogFooter>
           </DialogContent>
         </Dialog>
+
+        {/* Add Co-Client Dialog */}
+        <Dialog open={coClientDialogOpen} onOpenChange={setCoClientDialogOpen}>
+          <DialogContent className="max-w-xl">
+            <DialogHeader>
+              <DialogTitle>Add Co-Client / Associate Client</DialogTitle>
+            </DialogHeader>
+            <form onSubmit={handleAddCoClient} className="space-y-4">
+              <div>
+                <Label>Name *</Label>
+                <Input
+                  value={coClientFormData.name}
+                  onChange={(e) => setCoClientFormData({ ...coClientFormData, name: e.target.value })}
+                  placeholder="Full name"
+                  required
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label>Email *</Label>
+                  <Input
+                    type="email"
+                    value={coClientFormData.email}
+                    onChange={(e) => setCoClientFormData({ ...coClientFormData, email: e.target.value })}
+                    placeholder="email@example.com"
+                    required
+                  />
+                </div>
+                <div>
+                  <Label>Phone</Label>
+                  <Input
+                    type="tel"
+                    value={coClientFormData.phone}
+                    onChange={(e) => setCoClientFormData({ ...coClientFormData, phone: e.target.value })}
+                    placeholder="+1234567890"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <Label>Relationship *</Label>
+                <select
+                  className="flex h-10 w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm"
+                  value={coClientFormData.relationship}
+                  onChange={(e) => setCoClientFormData({ ...coClientFormData, relationship: e.target.value })}
+                  required
+                >
+                  <option value="Spouse">Spouse</option>
+                  <option value="Family Member">Family Member</option>
+                  <option value="Representative">Representative</option>
+                  <option value="Staff">Staff</option>
+                  <option value="Business Partner">Business Partner</option>
+                  <option value="Other">Other</option>
+                </select>
+              </div>
+
+              <div>
+                <Label>Notes</Label>
+                <textarea
+                  className="flex min-h-[80px] w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm"
+                  value={coClientFormData.notes}
+                  onChange={(e) => setCoClientFormData({ ...coClientFormData, notes: e.target.value })}
+                  placeholder="Any additional information..."
+                />
+              </div>
+
+              <DialogFooter>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => {
+                    setCoClientDialogOpen(false);
+                    resetCoClientForm();
+                  }}
+                >
+                  Cancel
+                </Button>
+                <Button type="submit" className="bg-orange-500 hover:bg-orange-600">
+                  Add Co-Client
+                </Button>
+              </DialogFooter>
+            </form>
+          </DialogContent>
+        </Dialog>
       </div>
     </Layout>
   );
