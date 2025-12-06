@@ -26,7 +26,8 @@ export default function Clients({ user, onLogout }) {
   const [selectedClient, setSelectedClient] = useState(null);
   const [inviteForm, setInviteForm] = useState({
     name: '',
-    phone: ''
+    countryCode: '+91',
+    phoneNumber: ''
   });
   const [formData, setFormData] = useState({
     name: '',
