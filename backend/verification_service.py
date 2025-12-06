@@ -117,48 +117,33 @@ async def send_verification_sms(
     otp: str
 ) -> Tuple[bool, Optional[str]]:
     """
-    Send verification SMS with OTP using Twilio Verify API
+    Send verification SMS with OTP - MUST use our generated OTP for validation
     
     Returns: (success: bool, error_message: Optional[str])
     """
     try:
-        # Try using Twilio Verify Service first (if configured)
-        verify_service_sid = os.getenv('TWILIO_VERIFY_SERVICE_SID')
+        # Use regular SMS to send OUR generated OTP
+        # Note: Twilio Verify API generates its own OTP which won't match ours in DB
+        from_number = os.getenv('TWILIO_PHONE_NUMBER')
         
-        if verify_service_sid:
-            # Use Twilio Verify API (more secure, built-in rate limiting)
-            verification = twilio_client.verify \
-                .v2 \
-                .services(verify_service_sid) \
-                .verifications \
-                .create(to=phone_number, channel='sms')
-            
-            if verification.sid:
-                return True, None
-            else:
-                return False, "Failed to send verification SMS"
-        else:
-            # Fallback to regular SMS
-            from_number = os.getenv('TWILIO_PHONE_NUMBER')
-            
-            message_body = f"""4th Dimension Team Verification
+        message_body = f"""4th Dimension - Registration Verification
 
 Your OTP code is: {otp}
 
-This code will expire in 15 minutes.
+This code will expire in 1 hour.
 
-If you didn't request this, please ignore."""
-            
-            message = twilio_client.messages.create(
-                body=message_body,
-                from_=from_number,
-                to=phone_number
-            )
-            
-            if message.sid:
-                return True, None
-            else:
-                return False, "Failed to send SMS"
+If you didn't request this, please ignore this message."""
+        
+        message = twilio_client.messages.create(
+            body=message_body,
+            from_=from_number,
+            to=phone_number
+        )
+        
+        if message.sid:
+            return True, None
+        else:
+            return False, "Failed to send SMS"
             
     except Exception as e:
         return False, str(e)
