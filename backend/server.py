@@ -3560,11 +3560,27 @@ async def delete_contractor(
     contractor_id: str,
     current_user: User = Depends(require_owner)
 ):
-    """Soft delete a contractor (Owner only)"""
+    """Soft delete a contractor (Owner only) - Only if no active projects exist"""
     # Get contractor to find associated user_id
     contractor = await db.contractors.find_one({"id": contractor_id}, {"_id": 0})
     if not contractor:
         raise HTTPException(status_code=404, detail="Contractor not found")
+    
+    # Check for active projects where this contractor is assigned
+    active_projects = await db.projects.find({
+        "contractors": contractor_id,
+        "$or": [
+            {"archived": False},
+            {"archived": {"$exists": False}}
+        ]
+    }, {"_id": 0, "name": 1}).to_list(10)
+    
+    if active_projects:
+        project_names = ", ".join([p.get('name', 'Unnamed') for p in active_projects])
+        raise HTTPException(
+            status_code=400, 
+            detail=f"Cannot delete contractor. Active projects exist: {project_names}. Please archive these projects first."
+        )
     
     result = await db.contractors.update_one(
         {"id": contractor_id},
