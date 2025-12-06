@@ -5947,7 +5947,7 @@ async def get_historical_progress(
 async def add_co_client(
     project_id: str,
     co_client: CoClientCreate,
-    current_user: dict = Depends(get_current_user)
+    current_user: User = Depends(get_current_user)
 ):
     """Add a co-client/associate client to a project"""
     try:
@@ -5957,7 +5957,7 @@ async def add_co_client(
             raise HTTPException(status_code=404, detail="Project not found")
         
         # Only owner or main client can add co-clients
-        if not current_user.get('is_owner') and current_user.get('id') != project.get('client_id'):
+        if not current_user.is_owner and current_user.id != project.get('client_id'):
             raise HTTPException(status_code=403, detail="Access denied")
         
         # Create co-client record
@@ -5971,7 +5971,7 @@ async def add_co_client(
             "relationship": co_client.relationship,
             "notes": co_client.notes,
             "created_at": datetime.now(timezone.utc),
-            "created_by": current_user.get('id')
+            "created_by": current_user.id
         }
         
         await db.co_clients.insert_one(co_client_data)
