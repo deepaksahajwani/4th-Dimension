@@ -2299,11 +2299,21 @@ async def archive_client(client_id: str, archived: bool = True, current_user: Us
 @api_router.delete("/clients/{client_id}")
 async def delete_client(client_id: str, current_user: User = Depends(require_owner)):
     """Permanently delete client (soft delete) and unlink from projects"""
+    # Get client to find associated user_id
+    client = await db.clients.find_one({"id": client_id}, {"_id": 0})
+    if not client:
+        raise HTTPException(status_code=404, detail="Client not found")
+    
     # Soft delete the client
     await db.clients.update_one(
         {"id": client_id},
         {"$set": {"deleted_at": datetime.now(timezone.utc).isoformat()}}
     )
+    
+    # Delete the associated user account (if exists)
+    if client.get('user_id'):
+        await db.users.delete_one({"id": client['user_id']})
+        print(f"✅ Deleted user account for client: {client.get('name')}")
     
     # Set client_id to null in related projects (cascade)
     await db.projects.update_many(
@@ -2311,7 +2321,7 @@ async def delete_client(client_id: str, current_user: User = Depends(require_own
         {"$set": {"client_id": None}}
     )
     
-    return {"message": "Client deleted and projects unlinked"}
+    return {"message": "Client and associated user account deleted successfully"}
 
 
 
