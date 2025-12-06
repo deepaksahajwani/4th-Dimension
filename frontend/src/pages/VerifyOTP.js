@@ -119,10 +119,7 @@ export default function VerifyOTP() {
             Verify Your Identity
           </CardTitle>
           <p className="text-slate-600 mt-2">
-            Enter the OTP sent to your email
-          </p>
-          <p className="text-xs text-slate-500 mt-1">
-            (Phone verification temporarily disabled)
+            Enter the OTPs sent to your email and phone
           </p>
         </CardHeader>
         
