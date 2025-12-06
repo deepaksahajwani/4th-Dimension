@@ -61,7 +61,8 @@ export default function Team({ user, onLogout }) {
   const [inviting, setInviting] = useState(false);
   const [inviteForm, setInviteForm] = useState({
     name: '',
-    phone: '',
+    countryCode: '+91',
+    phoneNumber: '',
     invitee_type: 'team_member'
   });
 
