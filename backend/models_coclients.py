@@ -15,8 +15,7 @@ class CoClientBase(BaseModel):
     notes: Optional[str] = None
 
 class CoClientCreate(CoClientBase):
-    project_id: str
-    main_client_id: str
+    pass  # project_id and main_client_id will be set by the backend
 
 class CoClient(CoClientBase):
     id: str
