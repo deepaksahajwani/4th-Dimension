@@ -64,20 +64,22 @@ export default function Dashboard({ user, onLogout }) {
         setTeamRatings(responses[4].data);
       }
       
-      // Fetch only urgent drawings (due within 3 days) for team leader projects
+      // Fetch pending drawings assigned to this user
       if (user && !user.is_owner && responses[3].data) {
-        const leaderProjects = responses[3].data.filter(p => p.lead_architect_id === user.id);
         const allDrawings = [];
-        const today = new Date();
-        const threeDaysFromNow = new Date(today);
-        threeDaysFromNow.setDate(today.getDate() + 3);
         
-        for (const project of leaderProjects) {
+        for (const project of responses[3].data) {
           try {
             const drawingsRes = await axios.get(`${API}/projects/${project.id}/drawings`);
-            // Only get urgent drawings (due within 3 days or overdue)
-            const urgentDrawings = drawingsRes.data.filter(d => {
-              if (d.is_issued && !d.has_pending_revision) return false;
+            // Get drawings that are:
+            // 1. Assigned to this user OR project is led by this user
+            // 2. Not issued yet OR has pending revisions
+            // 3. Status is PLANNED or IN_PROGRESS
+            const myDrawings = drawingsRes.data.filter(d => {
+              const isAssignedToMe = d.assigned_to === user.id || project.lead_architect_id === user.id;
+              const needsWork = !d.is_issued || d.has_pending_revision;
+              const isActive = ['PLANNED', 'IN_PROGRESS'].includes(d.status);
+              return isAssignedToMe && needsWork && isActive;
               if (!d.due_date) return false;
               
               const dueDate = new Date(d.due_date);
