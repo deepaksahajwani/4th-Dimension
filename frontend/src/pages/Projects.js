@@ -87,7 +87,19 @@ export default function Projects({ user, onLogout }) {
         navigate(location.pathname, { replace: true, state: {} });
       }
     }
-  }, [location.state, projects]);
+    
+    // Handle create project with pre-selected client
+    if (location.state?.createProject && location.state?.preSelectedClient && clients.length > 0) {
+      // Find the client in the clients list
+      const client = clients.find(c => c.email === location.state.preSelectedClient.email);
+      if (client) {
+        setFormData(prev => ({ ...prev, client_id: client.id }));
+      }
+      setDialogOpen(true);
+      // Clear the location state
+      navigate(location.pathname, { replace: true, state: {} });
+    }
+  }, [location.state, projects, clients]);
 
   const fetchData = async () => {
     try {
