@@ -890,6 +890,46 @@ export default function ProjectDetail({ user, onLogout }) {
     setEditingDrawing(null);
   };
 
+  // Co-Client handlers
+  const handleAddCoClient = async (e) => {
+    e.preventDefault();
+    try {
+      await axios.post(`${API}/projects/${projectId}/co-clients`, {
+        ...coClientFormData,
+        project_id: projectId,
+        main_client_id: project.client_id
+      });
+      toast.success('Co-client added successfully!');
+      setCoClientDialogOpen(false);
+      resetCoClientForm();
+      fetchProjectData();
+    } catch (error) {
+      toast.error(formatErrorMessage(error, 'Failed to add co-client'));
+    }
+  };
+
+  const handleRemoveCoClient = async (coClientId) => {
+    if (!confirm('Are you sure you want to remove this co-client?')) return;
+    
+    try {
+      await axios.delete(`${API}/co-clients/${coClientId}`);
+      toast.success('Co-client removed successfully');
+      fetchProjectData();
+    } catch (error) {
+      toast.error(formatErrorMessage(error, 'Failed to remove co-client'));
+    }
+  };
+
+  const resetCoClientForm = () => {
+    setCoClientFormData({
+      name: '',
+      email: '',
+      phone: '',
+      relationship: 'Family Member',
+      notes: ''
+    });
+  };
+
   // Project action handlers
   const handleEditProject = () => {
     navigate('/projects', { state: { editProjectId: projectId } });
