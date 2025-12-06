@@ -6011,7 +6011,7 @@ async def get_project_co_clients(
 @api_router.delete("/co-clients/{co_client_id}")
 async def remove_co_client(
     co_client_id: str,
-    current_user: dict = Depends(get_current_user)
+    current_user: User = Depends(get_current_user)
 ):
     """Remove a co-client"""
     try:
@@ -6022,7 +6022,7 @@ async def remove_co_client(
         
         # Only owner or main client can remove
         project = await db.projects.find_one({"id": co_client.get('project_id')}, {"_id": 0})
-        if not current_user.get('is_owner') and current_user.get('id') != project.get('client_id'):
+        if not current_user.is_owner and current_user.id != project.get('client_id'):
             raise HTTPException(status_code=403, detail="Access denied")
         
         await db.co_clients.delete_one({"id": co_client_id})
