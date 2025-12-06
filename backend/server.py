@@ -2236,18 +2236,38 @@ async def get_clients(
     
     clients = await db.clients.find(query, {"_id": 0}).to_list(1000)
     
-    # Add project count for each client
+    # Filter out clients whose user accounts are not approved
+    approved_clients = []
     for client in clients:
-        if isinstance(client.get('created_at'), str):
-            client['created_at'] = datetime.fromisoformat(client['created_at'])
-        if isinstance(client.get('updated_at'), str):
-            client['updated_at'] = datetime.fromisoformat(client['updated_at'])
-        
-        # Count projects for this client
-        project_count = await db.projects.count_documents({"client_id": client["id"], "deleted_at": None})
-        client['total_projects'] = project_count
+        # Check if client has a user_id and if that user is approved
+        if client.get('user_id'):
+            user = await db.users.find_one(
+                {"id": client['user_id']}, 
+                {"_id": 0, "approval_status": 1}
+            )
+            # Only include if user is approved
+            if user and user.get('approval_status') == 'approved':
+                if isinstance(client.get('created_at'), str):
+                    client['created_at'] = datetime.fromisoformat(client['created_at'])
+                if isinstance(client.get('updated_at'), str):
+                    client['updated_at'] = datetime.fromisoformat(client['updated_at'])
+                
+                # Count projects for this client
+                project_count = await db.projects.count_documents({"client_id": client["id"], "deleted_at": None})
+                client['total_projects'] = project_count
+                approved_clients.append(client)
+        else:
+            # Client created manually without user account (legacy) - always show
+            if isinstance(client.get('created_at'), str):
+                client['created_at'] = datetime.fromisoformat(client['created_at'])
+            if isinstance(client.get('updated_at'), str):
+                client['updated_at'] = datetime.fromisoformat(client['updated_at'])
+            
+            project_count = await db.projects.count_documents({"client_id": client["id"], "deleted_at": None})
+            client['total_projects'] = project_count
+            approved_clients.append(client)
     
-    return clients
+    return approved_clients
 
 @api_router.get("/clients/{client_id}")
 async def get_client(client_id: str, current_user: User = Depends(get_current_user)):
