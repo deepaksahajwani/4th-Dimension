@@ -70,30 +70,31 @@ export default function Clients({ user, onLogout }) {
   const handleInviteClient = async (e) => {
     e.preventDefault();
     
-    if (!inviteForm.name || !inviteForm.phone) {
+    if (!inviteForm.name || !inviteForm.phoneNumber) {
       toast.error('Please enter name and phone number');
       return;
     }
 
-    // Validate phone number format
-    const phoneRegex = /^\+?[1-9]\d{9,14}$/;
-    if (!phoneRegex.test(inviteForm.phone.replace(/\s/g, ''))) {
-      toast.error('Please enter a valid phone number with country code (e.g., +919876543210)');
+    // Validate 10-digit phone number
+    if (inviteForm.phoneNumber.length !== 10) {
+      toast.error('Please enter a valid 10-digit phone number');
       return;
     }
 
     try {
+      const fullPhone = combinePhoneNumber(inviteForm.countryCode, inviteForm.phoneNumber);
+      
       await axios.post(`${API}/invite/send`, null, {
         params: {
           name: inviteForm.name,
-          phone: inviteForm.phone,
+          phone: fullPhone,
           invitee_type: 'client'
         }
       });
       
       toast.success(`WhatsApp invite sent to ${inviteForm.name}!`, { duration: 5000 });
       setInviteDialogOpen(false);
-      setInviteForm({ name: '', phone: '' });
+      setInviteForm({ name: '', countryCode: '+91', phoneNumber: '' });
     } catch (error) {
       console.error('Invite error:', error);
       toast.error(error.response?.data?.detail || 'Failed to send invite');
