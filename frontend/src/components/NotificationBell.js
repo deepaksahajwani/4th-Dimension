@@ -62,10 +62,12 @@ export default function NotificationBell({ user }) {
     try {
       const token = localStorage.getItem('token');
       const response = await axios.get(
-        `${API}/api/notifications?user_id=${user.id}&limit=20`,
+        `${API}/api/notifications?user_id=${user.id}&limit=50`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      setNotifications(response.data);
+      // Show only unread notifications in dropdown (industry standard)
+      const unreadNotifications = response.data.filter(n => !n.read);
+      setNotifications(unreadNotifications.slice(0, 10)); // Max 10 in dropdown
     } catch (error) {
       console.error('Error fetching notifications:', error);
     }
