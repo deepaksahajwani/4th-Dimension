@@ -4383,20 +4383,36 @@ async def create_consultant(consultant_data: ConsultantCreate, current_user: Use
 @api_router.get("/consultants", response_model=List[Consultant])
 async def get_consultants(current_user: User = Depends(get_current_user)):
     consultants = await db.consultants.find({"deleted_at": None}, {"_id": 0}).to_list(1000)
+    
+    approved_consultants = []
     for c in consultants:
+        # Check if consultant has approved user account
+        if c.get('user_id'):
+            user = await db.users.find_one(
+                {"id": c['user_id']}, 
+                {"_id": 0, "approval_status": 1}
+            )
+            # Only include if user is approved
+            if not (user and user.get('approval_status') == 'approved'):
+                continue
+        
+        # Process dates
         if isinstance(c.get('created_at'), str):
             c['created_at'] = datetime.fromisoformat(c['created_at'])
         if isinstance(c.get('updated_at'), str):
             c['updated_at'] = datetime.fromisoformat(c['updated_at'])
+        
         # Auto-fix legacy "Structural" type to "Structure"
         if c.get('type') == 'Structural':
             c['type'] = 'Structure'
-            # Update in database
             await db.consultants.update_one(
                 {"id": c['id']},
                 {"$set": {"type": "Structure"}}
             )
-    return consultants
+        
+        approved_consultants.append(c)
+    
+    return approved_consultants
 
 @api_router.put("/consultants/{consultant_id}", response_model=Consultant)
 async def update_consultant(
