@@ -157,6 +157,22 @@ export default function PendingRegistrations({ user, onLogout }) {
     setDialogOpen(true);
   };
 
+  const handlePromptDismiss = async () => {
+    // Send notification to client now that owner has made a decision
+    if (approvedClient) {
+      try {
+        await axios.post(`${API}/auth/send-approval-notification`, null, {
+          params: { user_id: approvedClient.id }
+        });
+        console.log('Approval notification sent to:', approvedClient.name);
+      } catch (error) {
+        console.error('Failed to send notification:', error);
+        // Non-critical error, don't show to user
+      }
+      setApprovedClient(null);
+    }
+  };
+
   const confirmAction = async () => {
     if (!selectedUser || !actionType) return;
 
