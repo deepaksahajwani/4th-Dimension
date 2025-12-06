@@ -1,21 +1,29 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
-import Layout from '../components/Layout';
-import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
-import { Button } from '../components/ui/button';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '../components/ui/dialog';
-import { Input } from '../components/ui/input';
-import { Label } from '../components/ui/label';
-import { Plus, Building2, Phone, Mail, Edit, Trash2 } from 'lucide-react';
+import Layout from '../layouts/Layout';
+import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Plus, Briefcase, Phone, Mail, MapPin, Edit, Trash2 } from 'lucide-react';
+import PhoneInput, { combinePhoneNumber, splitPhoneNumber } from '@/components/PhoneInput';
 import { toast } from 'sonner';
 
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
-const API = `${BACKEND_URL}/api`;
+const API = process.env.REACT_APP_BACKEND_URL + '/api';
 
 const CONTRACTOR_TYPES = [
-  "Civil", "Plumbing", "Electrical", "Air Conditioning", 
-  "Marble and Tile", "False Ceiling", "Furniture", "Modular", 
-  "Kitchen", "Landscape", "Glass", "Profile", "Gardner", "Fabricator"
+  'Civil Contractor',
+  'Electrical Contractor',
+  'Plumbing Contractor',
+  'HVAC Contractor',
+  'Painting Contractor',
+  'Carpentry Contractor',
+  'Interior Contractor',
+  'Landscape Contractor',
+  'False Ceiling Contractor',
+  'Flooring Contractor',
+  'Waterproofing Contractor',
+  'Other'
 ];
 
 export default function Contractors({ user, onLogout }) {
@@ -26,7 +34,8 @@ export default function Contractors({ user, onLogout }) {
   const [editingContractor, setEditingContractor] = useState(null);
   const [inviteForm, setInviteForm] = useState({
     name: '',
-    phone: ''
+    countryCode: '+91',
+    phoneNumber: ''
   });
   const [formData, setFormData] = useState({
     name: '',
@@ -53,7 +62,8 @@ export default function Contractors({ user, onLogout }) {
       });
       setContractors(response.data);
     } catch (error) {
-      toast.error('Failed to load contractors');
+      console.error('Error fetching contractors:', error);
+      toast.error('Failed to fetch contractors');
     } finally {
       setLoading(false);
     }
@@ -62,29 +72,30 @@ export default function Contractors({ user, onLogout }) {
   const handleInviteContractor = async (e) => {
     e.preventDefault();
     
-    if (!inviteForm.name || !inviteForm.phone) {
+    if (!inviteForm.name || !inviteForm.phoneNumber) {
       toast.error('Please enter name and phone number');
       return;
     }
 
-    const phoneRegex = /^\+?[1-9]\d{9,14}$/;
-    if (!phoneRegex.test(inviteForm.phone.replace(/\s/g, ''))) {
-      toast.error('Please enter a valid phone number with country code (e.g., +919876543210)');
+    if (inviteForm.phoneNumber.length !== 10) {
+      toast.error('Please enter a valid 10-digit phone number');
       return;
     }
 
     try {
+      const fullPhone = combinePhoneNumber(inviteForm.countryCode, inviteForm.phoneNumber);
+      
       await axios.post(`${API}/invite/send`, null, {
         params: {
           name: inviteForm.name,
-          phone: inviteForm.phone,
+          phone: fullPhone,
           invitee_type: 'contractor'
         }
       });
       
       toast.success(`WhatsApp invite sent to ${inviteForm.name}!`, { duration: 5000 });
       setInviteDialogOpen(false);
-      setInviteForm({ name: '', phone: '' });
+      setInviteForm({ name: '', countryCode: '+91', phoneNumber: '' });
     } catch (error) {
       console.error('Invite error:', error);
       toast.error(error.response?.data?.detail || 'Failed to send invite');
@@ -134,7 +145,7 @@ export default function Contractors({ user, onLogout }) {
       await axios.delete(`${API}/contractors/${contractorId}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      toast.success('Contractor deleted successfully!');
+      toast.success('Contractor deleted successfully');
       fetchContractors();
     } catch (error) {
       toast.error('Failed to delete contractor');
@@ -157,16 +168,6 @@ export default function Contractors({ user, onLogout }) {
     setEditingContractor(null);
   };
 
-  const formatErrorMessage = (error, defaultMessage) => {
-    if (error.response?.data?.detail) {
-      if (Array.isArray(error.response.data.detail)) {
-        return error.response.data.detail[0].msg;
-      }
-      return error.response.data.detail;
-    }
-    return defaultMessage;
-  };
-
   // Group contractors by type
   const groupedContractors = contractors.reduce((acc, contractor) => {
     const type = contractor.contractor_type || 'Other';
@@ -178,8 +179,8 @@ export default function Contractors({ user, onLogout }) {
   if (loading) {
     return (
       <Layout user={user} onLogout={onLogout}>
-        <div className="flex items-center justify-center h-64">
-          <p className="text-slate-500">Loading...</p>
+        <div className="flex justify-center items-center h-64">
+          <div className="text-slate-600">Loading contractors...</div>
         </div>
       </Layout>
     );
@@ -187,16 +188,12 @@ export default function Contractors({ user, onLogout }) {
 
   return (
     <Layout user={user} onLogout={onLogout}>
-      <div className="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto">
+      <div className="max-w-7xl mx-auto p-6">
         {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+        <div className="flex justify-between items-center mb-6">
           <div>
-            <h1 className="text-2xl sm:text-3xl font-bold text-slate-900">
-              Contractors & Consultants
-            </h1>
-            <p className="text-sm text-slate-600 mt-1">
-              Manage all contractors and consultants
-            </p>
+            <h1 className="text-3xl font-bold text-slate-900">Contractors</h1>
+            <p className="text-slate-600 mt-1">Manage your project contractors</p>
           </div>
           {user?.is_owner && (
             <Button
@@ -209,117 +206,80 @@ export default function Contractors({ user, onLogout }) {
           )}
         </div>
 
-        {/* Summary Stats */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-slate-600">Total Contractors</p>
-                  <p className="text-2xl font-bold text-slate-900">{contractors.length}</p>
-                </div>
-                <Building2 className="w-8 h-8 text-orange-500" />
-              </div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-slate-600">Categories</p>
-                  <p className="text-2xl font-bold text-slate-900">{Object.keys(groupedContractors).length}</p>
-                </div>
-                <Building2 className="w-8 h-8 text-blue-500" />
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Contractors by Category */}
-        {Object.keys(groupedContractors).length === 0 ? (
-          <Card>
-            <CardContent className="p-12 text-center">
-              <Building2 className="w-16 h-16 text-slate-300 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-slate-900 mb-2">No Contractors Yet</h3>
-              <p className="text-slate-600 mb-4">Invite your first contractor to get started</p>
-              {user?.is_owner && (
-                <Button onClick={() => setInviteDialogOpen(true)} className="bg-orange-500 hover:bg-orange-600">
-                  <Plus className="w-4 h-4 mr-2" />
-                  Invite Contractor
-                </Button>
-              )}
-            </CardContent>
-          </Card>
+        {/* Empty State */}
+        {contractors.length === 0 ? (
+          <div className="bg-white rounded-lg shadow-sm p-12 text-center">
+            <Briefcase className="w-16 h-16 mx-auto text-slate-300 mb-4" />
+            <h3 className="text-lg font-medium text-slate-900 mb-2">No Contractors Yet</h3>
+            <p className="text-slate-600 mb-4">Invite your first contractor to get started</p>
+            {user?.is_owner && (
+              <Button onClick={() => setInviteDialogOpen(true)} className="bg-orange-500 hover:bg-orange-600">
+                <Plus className="w-4 h-4 mr-2" />
+                Invite Contractor
+              </Button>
+            )}
+          </div>
         ) : (
+          /* Contractor List by Type */
           <div className="space-y-6">
             {Object.entries(groupedContractors).map(([type, contractorsList]) => (
-              <Card key={type}>
-                <CardHeader>
-                  <CardTitle className="text-lg">{type}</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {contractorsList.map((contractor) => (
-                      <div 
-                        key={contractor.id}
-                        className="p-4 border-2 border-slate-200 rounded-lg hover:border-orange-300 transition-colors"
-                      >
-                        <div className="flex items-start justify-between mb-3">
-                          <div className="flex-1">
-                            <h4 className="font-medium text-slate-900">{contractor.name}</h4>
+              <div key={type} className="bg-white rounded-lg shadow-sm overflow-hidden">
+                <div className="bg-slate-50 px-6 py-3 border-b">
+                  <h2 className="font-semibold text-slate-900">{type} ({contractorsList.length})</h2>
+                </div>
+                <div className="divide-y">
+                  {contractorsList.map((contractor) => (
+                    <div key={contractor.id} className="p-6 hover:bg-slate-50 transition-colors">
+                      <div className="flex justify-between items-start">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-3 mb-2">
+                            <h3 className="text-lg font-semibold text-slate-900">{contractor.name}</h3>
                             {contractor.company_name && (
-                              <p className="text-sm text-slate-600">{contractor.company_name}</p>
+                              <span className="text-sm text-slate-500">({contractor.company_name})</span>
                             )}
                           </div>
-                          {user?.is_owner && (
-                            <div className="flex gap-1">
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                onClick={() => handleEdit(contractor)}
-                                className="h-8 w-8 p-0"
-                              >
-                                <Edit className="w-3 h-3" />
-                              </Button>
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                onClick={() => handleDelete(contractor.id)}
-                                className="h-8 w-8 p-0 border-red-300 text-red-600"
-                              >
-                                <Trash2 className="w-3 h-3" />
-                              </Button>
-                            </div>
+                          
+                          <div className="grid grid-cols-2 gap-4 mt-3">
+                            {contractor.email && (
+                              <div className="flex items-center gap-2 text-slate-600">
+                                <Mail className="w-4 h-4" />
+                                <span className="text-sm">{contractor.email}</span>
+                              </div>
+                            )}
+                            {contractor.phone && (
+                              <div className="flex items-center gap-2 text-slate-600">
+                                <Phone className="w-4 h-4" />
+                                <span className="text-sm">{contractor.phone}</span>
+                              </div>
+                            )}
+                            {contractor.address && (
+                              <div className="flex items-center gap-2 text-slate-600">
+                                <MapPin className="w-4 h-4" />
+                                <span className="text-sm">{contractor.address}</span>
+                              </div>
+                            )}
+                          </div>
+
+                          {contractor.notes && (
+                            <p className="text-sm text-slate-600 mt-3 italic">{contractor.notes}</p>
                           )}
                         </div>
-                        
-                        <div className="space-y-2 text-sm">
-                          {contractor.phone && (
-                            <div className="flex items-center gap-2 text-slate-600">
-                              <Phone className="w-3 h-3" />
-                              <span>{contractor.phone}</span>
-                            </div>
-                          )}
-                          {contractor.email && (
-                            <div className="flex items-center gap-2 text-slate-600">
-                              <Mail className="w-3 h-3" />
-                              <span className="truncate">{contractor.email}</span>
-                            </div>
-                          )}
-                          {contractor.unique_code && (
-                            <div className="mt-2 pt-2 border-t">
-                              <span className="text-xs text-slate-500">Access Code:</span>
-                              <p className="text-xs font-mono bg-slate-100 px-2 py-1 rounded mt-1">
-                                {contractor.unique_code}
-                              </p>
-                            </div>
-                          )}
-                        </div>
+
+                        {user?.is_owner && (
+                          <div className="flex gap-2 ml-4">
+                            <Button variant="ghost" size="sm" onClick={() => handleEdit(contractor)}>
+                              <Edit className="w-4 h-4" />
+                            </Button>
+                            <Button variant="ghost" size="sm" onClick={() => handleDelete(contractor.id)}>
+                              <Trash2 className="w-4 h-4 text-red-500" />
+                            </Button>
+                          </div>
+                        )}
                       </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
+                    </div>
+                  ))}
+                </div>
+              </div>
             ))}
           </div>
         )}
@@ -343,18 +303,18 @@ export default function Contractors({ user, onLogout }) {
                   placeholder="John Contractor"
                 />
               </div>
-              <div>
-                <Label>Phone Number (with country code) *</Label>
-                <Input
-                  value={inviteForm.phone}
-                  onChange={(e) => setInviteForm({ ...inviteForm, phone: e.target.value })}
-                  required
-                  placeholder="+919876543210"
-                />
-                <p className="text-xs text-slate-500 mt-1">
-                  WhatsApp invitation will be sent to this number
-                </p>
-              </div>
+              <PhoneInput
+                label="Phone Number"
+                countryCode={inviteForm.countryCode}
+                phoneNumber={inviteForm.phoneNumber}
+                onCountryCodeChange={(code) => setInviteForm({ ...inviteForm, countryCode: code })}
+                onPhoneNumberChange={(number) => setInviteForm({ ...inviteForm, phoneNumber: number })}
+                required
+                placeholder="9876543210"
+              />
+              <p className="text-xs text-slate-500">
+                WhatsApp invitation will be sent to this number
+              </p>
               <DialogFooter>
                 <Button type="button" variant="outline" onClick={() => setInviteDialogOpen(false)}>
                   Cancel
@@ -374,25 +334,25 @@ export default function Contractors({ user, onLogout }) {
               <DialogTitle>Edit Contractor</DialogTitle>
             </DialogHeader>
             <form onSubmit={handleEditSubmit}>
-              <div className="space-y-4 py-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid gap-4 py-4">
+                <div className="grid grid-cols-2 gap-4">
                   <div>
                     <Label>Name *</Label>
                     <Input
                       value={formData.name}
-                      onChange={(e) => setFormData({...formData, name: e.target.value})}
+                      onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                       required
                     />
                   </div>
                   <div>
-                    <Label>Type *</Label>
+                    <Label>Contractor Type *</Label>
                     <select
+                      className="flex h-10 w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm"
                       value={formData.contractor_type}
-                      onChange={(e) => setFormData({...formData, contractor_type: e.target.value})}
-                      className="w-full p-2 border rounded"
+                      onChange={(e) => setFormData({ ...formData, contractor_type: e.target.value })}
                       required
                     >
-                      <option value="">Select Type</option>
+                      <option value="">Select type</option>
                       {CONTRACTOR_TYPES.map(type => (
                         <option key={type} value={type}>{type}</option>
                       ))}
@@ -402,22 +362,7 @@ export default function Contractors({ user, onLogout }) {
                     <Label>Company Name</Label>
                     <Input
                       value={formData.company_name}
-                      onChange={(e) => setFormData({...formData, company_name: e.target.value})}
-                    />
-                  </div>
-                  <div>
-                    <Label>Phone *</Label>
-                    <Input
-                      value={formData.phone}
-                      onChange={(e) => setFormData({...formData, phone: e.target.value})}
-                      required
-                    />
-                  </div>
-                  <div>
-                    <Label>Alternate Phone</Label>
-                    <Input
-                      value={formData.alternate_phone}
-                      onChange={(e) => setFormData({...formData, alternate_phone: e.target.value})}
+                      onChange={(e) => setFormData({ ...formData, company_name: e.target.value })}
                     />
                   </div>
                   <div>
@@ -425,38 +370,53 @@ export default function Contractors({ user, onLogout }) {
                     <Input
                       type="email"
                       value={formData.email}
-                      onChange={(e) => setFormData({...formData, email: e.target.value})}
+                      onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                    />
+                  </div>
+                  <div>
+                    <Label>Phone</Label>
+                    <Input
+                      value={formData.phone}
+                      onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                    />
+                  </div>
+                  <div>
+                    <Label>Alternate Phone</Label>
+                    <Input
+                      value={formData.alternate_phone}
+                      onChange={(e) => setFormData({ ...formData, alternate_phone: e.target.value })}
+                    />
+                  </div>
+                  <div className="col-span-2">
+                    <Label>Address</Label>
+                    <textarea
+                      className="flex min-h-[80px] w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm"
+                      value={formData.address}
+                      onChange={(e) => setFormData({ ...formData, address: e.target.value })}
                     />
                   </div>
                   <div>
                     <Label>GST Number</Label>
                     <Input
                       value={formData.gst_number}
-                      onChange={(e) => setFormData({...formData, gst_number: e.target.value})}
+                      onChange={(e) => setFormData({ ...formData, gst_number: e.target.value })}
                     />
                   </div>
                   <div>
                     <Label>PAN Number</Label>
                     <Input
                       value={formData.pan_number}
-                      onChange={(e) => setFormData({...formData, pan_number: e.target.value})}
+                      onChange={(e) => setFormData({ ...formData, pan_number: e.target.value })}
                     />
                   </div>
-                </div>
-                <div>
-                  <Label>Address</Label>
-                  <Input
-                    value={formData.address}
-                    onChange={(e) => setFormData({...formData, address: e.target.value})}
-                  />
-                </div>
-                <div>
-                  <Label>Notes</Label>
-                  <textarea
-                    value={formData.notes}
-                    onChange={(e) => setFormData({...formData, notes: e.target.value})}
-                    className="w-full p-2 border rounded min-h-[80px]"
-                  />
+                  <div className="col-span-2">
+                    <Label>Notes</Label>
+                    <textarea
+                      className="flex min-h-[60px] w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm"
+                      value={formData.notes}
+                      onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+                    />
+                  </div>
                 </div>
               </div>
               <DialogFooter>
