@@ -964,6 +964,56 @@ async def set_password_after_otp(password_data: SetPasswordAfterOTP):
         
         await db.users.insert_one(user_dict)
         
+        # Create corresponding client/contractor/consultant record based on role
+        if pending_reg['registration_type'] == 'client':
+            client_record = {
+                "id": str(uuid.uuid4()),
+                "user_id": user_id,
+                "name": pending_reg['name'],
+                "contact_person": pending_reg['name'],
+                "email": pending_reg['email'],
+                "phone": pending_reg['mobile'],
+                "address": f"{pending_reg.get('address_line_1', '')}, {pending_reg.get('city', '')}, {pending_reg.get('state', '')}".strip(', '),
+                "created_at": datetime.now(timezone.utc),
+                "created_by": user_id,
+                "notes": "Auto-created from user registration",
+                "archived": False
+            }
+            await db.clients.insert_one(client_record)
+            print(f"✅ Client record created for {pending_reg['name']}")
+            
+        elif pending_reg['registration_type'] == 'contractor':
+            contractor_record = {
+                "id": str(uuid.uuid4()),
+                "user_id": user_id,
+                "name": pending_reg['name'],
+                "email": pending_reg['email'],
+                "phone": pending_reg['mobile'],
+                "address": f"{pending_reg.get('address_line_1', '')}, {pending_reg.get('city', '')}, {pending_reg.get('state', '')}".strip(', '),
+                "contractor_type": "Other",  # Can be updated later
+                "created_at": datetime.now(timezone.utc),
+                "created_by": user_id,
+                "notes": "Auto-created from user registration"
+            }
+            await db.contractors.insert_one(contractor_record)
+            print(f"✅ Contractor record created for {pending_reg['name']}")
+            
+        elif pending_reg['registration_type'] == 'consultant':
+            consultant_record = {
+                "id": str(uuid.uuid4()),
+                "user_id": user_id,
+                "name": pending_reg['name'],
+                "email": pending_reg['email'],
+                "phone": pending_reg['mobile'],
+                "address": f"{pending_reg.get('address_line_1', '')}, {pending_reg.get('city', '')}, {pending_reg.get('state', '')}".strip(', '),
+                "type": "Other",  # Can be updated later
+                "created_at": datetime.now(timezone.utc),
+                "created_by": user_id,
+                "notes": "Auto-created from user registration"
+            }
+            await db.consultants.insert_one(consultant_record)
+            print(f"✅ Consultant record created for {pending_reg['name']}")
+        
         # Delete pending registration
         await db.pending_registrations.delete_one({"email": password_data.email})
         
