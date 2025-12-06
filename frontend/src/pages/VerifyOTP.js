@@ -32,7 +32,7 @@ export default function VerifyOTP() {
     e.preventDefault();
     e.stopPropagation();
     
-    console.log('handleVerify called', { emailOTP, length: emailOTP.length });
+    console.log('handleVerify called', { emailOTP, phoneOTP });
     
     if (!emailOTP) {
       toast.error('Please enter email OTP');
@@ -44,8 +44,15 @@ export default function VerifyOTP() {
       return;
     }
     
-    // Use dummy phone OTP since verification is disabled
-    const dummyPhoneOTP = phoneOTP || '000000';
+    if (!phoneOTP) {
+      toast.error('Please enter phone OTP');
+      return;
+    }
+
+    if (phoneOTP.length !== 6) {
+      toast.error('Phone OTP must be 6 digits');
+      return;
+    }
 
     setLoading(true);
     try {
@@ -53,7 +60,7 @@ export default function VerifyOTP() {
       const response = await axios.post(`${API}/auth/verify-registration-otp`, {
         email: email,
         email_otp: emailOTP,
-        phone_otp: dummyPhoneOTP
+        phone_otp: phoneOTP
       });
       
       toast.success('OTPs verified successfully!');
