@@ -3551,6 +3551,11 @@ async def delete_contractor(
     current_user: User = Depends(require_owner)
 ):
     """Soft delete a contractor (Owner only)"""
+    # Get contractor to find associated user_id
+    contractor = await db.contractors.find_one({"id": contractor_id}, {"_id": 0})
+    if not contractor:
+        raise HTTPException(status_code=404, detail="Contractor not found")
+    
     result = await db.contractors.update_one(
         {"id": contractor_id},
         {"$set": {
@@ -3558,10 +3563,12 @@ async def delete_contractor(
         }}
     )
     
-    if result.matched_count == 0:
-        raise HTTPException(status_code=404, detail="Contractor not found")
+    # Delete the associated user account (if exists)
+    if contractor.get('user_id'):
+        await db.users.delete_one({"id": contractor['user_id']})
+        print(f"✅ Deleted user account for contractor: {contractor.get('name')}")
     
-    return {"message": "Contractor deleted successfully"}
+    return {"message": "Contractor and associated user account deleted successfully"}
 
 @api_router.get("/contractor-types")
 async def get_contractor_types():
