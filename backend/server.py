@@ -5976,6 +5976,9 @@ async def add_co_client(
         
         await db.co_clients.insert_one(co_client_data)
         
+        # Convert datetime to ISO string for JSON serialization
+        co_client_data['created_at'] = co_client_data['created_at'].isoformat()
+        
         return {"message": "Co-client added successfully", "co_client": co_client_data}
         
     except Exception as e:
