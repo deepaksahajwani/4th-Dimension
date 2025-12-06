@@ -130,47 +130,42 @@ export default function Team({ user, onLogout }) {
 
   const handleInviteTeamMember = async (e) => {
     e.preventDefault();
-    
-    if (!inviteForm.name || !inviteForm.phone) {
+    if (!inviteForm.name || !inviteForm.phoneNumber) {
       toast.error('Please enter name and phone number');
       return;
     }
 
-    // Validate phone number format
-    const phoneRegex = /^\+?[1-9]\d{9,14}$/;
-    if (!phoneRegex.test(inviteForm.phone.replace(/\s/g, ''))) {
-      toast.error('Please enter a valid phone number with country code (e.g., +919876543210)');
+    if (inviteForm.phoneNumber.length !== 10) {
+      toast.error('Please enter a valid 10-digit phone number');
       return;
     }
 
-    setInviting(true);
     try {
+      const fullPhone = combinePhoneNumber(inviteForm.countryCode, inviteForm.phoneNumber);
+      
       await axios.post(`${API}/invite/send`, null, {
         params: {
           name: inviteForm.name,
-          phone: inviteForm.phone,
+          phone: fullPhone,
           invitee_type: inviteForm.invitee_type
         }
       });
-      
+
       const typeLabels = {
-        'team_member': 'team member',
-        'client': 'client',
-        'contractor': 'contractor',
-        'consultant': 'consultant'
+        team_member: 'Team Member',
+        client: 'Client',
+        contractor: 'Contractor',
+        consultant: 'Consultant'
       };
-      
+
       toast.success(`WhatsApp invite sent to ${inviteForm.name} (${typeLabels[inviteForm.invitee_type]})!`, {
         duration: 5000
       });
-      
-      setInviteDialogOpen(false);
-      setInviteForm({ name: '', phone: '', invitee_type: 'team_member' });
+      setInviteModalOpen(false);
+      setInviteForm({ name: '', countryCode: '+91', phoneNumber: '', invitee_type: 'team_member' });
     } catch (error) {
-      console.error('Invite error:', error);
-      toast.error(error.response?.data?.detail || 'Failed to send invite');
-    } finally {
-      setInviting(false);
+      console.error('Error sending invite:', error);
+      toast.error(error.response?.data?.detail || 'Failed to send invitation');
     }
   };
 
