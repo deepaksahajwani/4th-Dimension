@@ -206,7 +206,7 @@ async def notify_project_creation(project_id: str):
                     
                     <div style="text-align: center; margin-bottom: 30px;">
                         <h1 style="color: #4F46E5; font-size: 32px; margin-bottom: 10px;">Your Project is Ready! 🎉</h1>
-                        <p style="color: #6B7280; font-size: 16px;">4th Dimension - Architecture & Design</p>
+                        <p style="color: #6B7280; font-size: 16px;">4th Dimension - Design Excellence</p>
                     </div>
                     
                     <h2 style="color: #1F2937; font-size: 24px;">Dear {client.get('name')},</h2>
@@ -219,8 +219,8 @@ async def notify_project_creation(project_id: str):
                         <h3 style="color: #4F46E5; margin-top: 0;">What You Can Do Now:</h3>
                         <ul style="margin: 15px 0; padding-left: 20px; color: #374151;">
                             <li style="margin: 10px 0;">View project details and timelines</li>
-                            <li style="margin: 10px 0;">Review architectural drawings and designs</li>
-                            <li style="margin: 10px 0;">Add comments and feedback on drawings</li>
+                            <li style="margin: 10px 0;">Review design drawings and plans</li>
+                            <li style="margin: 10px 0;">Add comments and feedback on designs</li>
                             <li style="margin: 10px 0;">Track project progress in real-time</li>
                             <li style="margin: 10px 0;">Download drawings and documents</li>
                         </ul>
