@@ -189,8 +189,78 @@ async def notify_project_creation(project_id: str):
             team_leader_phone=team_leader.get('mobile', 'N/A')
         )
         
+        # Send WhatsApp notification to client
         if client.get('mobile'):
             await notification_service.send_whatsapp(client['mobile'], client_message)
+        
+        # Send email notification to client
+        project_url = f"{APP_URL}/projects/{project_id}"
+        email_subject = f"Your Project is Ready - {project_name}"
+        email_html = f"""
+        <html>
+            <head>
+                <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+            </head>
+            <body style="font-family: 'Segoe UI', Arial, sans-serif; line-height: 1.8; color: #1F2937; background-color: #F9FAFB; padding: 20px;">
+                <div style="max-width: 650px; margin: 0 auto; background: white; padding: 40px; border-radius: 15px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
+                    
+                    <div style="text-align: center; margin-bottom: 30px;">
+                        <h1 style="color: #4F46E5; font-size: 32px; margin-bottom: 10px;">Your Project is Ready! 🎉</h1>
+                        <p style="color: #6B7280; font-size: 16px;">4th Dimension - Architecture & Design</p>
+                    </div>
+                    
+                    <h2 style="color: #1F2937; font-size: 24px;">Dear {client.get('name')},</h2>
+                    
+                    <p style="font-size: 16px; color: #374151; margin: 20px 0;">
+                        Great news! Your project <strong style="color: #4F46E5;">{project_name}</strong> has been set up and is now ready for collaboration.
+                    </p>
+                    
+                    <div style="background: #EEF2FF; padding: 25px; border-radius: 10px; margin: 25px 0; border-left: 4px solid #4F46E5;">
+                        <h3 style="color: #4F46E5; margin-top: 0;">What You Can Do Now:</h3>
+                        <ul style="margin: 15px 0; padding-left: 20px; color: #374151;">
+                            <li style="margin: 10px 0;">View project details and timelines</li>
+                            <li style="margin: 10px 0;">Review architectural drawings and designs</li>
+                            <li style="margin: 10px 0;">Add comments and feedback on drawings</li>
+                            <li style="margin: 10px 0;">Track project progress in real-time</li>
+                            <li style="margin: 10px 0;">Download drawings and documents</li>
+                        </ul>
+                    </div>
+                    
+                    <div style="background: #D1FAE5; padding: 20px; border-radius: 8px; margin: 25px 0;">
+                        <p style="margin: 0 0 10px 0;"><strong style="color: #065F46;">👤 Your Team Leader:</strong></p>
+                        <p style="margin: 5px 0; color: #047857;"><strong>{team_leader.get('name')}</strong></p>
+                        <p style="margin: 5px 0; color: #047857;">📱 {team_leader.get('mobile', 'Contact via portal')}</p>
+                    </div>
+                    
+                    <div style="text-align: center; margin: 30px 0;">
+                        <a href="{project_url}" 
+                           style="display: inline-block; background: #4F46E5; color: white; padding: 15px 40px; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 16px;">
+                            View Your Project
+                        </a>
+                    </div>
+                    
+                    <div style="background: #F3F4F6; padding: 20px; border-radius: 8px; margin-top: 30px;">
+                        <p style="margin: 0; font-size: 14px; color: #6B7280;">
+                            <strong>Need help?</strong> Contact us at contact@4thdimensionarchitect.com or call +91 98765 43210
+                        </p>
+                    </div>
+                    
+                    <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #E5E7EB; text-align: center;">
+                        <p style="color: #9CA3AF; font-size: 12px; margin: 5px 0;">
+                            © 4th Dimension - Architecture & Design Excellence
+                        </p>
+                    </div>
+                </div>
+            </body>
+        </html>
+        """
+        
+        if client.get('email'):
+            await notification_service.send_email(
+                to_email=client['email'],
+                subject=email_subject,
+                html_content=email_html
+            )
         
         # Message to team leader (casual)
         team_message = message_templates.project_created_team(
