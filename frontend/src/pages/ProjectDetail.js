@@ -1695,7 +1695,7 @@ export default function ProjectDetail({ user, onLogout }) {
               <div className="flex-1 min-w-0">
                 <h2 className="text-lg sm:text-xl lg:text-2xl font-bold text-slate-900">Project Drawings</h2>
                 <p className="text-xs sm:text-sm text-slate-600 mt-1">
-                  {drawings.length} total • {drawings.filter(d => d.is_issued).length} issued • {drawings.filter(d => d.has_pending_revision).length} revisions
+                  {drawings.filter(d => !d.is_not_applicable).length} total • {drawings.filter(d => d.is_issued && !d.is_not_applicable).length} issued • {drawings.filter(d => d.has_pending_revision && !d.is_not_applicable).length} revisions
                 </p>
               </div>
               <Button 
