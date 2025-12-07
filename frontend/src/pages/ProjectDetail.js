@@ -21,6 +21,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { formatErrorMessage } from '@/utils/errorHandler';
+import { DrawingCard, DeleteProjectDialog, ArchiveProjectDialog } from '@/components/project';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
