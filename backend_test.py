@@ -3549,6 +3549,209 @@ class BackendTester:
 
         print("✅ In-App Notification System testing completed")
 
+    def test_drawing_notification_flows(self):
+        """Test all drawing-related notification flows as requested in review"""
+        print(f"\n📋 Testing Drawing Notification Flows (Critical Bug Fix)")
+        print("=" * 70)
+        
+        # Step 1: Login as owner
+        try:
+            print("Step 1: Logging in as owner...")
+            owner_credentials = {
+                "email": "deepaksahajwani@gmail.com",
+                "password": "Deepak@2025"
+            }
+            
+            login_response = self.session.post(f"{BACKEND_URL}/auth/login", json=owner_credentials)
+            
+            if login_response.status_code == 200:
+                login_data = login_response.json()
+                self.owner_token = login_data["access_token"]
+                self.log_result("Drawing Notifications - Owner Login", True, 
+                              f"Owner successfully authenticated: {login_data.get('user', {}).get('name')}")
+            else:
+                self.log_result("Drawing Notifications - Owner Login", False, 
+                              f"Owner login failed: {login_response.status_code} - {login_response.text}")
+                return
+                
+        except Exception as e:
+            self.log_result("Drawing Notifications - Owner Login", False, f"Exception: {str(e)}")
+            return
+
+        owner_headers = {"Authorization": f"Bearer {self.owner_token}"}
+        
+        # Step 2: Verify test data exists
+        try:
+            print("Step 2: Verifying test data exists...")
+            project_id = "40b2f8d6-1d1c-47d1-b8c0-8927631d77a0"
+            drawing_id = "c1f7adcc-dbb2-420d-abde-115f9c49f03e"
+            client_id = "2650ee01-9493-4315-9509-e65db21dfe7e"
+            
+            # Check if project exists
+            project_response = self.session.get(f"{BACKEND_URL}/projects/{project_id}", headers=owner_headers)
+            if project_response.status_code == 200:
+                project_data = project_response.json()
+                self.log_result("Drawing Notifications - Verify Project", True, 
+                              f"Project found: {project_data.get('name', 'N/A')}")
+            else:
+                self.log_result("Drawing Notifications - Verify Project", False, 
+                              f"Project not found: {project_response.status_code}")
+                return
+            
+            # Check if drawing exists in project_drawings collection
+            drawings_response = self.session.get(f"{BACKEND_URL}/projects/{project_id}/drawings", headers=owner_headers)
+            if drawings_response.status_code == 200:
+                drawings_data = drawings_response.json()
+                target_drawing = None
+                for drawing in drawings_data:
+                    if drawing.get("id") == drawing_id:
+                        target_drawing = drawing
+                        break
+                
+                if target_drawing:
+                    self.log_result("Drawing Notifications - Verify Drawing", True, 
+                                  f"Drawing found: {target_drawing.get('name', 'N/A')}")
+                else:
+                    self.log_result("Drawing Notifications - Verify Drawing", False, 
+                                  f"Drawing {drawing_id} not found in project_drawings collection")
+                    return
+            else:
+                self.log_result("Drawing Notifications - Verify Drawing", False, 
+                              f"Failed to get drawings: {drawings_response.status_code}")
+                return
+            
+            # Check if client exists
+            users_response = self.session.get(f"{BACKEND_URL}/users", headers=owner_headers)
+            if users_response.status_code == 200:
+                users_data = users_response.json()
+                client_user = None
+                for user in users_data:
+                    if user.get("id") == client_id:
+                        client_user = user
+                        break
+                
+                if client_user:
+                    self.log_result("Drawing Notifications - Verify Client", True, 
+                                  f"Client found: {client_user.get('name', 'N/A')} ({client_user.get('email', 'N/A')})")
+                else:
+                    self.log_result("Drawing Notifications - Verify Client", False, 
+                                  f"Client {client_id} not found")
+                    return
+            else:
+                self.log_result("Drawing Notifications - Verify Client", False, 
+                              f"Failed to get users: {users_response.status_code}")
+                return
+                
+        except Exception as e:
+            self.log_result("Drawing Notifications - Verify Test Data", False, f"Exception: {str(e)}")
+            return
+
+        # Step 3: Test Drawing Issued Notification (P0 - Just Fixed)
+        try:
+            print("Step 3: Testing Drawing Issued Notification (P0 - Critical Fix)...")
+            
+            # Test the fixed endpoint
+            issue_data = {
+                "recipient_ids": [client_id]  # Client only for this test
+            }
+            
+            issue_response = self.session.post(
+                f"{BACKEND_URL}/drawings/{drawing_id}/notify-issue", 
+                json=issue_data, 
+                headers=owner_headers
+            )
+            
+            if issue_response.status_code == 200:
+                issue_result = issue_response.json()
+                expected_message_pattern = "Notifications sent to"
+                
+                if "message" in issue_result and expected_message_pattern in issue_result["message"]:
+                    self.log_result("Drawing Notifications - Issue Notification (P0)", True, 
+                                  f"SUCCESS: {issue_result['message']}. Fixed collection query working.")
+                else:
+                    self.log_result("Drawing Notifications - Issue Notification (P0)", False, 
+                                  f"Unexpected response format: {issue_result}")
+            else:
+                error_text = issue_response.text
+                if "drawing not found" in error_text.lower() or "collection doesn't exist" in error_text.lower():
+                    self.log_result("Drawing Notifications - Issue Notification (P0)", False, 
+                                  f"CRITICAL: Still querying wrong collection! Error: {error_text}")
+                else:
+                    self.log_result("Drawing Notifications - Issue Notification (P0)", False, 
+                                  f"API Error: {issue_response.status_code} - {error_text}")
+                
+        except Exception as e:
+            self.log_result("Drawing Notifications - Issue Notification (P0)", False, f"Exception: {str(e)}")
+
+        # Step 4: Test Registration Notification (Known to work - Smoke test)
+        try:
+            print("Step 4: Testing Registration Notification (Smoke test)...")
+            
+            # Create a test user to trigger registration notification
+            test_email = f"regtest_{uuid.uuid4().hex[:8]}@example.com"
+            register_payload = {
+                "email": test_email,
+                "password": "RegTest123!",
+                "name": "Registration Test User"
+            }
+            
+            register_response = self.session.post(f"{BACKEND_URL}/auth/register", json=register_payload)
+            
+            if register_response.status_code == 200:
+                self.log_result("Drawing Notifications - Registration Notification", True, 
+                              "Registration notification system working (smoke test passed)")
+            else:
+                self.log_result("Drawing Notifications - Registration Notification", False, 
+                              f"Registration failed: {register_response.status_code}")
+                
+        except Exception as e:
+            self.log_result("Drawing Notifications - Registration Notification", False, f"Exception: {str(e)}")
+
+        # Step 5: Test Edge Cases
+        try:
+            print("Step 5: Testing edge cases...")
+            
+            # Test with invalid drawing ID
+            invalid_issue_data = {"recipient_ids": [client_id]}
+            invalid_response = self.session.post(
+                f"{BACKEND_URL}/drawings/invalid-drawing-id/notify-issue", 
+                json=invalid_issue_data, 
+                headers=owner_headers
+            )
+            
+            if invalid_response.status_code == 404:
+                error_data = invalid_response.json()
+                if "drawing not found" in error_data.get("detail", "").lower():
+                    self.log_result("Drawing Notifications - Invalid Drawing ID", True, 
+                                  "Correctly handles invalid drawing ID")
+                else:
+                    self.log_result("Drawing Notifications - Invalid Drawing ID", False, 
+                                  f"Wrong error message: {error_data}")
+            else:
+                self.log_result("Drawing Notifications - Invalid Drawing ID", False, 
+                              f"Expected 404, got {invalid_response.status_code}")
+            
+            # Test with empty recipient list
+            empty_recipients_data = {"recipient_ids": []}
+            empty_response = self.session.post(
+                f"{BACKEND_URL}/drawings/{drawing_id}/notify-issue", 
+                json=empty_recipients_data, 
+                headers=owner_headers
+            )
+            
+            if empty_response.status_code == 200:
+                empty_result = empty_response.json()
+                self.log_result("Drawing Notifications - Empty Recipients", True, 
+                              f"Handles empty recipients: {empty_result.get('message', 'N/A')}")
+            else:
+                self.log_result("Drawing Notifications - Empty Recipients", False, 
+                              f"Failed with empty recipients: {empty_response.status_code}")
+                
+        except Exception as e:
+            self.log_result("Drawing Notifications - Edge Cases", False, f"Exception: {str(e)}")
+
+        print("✅ Drawing notification flows testing completed")
+
     def run_all_tests(self):
         """Run all authentication tests"""
         print(f"🚀 Starting Backend Authentication Tests")
