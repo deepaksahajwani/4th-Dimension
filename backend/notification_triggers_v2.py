@@ -255,31 +255,77 @@ async def notify_project_creation(project_id: str):
             </body>
         </html>
         """
+            
+            if client.get('email'):
+                await notification_service.send_email(
+                    to_email=client['email'],
+                    subject=email_subject,
+                    html_content=email_html
+                )
         
-        if client.get('email'):
-            await notification_service.send_email(
-                to_email=client['email'],
-                subject=email_subject,
-                html_content=email_html
+        # Send to TEAM LEADER if exists
+        if team_leader:
+            # Message to team leader (casual)
+            team_message = message_templates.project_created_team(
+                project_name=project_name,
+                client_name=client.get('name') if client else 'N/A',
+                client_phone=client.get('mobile', 'N/A') if client else 'N/A'
             )
-        
-        # Message to team leader (casual)
-        team_message = message_templates.project_created_team(
-            project_name=project_name,
-            client_name=client.get('name'),
-            client_phone=client.get('mobile', 'N/A')
-        )
-        
-        # Notify team leader and owner
-        await notification_service.send_notification(
-            user_ids=[team_leader_id, owner['id']],
-            title=f"New Project: {project_name}",
-            message=team_message,
-            notification_type="project_created",
-            channels=['in_app', 'whatsapp'],
-            link=f"/projects/{project_id}",
-            project_id=project_id
-        )
+            
+            # Notify team leader and owner
+            recipient_ids = [team_leader_id]
+            if owner:
+                recipient_ids.append(owner['id'])
+                
+            await notification_service.send_notification(
+                user_ids=recipient_ids,
+                title=f"New Project: {project_name}",
+                message=team_message,
+                notification_type="project_created",
+                channels=['in_app', 'whatsapp'],
+                link=f"/projects/{project_id}",
+                project_id=project_id
+            )
+            
+            # SECOND MESSAGE TO TEAM LEADER: Notify about due drawing
+            # Get the first due drawing for this project
+            due_drawing = await db.project_drawings.find_one({
+                "project_id": project_id,
+                "status": "planned",
+                "deleted_at": None
+            }, {"_id": 0})
+            
+            if due_drawing:
+                due_date = due_drawing.get('due_date')
+                if due_date:
+                    # Format due date
+                    if isinstance(due_date, str):
+                        from datetime import datetime
+                        due_date_obj = datetime.fromisoformat(due_date.replace('Z', '+00:00'))
+                        due_date_str = due_date_obj.strftime('%d %b %Y')
+                    else:
+                        due_date_str = due_date.strftime('%d %b %Y')
+                    
+                    drawing_due_message = f"""📐 Drawing Alert
+                    
+📁 Project: {project_name}
+🖼️ Drawing: {due_drawing.get('name', 'First Drawing')}
+📅 Due Date: {due_date_str}
+⚠️ Status: Due
+
+This drawing needs your attention. Please upload and submit for approval.
+
+View: {APP_URL}/projects/{project_id}"""
+                    
+                    await notification_service.send_notification(
+                        user_ids=[team_leader_id],
+                        title="Drawing Due Reminder",
+                        message=drawing_due_message,
+                        notification_type="drawing_due",
+                        channels=['in_app', 'whatsapp'],
+                        link=f"/projects/{project_id}",
+                        project_id=project_id
+                    )
         
         logger.info(f"Project creation notifications sent for {project_name}")
         
