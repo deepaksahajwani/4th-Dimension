@@ -9,7 +9,7 @@ from notification_service import notification_service
 
 logger = logging.getLogger(__name__)
 
-APP_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://pmfourth.preview.emergentagent.com')
+APP_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://archflow-10.preview.emergentagent.com')
 
 
 async def send_registration_invite(

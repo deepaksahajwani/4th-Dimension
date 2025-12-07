@@ -7,7 +7,7 @@ import requests
 import json
 import uuid
 
-BACKEND_URL = "https://pmfourth.preview.emergentagent.com/api"
+BACKEND_URL = "https://archflow-10.preview.emergentagent.com/api"
 
 def test_edge_cases():
     """Test edge cases for project_types field"""
