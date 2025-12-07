@@ -351,7 +351,7 @@ async def notify_contractor_consultant_added(
         if not project:
             return
         
-        project_name = project.get('name')
+        project_name = project.get('title') or project.get('name')
         client_id = project.get('client_id')
         team_leader_id = project.get('team_leader_id')
         
@@ -457,7 +457,7 @@ async def notify_drawing_uploaded(project_id: str, drawing_id: str, uploaded_by_
         
         message = f"""📤 Drawing Uploaded for Approval
 
-📁 Project: {project.get('name')}
+📁 Project: {project.get('title') or project.get('name')}
 📐 Drawing: {drawing.get('name')}
 👤 Uploaded by: {uploader.get('name')}
 📅 Date: {datetime.now(timezone.utc).strftime('%d %b %Y, %I:%M %p')}
@@ -505,7 +505,7 @@ async def notify_drawing_approved(project_id: str, drawing_id: str):
         
         message = f"""✅ Drawing Approved - Ready to Issue
 
-📁 Project: {project.get('name')}
+📁 Project: {project.get('title') or project.get('name')}
 📐 Drawing: {drawing.get('name')}
 🎯 Status: Approved
 
@@ -552,7 +552,7 @@ async def notify_drawing_revised_internal(project_id: str, drawing_id: str, revi
         
         message = f"""🔄 Drawing Revision Required
 
-📁 Project: {project.get('name')}
+📁 Project: {project.get('title') or project.get('name')}
 📐 Drawing: {drawing.get('name')}
 👤 Revised by: {revised_by.get('name')}
 
@@ -598,7 +598,7 @@ async def notify_drawing_revised_external(project_id: str, drawing_id: str, revi
         
         message = f"""🔄 Drawing Revision from {revised_by.get('role', 'External Party').title()}
 
-📁 Project: {project.get('name')}
+📁 Project: {project.get('title') or project.get('name')}
 📐 Drawing: {drawing.get('name')}
 👤 Revised by: {revised_by.get('name')}
 
@@ -651,7 +651,7 @@ async def notify_drawing_issued(
             logger.error(f"Drawing issued notification failed: Missing data (project={project is not None}, drawing={drawing is not None})")
             return
         
-        project_name = project.get('name')
+        project_name = project.get('title') or project.get('name')
         drawing_name = drawing.get('name')
         issue_date = datetime.now(timezone.utc).strftime('%d %b %Y')
         status = "Revised" if drawing.get('revision_number', 0) > 0 else "New"
@@ -754,7 +754,7 @@ async def notify_drawing_comment(
                 # Formal message for client
                 message = f"""Dear {recipient.get('name')},
 
-A comment has been added to a drawing in your project "{project.get('name')}".
+A comment has been added to a drawing in your project "{project.get('title') or project.get('name')}".
 
 📐 Drawing: {drawing.get('name')}
 👤 Comment by: {commenter.get('name')}
@@ -769,7 +769,7 @@ Best regards,
                 # Casual message for team
                 message = f"""💬 New Comment on Drawing
 
-📁 {project.get('name')}
+📁 {project.get('title') or project.get('name')}
 📐 {drawing.get('name')}
 👤 {commenter.get('name')}: "{comment_text[:100]}..."
 
@@ -811,7 +811,7 @@ async def notify_fees_paid_by_client(project_id: str, amount: float, payment_mod
         
         message = f"""💰 Payment Notification
 
-📁 Project: {project.get('name')}
+📁 Project: {project.get('title') or project.get('name')}
 👤 Client: {client.get('name')}
 💵 Amount: ₹{amount:,.2f}
 💳 Mode: {payment_mode.title()}
@@ -832,7 +832,7 @@ View: {APP_URL}/accounting"""
             project_id=project_id
         )
         
-        logger.info(f"Fees paid notification sent for project {project.get('name')}")
+        logger.info(f"Fees paid notification sent for project {project.get('title') or project.get('name')}")
         
     except Exception as e:
         logger.error(f"Error in notify_fees_paid_by_client: {str(e)}")
@@ -866,7 +866,7 @@ async def notify_fees_received_by_owner(
         # Client notification (formal)
         client_message = f"""Dear {client.get('name')},
 
-Thank you for your payment for project "{project.get('name')}".
+Thank you for your payment for project "{project.get('title') or project.get('name')}".
 
 💵 Amount Received: ₹{amount:,.2f}
 💳 Payment Mode: {payment_mode.title()}
@@ -895,7 +895,7 @@ Best regards,
                 
                 await notification_service.send_email(
                     to_email=client.get('email'),
-                    subject=f"Payment Receipt - {project.get('name')}",
+                    subject=f"Payment Receipt - {project.get('title') or project.get('name')}",
                     html_content=email_html
                 )
         else:
@@ -906,7 +906,7 @@ Best regards,
         # Owner notification
         owner_message = f"""✅ Payment Received
 
-📁 Project: {project.get('name')}
+📁 Project: {project.get('title') or project.get('name')}
 👤 Client: {client.get('name')}
 💵 Amount: ₹{amount:,.2f}
 💳 Mode: {payment_mode.title()}
@@ -926,7 +926,7 @@ View: {APP_URL}/accounting"""
             project_id=project_id
         )
         
-        logger.info(f"Fees received notifications sent for project {project.get('name')}")
+        logger.info(f"Fees received notifications sent for project {project.get('title') or project.get('name')}")
         
     except Exception as e:
         logger.error(f"Error in notify_fees_received_by_owner: {str(e)}")
