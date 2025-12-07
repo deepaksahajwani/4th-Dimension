@@ -4513,6 +4513,7 @@ class BackendTester:
         print("\n🔔 COMPREHENSIVE NOTIFICATION SYSTEM TESTS")
         print("-" * 50)
         self.test_comprehensive_notification_system()
+        self.test_notification_system_comprehensive()
         
         # Feature Tests
         print("\n🎯 FEATURE TESTS")
