@@ -11,6 +11,11 @@ from motor.motor_asyncio import AsyncIOMotorClient
 import httpx
 from sendgrid import SendGridAPIClient
 from sendgrid.helpers.mail import Mail
+from pathlib import Path
+from dotenv import load_dotenv
+
+# Load environment variables
+load_dotenv(Path(__file__).parent / '.env')
 
 logger = logging.getLogger(__name__)
 
@@ -26,7 +31,7 @@ APP_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://pmfourth.preview.emer
 # Twilio Configuration
 TWILIO_ACCOUNT_SID = os.environ.get('TWILIO_ACCOUNT_SID')
 TWILIO_AUTH_TOKEN = os.environ.get('TWILIO_AUTH_TOKEN')
-TWILIO_WHATSAPP_FROM = os.environ.get('TWILIO_WHATSAPP_FROM', 'whatsapp:+14155238886')
+TWILIO_WHATSAPP_FROM = os.environ.get('TWILIO_WHATSAPP_NUMBER', 'whatsapp:+14155238886')
 
 # SendGrid Configuration
 SENDGRID_API_KEY = os.environ.get('SENDGRID_API_KEY')
