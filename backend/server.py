@@ -2551,64 +2551,56 @@ async def create_project(project_data: NewProjectCreate, current_user: User = De
     except Exception as e:
         logger.error(f"Error sending project creation notification: {str(e)}")
     
-    # Auto-create 3 drawings for each project type selected
-    # Define standard drawings for each project type
-    project_type_drawings = {
-        "Architecture": [
-            {"name": "Site Plan & Layout", "due_days": 3},
-            {"name": "Floor Plans & Sections", "due_days": 7},
-            {"name": "Elevations & 3D Views", "due_days": 10}
-        ],
-        "Interior": [
-            {"name": "Space Planning & Layout", "due_days": 3},
-            {"name": "Furniture & Fixture Layout", "due_days": 7},
-            {"name": "Lighting & Electrical Plan", "due_days": 10}
-        ],
-        "Landscape": [
-            {"name": "Site Analysis & Concept", "due_days": 3},
-            {"name": "Planting & Hardscape Plan", "due_days": 7},
-            {"name": "Irrigation & Lighting Plan", "due_days": 10}
-        ],
-        "Planning": [
-            {"name": "Feasibility Study", "due_days": 3},
-            {"name": "Master Plan Layout", "due_days": 7},
-            {"name": "Zoning & Compliance Drawings", "due_days": 10}
-        ]
-    }
+    # Auto-create ONLY first 3 drawings from template lists for each project type
+    # Using progressive disclosure: 1 DUE + 2 UPCOMING initially
     
     base_date = project.start_date if project.start_date else datetime.now(timezone.utc)
-    sequence_num = 1
     
-    # Create drawings for each selected project type
+    # Create drawings for each selected project type using templates
     for project_type in project.project_types:
-        if project_type in project_type_drawings:
-            drawings_for_type = project_type_drawings[project_type]
+        # Get template drawings for this category
+        template_drawings = get_template_drawings(project_type)
+        
+        if not template_drawings:
+            logger.warning(f"No template drawings found for project type: {project_type}")
+            continue
+        
+        # Create ONLY first 3 drawings from template
+        for i in range(min(3, len(template_drawings))):
+            drawing_name = template_drawings[i]
+            sequence_num = i + 1
             
-            for drawing_info in drawings_for_type:
-                due_date = base_date + timedelta(days=drawing_info["due_days"])
-                
-                drawing = ProjectDrawing(
-                    project_id=project.id,
-                    category=project_type,  # Use project type as category
-                    name=drawing_info["name"],
-                    status=DrawingStatus.PLANNED,
-                    due_date=due_date,
-                    is_issued=False,
-                    revision_count=0,
-                    sequence_number=sequence_num,
-                    is_active=True if sequence_num == 1 else False,  # Only first drawing is active
-                    assigned_to=project.lead_architect_id,  # Assign to lead architect
-                    priority="high" if sequence_num == 1 else "medium"
-                )
-                drawing_dict = drawing.model_dump()
-                
-                # Convert datetimes to ISO strings
-                for field in ['created_at', 'updated_at', 'due_date', 'issued_date']:
-                    if drawing_dict.get(field):
-                        drawing_dict[field] = drawing_dict[field].isoformat() if isinstance(drawing_dict[field], datetime) else drawing_dict[field]
-                
-                await db.project_drawings.insert_one(drawing_dict)
-                sequence_num += 1
+            # Calculate due date
+            # Drawing #1: project creation + 3 days (DUE)
+            # Drawing #2 & #3: No due date yet (UPCOMING)
+            if sequence_num == 1:
+                due_date = base_date + timedelta(days=3)
+            else:
+                due_date = None  # Will be set when previous drawing is issued
+            
+            drawing = ProjectDrawing(
+                project_id=project.id,
+                category=project_type,
+                name=drawing_name,
+                status=DrawingStatus.PLANNED,
+                due_date=due_date,
+                is_issued=False,
+                revision_count=0,
+                sequence_number=sequence_num,
+                is_active=True if sequence_num == 1 else False,  # Only first drawing is active
+                assigned_to=project.team_leader_id or project.lead_architect_id,
+                priority="high" if sequence_num == 1 else "medium"
+            )
+            drawing_dict = drawing.model_dump()
+            
+            # Convert datetimes to ISO strings
+            for field in ['created_at', 'updated_at', 'due_date', 'issued_date']:
+                if drawing_dict.get(field):
+                    drawing_dict[field] = drawing_dict[field].isoformat() if isinstance(drawing_dict[field], datetime) else drawing_dict[field]
+            
+            await db.project_drawings.insert_one(drawing_dict)
+            
+            logger.info(f"Created drawing #{sequence_num}: {drawing_name} for project {project.id}")
     
     # Send WhatsApp notifications to all project stakeholders about onboarding
     try:
