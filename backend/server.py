@@ -2813,17 +2813,147 @@ async def update_project(
     
     return {"message": "Project updated successfully"}
 
-@api_router.delete("/projects/{project_id}")
-async def delete_project(
+@api_router.post("/projects/{project_id}/request-deletion-otp")
+async def request_project_deletion_otp(
     project_id: str,
     current_user: User = Depends(require_owner)
 ):
-    """Soft delete project (owner only)"""
-    await db.projects.update_one(
-        {"id": project_id},
-        {"$set": {"deleted_at": datetime.now(timezone.utc).isoformat()}}
-    )
-    return {"message": "Project deleted successfully"}
+    """Request OTP for project deletion (owner only)"""
+    try:
+        # Verify project exists
+        project = await db.projects.find_one({"id": project_id, "deleted_at": None}, {"_id": 0})
+        if not project:
+            raise HTTPException(status_code=404, detail="Project not found")
+        
+        # Generate OTP
+        from verification_service import generate_otp
+        otp = generate_otp(6)
+        
+        # Store OTP in database with 10-minute expiry
+        otp_record = {
+            "otp": otp,
+            "user_id": current_user.id,
+            "project_id": project_id,
+            "action": "delete_project",
+            "created_at": datetime.now(timezone.utc),
+            "expires_at": datetime.now(timezone.utc) + timedelta(minutes=10),
+            "verified": False
+        }
+        await db.otp_verifications.insert_one(otp_record)
+        
+        # Send OTP via email
+        from verification_service import send_verification_email
+        sender_email = os.getenv('SENDER_EMAIL')
+        
+        html_content = f"""
+        <html>
+            <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+                <div style="max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #ddd; border-radius: 10px;">
+                    <div style="text-align: center; margin-bottom: 30px;">
+                        <h1 style="color: #DC2626; margin-bottom: 10px;">⚠️ Project Deletion Request</h1>
+                    </div>
+                    
+                    <div style="background: #FEE2E2; padding: 20px; border-radius: 8px; margin-bottom: 20px; border-left: 4px solid #DC2626;">
+                        <h2 style="color: #991B1B; margin-top: 0;">Security Verification Required</h2>
+                        <p style="font-size: 16px;">
+                            You have requested to delete the following project:
+                        </p>
+                        <div style="background: white; padding: 15px; border-radius: 5px; margin: 15px 0;">
+                            <strong>{project.get('code', 'N/A')}</strong> - {project.get('title', 'Untitled')}
+                        </div>
+                    </div>
+                    
+                    <div style="background: #F3F4F6; padding: 20px; border-radius: 8px; text-align: center; margin-bottom: 20px;">
+                        <p style="font-size: 14px; color: #666; margin-bottom: 10px;">Your One-Time Password (OTP):</p>
+                        <div style="font-size: 32px; font-weight: bold; letter-spacing: 8px; color: #DC2626; background: white; padding: 15px; border-radius: 8px; border: 2px dashed #DC2626;">
+                            {otp}
+                        </div>
+                        <p style="font-size: 12px; color: #666; margin-top: 10px;">This OTP will expire in 10 minutes</p>
+                    </div>
+                    
+                    <div style="background: #FEF3C7; padding: 15px; border-radius: 8px; border-left: 4px solid #F59E0B;">
+                        <p style="margin: 0; font-size: 14px; color: #92400E;">
+                            <strong>⚠️ Warning:</strong> Deleting this project is a permanent action. All associated drawings, comments, and data will be removed.
+                        </p>
+                    </div>
+                    
+                    <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd; text-align: center;">
+                        <p style="font-size: 12px; color: #666;">
+                            If you did not request this action, please ignore this email or contact support immediately.
+                        </p>
+                    </div>
+                </div>
+            </body>
+        </html>
+        """
+        
+        from sendgrid import SendGridAPIClient
+        from sendgrid.helpers.mail import Mail
+        
+        message = Mail(
+            from_email=sender_email,
+            to_emails=current_user.email,
+            subject='🚨 Project Deletion - OTP Verification Required',
+            html_content=html_content
+        )
+        
+        sg = SendGridAPIClient(os.getenv('SENDGRID_API_KEY'))
+        sg.send(message)
+        
+        return {"message": "OTP sent to your email", "expires_in": 600}
+    
+    except Exception as e:
+        logger.error(f"Request deletion OTP error: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@api_router.delete("/projects/{project_id}")
+async def delete_project(
+    project_id: str,
+    otp: str,
+    current_user: User = Depends(require_owner)
+):
+    """Soft delete project with OTP verification (owner only)"""
+    try:
+        # Verify OTP
+        otp_record = await db.otp_verifications.find_one({
+            "otp": otp,
+            "user_id": current_user.id,
+            "project_id": project_id,
+            "action": "delete_project",
+            "verified": False
+        }, {"_id": 0})
+        
+        if not otp_record:
+            raise HTTPException(status_code=400, detail="Invalid OTP")
+        
+        # Check if OTP expired
+        expires_at = otp_record['expires_at']
+        if isinstance(expires_at, str):
+            expires_at = datetime.fromisoformat(expires_at)
+        
+        if expires_at < datetime.now(timezone.utc):
+            raise HTTPException(status_code=400, detail="OTP has expired. Please request a new one.")
+        
+        # Mark OTP as verified
+        await db.otp_verifications.update_one(
+            {"otp": otp, "user_id": current_user.id},
+            {"$set": {"verified": True}}
+        )
+        
+        # Soft delete project
+        await db.projects.update_one(
+            {"id": project_id},
+            {"$set": {"deleted_at": datetime.now(timezone.utc).isoformat()}}
+        )
+        
+        return {"message": "Project deleted successfully"}
+    
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Delete project error: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 # ==================== DRAWING ROUTES ====================
