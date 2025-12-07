@@ -2544,13 +2544,6 @@ async def create_project(project_data: NewProjectCreate, current_user: User = De
     
     await db.projects.insert_one(project_dict)
     
-    # Send project creation notifications
-    try:
-        from notification_triggers_v2 import notify_project_creation
-        await notify_project_creation(project.id)
-    except Exception as e:
-        logger.error(f"Error sending project creation notification: {str(e)}")
-    
     # Auto-create ONLY first 3 drawings from template lists for each project type
     # Using progressive disclosure: 1 DUE + 2 UPCOMING initially
     
