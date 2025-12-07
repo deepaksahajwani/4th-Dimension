@@ -2595,6 +2595,13 @@ async def create_project(project_data: NewProjectCreate, current_user: User = De
             
             logger.info(f"Created drawing #{sequence_num}: {drawing_name} for project {project.id}")
     
+    # Send project creation notifications (AFTER drawings are created)
+    try:
+        from notification_triggers_v2 import notify_project_creation
+        await notify_project_creation(project.id)
+    except Exception as e:
+        logger.error(f"Error sending project creation notification: {str(e)}")
+    
     # Send WhatsApp notifications to all project stakeholders about onboarding
     try:
         from notification_triggers import notify_project_onboarding
