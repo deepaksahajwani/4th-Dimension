@@ -1,1 +1,1 @@
-# Routes module for organizing API endpoints
+# Routes package
