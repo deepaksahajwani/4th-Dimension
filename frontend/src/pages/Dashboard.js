@@ -416,41 +416,6 @@ export default function Dashboard({ user, onLogout }) {
         </div>
 
         {/* Owner View - Team Performance */}
-            {weeklyRating && (
-              <Card>
-                <CardHeader className="pb-3 sm:pb-4">
-                  <CardTitle className="text-base sm:text-lg flex items-center gap-2">
-                    <Star className="w-4 h-4 sm:w-5 sm:h-5 text-amber-600" />
-                    Last Week's Performance
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="p-3 sm:p-6">
-                  <div className="space-y-3 sm:space-y-4">
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs sm:text-sm text-slate-600">Rating</span>
-                      {renderStars(weeklyRating.rating)}
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs sm:text-sm text-slate-600">Completion</span>
-                      <span className="text-sm sm:text-base font-bold text-slate-900">
-                        {weeklyRating.completion_percentage.toFixed(0)}%
-                      </span>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs sm:text-sm text-slate-600">Completed</span>
-                      <span className="text-sm sm:text-base font-medium text-slate-900">
-                        {weeklyRating.completed_targets}/{weeklyRating.total_targets}
-                      </span>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-
-          </div>
-        </div>
-
-        {/* Owner View - Team Performance */}
         {user?.is_owner && teamRatings.length > 0 && (
           <Card className="mt-4 sm:mt-6">
             <CardHeader>
