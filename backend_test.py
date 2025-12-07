@@ -3798,6 +3798,11 @@ class BackendTester:
         print("-" * 40)
         self.test_error_response_format()
         
+        # Comprehensive Notification System Tests (NEW - PRIORITY)
+        print("\n🔔 COMPREHENSIVE NOTIFICATION SYSTEM TESTS")
+        print("-" * 50)
+        self.test_comprehensive_notification_system()
+        
         # Feature Tests
         print("\n🎯 FEATURE TESTS")
         print("-" * 40)
