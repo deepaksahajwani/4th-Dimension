@@ -967,13 +967,9 @@ export default function ProjectDetail({ user, onLogout }) {
   };
 
   const handleDeleteProject = async () => {
-    if (!deleteOtp || deleteOtp.length !== 6) {
-      toast.error('Please enter a valid 6-digit OTP');
-      return;
-    }
-
+    // OTP verification temporarily suspended
     try {
-      await axios.delete(`${API}/projects/${projectId}?otp=${deleteOtp}`);
+      await axios.delete(`${API}/projects/${projectId}`);
       toast.success('Project deleted successfully');
       setDeleteDialogOpen(false);
       setDeleteOtpSent(false);
