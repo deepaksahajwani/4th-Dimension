@@ -600,7 +600,7 @@ async def notify_drawing_issued(
         logger.info(f"[DRAWING ISSUED] Issued by: {issued_by_id}")
         
         project = await get_project_by_id(project_id)
-        drawing = await db.drawings.find_one({"id": drawing_id}, {"_id": 0})
+        drawing = await db.project_drawings.find_one({"id": drawing_id}, {"_id": 0})
         issued_by = await get_user_by_id(issued_by_id)
         owner = await db.users.find_one({"is_owner": True}, {"_id": 0})
         
