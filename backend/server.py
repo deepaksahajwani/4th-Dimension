@@ -4232,6 +4232,10 @@ async def get_team_member_dashboard_stats(
                         else:
                             due_date = drawing["due_date"]
                         
+                        # Ensure timezone awareness
+                        if due_date.tzinfo is None:
+                            due_date = due_date.replace(tzinfo=timezone.utc)
+                        
                         due_date = due_date.replace(hour=0, minute=0, second=0, microsecond=0)
                         
                         if due_date < today:
