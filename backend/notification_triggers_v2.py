@@ -160,23 +160,22 @@ async def notify_project_creation(project_id: str):
     try:
         project = await get_project_by_id(project_id)
         if not project:
+            logger.error(f"Project not found: {project_id}")
             return
         
-        project_name = project.get('name')
+        project_name = project.get('title') or project.get('name', 'Untitled Project')
         client_id = project.get('client_id')
         team_leader_id = project.get('team_leader_id')
         
         # Get client
-        client = await get_user_by_id(client_id)
+        client = await get_user_by_id(client_id) if client_id else None
         if not client:
-            logger.error(f"Client not found for project {project_id}")
-            return
+            logger.warning(f"Client not found for project {project_id}, client_id: {client_id}")
         
         # Get team leader
-        team_leader = await get_user_by_id(team_leader_id)
+        team_leader = await get_user_by_id(team_leader_id) if team_leader_id else None
         if not team_leader:
-            logger.error(f"Team leader not found for project {project_id}")
-            return
+            logger.warning(f"Team leader not found for project {project_id}, team_leader_id: {team_leader_id}")
         
         # Get owner
         owner = await db.users.find_one({"is_owner": True}, {"_id": 0})
