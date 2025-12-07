@@ -255,13 +255,13 @@ async def notify_project_creation(project_id: str):
             </body>
         </html>
         """
-            
-            if client.get('email'):
-                await notification_service.send_email(
-                    to_email=client['email'],
-                    subject=email_subject,
-                    html_content=email_html
-                )
+        
+        if client.get('email'):
+            await notification_service.send_email(
+                to_email=client['email'],
+                subject=email_subject,
+                html_content=email_html
+            )
         
         # Send to TEAM LEADER if exists
         if team_leader:
