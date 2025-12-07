@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { 
   FolderOpen, Users, CheckCircle2, Target, Star, 
-  Calendar, TrendingUp, Clock, Award, Bell, FileText
+  Calendar, TrendingUp, Clock, Award, Bell, FileText, AlertCircle
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { formatErrorMessage } from '@/utils/errorHandler';
