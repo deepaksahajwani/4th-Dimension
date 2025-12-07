@@ -42,6 +42,7 @@ class ConsultantType(str, Enum):
     PLUMBING = "Plumbing"
     ELECTRICAL = "Electrical"
     AIR_CONDITIONING = "Air Conditioning"
+    MEP = "MEP"
     STYLING = "Styling"
     GREEN = "Green"
     OTHER = "Other"
