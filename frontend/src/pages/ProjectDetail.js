@@ -2437,14 +2437,8 @@ export default function ProjectDetail({ user, onLogout }) {
           </DialogContent>
         </Dialog>
 
-        {/* Delete Project Dialog */}
-        <Dialog open={deleteDialogOpen} onOpenChange={(open) => {
-          setDeleteDialogOpen(open);
-          if (!open) {
-            setDeleteOtpSent(false);
-            setDeleteOtp('');
-          }
-        }}>
+        {/* Delete Project Dialog - OTP Temporarily Suspended */}
+        <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
           <DialogContent>
             <DialogHeader>
               <DialogTitle className="text-red-600">⚠️ Delete Project</DialogTitle>
@@ -2459,64 +2453,23 @@ export default function ProjectDetail({ user, onLogout }) {
                 </p>
               </div>
 
-              {!deleteOtpSent ? (
-                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-                  <p className="text-sm text-yellow-800">
-                    For security, we'll send a verification code to your email: <strong>{user?.email}</strong>
-                  </p>
-                </div>
-              ) : (
-                <div className="space-y-3">
-                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                    <p className="text-sm text-blue-800 mb-3">
-                      ✉️ A 6-digit OTP has been sent to <strong>{user?.email}</strong>
-                    </p>
-                    <p className="text-xs text-blue-700">
-                      The code will expire in 10 minutes
-                    </p>
-                  </div>
-                  
-                  <div>
-                    <Label>Enter OTP *</Label>
-                    <Input
-                      type="text"
-                      maxLength={6}
-                      placeholder="000000"
-                      value={deleteOtp}
-                      onChange={(e) => setDeleteOtp(e.target.value.replace(/\D/g, ''))}
-                      className="text-center text-2xl tracking-widest font-mono"
-                      autoFocus
-                    />
-                  </div>
-                </div>
-              )}
+              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                <p className="text-sm text-yellow-800 font-medium">
+                  Are you sure you want to delete this project?
+                </p>
+              </div>
             </div>
             <DialogFooter>
-              <Button variant="outline" onClick={() => {
-                setDeleteDialogOpen(false);
-                setDeleteOtpSent(false);
-                setDeleteOtp('');
-              }}>
+              <Button variant="outline" onClick={() => setDeleteDialogOpen(false)}>
                 Cancel
               </Button>
               
-              {!deleteOtpSent ? (
-                <Button 
-                  onClick={handleRequestDeleteOtp}
-                  disabled={sendingOtp}
-                  className="bg-orange-600 hover:bg-orange-700 text-white"
-                >
-                  {sendingOtp ? 'Sending...' : 'Send OTP'}
-                </Button>
-              ) : (
-                <Button 
-                  onClick={handleDeleteProject}
-                  disabled={deleteOtp.length !== 6}
-                  className="bg-red-600 hover:bg-red-700 text-white"
-                >
-                  Confirm Deletion
-                </Button>
-              )}
+              <Button 
+                onClick={handleDeleteProject}
+                className="bg-red-600 hover:bg-red-700 text-white"
+              >
+                Delete Project
+              </Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>
