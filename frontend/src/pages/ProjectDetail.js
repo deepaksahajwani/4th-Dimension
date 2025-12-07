@@ -1340,7 +1340,7 @@ export default function ProjectDetail({ user, onLogout }) {
             </Button>
             
             {/* Mark as N/A Button - Only for owner and if not issued */}
-            {user?.is_owner && !drawing.is_issued && !drawing.is_not_applicable && (
+            {(user?.is_owner || user?.role === 'owner') && !drawing.is_issued && !drawing.is_not_applicable && (
               <Button
                 variant="outline"
                 size="sm"
