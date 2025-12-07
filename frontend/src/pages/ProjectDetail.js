@@ -1612,6 +1612,19 @@ export default function ProjectDetail({ user, onLogout }) {
                               <MessageSquare className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
                               Comments
                             </Button>
+                            
+                            {/* Mark as N/A Button - Only for owner and if not issued */}
+                            {user?.is_owner && !drawing.is_issued && !drawing.is_not_applicable && (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleMarkAsNotApplicable(drawing.id)}
+                                className="flex-1 sm:flex-none text-xs h-8 border-slate-400 text-slate-600 hover:bg-slate-50"
+                                title="Mark this drawing as not applicable for this project"
+                              >
+                                N/A
+                              </Button>
+                            )}
                           </div>
                         </div>
                       </CardContent>
