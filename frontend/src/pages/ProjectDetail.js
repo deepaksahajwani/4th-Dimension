@@ -2253,46 +2253,14 @@ export default function ProjectDetail({ user, onLogout }) {
         />
 
         {/* Archive Project Dialog */}
-        <Dialog open={archiveDialogOpen} onOpenChange={setArchiveDialogOpen}>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Archive Project</DialogTitle>
-            </DialogHeader>
-            <div className="space-y-4 py-4">
-              <p className="text-slate-700">
-                Archiving this project will mark it as completed. Please enter the project completion date.
-              </p>
-              <div>
-                <Label>Completion Date *</Label>
-                <Input
-                  type="date"
-                  value={archiveDate}
-                  onChange={(e) => setArchiveDate(e.target.value)}
-                  required
-                />
-              </div>
-              <div className="bg-orange-50 border border-orange-200 rounded-lg p-3">
-                <p className="text-sm text-orange-800">
-                  <strong>{project?.code}</strong> - {project?.title}
-                </p>
-              </div>
-            </div>
-            <DialogFooter>
-              <Button variant="outline" onClick={() => {
-                setArchiveDialogOpen(false);
-                setArchiveDate('');
-              }}>
-                Cancel
-              </Button>
-              <Button 
-                onClick={handleArchiveProject}
-                className="bg-orange-600 hover:bg-orange-700 text-white"
-              >
-                Archive Project
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
+        <ArchiveProjectDialog
+          open={archiveDialogOpen}
+          onOpenChange={setArchiveDialogOpen}
+          project={project}
+          archiveDate={archiveDate}
+          setArchiveDate={setArchiveDate}
+          onConfirm={handleArchiveProject}
+        />
 
         {/* File Upload Dialog */}
         <Dialog open={uploadDialogOpen} onOpenChange={(open) => {
