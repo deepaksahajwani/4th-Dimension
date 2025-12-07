@@ -197,41 +197,47 @@ export default function Dashboard({ user, onLogout }) {
 
         {/* Stats Grid */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-6 mb-4 sm:mb-6">
-          {/* Today's Progress */}
-          <Card>
+          {/* Today's Critical */}
+          <Card className={overdueCount + dueTodayCount > 0 ? "border-2 border-red-500" : ""}>
             <CardContent className="p-3 sm:p-4 lg:p-6">
               <div className="flex items-center justify-between mb-2">
-                <span className="text-xs sm:text-sm text-slate-600">Today's Tasks</span>
-                <CheckCircle2 className="w-4 h-4 sm:w-5 sm:h-5 text-green-600" />
+                <span className="text-xs sm:text-sm text-slate-600">Today's Critical</span>
+                <AlertCircle className={`w-4 h-4 sm:w-5 sm:h-5 ${overdueCount + dueTodayCount > 0 ? 'text-red-600' : 'text-slate-400'}`} />
               </div>
-              <div className="text-xl sm:text-2xl lg:text-3xl font-bold text-slate-900">
-                {todayCompleted}/{todayTotal}
+              <div className={`text-xl sm:text-2xl lg:text-3xl font-bold ${overdueCount + dueTodayCount > 0 ? 'text-red-600' : 'text-slate-900'}`}>
+                {overdueCount + dueTodayCount}
               </div>
-              <div className="mt-2 w-full bg-slate-200 rounded-full h-1.5 sm:h-2">
-                <div 
-                  className="bg-green-500 h-1.5 sm:h-2 rounded-full transition-all"
-                  style={{ width: `${todayTotal > 0 ? (todayCompleted / todayTotal) * 100 : 0}%` }}
-                />
-              </div>
+              <p className="text-[10px] sm:text-xs text-slate-500 mt-1">
+                {overdueCount} overdue • {dueTodayCount} due today
+              </p>
             </CardContent>
           </Card>
 
-          {/* Weekly Progress */}
+          {/* All Due Drawings */}
           <Card>
             <CardContent className="p-3 sm:p-4 lg:p-6">
               <div className="flex items-center justify-between mb-2">
-                <span className="text-xs sm:text-sm text-slate-600">Week Progress</span>
-                <Target className="w-4 h-4 sm:w-5 sm:h-5 text-orange-600" />
+                <span className="text-xs sm:text-sm text-slate-600">Due Drawings</span>
+                <FileText className="w-4 h-4 sm:w-5 sm:h-5 text-orange-600" />
               </div>
               <div className="text-xl sm:text-2xl lg:text-3xl font-bold text-slate-900">
-                {weekProgress.percentage}%
+                {totalDue}
               </div>
-              <div className="mt-2 w-full bg-slate-200 rounded-full h-1.5 sm:h-2">
-                <div 
-                  className="bg-orange-500 h-1.5 sm:h-2 rounded-full transition-all"
-                  style={{ width: `${weekProgress.percentage}%` }}
-                />
+              <p className="text-[10px] sm:text-xs text-slate-500 mt-1">Across {totalProjects} projects</p>
+            </CardContent>
+          </Card>
+
+          {/* Upcoming Drawings */}
+          <Card>
+            <CardContent className="p-3 sm:p-4 lg:p-6">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-xs sm:text-sm text-slate-600">Upcoming</span>
+                <Calendar className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
               </div>
+              <div className="text-xl sm:text-2xl lg:text-3xl font-bold text-slate-900">
+                {upcomingDrawings.length}
+              </div>
+              <p className="text-[10px] sm:text-xs text-slate-500 mt-1">Prepare in advance</p>
             </CardContent>
           </Card>
 
@@ -254,20 +260,6 @@ export default function Dashboard({ user, onLogout }) {
                   N/A
                 </div>
               )}
-            </CardContent>
-          </Card>
-
-          {/* Pending Items */}
-          <Card>
-            <CardContent className="p-3 sm:p-4 lg:p-6">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-xs sm:text-sm text-slate-600">Pending</span>
-                <Clock className="w-4 h-4 sm:w-5 sm:h-5 text-slate-600" />
-              </div>
-              <div className="text-xl sm:text-2xl lg:text-3xl font-bold text-slate-900">
-                {todayTotal - todayCompleted}
-              </div>
-              <p className="text-[10px] sm:text-xs text-slate-500 mt-1">Tasks remaining</p>
             </CardContent>
           </Card>
         </div>
