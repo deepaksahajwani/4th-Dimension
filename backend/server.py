@@ -2930,7 +2930,11 @@ async def delete_project(
         # Check if OTP expired
         expires_at = otp_record['expires_at']
         if isinstance(expires_at, str):
-            expires_at = datetime.fromisoformat(expires_at)
+            expires_at = datetime.fromisoformat(expires_at.replace('Z', '+00:00'))
+        
+        # Ensure timezone awareness
+        if expires_at.tzinfo is None:
+            expires_at = expires_at.replace(tzinfo=timezone.utc)
         
         if expires_at < datetime.now(timezone.utc):
             raise HTTPException(status_code=400, detail="OTP has expired. Please request a new one.")
