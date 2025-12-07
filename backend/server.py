@@ -6427,12 +6427,14 @@ async def remove_co_client(
         raise HTTPException(status_code=500, detail=str(e))
 
 # Include modular routers
-from routes import auth, dashboard, notifications as notif_routes
+from routes import auth, dashboard, notifications as notif_routes, projects, drawings
 
 # Include the new modular routers under /api
 api_router.include_router(auth.router)
 api_router.include_router(dashboard.router)
 api_router.include_router(notif_routes.router)
+api_router.include_router(projects.router)
+api_router.include_router(drawings.router)
 
 # Note: clients, contractors, consultants routers exist but need updating to use new auth utils
 # They will be fully integrated in Phase 1B
