@@ -291,7 +291,7 @@ async def notify_project_creation(project_id: str):
             # Get the first due drawing for this project
             due_drawing = await db.project_drawings.find_one({
                 "project_id": project_id,
-                "status": "planned",
+                "due_date": {"$ne": None},
                 "deleted_at": None
             }, {"_id": 0})
             
