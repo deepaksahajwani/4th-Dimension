@@ -493,7 +493,7 @@ async def notify_drawing_revised_internal(project_id: str, drawing_id: str, revi
     """
     try:
         project = await get_project_by_id(project_id)
-        drawing = await db.drawings.find_one({"id": drawing_id}, {"_id": 0})
+        drawing = await db.project_drawings.find_one({"id": drawing_id}, {"_id": 0})
         revised_by = await get_user_by_id(revised_by_id)
         
         if not all([project, drawing, revised_by]):
