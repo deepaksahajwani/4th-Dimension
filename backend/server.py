@@ -4143,6 +4143,121 @@ async def update_drawing(drawing_id: str, updates: dict, current_user: User = De
     return {"message": "Drawing updated successfully"}
 
 
+@api_router.patch("/drawings/{drawing_id}/mark-not-applicable")
+async def mark_drawing_not_applicable(
+    drawing_id: str,
+    current_user: User = Depends(get_current_user)
+):
+    """Mark a drawing as not applicable for a specific project"""
+    try:
+        # Update drawing to mark as N/A
+        result = await db.project_drawings.update_one(
+            {"id": drawing_id},
+            {"$set": {"is_not_applicable": True, "updated_at": datetime.now(timezone.utc)}}
+        )
+        
+        if result.matched_count == 0:
+            raise HTTPException(status_code=404, detail="Drawing not found")
+        
+        return {"message": "Drawing marked as not applicable"}
+    except Exception as e:
+        logger.error(f"Error marking drawing as N/A: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@api_router.get("/dashboard/team-member-stats")
+async def get_team_member_dashboard_stats(
+    current_user: User = Depends(get_current_user)
+):
+    """Get dashboard statistics for team members with proper drawing status logic"""
+    try:
+        # Get all projects assigned to this team member
+        projects = await db.projects.find({
+            "$or": [
+                {"team_leader_id": current_user.id},
+                {"lead_architect_id": current_user.id}
+            ],
+            "deleted_at": None,
+            "archived": {"$ne": True}
+        }, {"_id": 0}).to_list(1000)
+        
+        today = datetime.now(timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0)
+        
+        due_drawings = []
+        upcoming_drawings = []
+        overdue_count = 0
+        due_today_count = 0
+        
+        for project in projects:
+            # Get all drawings for this project, sorted by sequence
+            drawings = await db.project_drawings.find({
+                "project_id": project["id"],
+                "deleted_at": None,
+                "is_not_applicable": {"$ne": True}
+            }, {"_id": 0}).sort("sequence_number", 1).to_list(1000)
+            
+            if not drawings:
+                continue
+            
+            # Find the last issued drawing (without pending revision)
+            last_issued_index = -1
+            for i, drawing in enumerate(drawings):
+                if drawing.get("is_issued") and not drawing.get("has_pending_revision"):
+                    last_issued_index = i
+            
+            # Determine due and upcoming drawings
+            for i, drawing in enumerate(drawings):
+                drawing_data = {**drawing, "project": project}
+                
+                # Drawing is DUE if:
+                # 1. It's the first drawing and not issued yet, OR
+                # 2. Previous drawing is issued (and no revision), OR
+                # 3. It has a pending revision
+                is_due = False
+                
+                if drawing.get("has_pending_revision"):
+                    is_due = True
+                elif i == 0 and not drawing.get("is_issued"):
+                    is_due = True
+                elif i <= last_issued_index + 1 and not drawing.get("is_issued"):
+                    is_due = True
+                
+                if is_due:
+                    due_drawings.append(drawing_data)
+                    
+                    # Check if overdue or due today
+                    if drawing.get("due_date"):
+                        if isinstance(drawing["due_date"], str):
+                            due_date = datetime.fromisoformat(drawing["due_date"].replace('Z', '+00:00'))
+                        else:
+                            due_date = drawing["due_date"]
+                        
+                        due_date = due_date.replace(hour=0, minute=0, second=0, microsecond=0)
+                        
+                        if due_date < today:
+                            overdue_count += 1
+                        elif due_date == today:
+                            due_today_count += 1
+                elif i == last_issued_index + 1 or (i == last_issued_index + 2 and last_issued_index >= 0):
+                    # Next 1-2 drawings after last issued are "upcoming"
+                    upcoming_drawings.append(drawing_data)
+        
+        # Sort due drawings by due date (earliest first)
+        due_drawings.sort(key=lambda d: d.get("due_date") or "9999-12-31")
+        
+        return {
+            "due_drawings": due_drawings,
+            "upcoming_drawings": upcoming_drawings,
+            "overdue_count": overdue_count,
+            "due_today_count": due_today_count,
+            "total_due": len(due_drawings),
+            "total_projects": len(projects)
+        }
+    except Exception as e:
+        logger.error(f"Dashboard stats error: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 # ==================== TASK ROUTES ====================
 
 @api_router.post("/tasks", response_model=Task)
