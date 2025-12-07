@@ -595,12 +595,22 @@ async def notify_drawing_issued(
     Message: Formal for client, casual for team
     """
     try:
+        logger.info(f"[DRAWING ISSUED] Starting notification for drawing {drawing_id}, project {project_id}")
+        logger.info(f"[DRAWING ISSUED] Recipient IDs received: {recipient_ids}")
+        logger.info(f"[DRAWING ISSUED] Issued by: {issued_by_id}")
+        
         project = await get_project_by_id(project_id)
         drawing = await db.drawings.find_one({"id": drawing_id}, {"_id": 0})
         issued_by = await get_user_by_id(issued_by_id)
         owner = await db.users.find_one({"is_owner": True}, {"_id": 0})
         
+        logger.info(f"[DRAWING ISSUED] Project found: {project is not None}")
+        logger.info(f"[DRAWING ISSUED] Drawing found: {drawing is not None}")
+        logger.info(f"[DRAWING ISSUED] Issued by found: {issued_by is not None}")
+        logger.info(f"[DRAWING ISSUED] Owner found: {owner is not None}")
+        
         if not all([project, drawing, issued_by, owner]):
+            logger.error(f"[DRAWING ISSUED] Missing required data. Aborting notification.")
             return
         
         project_name = project.get('name')
