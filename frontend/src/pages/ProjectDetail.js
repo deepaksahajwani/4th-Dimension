@@ -51,6 +51,9 @@ export default function ProjectDetail({ user, onLogout }) {
   // Project action dialog states
   const [editProjectDialogOpen, setEditProjectDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [deleteOtpSent, setDeleteOtpSent] = useState(false);
+  const [deleteOtp, setDeleteOtp] = useState('');
+  const [sendingOtp, setSendingOtp] = useState(false);
   const [archiveDialogOpen, setArchiveDialogOpen] = useState(false);
   const [archiveDate, setArchiveDate] = useState('');
   
