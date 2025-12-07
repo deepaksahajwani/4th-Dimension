@@ -609,25 +609,17 @@ async def notify_drawing_issued(
         issue_date = datetime.now(timezone.utc).strftime('%d %b %Y')
         status = "Revised" if drawing.get('revision_number', 0) > 0 else "New"
         
-        logger.info(f"[DRAWING ISSUED] Project: {project_name}, Drawing: {drawing_name}, Status: {status}")
-        
         # Ensure owner is in recipients
         if owner['id'] not in recipient_ids:
             recipient_ids.append(owner['id'])
-            logger.info(f"[DRAWING ISSUED] Added owner to recipients")
-        
-        logger.info(f"[DRAWING ISSUED] Total recipients to notify: {len(recipient_ids)}")
         
         recipient_names = []
         
         for recipient_id in recipient_ids:
-            logger.info(f"[DRAWING ISSUED] Processing recipient ID: {recipient_id}")
             recipient = await get_user_by_id(recipient_id)
             if not recipient:
-                logger.warning(f"[DRAWING ISSUED] Recipient not found: {recipient_id}")
+                logger.warning(f"Drawing issued: Recipient not found: {recipient_id}")
                 continue
-            
-            logger.info(f"[DRAWING ISSUED] Recipient found: {recipient.get('name')}, Role: {recipient.get('role')}, Mobile: {recipient.get('mobile')}")
             
             recipient_names.append(recipient.get('name'))
             recipient_role = recipient.get('role', '')
