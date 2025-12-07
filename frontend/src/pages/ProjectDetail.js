@@ -933,6 +933,21 @@ export default function ProjectDetail({ user, onLogout }) {
     });
   };
 
+  // Drawing N/A handler
+  const handleMarkAsNotApplicable = async (drawingId) => {
+    if (!confirm('Mark this drawing as Not Applicable? It will be removed from the drawing list for this project.')) {
+      return;
+    }
+    
+    try {
+      await axios.patch(`${API}/drawings/${drawingId}/mark-not-applicable`);
+      toast.success('Drawing marked as not applicable');
+      fetchProjectData();
+    } catch (error) {
+      toast.error(formatErrorMessage(error, 'Failed to mark drawing as N/A'));
+    }
+  };
+
   // Project action handlers
   const handleEditProject = () => {
     navigate('/projects', { state: { editProjectId: projectId } });
