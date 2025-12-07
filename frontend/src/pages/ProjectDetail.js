@@ -1508,7 +1508,25 @@ export default function ProjectDetail({ user, onLogout }) {
                   {categoryDrawings.length > 0 ? (
                     <div className="space-y-3">
                       {categoryDrawings.map((drawing) => (
-                        <DrawingCard key={drawing.id} drawing={drawing} />
+                        <DrawingCard 
+                          key={drawing.id} 
+                          drawing={drawing}
+                          user={user}
+                          onToggleIssued={handleToggleIssued}
+                          onResolveRevision={handleResolveRevision}
+                          onOpenRevisionDialog={handleOpenRevisionDialog}
+                          onApproveDrawing={handleApproveDrawing}
+                          onOpenIssueDialog={(drawing) => {
+                            setSelectedIssueDrawing(drawing);
+                            loadRecipientsForCategory(drawing.category);
+                            setIssueDialogOpen(true);
+                          }}
+                          onViewPDF={handleViewPDF}
+                          onDownloadPDF={handleDownloadPDF}
+                          onOpenComments={handleOpenComments}
+                          onMarkAsNotApplicable={handleMarkAsNotApplicable}
+                          onDeleteDrawing={handleDeleteDrawing}
+                        />
                       ))}
                     </div>
                   ) : (
