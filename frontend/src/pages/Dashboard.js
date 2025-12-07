@@ -42,68 +42,57 @@ export default function Dashboard({ user, onLogout }) {
     try {
       const today = new Date().toISOString().split('T')[0];
       
-      const requests = [
-        axios.get(`${API}/daily-tasks?date=${today}`),
-        axios.get(`${API}/weekly-targets`),
-        axios.get(`${API}/weekly-ratings`),
-        axios.get(`${API}/projects`)
-      ];
-
-      // If owner, get team ratings
-      if (user?.is_owner) {
-        requests.push(axios.get(`${API}/weekly-ratings`));
-      }
-
-      const responses = await Promise.all(requests);
-      
-      setDailyTasks(responses[0].data);
-      setWeeklyTargets(responses[1].data);
-      setProjects(responses[3].data);
-      
-      const ratings = responses[2].data;
-      if (ratings.length > 0) {
-        setWeeklyRating(ratings[0]); // Most recent rating
-      }
-
-      if (user?.is_owner && responses[4]) {
-        setTeamRatings(responses[4].data);
-      }
-      
-      // Fetch pending drawings assigned to this user
-      if (user && !user.is_owner && responses[3].data) {
-        const allDrawings = [];
+      // Use new dashboard stats endpoint for team members
+      if (user && !user.is_owner) {
+        const [statsRes, tasksRes, targetsRes, ratingsRes] = await Promise.all([
+          axios.get(`${API}/dashboard/team-member-stats`),
+          axios.get(`${API}/daily-tasks?date=${today}`),
+          axios.get(`${API}/weekly-targets`),
+          axios.get(`${API}/weekly-ratings`)
+        ]);
         
-        for (const project of responses[3].data) {
-          try {
-            const drawingsRes = await axios.get(`${API}/projects/${project.id}/drawings`);
-            // Get drawings that are:
-            // 1. Assigned to this user OR project is led by this user (check both lead_architect_id and team_leader_id)
-            // 2. Not issued yet OR has pending revisions
-            // 3. Status is PLANNED or IN_PROGRESS (if status exists)
-            const myDrawings = drawingsRes.data.filter(d => {
-              // Check if user is assigned or is the project lead/team leader
-              const isAssignedToMe = d.assigned_to === user.id || 
-                                    project.lead_architect_id === user.id || 
-                                    project.team_leader_id === user.id;
-              const needsWork = !d.is_issued || d.has_pending_revision;
-              const isActive = !d.status || ['PLANNED', 'IN_PROGRESS'].includes(d.status);
-              
-              return isAssignedToMe && needsWork && isActive;
-            });
-            allDrawings.push(...myDrawings.map(d => ({ ...d, project })));
-          } catch (error) {
-            console.error(`Failed to fetch drawings for project ${project.id}:`, error);
-          }
+        const stats = statsRes.data;
+        setPendingDrawings(stats.due_drawings || []);
+        setUpcomingDrawings(stats.upcoming_drawings || []);
+        setOverdueCount(stats.overdue_count || 0);
+        setDueTodayCount(stats.due_today_count || 0);
+        setTotalDue(stats.total_due || 0);
+        setTotalProjects(stats.total_projects || 0);
+        
+        setDailyTasks(tasksRes.data);
+        setWeeklyTargets(targetsRes.data);
+        
+        const ratings = ratingsRes.data;
+        if (ratings.length > 0) {
+          setWeeklyRating(ratings[0]);
         }
+      } else {
+        // Owner dashboard - keep existing logic
+        const requests = [
+          axios.get(`${API}/daily-tasks?date=${today}`),
+          axios.get(`${API}/weekly-targets`),
+          axios.get(`${API}/weekly-ratings`),
+          axios.get(`${API}/projects`)
+        ];
+
+        if (user?.is_owner) {
+          requests.push(axios.get(`${API}/weekly-ratings`));
+        }
+
+        const responses = await Promise.all(requests);
         
-        // Sort by due date (most urgent first)
-        allDrawings.sort((a, b) => {
-          if (!a.due_date) return 1;
-          if (!b.due_date) return -1;
-          return new Date(a.due_date) - new Date(b.due_date);
-        });
+        setDailyTasks(responses[0].data);
+        setWeeklyTargets(responses[1].data);
+        setProjects(responses[3].data);
         
-        setPendingDrawings(allDrawings);
+        const ratings = responses[2].data;
+        if (ratings.length > 0) {
+          setWeeklyRating(ratings[0]);
+        }
+
+        if (user?.is_owner && responses[4]) {
+          setTeamRatings(responses[4].data);
+        }
       }
     } catch (error) {
       console.error('Error fetching dashboard data:', error);
