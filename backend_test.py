@@ -3753,25 +3753,30 @@ class BackendTester:
         print("✅ Drawing notification flows testing completed")
 
     def run_all_tests(self):
-        """Run all authentication tests"""
-        print(f"🚀 Starting Backend Authentication Tests")
+        """Run all backend tests with priority on drawing notifications"""
+        print(f"🚀 Starting Backend API Testing")
         print(f"Backend URL: {BACKEND_URL}")
         print(f"Test User Email: {self.test_user_email}")
         print("=" * 60)
         
-        # Registration tests
+        # PRIORITY: Drawing Notification Tests (Critical Bug Fix)
+        print("\n🔥 CRITICAL DRAWING NOTIFICATION TESTS (PRIORITY)")
+        print("-" * 50)
+        self.test_drawing_notification_flows()
+        
+        # Authentication and Registration Tests
+        print("\n📝 AUTHENTICATION & REGISTRATION TESTS")
+        print("-" * 40)
         self.test_register_valid()
         self.test_register_duplicate_email()
         self.test_register_invalid_inputs()
-        
-        # Login tests
         self.test_login_valid()
         self.test_login_invalid()
-        
-        # Google OAuth test
         self.test_google_session()
         
-        # OTP and profile completion tests
+        # Profile Management Tests
+        print("\n👤 PROFILE MANAGEMENT TESTS")
+        print("-" * 40)
         self.test_request_otp_valid()
         self.test_request_otp_invalid()
         self.test_complete_profile_without_otp()
@@ -3779,36 +3784,28 @@ class BackendTester:
         self.test_complete_profile_invalid_otp()
         self.test_complete_profile_missing_fields()
         self.test_complete_profile_invalid_date()
-        
-        # User status verification
         self.test_user_registration_completed_status()
         
-        # Complete flow tests (NEW - as requested)
+        # Complete Flow Tests
+        print("\n🔄 COMPLETE FLOW TESTS")
+        print("-" * 40)
         self.test_complete_registration_flow_auto_validation()
         self.test_owner_registration_auto_validation()
-        
-        # Legacy flow test
         self.test_new_user_complete_flow()
         
-        # Error format test
+        # Error Handling Tests
+        print("\n⚠️ ERROR HANDLING TESTS")
+        print("-" * 40)
         self.test_error_response_format()
         
-        # Weekly Targets feature test (NEW - as requested in review)
+        # Feature Tests
+        print("\n🎯 FEATURE TESTS")
+        print("-" * 40)
         self.test_weekly_targets_feature()
-        
-        # Ad-Hoc Task Creation and Dashboard test (NEW - as requested in review)
         self.test_ad_hoc_task_creation_and_dashboard()
-        
-        # Auto-Drawing Creation Fix test (NEW - as requested in review)
         self.test_auto_drawing_creation_fix()
-        
-        # PDF Download endpoint test (NEW - as requested in review)
         self.test_pdf_download_endpoint()
-        
-        # Team Member Invitation and Verification Flow test (NEW - as requested in review)
         self.test_team_member_invitation_flow()
-        
-        # Comprehensive E2E Drawing Workflow test (NEW - as requested in review)
         self.test_comprehensive_drawing_workflow_e2e()
         
         # Summary
