@@ -6426,6 +6426,15 @@ async def remove_co_client(
         logger.error(f"Get historical progress error: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
+# Include modular routers
+from routes import auth, dashboard, notifications as notif_routes
+
+# Include the new modular routers under /api
+api_router.include_router(auth.router)
+api_router.include_router(dashboard.router)
+api_router.include_router(notif_routes.router)
+
+# Include the main api router
 app.include_router(api_router)
 
 # Include notifications and payments router
