@@ -188,15 +188,13 @@ class NotificationService:
                 
                 # WhatsApp notification
                 if 'whatsapp' in channels and user.get('mobile'):
-                    logger.info(f"[WHATSAPP] Sending WhatsApp to user {user_id}, mobile: {user.get('mobile')}")
                     result = await NotificationService.send_whatsapp(
                         phone_number=user['mobile'],
                         message=message
                     )
-                    logger.info(f"[WHATSAPP] Result for {user_id}: {result}")
                     results.append({"user_id": user_id, "channel": "whatsapp", "result": result})
                 elif 'whatsapp' in channels:
-                    logger.warning(f"[WHATSAPP] User {user_id} has no mobile number")
+                    logger.warning(f"WhatsApp notification skipped: User {user_id} has no mobile number")
                 
                 # Email notification
                 if 'email' in channels and user.get('email') and email_subject and email_html:
