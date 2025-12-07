@@ -3090,31 +3090,80 @@ async def update_drawing(
             revision_history[-1]['resolved_date'] = datetime.now(timezone.utc).isoformat()
             update_dict['revision_history'] = revision_history
     
-    # If drawing is being issued, activate next drawing in sequence
+    # If drawing is being issued, activate next drawing and create new one
     if update_dict.get('is_issued') == True and drawing.get('is_issued') == False:
-        update_dict['issued_date'] = datetime.now(timezone.utc).isoformat()
-        # If re-issuing after revision was resolved, keep has_pending_revision as False
-        # This maintains the "R1 Resolved" state while showing as issued
+        issue_date = datetime.now(timezone.utc)
+        update_dict['issued_date'] = issue_date.isoformat()
         
-        # Find and activate next drawing in sequence
-        if drawing.get('sequence_number'):
-            next_sequence = drawing.get('sequence_number') + 1
+        current_sequence = drawing.get('sequence_number')
+        project_id = drawing.get('project_id')
+        category = drawing.get('category')
+        
+        if current_sequence and project_id and category:
+            # 1. Find next drawing in sequence (current + 1)
+            next_sequence = current_sequence + 1
             next_drawing = await db.project_drawings.find_one({
-                "project_id": drawing.get('project_id'),
-                "category": drawing.get('category'),
+                "project_id": project_id,
+                "category": category,
                 "sequence_number": next_sequence,
                 "deleted_at": None
             }, {"_id": 0})
             
             if next_drawing:
-                # Activate next drawing
+                # Set the next drawing as DUE with due_date = issue_date + 3 days
                 await db.project_drawings.update_one(
                     {"id": next_drawing['id']},
                     {"$set": {
                         "is_active": True,
-                        "updated_at": datetime.now(timezone.utc).isoformat()
+                        "due_date": (issue_date + timedelta(days=3)).isoformat(),
+                        "updated_at": issue_date.isoformat()
                     }}
                 )
+                logger.info(f"Activated drawing #{next_sequence} as DUE")
+            
+            # 2. Auto-create the 4th drawing ahead (current + 3)
+            # This maintains: 1 DUE + 2 UPCOMING
+            fourth_sequence = current_sequence + 3
+            
+            # Check if this drawing already exists
+            existing_fourth = await db.project_drawings.find_one({
+                "project_id": project_id,
+                "category": category,
+                "sequence_number": fourth_sequence,
+                "deleted_at": None
+            }, {"_id": 0})
+            
+            if not existing_fourth:
+                # Get template drawings for this category
+                template_drawings = get_template_drawings(category)
+                
+                # Check if template has this drawing
+                if template_drawings and fourth_sequence <= len(template_drawings):
+                    drawing_name = template_drawings[fourth_sequence - 1]  # 0-indexed
+                    
+                    # Create the new drawing
+                    new_drawing = ProjectDrawing(
+                        project_id=project_id,
+                        category=category,
+                        name=drawing_name,
+                        status=DrawingStatus.PLANNED,
+                        due_date=None,  # Will be set when it becomes due
+                        is_issued=False,
+                        revision_count=0,
+                        sequence_number=fourth_sequence,
+                        is_active=False,  # UPCOMING, not active yet
+                        assigned_to=drawing.get('assigned_to'),
+                        priority="medium"
+                    )
+                    new_drawing_dict = new_drawing.model_dump()
+                    
+                    # Convert datetimes to ISO strings
+                    for field in ['created_at', 'updated_at', 'due_date', 'issued_date']:
+                        if new_drawing_dict.get(field):
+                            new_drawing_dict[field] = new_drawing_dict[field].isoformat() if isinstance(new_drawing_dict[field], datetime) else new_drawing_dict[field]
+                    
+                    await db.project_drawings.insert_one(new_drawing_dict)
+                    logger.info(f"Auto-created drawing #{fourth_sequence}: {drawing_name} as UPCOMING")
     
     # Update the drawing
     update_dict['updated_at'] = datetime.now(timezone.utc).isoformat()
