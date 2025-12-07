@@ -4344,17 +4344,29 @@ async def get_team_member_dashboard_stats(
                 drawing_data = {**drawing, "project": project}
                 
                 # Drawing is DUE if:
-                # 1. It's the first drawing and not issued yet, OR
-                # 2. Previous drawing is issued (and no revision), OR
-                # 3. It has a pending revision
+                # 1. It has a pending revision (always top priority)
+                # 2. It's the first drawing and not issued yet
+                # 3. It's the next drawing after the last issued one
                 is_due = False
+                is_upcoming = False
                 
                 if drawing.get("has_pending_revision"):
+                    # Revisions are always due
                     is_due = True
-                elif i == 0 and not drawing.get("is_issued"):
-                    is_due = True
-                elif i <= last_issued_index + 1 and not drawing.get("is_issued"):
-                    is_due = True
+                elif not drawing.get("is_issued"):
+                    # Not issued yet - check if it's next in line
+                    if i == 0:
+                        # First drawing is always due if not issued
+                        is_due = True
+                    elif last_issued_index >= 0 and i == last_issued_index + 1:
+                        # Next drawing after last issued is due
+                        is_due = True
+                    elif last_issued_index >= 0 and i == last_issued_index + 2:
+                        # Second drawing after last issued is upcoming
+                        is_upcoming = True
+                    elif i > 0 and i < len(drawings) and last_issued_index == -1:
+                        # If no drawings issued yet, only first is due
+                        is_upcoming = True
                 
                 if is_due:
                     due_drawings.append(drawing_data)
@@ -4376,8 +4388,8 @@ async def get_team_member_dashboard_stats(
                             overdue_count += 1
                         elif due_date == today:
                             due_today_count += 1
-                elif i == last_issued_index + 1 or (i == last_issued_index + 2 and last_issued_index >= 0):
-                    # Next 1-2 drawings after last issued are "upcoming"
+                elif is_upcoming:
+                    # Upcoming drawings (prepare in advance)
                     upcoming_drawings.append(drawing_data)
         
         # Sort due drawings by due date (earliest first)
