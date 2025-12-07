@@ -21,6 +21,11 @@ export default function Dashboard({ user, onLogout }) {
   const [weeklyRating, setWeeklyRating] = useState(null);
   const [teamRatings, setTeamRatings] = useState([]);
   const [pendingDrawings, setPendingDrawings] = useState([]);
+  const [upcomingDrawings, setUpcomingDrawings] = useState([]);
+  const [overdueCount, setOverdueCount] = useState(0);
+  const [dueTodayCount, setDueTodayCount] = useState(0);
+  const [totalDue, setTotalDue] = useState(0);
+  const [totalProjects, setTotalProjects] = useState(0);
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(true);
 
