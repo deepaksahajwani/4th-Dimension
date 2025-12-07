@@ -1121,11 +1121,13 @@ export default function ProjectDetail({ user, onLogout }) {
   };
 
   const getDrawingsByCategory = (category) => {
-    return drawings.filter(d => d.category === category);
+    // Filter out N/A drawings
+    return drawings.filter(d => d.category === category && !d.is_not_applicable);
   };
 
   const getPendingDrawingsSortedByUrgency = () => {
-    const pending = drawings.filter(d => !d.is_issued || d.has_pending_revision);
+    // Filter out N/A drawings
+    const pending = drawings.filter(d => (!d.is_issued || d.has_pending_revision) && !d.is_not_applicable);
     return pending.sort((a, b) => {
       if (!a.due_date) return 1;
       if (!b.due_date) return -1;
