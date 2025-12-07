@@ -195,7 +195,7 @@ export default function ProjectDetail({ user, onLogout }) {
     // Add client if available
     if (client) {
       recipients.push({
-        id: client.id,
+        id: client.user_id || client.id,  // Use user_id for notifications, fallback to client.id
         name: client.name || 'Project Client',
         type: 'client',
         role: 'Client'
