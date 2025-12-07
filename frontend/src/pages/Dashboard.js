@@ -264,79 +264,156 @@ export default function Dashboard({ user, onLogout }) {
           </Card>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
-          {/* Today's Tasks - Takes 2 columns on large screens */}
-          <div className="lg:col-span-2">
-            <Card>
-              <CardHeader className="pb-3 sm:pb-4">
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+        <div className="grid grid-cols-1 gap-4 sm:gap-6">
+          {/* All Due Drawings */}
+          <Card>
+            <CardHeader className="pb-3 sm:pb-4">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                <div>
                   <CardTitle className="text-base sm:text-lg flex items-center gap-2">
-                    <Calendar className="w-4 h-4 sm:w-5 sm:h-5 text-orange-600" />
-                    Today's Tasks
+                    <FileText className="w-4 h-4 sm:w-5 sm:h-5 text-orange-600" />
+                    All Due Drawings ({totalDue})
                   </CardTitle>
-                  <span className="text-xs sm:text-sm text-slate-500">
-                    {new Date().toLocaleDateString('en-US', { weekday: 'long' })}
-                  </span>
+                  <p className="text-xs sm:text-sm text-slate-500 mt-1">
+                    Sorted by priority • {overdueCount} overdue, {dueTodayCount} due today
+                  </p>
                 </div>
-              </CardHeader>
-              <CardContent className="p-3 sm:p-6">
-                {dailyTasks.length === 0 ? (
-                  <div className="text-center py-8 sm:py-12">
-                    <CheckCircle2 className="w-12 h-12 sm:w-16 sm:h-16 text-green-300 mx-auto mb-3 sm:mb-4" />
-                    <p className="text-sm sm:text-base text-slate-500">
-                      No tasks for today! Enjoy your day 🎉
-                    </p>
-                  </div>
-                ) : (
-                  <div className="space-y-2 sm:space-y-3">
-                    {dailyTasks.map((task) => (
+                <Button 
+                  onClick={() => navigate('/projects')}
+                  variant="outline"
+                  size="sm"
+                >
+                  View Projects →
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent className="p-3 sm:p-6">
+              {pendingDrawings.length === 0 ? (
+                <div className="text-center py-8 sm:py-12">
+                  <CheckCircle2 className="w-12 h-12 sm:w-16 sm:h-16 text-green-300 mx-auto mb-3 sm:mb-4" />
+                  <p className="text-sm sm:text-base text-slate-500">
+                    All caught up! No due drawings 🎉
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {pendingDrawings.map((drawing) => {
+                    const daysUntilDue = drawing.due_date 
+                      ? Math.ceil((new Date(drawing.due_date) - new Date()) / (1000 * 60 * 60 * 24))
+                      : null;
+                    const isOverdue = daysUntilDue !== null && daysUntilDue < 0;
+                    const isDueToday = daysUntilDue !== null && daysUntilDue === 0;
+                    const isUrgent = daysUntilDue !== null && daysUntilDue >= 0 && daysUntilDue <= 2;
+                    
+                    return (
                       <div 
-                        key={task.id} 
-                        className={`p-3 sm:p-4 rounded-lg border-2 transition-all ${
-                          task.completed 
-                            ? 'bg-green-50 border-green-200' 
-                            : 'bg-white border-slate-200 hover:border-orange-300'
+                        key={drawing.id} 
+                        className={`p-3 sm:p-4 rounded-lg border-2 cursor-pointer hover:shadow-md transition-all ${
+                          isOverdue ? 'border-red-500 bg-red-50' : 
+                          isDueToday ? 'border-orange-500 bg-orange-50' :
+                          isUrgent ? 'border-yellow-400 bg-yellow-50' : 
+                          'border-slate-200 bg-white'
                         }`}
+                        onClick={() => navigate(`/projects/${drawing.project.id}`)}
                       >
-                        <div className="flex items-start gap-2 sm:gap-3">
-                          <button
-                            onClick={() => !task.completed && handleCompleteTask(task.id)}
-                            disabled={task.completed}
-                            className={`mt-0.5 flex-shrink-0 w-5 h-5 sm:w-6 sm:h-6 rounded-full border-2 flex items-center justify-center transition-colors ${
-                              task.completed
-                                ? 'bg-green-500 border-green-500'
-                                : 'border-slate-300 hover:border-orange-500'
-                            }`}
-                          >
-                            {task.completed && (
-                              <CheckCircle2 className="w-3 h-3 sm:w-4 sm:h-4 text-white" />
-                            )}
-                          </button>
+                        <div className="flex items-start justify-between gap-3">
                           <div className="flex-1 min-w-0">
-                            <p className={`text-sm sm:text-base font-medium ${
-                              task.completed ? 'text-green-700 line-through' : 'text-slate-900'
-                            }`}>
-                              {task.task_description}
-                            </p>
-                            <div className="flex flex-wrap items-center gap-2 mt-1 sm:mt-2">
-                              <span className="text-[10px] sm:text-xs text-slate-500">
-                                Quantity: {task.task_quantity}
+                            <div className="flex items-center gap-2 mb-2 flex-wrap">
+                              <span className="px-2 py-0.5 text-[10px] sm:text-xs bg-slate-100 text-slate-700 rounded font-medium">
+                                {drawing.category}
                               </span>
-                              {task.project_id && (
-                                <span className="px-2 py-0.5 text-[10px] sm:text-xs bg-orange-100 text-orange-700 rounded">
-                                  Project Task
+                              <span className="px-2 py-0.5 text-[10px] sm:text-xs bg-blue-100 text-blue-700 rounded">
+                                Seq #{drawing.sequence_number}
+                              </span>
+                              {drawing.has_pending_revision && (
+                                <span className="px-2 py-0.5 text-[10px] sm:text-xs bg-amber-100 text-amber-700 rounded font-medium">
+                                  Revision Pending
+                                </span>
+                              )}
+                              {daysUntilDue !== null && (
+                                <span className={`px-2 py-0.5 text-[10px] sm:text-xs rounded font-medium ${
+                                  isOverdue ? 'bg-red-600 text-white' :
+                                  isDueToday ? 'bg-orange-600 text-white' :
+                                  isUrgent ? 'bg-yellow-600 text-white' :
+                                  'bg-green-600 text-white'
+                                }`}>
+                                  {isOverdue ? `${Math.abs(daysUntilDue)}d overdue` : 
+                                   isDueToday ? 'Due today!' :
+                                   `${daysUntilDue}d left`}
                                 </span>
                               )}
                             </div>
+                            <h4 className="font-medium text-sm sm:text-base text-slate-900 mb-1">{drawing.name}</h4>
+                            <p className="text-xs sm:text-sm text-slate-600">
+                              {drawing.project.code} - {drawing.project.title}
+                            </p>
+                            {drawing.due_date && (
+                              <p className="text-xs text-slate-500 mt-1">
+                                Due: {new Date(drawing.due_date).toLocaleDateString('en-US', { 
+                                  weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' 
+                                })}
+                              </p>
+                            )}
                           </div>
                         </div>
                       </div>
-                    ))}
-                  </div>
-                )}
+                    );
+                  })}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Upcoming Drawings */}
+          {upcomingDrawings.length > 0 && (
+            <Card>
+              <CardHeader className="pb-3 sm:pb-4">
+                <CardTitle className="text-base sm:text-lg flex items-center gap-2">
+                  <Calendar className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
+                  Upcoming Drawings ({upcomingDrawings.length})
+                </CardTitle>
+                <p className="text-xs sm:text-sm text-slate-500 mt-1">
+                  Prepare these in advance
+                </p>
+              </CardHeader>
+              <CardContent className="p-3 sm:p-6">
+                <div className="space-y-3">
+                  {upcomingDrawings.map((drawing) => (
+                    <div 
+                      key={drawing.id} 
+                      className="p-3 sm:p-4 rounded-lg border border-slate-200 bg-blue-50/30 cursor-pointer hover:shadow-md transition-all"
+                      onClick={() => navigate(`/projects/${drawing.project.id}`)}
+                    >
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 mb-2 flex-wrap">
+                            <span className="px-2 py-0.5 text-[10px] sm:text-xs bg-slate-100 text-slate-700 rounded font-medium">
+                              {drawing.category}
+                            </span>
+                            <span className="px-2 py-0.5 text-[10px] sm:text-xs bg-blue-100 text-blue-700 rounded">
+                              Seq #{drawing.sequence_number}
+                            </span>
+                          </div>
+                          <h4 className="font-medium text-sm sm:text-base text-slate-900 mb-1">{drawing.name}</h4>
+                          <p className="text-xs sm:text-sm text-slate-600">
+                            {drawing.project.code} - {drawing.project.title}
+                          </p>
+                          {drawing.due_date && (
+                            <p className="text-xs text-slate-500 mt-1">
+                              Due: {new Date(drawing.due_date).toLocaleDateString('en-US', { 
+                                weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' 
+                              })}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </CardContent>
             </Card>
-          </div>
+          )}
+        </div>
 
           {/* Weekly Targets & Ratings */}
           <div className="space-y-4 sm:space-y-6">
