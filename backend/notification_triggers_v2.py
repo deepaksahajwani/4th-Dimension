@@ -644,6 +644,8 @@ async def notify_drawing_issued(
             # Determine if client (formal) or team (casual)
             is_client = recipient_role == 'client'
             
+            logger.info(f"[DRAWING ISSUED] Is client: {is_client}")
+            
             if is_client:
                 # Formal message for client
                 message = message_templates.drawing_issued_client(
@@ -665,8 +667,11 @@ async def notify_drawing_issued(
                     project_id=project_id
                 )
             
+            logger.info(f"[DRAWING ISSUED] Message prepared: {message[:100]}...")
+            logger.info(f"[DRAWING ISSUED] Calling send_notification with channels=['in_app', 'whatsapp']")
+            
             # Send notification
-            await notification_service.send_notification(
+            result = await notification_service.send_notification(
                 user_ids=[recipient_id],
                 title=f"Drawing Issued: {drawing_name}",
                 message=message,
@@ -675,8 +680,10 @@ async def notify_drawing_issued(
                 link=f"/projects/{project_id}/drawings/{drawing_id}",
                 project_id=project_id
             )
+            
+            logger.info(f"[DRAWING ISSUED] Notification result for {recipient.get('name')}: {result}")
         
-        logger.info(f"Drawing issued notifications sent for {drawing_name}")
+        logger.info(f"[DRAWING ISSUED] All notifications completed for {drawing_name}")
         
     except Exception as e:
         logger.error(f"Error in notify_drawing_issued: {str(e)}")
