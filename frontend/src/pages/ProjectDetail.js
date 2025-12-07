@@ -938,11 +938,31 @@ export default function ProjectDetail({ user, onLogout }) {
     navigate('/projects', { state: { editProjectId: projectId } });
   };
 
-  const handleDeleteProject = async () => {
+  const handleRequestDeleteOtp = async () => {
+    setSendingOtp(true);
     try {
-      await axios.delete(`${API}/projects/${projectId}`);
+      await axios.post(`${API}/projects/${projectId}/request-deletion-otp`);
+      toast.success('OTP sent to your email');
+      setDeleteOtpSent(true);
+    } catch (error) {
+      toast.error(formatErrorMessage(error, 'Failed to send OTP'));
+    } finally {
+      setSendingOtp(false);
+    }
+  };
+
+  const handleDeleteProject = async () => {
+    if (!deleteOtp || deleteOtp.length !== 6) {
+      toast.error('Please enter a valid 6-digit OTP');
+      return;
+    }
+
+    try {
+      await axios.delete(`${API}/projects/${projectId}?otp=${deleteOtp}`);
       toast.success('Project deleted successfully');
       setDeleteDialogOpen(false);
+      setDeleteOtpSent(false);
+      setDeleteOtp('');
       navigate('/projects');
     } catch (error) {
       toast.error(formatErrorMessage(error, 'Failed to delete project'));
