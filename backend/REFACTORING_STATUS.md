@@ -1,16 +1,21 @@
 # Backend Refactoring Status
 
-## ✅ Completed (Phase 1A - Foundation)
+## ✅ Completed (Phase 1A + 1B - Major Routers)
 
 ### Directory Structure
 ```
 /app/backend/
-├── server.py (MAIN - now imports modular routers)
+├── server.py (MAIN - now imports modular routers, ~6400 lines)
 ├── routes/
 │   ├── __init__.py
 │   ├── auth.py           ✅ COMPLETE (login, register, logout, me)
 │   ├── dashboard.py       ✅ COMPLETE (team-member-stats, owner-stats)
-│   └── notifications.py   ✅ COMPLETE (list, mark read, delete)
+│   ├── notifications.py   ✅ COMPLETE (list, mark read, delete)
+│   ├── projects.py        ✅ COMPLETE (CRUD, co-clients, drawings creation)
+│   ├── drawings.py        ✅ COMPLETE (update, comments, N/A, notifications)
+│   ├── clients.py         📝 EXISTS (needs auth utils update)
+│   ├── contractors.py     📝 EXISTS (needs auth utils update)
+│   └── consultants.py     📝 EXISTS (needs auth utils update)
 ├── utils/
 │   ├── __init__.py
 │   ├── auth.py           ✅ COMPLETE (JWT, password hashing, auth dependencies)
@@ -18,22 +23,46 @@
 ```
 
 ### Routers Extracted & Working
-1. **Authentication Router** (`routes/auth.py`)
+1. **Authentication Router** (`routes/auth.py`) - 280 lines
    - POST /api/auth/register
    - POST /api/auth/login
    - GET /api/auth/me
    - POST /api/auth/logout
    - **Status**: ✅ Tested and working
 
-2. **Dashboard Router** (`routes/dashboard.py`)
+2. **Dashboard Router** (`routes/dashboard.py`) - 60 lines
    - GET /api/dashboard/team-member-stats
    - GET /api/dashboard/owner-stats
    - **Status**: ✅ Tested and working
 
-3. **Notifications Router** (`routes/notifications.py`)
+3. **Notifications Router** (`routes/notifications.py`) - 55 lines
    - GET /api/notifications/
    - PUT /api/notifications/{id}/read
    - DELETE /api/notifications/{id}
+   - **Status**: ✅ Tested and working
+
+4. **Projects Router** (`routes/projects.py`) - 280 lines ✨ NEW
+   - POST /api/projects/
+   - GET /api/projects/
+   - GET /api/projects/{id}
+   - PUT /api/projects/{id}
+   - DELETE /api/projects/{id}
+   - POST /api/projects/{id}/co-clients
+   - GET /api/projects/{id}/co-clients
+   - DELETE /api/projects/{id}/co-clients/{co_client_id}
+   - **Status**: ✅ Tested and working
+
+5. **Drawings Router** (`routes/drawings.py`) - 360 lines ✨ NEW
+   - GET /api/drawings/{id}
+   - PUT /api/drawings/{id}
+   - PATCH /api/drawings/{id}/mark-not-applicable
+   - POST /api/drawings/{id}/notify-issue
+   - POST /api/drawings/{id}/comments
+   - GET /api/drawings/{id}/comments
+   - PUT /api/drawings/comments/{id}
+   - DELETE /api/drawings/comments/{id}
+   - POST /api/drawings/upload
+   - DELETE /api/drawings/{id}
    - **Status**: ✅ Tested and working
 
 ### Utilities Extracted
