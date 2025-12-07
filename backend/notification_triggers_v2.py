@@ -653,7 +653,17 @@ async def notify_drawing_issued(
         
         project_name = project.get('title') or project.get('name')
         drawing_name = drawing.get('name')
-        issue_date = datetime.now(timezone.utc).strftime('%d %b %Y')
+        
+        # Use actual issued date from drawing, or today if not set
+        if drawing.get('issued_at'):
+            if isinstance(drawing['issued_at'], str):
+                issued_date = datetime.fromisoformat(drawing['issued_at'].replace('Z', '+00:00'))
+            else:
+                issued_date = drawing['issued_at']
+            issue_date = issued_date.strftime('%d %b %Y')
+        else:
+            issue_date = datetime.now(timezone.utc).strftime('%d %b %Y')
+        
         status = "Revised" if drawing.get('revision_number', 0) > 0 else "New"
         
         # Ensure owner is in recipients
