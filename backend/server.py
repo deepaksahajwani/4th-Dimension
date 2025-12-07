@@ -2301,7 +2301,30 @@ async def get_clients(
 
 @api_router.get("/clients/{client_id}")
 async def get_client(client_id: str, current_user: User = Depends(get_current_user)):
+    # Try new clients collection first
     client = await db.clients.find_one({"id": client_id, "deleted_at": None}, {"_id": 0})
+    
+    # Fallback to users collection for backwards compatibility (old structure where clients were users)
+    if not client:
+        user = await db.users.find_one({"id": client_id, "role": "client"}, {"_id": 0})
+        if user:
+            # Convert user format to client format
+            client = {
+                "id": user.get('id'),
+                "name": user.get('name'),
+                "email": user.get('email'),
+                "phone": user.get('mobile'),
+                "address": user.get('address', ''),
+                "gst_number": None,
+                "company_name": None,
+                "contact_person_name": user.get('name'),
+                "contact_person_email": user.get('email'),
+                "contact_person_phone": user.get('mobile'),
+                "notes": '',
+                "created_at": user.get('created_at'),
+                "updated_at": user.get('updated_at')
+            }
+    
     if not client:
         raise HTTPException(status_code=404, detail="Client not found")
     
