@@ -6434,6 +6434,9 @@ api_router.include_router(auth.router)
 api_router.include_router(dashboard.router)
 api_router.include_router(notif_routes.router)
 
+# Note: clients, contractors, consultants routers exist but need updating to use new auth utils
+# They will be fully integrated in Phase 1B
+
 # Include the main api router
 app.include_router(api_router)
 
