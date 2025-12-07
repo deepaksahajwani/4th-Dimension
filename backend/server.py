@@ -4323,16 +4323,66 @@ async def mark_drawing_not_applicable(
     drawing_id: str,
     current_user: User = Depends(get_current_user)
 ):
-    """Mark a drawing as not applicable for a specific project"""
+    """Mark a drawing as not applicable - removes from list and creates next drawing"""
     try:
-        # Update drawing to mark as N/A
-        result = await db.project_drawings.update_one(
+        # Get the drawing first
+        drawing = await db.project_drawings.find_one({"id": drawing_id}, {"_id": 0})
+        if not drawing:
+            raise HTTPException(status_code=404, detail="Drawing not found")
+        
+        # Mark as N/A
+        await db.project_drawings.update_one(
             {"id": drawing_id},
             {"$set": {"is_not_applicable": True, "updated_at": datetime.now(timezone.utc)}}
         )
         
-        if result.matched_count == 0:
-            raise HTTPException(status_code=404, detail="Drawing not found")
+        # Now create the next drawing to replace it (maintain 3 visible drawings)
+        project_id = drawing.get('project_id')
+        category = drawing.get('category')
+        current_sequence = drawing.get('sequence_number')
+        
+        if project_id and category and current_sequence:
+            # Get template drawings
+            template_drawings = get_template_drawings(category)
+            
+            # Find the highest sequence number currently in the project
+            all_drawings = await db.project_drawings.find({
+                "project_id": project_id,
+                "category": category,
+                "deleted_at": None
+            }, {"_id": 0, "sequence_number": 1}).sort("sequence_number", -1).limit(1).to_list(1)
+            
+            if all_drawings:
+                max_sequence = all_drawings[0]['sequence_number']
+                next_sequence = max_sequence + 1
+                
+                # Check if template has this drawing
+                if template_drawings and next_sequence <= len(template_drawings):
+                    drawing_name = template_drawings[next_sequence - 1]
+                    
+                    # Create the new drawing
+                    new_drawing = ProjectDrawing(
+                        project_id=project_id,
+                        category=category,
+                        name=drawing_name,
+                        status=DrawingStatus.PLANNED,
+                        due_date=None,
+                        is_issued=False,
+                        revision_count=0,
+                        sequence_number=next_sequence,
+                        is_active=False,
+                        assigned_to=drawing.get('assigned_to'),
+                        priority="medium"
+                    )
+                    new_drawing_dict = new_drawing.model_dump()
+                    
+                    # Convert datetimes
+                    for field in ['created_at', 'updated_at', 'due_date', 'issued_date']:
+                        if new_drawing_dict.get(field):
+                            new_drawing_dict[field] = new_drawing_dict[field].isoformat() if isinstance(new_drawing_dict[field], datetime) else new_drawing_dict[field]
+                    
+                    await db.project_drawings.insert_one(new_drawing_dict)
+                    logger.info(f"Auto-created drawing #{next_sequence} to replace N/A drawing")
         
         return {"message": "Drawing marked as not applicable"}
     except Exception as e:
