@@ -2902,40 +2902,40 @@ async def request_project_deletion_otp(
 @api_router.delete("/projects/{project_id}")
 async def delete_project(
     project_id: str,
-    otp: str,
     current_user: User = Depends(require_owner)
 ):
-    """Soft delete project with OTP verification (owner only)"""
+    """Soft delete project - OTP verification temporarily suspended (owner only)"""
     try:
-        # Verify OTP
-        otp_record = await db.otp_verifications.find_one({
-            "otp": otp,
-            "user_id": current_user.id,
-            "project_id": project_id,
-            "action": "delete_project",
-            "verified": False
-        }, {"_id": 0})
-        
-        if not otp_record:
-            raise HTTPException(status_code=400, detail="Invalid OTP")
-        
-        # Check if OTP expired
-        expires_at = otp_record['expires_at']
-        if isinstance(expires_at, str):
-            expires_at = datetime.fromisoformat(expires_at.replace('Z', '+00:00'))
-        
-        # Ensure timezone awareness
-        if expires_at.tzinfo is None:
-            expires_at = expires_at.replace(tzinfo=timezone.utc)
-        
-        if expires_at < datetime.now(timezone.utc):
-            raise HTTPException(status_code=400, detail="OTP has expired. Please request a new one.")
-        
-        # Mark OTP as verified
-        await db.otp_verifications.update_one(
-            {"otp": otp, "user_id": current_user.id},
-            {"$set": {"verified": True}}
-        )
+        # OTP VERIFICATION TEMPORARILY SUSPENDED
+        # Original OTP verification code commented out:
+        # otp_record = await db.otp_verifications.find_one({
+        #     "otp": otp,
+        #     "user_id": current_user.id,
+        #     "project_id": project_id,
+        #     "action": "delete_project",
+        #     "verified": False
+        # }, {"_id": 0})
+        # 
+        # if not otp_record:
+        #     raise HTTPException(status_code=400, detail="Invalid OTP")
+        # 
+        # # Check if OTP expired
+        # expires_at = otp_record['expires_at']
+        # if isinstance(expires_at, str):
+        #     expires_at = datetime.fromisoformat(expires_at.replace('Z', '+00:00'))
+        # 
+        # # Ensure timezone awareness
+        # if expires_at.tzinfo is None:
+        #     expires_at = expires_at.replace(tzinfo=timezone.utc)
+        # 
+        # if expires_at < datetime.now(timezone.utc):
+        #     raise HTTPException(status_code=400, detail="OTP has expired. Please request a new one.")
+        # 
+        # # Mark OTP as verified
+        # await db.otp_verifications.update_one(
+        #     {"otp": otp, "user_id": current_user.id},
+        #     {"$set": {"verified": True}}
+        # )
         
         # Soft delete project
         await db.projects.update_one(
