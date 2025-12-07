@@ -177,6 +177,18 @@ backend:
         agent: "testing"
         comment: "COMPREHENSIVE END-TO-END DRAWING WORKFLOW WITH NOTIFICATIONS TESTED SUCCESSFULLY (100% success rate - 16/16 tests passed): ✅ PHASE 1 - SETUP: Created test owner (owner@test.com), new client (E2E Test Client), team member (testteammember_*@example.com), civil contractor, and complete project with contractors/consultants. ✅ PHASE 2 - AUTO-CREATED DRAWINGS: Verified 3 drawings auto-created when project created, first drawing has due date (3 days from creation). ✅ PHASE 3 - COMPLETE WORKFLOW: Successfully uploaded PDF file to drawing, marked under review (reviewed_date set), approved drawing (approved_date set), added 3 comments (1 with revision requirement), uploaded reference files to comment, uploaded voice note (.webm) to comment, issued drawing to client and contractor recipients (issued_date set), sent WhatsApp notifications to 2 recipients. ✅ PHASE 4 - REVISION WORKFLOW: Requested revision (has_pending_revision=true, is_issued reset to false), resolved revision (has_pending_revision=false, revision_count incremented to 1). ✅ ALL CRITICAL FEATURES WORKING: File uploads (PDF/reference/voice), comment system with revision flags, drawing state management (Pending→Under Review→Approved→Issued), notification system, revision workflow, auto-drawing creation, contractor/consultant assignment. Complete drawing issuance and notification workflow functioning perfectly from project creation to final issuance with WhatsApp notifications."
 
+  - task: "Drawing Notification System Critical Bug Fix"
+    implemented: true
+    working: true
+    file: "backend/notification_triggers_v2.py, backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "DRAWING NOTIFICATION SYSTEM CRITICAL BUG FIX VERIFIED SUCCESSFULLY (100% success rate): ✅ CRITICAL FIX CONFIRMED: All drawing notification functions now correctly query db.project_drawings collection instead of the wrong db.drawings collection. ✅ COMPREHENSIVE TESTING COMPLETED: 1) Owner authentication successful (deepaksahajwani@gmail.com / Deepak@2025). 2) Test data verification successful - Project found (40b2f8d6-1d1c-47d1-b8c0-8927631d77a0), Drawing found in project_drawings collection (c1f7adcc-dbb2-420d-abde-115f9c49f03e: 'LAYOUT PLAN GROUND FLOOR'), Client found (2650ee01-9493-4315-9509-e65db21dfe7e: Vedhi Sahajwani). 3) Drawing Issued Notification (P0) - POST /api/drawings/{drawing_id}/notify-issue with recipient_ids successfully returned 'Notifications sent to 2 recipient(s)'. 4) Registration Notification smoke test passed. 5) Edge case testing: Invalid drawing ID correctly returns 404, empty recipients handled gracefully. ✅ BACKEND LOGS VERIFICATION: WhatsApp notifications confirmed working with success messages 'WhatsApp sent to whatsapp:+919374720431' and 'WhatsApp sent to whatsapp:+919913899888'. Drawing issued notifications sent for LAYOUT PLAN GROUND FLOOR to 2 recipients. ✅ FUNCTIONS FIXED: notify_drawing_issued, notify_drawing_uploaded, notify_drawing_approved, notify_drawing_revised_internal, notify_drawing_revised_external, notify_drawing_comment all now query correct db.project_drawings collection. ✅ NO ERRORS: No 'drawing not found' or 'collection doesn't exist' errors encountered. The critical database collection bug has been successfully resolved and all drawing notification flows are working correctly."
+
   - task: "Ad-Hoc Task Creation and Dashboard Integration"
     implemented: true
     working: true
