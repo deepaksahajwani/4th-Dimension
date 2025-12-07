@@ -1641,8 +1641,8 @@ export default function ProjectDetail({ user, onLogout }) {
                               Comments
                             </Button>
                             
-                            {/* Mark as N/A Button - For owner and team members, if not issued */}
-                            {(user?.is_owner || user?.role === 'owner' || user?.role === 'team_member') && !drawing.is_issued && !drawing.is_not_applicable && (
+                            {/* Mark as N/A Button - Show for non-issued drawings */}
+                            {!drawing.is_issued && (
                               <Button
                                 variant="outline"
                                 size="sm"
