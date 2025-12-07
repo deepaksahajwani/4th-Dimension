@@ -446,7 +446,7 @@ async def notify_drawing_approved(project_id: str, drawing_id: str):
     """
     try:
         project = await get_project_by_id(project_id)
-        drawing = await db.drawings.find_one({"id": drawing_id}, {"_id": 0})
+        drawing = await db.project_drawings.find_one({"id": drawing_id}, {"_id": 0})
         
         if not all([project, drawing]):
             return
