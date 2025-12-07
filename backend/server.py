@@ -4380,33 +4380,33 @@ async def get_team_member_dashboard_stats(
                 if drawing.get("is_issued") and not drawing.get("has_pending_revision"):
                     last_issued_index = i
             
-            # Determine due and upcoming drawings
+            # Determine due and upcoming drawings with new progressive disclosure logic
             for i, drawing in enumerate(drawings):
                 drawing_data = {**drawing, "project": project}
                 
                 # Drawing is DUE if:
-                # 1. It has a pending revision (always top priority)
-                # 2. It's the first drawing and not issued yet
-                # 3. It's the next drawing after the last issued one
+                # 1. It has a pending revision (ALWAYS due - highest priority)
+                # 2. It has is_active = True (current sequential drawing)
+                # 3. It has a due_date set (means it's ready to be worked on)
+                
+                # Drawing is UPCOMING if:
+                # 1. It has no due_date yet
+                # 2. It's not issued
+                # 3. It's after the currently due drawing
+                
                 is_due = False
                 is_upcoming = False
                 
                 if drawing.get("has_pending_revision"):
-                    # Revisions are always due
+                    # Revisions are ALWAYS due, regardless of sequence
                     is_due = True
                 elif not drawing.get("is_issued"):
-                    # Not issued yet - check if it's next in line
-                    if i == 0:
-                        # First drawing is always due if not issued
+                    # Check if this drawing is currently due
+                    if drawing.get("is_active") or drawing.get("due_date"):
+                        # Drawing has been activated or has a due date = DUE
                         is_due = True
-                    elif last_issued_index >= 0 and i == last_issued_index + 1:
-                        # Next drawing after last issued is due
-                        is_due = True
-                    elif last_issued_index >= 0 and i == last_issued_index + 2:
-                        # Second drawing after last issued is upcoming
-                        is_upcoming = True
-                    elif i > 0 and i < len(drawings) and last_issued_index == -1:
-                        # If no drawings issued yet, only first is due
+                    else:
+                        # No due date, not active, not issued = UPCOMING
                         is_upcoming = True
                 
                 if is_due:
