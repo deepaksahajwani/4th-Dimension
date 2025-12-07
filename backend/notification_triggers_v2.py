@@ -180,17 +180,19 @@ async def notify_project_creation(project_id: str):
         # Get owner
         owner = await db.users.find_one({"is_owner": True}, {"_id": 0})
         
-        # Message to client (formal)
-        client_message = message_templates.project_created_client(
-            client_name=client.get('name'),
-            project_name=project_name,
-            team_leader_name=team_leader.get('name'),
-            team_leader_phone=team_leader.get('mobile', 'N/A')
-        )
-        
-        # Send WhatsApp notification to client
-        if client.get('mobile'):
-            await notification_service.send_whatsapp(client['mobile'], client_message)
+        # Send to CLIENT if exists
+        if client:
+            # Message to client (formal)
+            client_message = message_templates.project_created_client(
+                client_name=client.get('name'),
+                project_name=project_name,
+                team_leader_name=team_leader.get('name') if team_leader else 'N/A',
+                team_leader_phone=team_leader.get('mobile', 'N/A') if team_leader else 'N/A'
+            )
+            
+            # Send WhatsApp notification to client
+            if client.get('mobile'):
+                await notification_service.send_whatsapp(client['mobile'], client_message)
         
         # Send email notification to client
         project_url = f"{APP_URL}/projects/{project_id}"
