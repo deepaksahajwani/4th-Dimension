@@ -415,60 +415,7 @@ export default function Dashboard({ user, onLogout }) {
           )}
         </div>
 
-          {/* Weekly Targets & Ratings */}
-          <div className="space-y-4 sm:space-y-6">
-            {/* This Week's Target */}
-            <Card>
-              <CardHeader className="pb-3 sm:pb-4">
-                <CardTitle className="text-base sm:text-lg flex items-center gap-2">
-                  <Target className="w-4 h-4 sm:w-5 sm:h-5 text-orange-600" />
-                  This Week's Target
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="p-3 sm:p-6">
-                {weeklyTargets.length > 0 ? (
-                  <div className="space-y-3 sm:space-y-4">
-                    {weeklyTargets.filter(t => {
-                      const start = new Date(t.week_start_date);
-                      const end = new Date(t.week_end_date);
-                      const today = new Date();
-                      return today >= start && today <= end;
-                    }).map((target) => (
-                      <div key={target.id} className="space-y-2">
-                        <div className="flex items-start justify-between gap-2">
-                          <p className="text-xs sm:text-sm font-medium text-slate-900 flex-1">
-                            {target.target_description}
-                          </p>
-                          <span className="text-xs sm:text-sm font-bold text-orange-600 flex-shrink-0">
-                            {target.completed_quantity}/{target.target_quantity}
-                          </span>
-                        </div>
-                        <div className="w-full bg-slate-200 rounded-full h-2">
-                          <div 
-                            className="bg-orange-500 h-2 rounded-full transition-all"
-                            style={{ 
-                              width: `${(target.completed_quantity / target.target_quantity) * 100}%` 
-                            }}
-                          />
-                        </div>
-                        <p className="text-[10px] sm:text-xs text-slate-500">
-                          Type: {target.target_type}
-                        </p>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="text-center py-6 sm:py-8">
-                    <Target className="w-10 h-10 sm:w-12 sm:h-12 text-slate-300 mx-auto mb-2 sm:mb-3" />
-                    <p className="text-xs sm:text-sm text-slate-500">
-                      No targets assigned yet
-                    </p>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-
-            {/* Recent Ratings */}
+        {/* Owner View - Team Performance */}
             {weeklyRating && (
               <Card>
                 <CardHeader className="pb-3 sm:pb-4">
