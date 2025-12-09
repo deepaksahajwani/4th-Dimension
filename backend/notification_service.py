@@ -77,43 +77,64 @@ class NotificationService:
     
     @staticmethod
     async def send_whatsapp(phone_number: str, message: str) -> Dict:
-        """Send WhatsApp message via Twilio"""
+        """
+        Send WhatsApp message via WhatsApp Business API or Twilio (fallback)
+        Uses WhatsApp Business API if USE_WHATSAPP_BUSINESS_API=true in .env
+        """
         try:
             if not phone_number:
                 return {"success": False, "error": "Phone number is required"}
             
-            # Format phone number
-            if not phone_number.startswith('whatsapp:'):
-                phone_number = f"whatsapp:{phone_number}"
+            # Check which service to use
+            use_business_api = os.environ.get('USE_WHATSAPP_BUSINESS_API', 'false').lower() == 'true'
             
-            url = f"https://api.twilio.com/2010-04-01/Accounts/{TWILIO_ACCOUNT_SID}/Messages.json"
-            
-            data = {
-                "From": TWILIO_WHATSAPP_FROM,
-                "To": phone_number,
-                "Body": message
-            }
-            
-            async with httpx.AsyncClient() as client:
-                response = await client.post(
-                    url,
-                    data=data,
-                    auth=(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN),
-                    timeout=30.0
-                )
+            if use_business_api:
+                # Use WhatsApp Business API (Meta)
+                logger.info(f"Using WhatsApp Business API for {phone_number[:8]}...")
+                result = await whatsapp_business_service.send_message(phone_number, message)
                 
-                if response.status_code == 201:
-                    result = response.json()
-                    logger.info(f"WhatsApp sent to {phone_number}: {result.get('sid')}")
-                    return {
-                        "success": True,
-                        "message_sid": result.get('sid'),
-                        "status": result.get('status')
-                    }
+                if result.get('success'):
+                    logger.info(f"WhatsApp sent to {phone_number}: {result.get('message_id')}")
                 else:
-                    error_msg = response.text
-                    logger.error(f"WhatsApp failed to {phone_number}: {error_msg}")
-                    return {"success": False, "error": error_msg}
+                    logger.error(f"WhatsApp Business API error: {result.get('error')}")
+                
+                return result
+            else:
+                # Fallback to Twilio
+                logger.info(f"Using Twilio WhatsApp for {phone_number[:8]}...")
+                
+                # Format phone number for Twilio
+                if not phone_number.startswith('whatsapp:'):
+                    phone_number = f"whatsapp:{phone_number}"
+                
+                url = f"https://api.twilio.com/2010-04-01/Accounts/{TWILIO_ACCOUNT_SID}/Messages.json"
+                
+                data = {
+                    "From": TWILIO_WHATSAPP_FROM,
+                    "To": phone_number,
+                    "Body": message
+                }
+                
+                async with httpx.AsyncClient() as client:
+                    response = await client.post(
+                        url,
+                        data=data,
+                        auth=(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN),
+                        timeout=30.0
+                    )
+                    
+                    if response.status_code == 201:
+                        result = response.json()
+                        logger.info(f"WhatsApp sent to {phone_number}: {result.get('sid')}")
+                        return {
+                            "success": True,
+                            "message_sid": result.get('sid'),
+                            "status": result.get('status')
+                        }
+                    else:
+                        error_msg = response.text
+                        logger.error(f"WhatsApp failed to {phone_number}: {error_msg}")
+                        return {"success": False, "error": error_msg}
                     
         except Exception as e:
             logger.error(f"WhatsApp error: {str(e)}")
