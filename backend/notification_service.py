@@ -13,6 +13,7 @@ from sendgrid import SendGridAPIClient
 from sendgrid.helpers.mail import Mail
 from pathlib import Path
 from dotenv import load_dotenv
+from whatsapp_business_service import whatsapp_business_service
 
 # Load environment variables
 load_dotenv(Path(__file__).parent / '.env')
