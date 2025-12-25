@@ -5336,6 +5336,246 @@ class BackendTester:
         
         return passed == total if total > 0 else False
 
+    def test_p0_bug_6_invitation_system(self):
+        """Test Bug #6 - Invitation System (CRITICAL)"""
+        print(f"\n🔥 Testing P0 Bug #6 - Invitation System")
+        print("=" * 60)
+        
+        # Step 1: Login as owner
+        try:
+            print("Step 1: Logging in as owner...")
+            owner_credentials = {
+                "email": "deepaksahajwani@gmail.com",
+                "password": "Deepak@2025"
+            }
+            
+            login_response = self.session.post(f"{BACKEND_URL}/auth/login", json=owner_credentials)
+            
+            if login_response.status_code == 200:
+                login_data = login_response.json()
+                self.owner_token = login_data["access_token"]
+                self.log_result("P0 Bug #6 - Owner Login", True, 
+                              f"Owner authenticated: {login_data.get('user', {}).get('name')}")
+            else:
+                self.log_result("P0 Bug #6 - Owner Login", False, 
+                              f"Owner login failed: {login_response.status_code} - {login_response.text}")
+                return
+                
+        except Exception as e:
+            self.log_result("P0 Bug #6 - Owner Login", False, f"Exception: {str(e)}")
+            return
+
+        owner_headers = {"Authorization": f"Bearer {self.owner_token}"}
+        
+        # Step 2: Test invite with phone number WITH + prefix
+        try:
+            print("Step 2: Testing invite with phone number WITH + prefix...")
+            
+            invite_data = {
+                "name": "TestInviteUser",
+                "phone": "+919374720431",
+                "invitee_type": "client"
+            }
+            
+            invite_response = self.session.post(f"{BACKEND_URL}/invite/send", 
+                                              json=invite_data, headers=owner_headers)
+            
+            if invite_response.status_code == 200:
+                response_data = invite_response.json()
+                
+                if response_data.get("success") == True:
+                    self.log_result("P0 Bug #6 - Invite with + prefix", True, 
+                                  f"Invite sent successfully: {response_data.get('message')}")
+                else:
+                    self.log_result("P0 Bug #6 - Invite with + prefix", False, 
+                                  f"Response success=False: {response_data}")
+            else:
+                self.log_result("P0 Bug #6 - Invite with + prefix", False, 
+                              f"Invite failed: {invite_response.status_code} - {invite_response.text}")
+                
+        except Exception as e:
+            self.log_result("P0 Bug #6 - Invite with + prefix", False, f"Exception: {str(e)}")
+
+        # Step 3: Test invite with phone number WITHOUT + prefix (should auto-add +)
+        try:
+            print("Step 3: Testing invite with phone number WITHOUT + prefix...")
+            
+            invite_data = {
+                "name": "TestInviteUser2",
+                "phone": "919374720431",  # No + prefix
+                "invitee_type": "client"
+            }
+            
+            invite_response = self.session.post(f"{BACKEND_URL}/invite/send", 
+                                              json=invite_data, headers=owner_headers)
+            
+            if invite_response.status_code == 200:
+                response_data = invite_response.json()
+                
+                if response_data.get("success") == True:
+                    self.log_result("P0 Bug #6 - Invite without + prefix", True, 
+                                  f"Invite sent successfully (+ prefix auto-added): {response_data.get('message')}")
+                else:
+                    self.log_result("P0 Bug #6 - Invite without + prefix", False, 
+                                  f"Response success=False: {response_data}")
+            else:
+                self.log_result("P0 Bug #6 - Invite without + prefix", False, 
+                              f"Invite failed: {invite_response.status_code} - {invite_response.text}")
+                
+        except Exception as e:
+            self.log_result("P0 Bug #6 - Invite without + prefix", False, f"Exception: {str(e)}")
+
+        print("✅ P0 Bug #6 - Invitation System testing completed")
+
+    def test_p0_bug_5_client_data_separation(self):
+        """Test Bug #5 - Client Data Separation"""
+        print(f"\n🔥 Testing P0 Bug #5 - Client Data Separation")
+        print("=" * 60)
+        
+        # Step 1: Login as owner (reuse token if available)
+        if not hasattr(self, 'owner_token'):
+            try:
+                print("Step 1: Logging in as owner...")
+                owner_credentials = {
+                    "email": "deepaksahajwani@gmail.com",
+                    "password": "Deepak@2025"
+                }
+                
+                login_response = self.session.post(f"{BACKEND_URL}/auth/login", json=owner_credentials)
+                
+                if login_response.status_code == 200:
+                    login_data = login_response.json()
+                    self.owner_token = login_data["access_token"]
+                    self.log_result("P0 Bug #5 - Owner Login", True, 
+                                  f"Owner authenticated: {login_data.get('user', {}).get('name')}")
+                else:
+                    self.log_result("P0 Bug #5 - Owner Login", False, 
+                                  f"Owner login failed: {login_response.status_code} - {login_response.text}")
+                    return
+                    
+            except Exception as e:
+                self.log_result("P0 Bug #5 - Owner Login", False, f"Exception: {str(e)}")
+                return
+
+        owner_headers = {"Authorization": f"Bearer {self.owner_token}"}
+        
+        # Step 2: Test GET /api/users - verify no clients appear
+        try:
+            print("Step 2: Testing GET /api/users - verifying no clients appear...")
+            
+            users_response = self.session.get(f"{BACKEND_URL}/users", headers=owner_headers)
+            
+            if users_response.status_code == 200:
+                users_data = users_response.json()
+                
+                # Check for any users with role="client"
+                client_users = [user for user in users_data if user.get("role") == "client"]
+                
+                if len(client_users) == 0:
+                    self.log_result("P0 Bug #5 - No Clients in Users", True, 
+                                  f"Verified: No users with role='client' in /api/users response. Total users: {len(users_data)}")
+                else:
+                    self.log_result("P0 Bug #5 - No Clients in Users", False, 
+                                  f"Found {len(client_users)} users with role='client': {[u.get('name') for u in client_users]}")
+            else:
+                self.log_result("P0 Bug #5 - No Clients in Users", False, 
+                              f"Failed to get users: {users_response.status_code} - {users_response.text}")
+                
+        except Exception as e:
+            self.log_result("P0 Bug #5 - No Clients in Users", False, f"Exception: {str(e)}")
+
+        # Step 3: Test client deletion endpoint
+        try:
+            print("Step 3: Testing client deletion endpoint...")
+            
+            # First, get list of clients
+            clients_response = self.session.get(f"{BACKEND_URL}/clients", headers=owner_headers)
+            
+            if clients_response.status_code == 200:
+                clients_data = clients_response.json()
+                
+                if len(clients_data) > 0:
+                    # Find a client to test deletion
+                    test_client = clients_data[0]
+                    client_id = test_client.get("id")
+                    client_name = test_client.get("name", "Unknown")
+                    
+                    print(f"   Testing deletion of client: {client_name} (ID: {client_id})")
+                    
+                    # Try to delete the client
+                    delete_response = self.session.delete(f"{BACKEND_URL}/clients/{client_id}", 
+                                                        headers=owner_headers)
+                    
+                    if delete_response.status_code == 200:
+                        self.log_result("P0 Bug #5 - Client Deletion", True, 
+                                      f"Client deletion successful for: {client_name}")
+                    elif delete_response.status_code == 400:
+                        # Check if it's blocked due to active projects
+                        error_data = delete_response.json()
+                        if "active projects" in error_data.get("detail", "").lower():
+                            self.log_result("P0 Bug #5 - Client Deletion", True, 
+                                          f"Client deletion correctly blocked due to active projects: {client_name}")
+                        else:
+                            self.log_result("P0 Bug #5 - Client Deletion", False, 
+                                          f"Unexpected error message: {error_data}")
+                    else:
+                        self.log_result("P0 Bug #5 - Client Deletion", False, 
+                                      f"Unexpected status code: {delete_response.status_code} - {delete_response.text}")
+                else:
+                    self.log_result("P0 Bug #5 - Client Deletion", True, 
+                                  "No clients available to test deletion (this is acceptable)")
+            else:
+                self.log_result("P0 Bug #5 - Client Deletion", False, 
+                              f"Failed to get clients: {clients_response.status_code} - {clients_response.text}")
+                
+        except Exception as e:
+            self.log_result("P0 Bug #5 - Client Deletion", False, f"Exception: {str(e)}")
+
+        print("✅ P0 Bug #5 - Client Data Separation testing completed")
+
+    def run_p0_tests(self):
+        """Run P0 bug fix tests specifically"""
+        print("🚀 Starting P0 Bug Fix Testing")
+        print("=" * 50)
+        print(f"Backend URL: {BACKEND_URL}")
+        print("Testing 3 P0 fixes as requested in review")
+        print()
+        
+        # P0 Bug Tests
+        self.test_p0_bug_6_invitation_system()
+        self.test_p0_bug_5_client_data_separation()
+        
+        # Note: Requirement #1 (Total Projects Navigation) is frontend-only and already verified via screenshot
+        print("\n📝 Note: Requirement #1 (Total Projects Navigation) is frontend-only and was already verified via screenshot")
+        
+        # Print Summary
+        self.print_p0_summary()
+
+    def print_p0_summary(self):
+        """Print P0 test summary"""
+        print("=" * 60)
+        print("📊 P0 BUG FIX TEST SUMMARY")
+        print("=" * 60)
+        
+        # Filter P0 tests
+        p0_tests = [result for result in self.test_results if "P0 Bug" in result["test"]]
+        total = len(p0_tests)
+        passed = sum(1 for result in p0_tests if result["success"])
+        failed = total - passed
+        
+        print(f"P0 Tests: {total}")
+        print(f"Passed: {passed}")
+        print(f"Failed: {failed}")
+        print(f"Success Rate: {(passed/total)*100:.1f}%" if total > 0 else "No tests run")
+        
+        if failed > 0:
+            print("\n❌ FAILED P0 TESTS:")
+            for result in p0_tests:
+                if not result["success"]:
+                    print(f"  - {result['test']}: {result['details']}")
+        
+        return passed == total if total > 0 else False
+
     def run_drawing_management_tests(self):
         """Run only the drawing management tests"""
         print(f"🚀 Starting Drawing Management API Tests")
