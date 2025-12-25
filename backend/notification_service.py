@@ -445,6 +445,9 @@ Recipients notified:
 View: {APP_URL}/projects/{project_id}/drawings"""
 
 
+class NotificationServiceSMS:
+    """SMS sending capability - separate from main notification service"""
+    
     @staticmethod
     async def send_sms(phone_number: str, message: str) -> Dict:
         """
@@ -475,8 +478,8 @@ View: {APP_URL}/projects/{project_id}/drawings"""
                 "Body": message
             }
             
-            async with httpx.AsyncClient() as client:
-                response = await client.post(
+            async with httpx.AsyncClient() as http_client:
+                response = await http_client.post(
                     url,
                     data=data,
                     auth=(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN),
@@ -500,6 +503,9 @@ View: {APP_URL}/projects/{project_id}/drawings"""
             logger.error(f"SMS error: {str(e)}")
             return {"success": False, "error": str(e)}
 
+
+# Add send_sms to the main NotificationService class
+NotificationService.send_sms = NotificationServiceSMS.send_sms
 
 notification_service = NotificationService()
 message_templates = MessageTemplates()
