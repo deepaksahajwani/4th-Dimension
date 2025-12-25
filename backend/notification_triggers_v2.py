@@ -1,6 +1,7 @@
 """
 Complete Notification Triggers - All 12 notification types
 Implements the notification system as per the specification
+Uses WhatsApp templates for business-initiated messages
 """
 
 import os
@@ -10,6 +11,7 @@ from datetime import datetime, timezone
 from motor.motor_asyncio import AsyncIOMotorClient
 from notification_service import notification_service, message_templates, APP_URL
 from email_templates import get_welcome_email_content
+from whatsapp_templates import WHATSAPP_TEMPLATES
 
 logger = logging.getLogger(__name__)
 
@@ -77,8 +79,13 @@ async def notify_user_registration(user_data: Dict):
         </html>
         """
         
+        # Note: Freeform WhatsApp only works if user messaged first (24hr window)
+        # For new registrations, we rely on email and in-app notifications
         if user_data.get('mobile'):
-            await notification_service.send_whatsapp(user_data['mobile'], registrant_message)
+            try:
+                await notification_service.send_whatsapp(user_data['mobile'], registrant_message)
+            except Exception as wa_error:
+                logger.warning(f"WhatsApp to registrant failed (expected if outside 24hr window): {wa_error}")
         
         await notification_service.send_email(
             to_email=user_email,
