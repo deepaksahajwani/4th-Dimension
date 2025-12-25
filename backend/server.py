@@ -2030,11 +2030,18 @@ async def complete_profile(
 
 @api_router.get("/users", response_model=List[User])
 async def get_users(current_user: User = Depends(get_current_user)):
-    # Only return approved users (exclude pending and rejected)
+    """Get all team members (excludes clients, contractors, consultants, vendors)"""
+    # Only return approved TEAM MEMBERS (exclude clients and external stakeholders)
+    excluded_roles = ['client', 'contractor', 'consultant', 'vendor']
+    
     users = await db.users.find(
-        {"approval_status": "approved"}, 
+        {
+            "approval_status": "approved",
+            "role": {"$nin": excluded_roles}  # Exclude external stakeholders
+        }, 
         {"_id": 0, "password_hash": 0}
     ).to_list(1000)
+    
     for user in users:
         if isinstance(user.get('created_at'), str):
             user['created_at'] = datetime.fromisoformat(user['created_at'])
