@@ -76,10 +76,74 @@ class NotificationService:
             return False
     
     @staticmethod
+    async def send_whatsapp_template(
+        phone_number: str, 
+        content_sid: str, 
+        content_variables: Dict
+    ) -> Dict:
+        """
+        Send WhatsApp message using approved template (required for business-initiated messages)
+        
+        Args:
+            phone_number: Recipient phone number
+            content_sid: Twilio Content SID (starts with HX)
+            content_variables: Dict of template variables {"1": "value1", "2": "value2"}
+        """
+        try:
+            if not phone_number:
+                return {"success": False, "error": "Phone number is required"}
+            
+            logger.info(f"Sending WhatsApp template to {phone_number[:8]}...")
+            
+            # Format phone number for Twilio
+            if phone_number.startswith('whatsapp:'):
+                phone_number = phone_number[9:].strip()
+            phone_number = phone_number.strip()
+            if not phone_number.startswith('+'):
+                phone_number = f"+{phone_number}"
+            phone_number = f"whatsapp:{phone_number}"
+            
+            url = f"https://api.twilio.com/2010-04-01/Accounts/{TWILIO_ACCOUNT_SID}/Messages.json"
+            
+            import json
+            data = {
+                "From": TWILIO_WHATSAPP_FROM,
+                "To": phone_number,
+                "ContentSid": content_sid,
+                "ContentVariables": json.dumps(content_variables)
+            }
+            
+            async with httpx.AsyncClient() as client:
+                response = await client.post(
+                    url,
+                    data=data,
+                    auth=(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN),
+                    timeout=30.0
+                )
+                
+                if response.status_code == 201:
+                    result = response.json()
+                    logger.info(f"WhatsApp template sent to {phone_number}: {result.get('sid')}")
+                    return {
+                        "success": True,
+                        "message_sid": result.get('sid'),
+                        "status": result.get('status')
+                    }
+                else:
+                    error_msg = response.text
+                    logger.error(f"WhatsApp template failed to {phone_number}: {error_msg}")
+                    return {"success": False, "error": error_msg}
+                    
+        except Exception as e:
+            logger.error(f"WhatsApp template error: {str(e)}")
+            return {"success": False, "error": str(e)}
+    
+    @staticmethod
     async def send_whatsapp(phone_number: str, message: str) -> Dict:
         """
         Send WhatsApp message via WhatsApp Business API or Twilio (fallback)
         Uses WhatsApp Business API if USE_WHATSAPP_BUSINESS_API=true in .env
+        NOTE: Freeform messages only work within 24-hour window after user initiates contact
         """
         try:
             if not phone_number:
