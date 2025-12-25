@@ -106,7 +106,7 @@ async def notify_user_approval(user_id: str):
     """
     Trigger: Owner approves new user
     Recipients: Owner (confirmation), Approved User (welcome)
-    Channels: In-App, WhatsApp, Email
+    Channels: In-App, WhatsApp (template), Email
     """
     try:
         user = await get_user_by_id(user_id)
@@ -130,16 +130,23 @@ async def notify_user_approval(user_id: str):
             channels=['in_app']
         )
         
-        # Notify approved user (welcome)
-        user_message = message_templates.user_approved_registrant(user_name)
+        # Notify approved user using WhatsApp TEMPLATE (for business-initiated messages)
+        if user_mobile:
+            template_sid = WHATSAPP_TEMPLATES.get("user_approved")
+            if template_sid:
+                await notification_service.send_whatsapp_template(
+                    phone_number=user_mobile,
+                    content_sid=template_sid,
+                    content_variables={
+                        "1": user_name,
+                        "2": APP_URL
+                    }
+                )
+                logger.info(f"WhatsApp template sent to approved user {user_name}")
         
         # Generate professional HTML email template (English only)
         login_url = f"{APP_URL}"
         email_subject, email_html = get_welcome_email_content(user, login_url)
-        
-        # Send WhatsApp notification
-        if user_mobile:
-            await notification_service.send_whatsapp(user_mobile, user_message)
         
         # Send professional HTML email
         await notification_service.send_email(
