@@ -1,5 +1,5 @@
 """
-Simplified Invite Service - Send WhatsApp invites to register
+Simplified Invite Service - Send WhatsApp invites to register using approved templates
 """
 
 import os
@@ -11,6 +11,18 @@ logger = logging.getLogger(__name__)
 
 APP_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://tasktracker-bugs.preview.emergentagent.com')
 
+# WhatsApp Template Content SID (approved template)
+INVITE_TEMPLATE_SID = "HX6b1d5f9a7a01af474f0875e734e9d548"
+
+# Human-readable invitee type labels
+INVITEE_TYPE_LABELS = {
+    'team_member': 'Team Member',
+    'client': 'Client',
+    'contractor': 'Contractor',
+    'consultant': 'Consultant',
+    'vendor': 'Vendor'
+}
+
 
 async def send_registration_invite(
     name: str,
@@ -19,7 +31,13 @@ async def send_registration_invite(
     invited_by_name: str
 ) -> dict:
     """
-    Send WhatsApp invite to register
+    Send WhatsApp invite to register using approved template
+    
+    Template variables:
+    {{1}} = name (person being invited)
+    {{2}} = invited_by_name
+    {{3}} = invitee_type (Client, Team Member, etc.)
+    {{4}} = registration URL
     
     Args:
         name: Name of person being invited
@@ -34,89 +52,22 @@ async def send_registration_invite(
         # Generate registration link
         registration_url = f"{APP_URL}/register"
         
-        # Create personalized message based on invitee type
-        messages = {
-            'team_member': f"""Hello {name}!
-
-{invited_by_name} from 4th Dimension Architects has invited you to join our team.
-
-You've been invited to register on our project management platform where you can:
-✅ Collaborate on architectural projects
-✅ Manage drawings and revisions
-✅ Track project progress
-✅ Communicate with the team
-
-Please register here: {registration_url}
-
-After registration, your account will be reviewed and approved.
-
-Welcome to the team!
-
-- 4th Dimension Architects""",
-
-            'client': f"""Dear {name},
-
-{invited_by_name} from 4th Dimension Architects has invited you to our client portal.
-
-As our valued client, you can:
-✅ Track your project progress in real-time
-✅ Review and comment on drawings
-✅ View project milestones
-✅ Manage payments
-✅ Stay updated with notifications
-
-Please register here: {registration_url}
-
-Select "Client" as your role during registration.
-
-We look forward to serving you!
-
-Best regards,
-4th Dimension Architects""",
-
-            'contractor': f"""Hello {name},
-
-{invited_by_name} from 4th Dimension Architects has invited you to register as a contractor on our platform.
-
-As a registered contractor, you can:
-✅ View project details and drawings
-✅ Receive notifications about project updates
-✅ Communicate with the project team
-✅ Track your assigned tasks
-
-Please register here: {registration_url}
-
-Select "Contractor" as your role during registration.
-
-Looking forward to working with you!
-
-- 4th Dimension Architects""",
-
-            'consultant': f"""Hello {name},
-
-{invited_by_name} from 4th Dimension Architects has invited you to register as a consultant on our platform.
-
-As a registered consultant, you can:
-✅ Access project drawings and documentation
-✅ Provide expert feedback and recommendations
-✅ Collaborate with the project team
-✅ Receive timely notifications
-
-Please register here: {registration_url}
-
-Select "Consultant" as your role during registration.
-
-We value your expertise!
-
-- 4th Dimension Architects"""
+        # Get human-readable invitee type
+        invitee_label = INVITEE_TYPE_LABELS.get(invitee_type, invitee_type.replace('_', ' ').title())
+        
+        # Template variables (must match the template placeholders {{1}}, {{2}}, etc.)
+        content_variables = {
+            "1": name,
+            "2": invited_by_name,
+            "3": invitee_label,
+            "4": registration_url
         }
         
-        message = messages.get(invitee_type, messages['team_member'])
-        
-        # Send WhatsApp message
-        result = await notification_service.send_whatsapp(
+        # Send WhatsApp message using template
+        result = await notification_service.send_whatsapp_template(
             phone_number=phone,
-            message=message
+            content_sid=INVITE_TEMPLATE_SID,
+            content_variables=content_variables
         )
         
         if result.get('success'):
