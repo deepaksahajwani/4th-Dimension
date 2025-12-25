@@ -103,9 +103,21 @@ class NotificationService:
                 # Fallback to Twilio
                 logger.info(f"Using Twilio WhatsApp for {phone_number[:8]}...")
                 
-                # Format phone number for Twilio
-                if not phone_number.startswith('whatsapp:'):
-                    phone_number = f"whatsapp:{phone_number}"
+                # Format phone number for Twilio - ensure proper format
+                # Remove any existing whatsapp: prefix first
+                if phone_number.startswith('whatsapp:'):
+                    phone_number = phone_number[9:].strip()
+                
+                # Strip any whitespace
+                phone_number = phone_number.strip()
+                
+                # Ensure the phone number starts with +
+                if not phone_number.startswith('+'):
+                    # If it starts with a country code (like 91 for India), add +
+                    phone_number = f"+{phone_number}"
+                
+                # Now add the whatsapp: prefix
+                phone_number = f"whatsapp:{phone_number}"
                 
                 url = f"https://api.twilio.com/2010-04-01/Accounts/{TWILIO_ACCOUNT_SID}/Messages.json"
                 
