@@ -2379,37 +2379,46 @@ async def archive_client(client_id: str, archived: bool = True, current_user: Us
 @api_router.delete("/clients/{client_id}")
 async def delete_client(client_id: str, current_user: User = Depends(require_owner)):
     """Permanently delete client (soft delete) - Only if no active projects exist"""
-    # Get client to find associated user_id
+    # Check in both clients collection and users collection (legacy clients)
     client = await db.clients.find_one({"id": client_id}, {"_id": 0})
-    if not client:
+    user_client = await db.users.find_one({"id": client_id, "role": "client"}, {"_id": 0})
+    
+    if not client and not user_client:
         raise HTTPException(status_code=404, detail="Client not found")
     
-    # Check for active (non-archived) projects
+    # Check for active (non-deleted, non-archived) projects
     active_projects = await db.projects.find({
         "client_id": client_id,
+        "deleted_at": None,  # Not deleted
         "$or": [
             {"archived": False},
             {"archived": {"$exists": False}}
         ]
-    }, {"_id": 0, "name": 1}).to_list(10)
+    }, {"_id": 0, "title": 1, "code": 1}).to_list(10)
     
     if active_projects:
-        project_names = ", ".join([p.get('name', 'Unnamed') for p in active_projects])
+        project_names = ", ".join([p.get('code', 'Unnamed') for p in active_projects])
         raise HTTPException(
             status_code=400, 
-            detail=f"Cannot delete client. Active projects exist: {project_names}. Please archive these projects first."
+            detail=f"Cannot delete client. {len(active_projects)} active project(s) exist: {project_names}. Please archive or delete these projects first."
         )
     
-    # Soft delete the client
-    await db.clients.update_one(
-        {"id": client_id},
-        {"$set": {"deleted_at": datetime.now(timezone.utc).isoformat()}}
-    )
+    # Soft delete from clients collection if exists
+    if client:
+        await db.clients.update_one(
+            {"id": client_id},
+            {"$set": {"deleted_at": datetime.now(timezone.utc).isoformat()}}
+        )
     
-    # Delete the associated user account (if exists)
-    if client.get('user_id'):
+    # Delete from users collection if exists (legacy clients stored as users)
+    if user_client:
+        await db.users.delete_one({"id": client_id})
+        logger.info(f"Deleted legacy client from users: {user_client.get('name')}")
+    
+    # Also delete associated user account if stored separately
+    if client and client.get('user_id'):
         await db.users.delete_one({"id": client['user_id']})
-        print(f"✅ Deleted user account for client: {client.get('name')}")
+        logger.info(f"Deleted user account for client: {client.get('name')}")
     
     return {"message": "Client and associated user account deleted successfully"}
 
