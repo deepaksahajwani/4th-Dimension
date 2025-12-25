@@ -445,5 +445,61 @@ Recipients notified:
 View: {APP_URL}/projects/{project_id}/drawings"""
 
 
+    @staticmethod
+    async def send_sms(phone_number: str, message: str) -> Dict:
+        """
+        Send SMS via Twilio
+        Use this for invitations since WhatsApp requires user opt-in first
+        """
+        try:
+            if not phone_number:
+                return {"success": False, "error": "Phone number is required"}
+            
+            logger.info(f"Sending SMS to {phone_number[:8]}...")
+            
+            # Format phone number
+            phone_number = phone_number.strip()
+            if phone_number.startswith('whatsapp:'):
+                phone_number = phone_number[9:].strip()
+            if not phone_number.startswith('+'):
+                phone_number = f"+{phone_number}"
+            
+            url = f"https://api.twilio.com/2010-04-01/Accounts/{TWILIO_ACCOUNT_SID}/Messages.json"
+            
+            # Get SMS phone number (not WhatsApp)
+            sms_from = os.environ.get('TWILIO_PHONE_NUMBER', '+12066735535')
+            
+            data = {
+                "From": sms_from,
+                "To": phone_number,
+                "Body": message
+            }
+            
+            async with httpx.AsyncClient() as client:
+                response = await client.post(
+                    url,
+                    data=data,
+                    auth=(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN),
+                    timeout=30.0
+                )
+                
+                if response.status_code == 201:
+                    result = response.json()
+                    logger.info(f"SMS sent to {phone_number}: {result.get('sid')}")
+                    return {
+                        "success": True,
+                        "message_sid": result.get('sid'),
+                        "status": result.get('status')
+                    }
+                else:
+                    error_msg = response.text
+                    logger.error(f"SMS failed to {phone_number}: {error_msg}")
+                    return {"success": False, "error": error_msg}
+                    
+        except Exception as e:
+            logger.error(f"SMS error: {str(e)}")
+            return {"success": False, "error": str(e)}
+
+
 notification_service = NotificationService()
 message_templates = MessageTemplates()
