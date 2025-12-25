@@ -453,10 +453,8 @@ export default function OwnerDashboard({ user, onLogout }) {
         {/* Quick Stats */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
           <div 
-            onClick={() => handleQuickFilter('all')}
-            className={`bg-white rounded-xl shadow-md p-6 border-l-4 border-blue-500 cursor-pointer transition-all hover:shadow-lg ${
-              quickFilter === 'all' ? 'ring-2 ring-blue-500' : ''
-            }`}
+            onClick={() => navigate('/projects')}
+            className="bg-white rounded-xl shadow-md p-6 border-l-4 border-blue-500 cursor-pointer transition-all hover:shadow-lg"
           >
             <div className="flex items-center justify-between">
               <div>
@@ -465,9 +463,7 @@ export default function OwnerDashboard({ user, onLogout }) {
               </div>
               <LayoutGrid className="w-10 h-10 text-blue-500" />
             </div>
-            {quickFilter === 'all' && (
-              <p className="text-xs text-blue-600 mt-2">Showing all projects</p>
-            )}
+            <p className="text-xs text-blue-600 mt-2">Click to view all projects</p>
           </div>
           
           <div 
