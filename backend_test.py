@@ -5371,14 +5371,14 @@ class BackendTester:
         try:
             print("Step 2: Testing invite with phone number WITH + prefix...")
             
-            invite_data = {
+            invite_params = {
                 "name": "TestInviteUser",
                 "phone": "+919374720431",
                 "invitee_type": "client"
             }
             
             invite_response = self.session.post(f"{BACKEND_URL}/invite/send", 
-                                              json=invite_data, headers=owner_headers)
+                                              params=invite_params, headers=owner_headers)
             
             if invite_response.status_code == 200:
                 response_data = invite_response.json()
@@ -5400,14 +5400,14 @@ class BackendTester:
         try:
             print("Step 3: Testing invite with phone number WITHOUT + prefix...")
             
-            invite_data = {
+            invite_params = {
                 "name": "TestInviteUser2",
                 "phone": "919374720431",  # No + prefix
                 "invitee_type": "client"
             }
             
             invite_response = self.session.post(f"{BACKEND_URL}/invite/send", 
-                                              json=invite_data, headers=owner_headers)
+                                              params=invite_params, headers=owner_headers)
             
             if invite_response.status_code == 200:
                 response_data = invite_response.json()
