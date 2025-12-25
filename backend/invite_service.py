@@ -1,5 +1,7 @@
 """
-Simplified Invite Service - Send WhatsApp invites to register using approved templates
+Invite Service - Send invitations via SMS with WhatsApp opt-in instructions
+Since WhatsApp Business API requires user to message first (24-hour window rule),
+we send SMS inviting them to connect on WhatsApp for future notifications.
 """
 
 import os
@@ -11,8 +13,8 @@ logger = logging.getLogger(__name__)
 
 APP_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://tasktracker-bugs.preview.emergentagent.com')
 
-# WhatsApp Template Content SID (approved template)
-INVITE_TEMPLATE_SID = "HX6b1d5f9a7a01af474f0875e734e9d548"
+# WhatsApp Business Number
+WHATSAPP_NUMBER = "+917016779166"
 
 # Human-readable invitee type labels
 INVITEE_TYPE_LABELS = {
@@ -31,13 +33,7 @@ async def send_registration_invite(
     invited_by_name: str
 ) -> dict:
     """
-    Send WhatsApp invite to register using approved template
-    
-    Template variables:
-    {{1}} = name (person being invited)
-    {{2}} = invited_by_name
-    {{3}} = invitee_type (Client, Team Member, etc.)
-    {{4}} = registration URL
+    Send invitation via SMS with WhatsApp opt-in instructions
     
     Args:
         name: Name of person being invited
@@ -55,33 +51,39 @@ async def send_registration_invite(
         # Get human-readable invitee type
         invitee_label = INVITEE_TYPE_LABELS.get(invitee_type, invitee_type.replace('_', ' ').title())
         
-        # Template variables (must match the template placeholders {{1}}, {{2}}, etc.)
-        content_variables = {
-            "1": name,
-            "2": invited_by_name,
-            "3": invitee_label,
-            "4": registration_url
-        }
-        
-        # Send WhatsApp message using template
-        result = await notification_service.send_whatsapp_template(
+        # Create SMS message with WhatsApp opt-in
+        sms_message = f"""Hi {name}!
+
+{invited_by_name} from 4th Dimension Architects has invited you to join as a {invitee_label}.
+
+📱 REGISTER HERE:
+{registration_url}
+
+💬 FOR WHATSAPP UPDATES:
+Save our number {WHATSAPP_NUMBER} and send "Hi" to receive project notifications on WhatsApp.
+
+Welcome aboard!
+- 4th Dimension Architects"""
+
+        # Send SMS
+        result = await notification_service.send_sms(
             phone_number=phone,
-            content_sid=INVITE_TEMPLATE_SID,
-            content_variables=content_variables
+            message=sms_message
         )
         
         if result.get('success'):
-            logger.info(f"Invite sent to {name} ({phone}) as {invitee_type}")
+            logger.info(f"SMS invite sent to {name} ({phone}) as {invitee_type}")
             return {
                 "success": True,
-                "message": f"WhatsApp invite sent to {name}",
-                "message_sid": result.get('message_sid')
+                "message": f"SMS invite sent to {name}",
+                "message_sid": result.get('message_sid'),
+                "channel": "sms"
             }
         else:
-            logger.error(f"Failed to send invite: {result.get('error')}")
+            logger.error(f"Failed to send SMS invite: {result.get('error')}")
             return {
                 "success": False,
-                "message": f"Failed to send WhatsApp invite: {result.get('error')}"
+                "message": f"Failed to send SMS invite: {result.get('error')}"
             }
             
     except Exception as e:
@@ -89,4 +91,55 @@ async def send_registration_invite(
         return {
             "success": False,
             "message": f"Error sending invite: {str(e)}"
+        }
+
+
+async def send_whatsapp_optin_sms(
+    name: str,
+    phone: str,
+    context: str = "project updates"
+) -> dict:
+    """
+    Send SMS asking user to opt-in to WhatsApp notifications
+    
+    Args:
+        name: User's name
+        phone: Phone number
+        context: What notifications they'll receive (e.g., "project updates", "drawing notifications")
+    """
+    try:
+        sms_message = f"""Hi {name}!
+
+To receive {context} on WhatsApp from 4th Dimension Architects:
+
+1️⃣ Save this number: {WHATSAPP_NUMBER}
+2️⃣ Open WhatsApp and send "Hi" to us
+
+Once connected, you'll receive instant notifications about your projects!
+
+- 4th Dimension Architects"""
+
+        result = await notification_service.send_sms(
+            phone_number=phone,
+            message=sms_message
+        )
+        
+        if result.get('success'):
+            logger.info(f"WhatsApp opt-in SMS sent to {name} ({phone})")
+            return {
+                "success": True,
+                "message": f"Opt-in SMS sent to {name}",
+                "message_sid": result.get('message_sid')
+            }
+        else:
+            return {
+                "success": False,
+                "message": f"Failed to send opt-in SMS: {result.get('error')}"
+            }
+            
+    except Exception as e:
+        logger.error(f"Error sending WhatsApp opt-in SMS: {str(e)}")
+        return {
+            "success": False,
+            "message": f"Error: {str(e)}"
         }
