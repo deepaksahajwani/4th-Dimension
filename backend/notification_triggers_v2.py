@@ -628,8 +628,8 @@ async def notify_drawing_issued(
     """
     Trigger: Drawing is issued
     Recipients: Selected recipients + Owner (mandatory)
-    Channels: WhatsApp
-    Message: Formal for client, casual for team
+    Channels: WhatsApp (template), In-App
+    Message: Uses approved WhatsApp template
     """
     try:
         project = await get_project_by_id(project_id)
@@ -643,6 +643,7 @@ async def notify_drawing_issued(
         
         project_name = project.get('title') or project.get('name')
         drawing_name = drawing.get('name')
+        drawing_url = f"{APP_URL}/projects/{project_id}"
         
         # Use actual issued date from drawing, or today if not set
         if drawing.get('issued_at'):
@@ -654,55 +655,49 @@ async def notify_drawing_issued(
         else:
             issue_date = datetime.now(timezone.utc).strftime('%d %b %Y')
         
-        status = "Revised" if drawing.get('revision_number', 0) > 0 else "New"
-        
         # Ensure owner is in recipients
         if owner['id'] not in recipient_ids:
             recipient_ids.append(owner['id'])
         
-        recipient_names = []
+        template_sid = WHATSAPP_TEMPLATES.get("drawing_issued")
         
         for recipient_id in recipient_ids:
             recipient = await get_user_by_id(recipient_id)
             if not recipient:
+                # Try clients collection
+                recipient = await db.clients.find_one({"id": recipient_id}, {"_id": 0})
+            if not recipient:
                 logger.warning(f"Drawing issued: Recipient not found: {recipient_id}")
                 continue
             
-            recipient_names.append(recipient.get('name'))
-            recipient_role = recipient.get('role', '')
+            recipient_name = recipient.get('name', recipient.get('contact_person', 'User'))
+            recipient_phone = recipient.get('mobile', recipient.get('phone'))
             
-            # Determine if client (formal) or team (casual)
-            is_client = recipient_role == 'client'
+            # Send WhatsApp using TEMPLATE
+            if recipient_phone and template_sid:
+                try:
+                    await notification_service.send_whatsapp_template(
+                        phone_number=recipient_phone,
+                        content_sid=template_sid,
+                        content_variables={
+                            "1": recipient_name,
+                            "2": project_name,
+                            "3": drawing_name,
+                            "4": issue_date,
+                            "5": drawing_url
+                        }
+                    )
+                    logger.info(f"WhatsApp template sent to {recipient_name} for drawing {drawing_name}")
+                except Exception as wa_error:
+                    logger.warning(f"WhatsApp template failed for {recipient_name}: {wa_error}")
             
-            if is_client:
-                # Formal message for client
-                message = message_templates.drawing_issued_client(
-                    client_name=recipient.get('name'),
-                    project_name=project_name,
-                    drawing_name=drawing_name,
-                    issue_date=issue_date,
-                    status=status,
-                    project_id=project_id,
-                    drawing_id=drawing_id
-                )
-            else:
-                # Casual message for team
-                message = message_templates.drawing_issued_team(
-                    project_name=project_name,
-                    drawing_name=drawing_name,
-                    status=status,
-                    recipients=recipient_names,
-                    project_id=project_id
-                )
-            
-            # Send notification
-            await notification_service.send_notification(
-                user_ids=[recipient_id],
+            # Send in-app notification
+            await notification_service.create_in_app_notification(
+                user_id=recipient_id,
                 title=f"Drawing Issued: {drawing_name}",
-                message=message,
+                message=f"Drawing '{drawing_name}' for project '{project_name}' has been issued.",
                 notification_type="drawing_issued",
-                channels=['in_app', 'whatsapp'],
-                link=f"/projects/{project_id}/drawings/{drawing_id}",
+                link=f"/projects/{project_id}",
                 project_id=project_id
             )
         
