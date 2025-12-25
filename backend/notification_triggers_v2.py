@@ -168,7 +168,7 @@ async def notify_project_creation(project_id: str):
     """
     Trigger: New project is created
     Recipients: Owner, Client, Team Leader
-    Channels: WhatsApp
+    Channels: WhatsApp (templates), Email
     Message: Formal for client, casual for team
     """
     try:
@@ -181,8 +181,12 @@ async def notify_project_creation(project_id: str):
         client_id = project.get('client_id')
         team_leader_id = project.get('team_leader_id')
         
-        # Get client
-        client = await get_user_by_id(client_id) if client_id else None
+        # Get client - try clients collection first, then users collection
+        client = None
+        if client_id:
+            client = await db.clients.find_one({"id": client_id}, {"_id": 0})
+            if not client:
+                client = await get_user_by_id(client_id)
         if not client:
             logger.warning(f"Client not found for project {project_id}, client_id: {client_id}")
         
@@ -194,19 +198,25 @@ async def notify_project_creation(project_id: str):
         # Get owner
         owner = await db.users.find_one({"is_owner": True}, {"_id": 0})
         
-        # Send to CLIENT if exists
-        if client:
-            # Message to client (formal)
-            client_message = message_templates.project_created_client(
-                client_name=client.get('name'),
-                project_name=project_name,
-                team_leader_name=team_leader.get('name') if team_leader else 'N/A',
-                team_leader_phone=team_leader.get('mobile', 'N/A') if team_leader else 'N/A'
-            )
-            
-            # Send WhatsApp notification to client
-            if client.get('mobile'):
-                await notification_service.send_whatsapp(client['mobile'], client_message)
+        # Send WhatsApp to CLIENT using TEMPLATE
+        if client and client.get('phone'):
+            template_sid = WHATSAPP_TEMPLATES.get("project_created_client")
+            if template_sid:
+                try:
+                    await notification_service.send_whatsapp_template(
+                        phone_number=client['phone'],
+                        content_sid=template_sid,
+                        content_variables={
+                            "1": client.get('name', client.get('contact_person', 'Valued Client')),
+                            "2": project_name,
+                            "3": team_leader.get('name', 'Our Team') if team_leader else 'Our Team',
+                            "4": team_leader.get('mobile', 'Contact via portal') if team_leader else 'Contact via portal',
+                            "5": APP_URL
+                        }
+                    )
+                    logger.info(f"WhatsApp template sent to client for project {project_name}")
+                except Exception as wa_error:
+                    logger.warning(f"WhatsApp template to client failed: {wa_error}")
         
         # Send email notification to client
         project_url = f"{APP_URL}/projects/{project_id}"
