@@ -280,76 +280,42 @@ async def notify_project_creation(project_id: str):
         </html>
         """
         
-        if client.get('email'):
+        if client and client.get('email'):
             await notification_service.send_email(
                 to_email=client['email'],
                 subject=email_subject,
                 html_content=email_html
             )
         
-        # Send to TEAM LEADER if exists
-        if team_leader:
-            # Message to team leader (casual)
-            team_message = message_templates.project_created_team(
-                project_name=project_name,
-                client_name=client.get('name') if client else 'N/A',
-                client_phone=client.get('mobile', 'N/A') if client else 'N/A'
-            )
+        # Send to TEAM LEADER using TEMPLATE
+        if team_leader and team_leader.get('mobile'):
+            template_sid = WHATSAPP_TEMPLATES.get("project_created_team")
+            if template_sid:
+                try:
+                    await notification_service.send_whatsapp_template(
+                        phone_number=team_leader['mobile'],
+                        content_sid=template_sid,
+                        content_variables={
+                            "1": project_name,
+                            "2": client.get('name', client.get('contact_person', 'Client')) if client else 'Client',
+                            "3": client.get('phone', client.get('mobile', 'N/A')) if client else 'N/A',
+                            "4": APP_URL
+                        }
+                    )
+                    logger.info(f"WhatsApp template sent to team leader for project {project_name}")
+                except Exception as wa_error:
+                    logger.warning(f"WhatsApp template to team leader failed: {wa_error}")
             
-            # Notify team leader and owner
-            recipient_ids = [team_leader_id]
-            if owner:
-                recipient_ids.append(owner['id'])
-                
+            # In-app notification for team leader
             await notification_service.send_notification(
-                user_ids=recipient_ids,
+                user_ids=[team_leader_id],
                 title=f"New Project: {project_name}",
-                message=team_message,
+                message=f"You've been assigned as team leader for {project_name}",
                 notification_type="project_created",
-                channels=['in_app', 'whatsapp'],
+                channels=['in_app'],
                 link=f"/projects/{project_id}",
                 project_id=project_id
             )
-            
-            # SECOND MESSAGE TO TEAM LEADER: Notify about due drawing
-            # Get the first due drawing for this project
-            due_drawing = await db.project_drawings.find_one({
-                "project_id": project_id,
-                "due_date": {"$ne": None},
-                "deleted_at": None
-            }, {"_id": 0})
-            
-            if due_drawing:
-                due_date = due_drawing.get('due_date')
-                if due_date:
-                    # Format due date
-                    if isinstance(due_date, str):
-                        from datetime import datetime
-                        due_date_obj = datetime.fromisoformat(due_date.replace('Z', '+00:00'))
-                        due_date_str = due_date_obj.strftime('%d %b %Y')
-                    else:
-                        due_date_str = due_date.strftime('%d %b %Y')
-                    
-                    drawing_due_message = f"""📐 Drawing Alert
-                    
-📁 Project: {project_name}
-🖼️ Drawing: {due_drawing.get('name', 'First Drawing')}
-📅 Due Date: {due_date_str}
-⚠️ Status: Due
-
-This drawing needs your attention. Please upload and submit for approval.
-
-View: {APP_URL}/projects/{project_id}"""
-                    
-                    await notification_service.send_notification(
-                        user_ids=[team_leader_id],
-                        title="Drawing Due Reminder",
-                        message=drawing_due_message,
-                        notification_type="drawing_due",
-                        channels=['in_app', 'whatsapp'],
-                        link=f"/projects/{project_id}",
-                        project_id=project_id
-                    )
         
         logger.info(f"Project creation notifications sent for {project_name}")
         
