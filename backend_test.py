@@ -5611,7 +5611,9 @@ if __name__ == "__main__":
     
     # Check which tests to run
     if len(sys.argv) > 1:
-        if sys.argv[1] == "client":
+        if sys.argv[1] == "p0":
+            success = tester.run_p0_tests()
+        elif sys.argv[1] == "client":
             success = tester.run_client_project_types_tests()
         elif sys.argv[1] == "drawing":
             success = tester.run_drawing_management_tests()
@@ -5620,6 +5622,7 @@ if __name__ == "__main__":
         else:
             success = tester.run_all_tests()
     else:
-        success = tester.run_all_tests()
+        # Default to P0 tests for this specific review request
+        success = tester.run_p0_tests()
     
     sys.exit(0 if success else 1)
