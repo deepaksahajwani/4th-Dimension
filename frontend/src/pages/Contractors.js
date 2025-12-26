@@ -18,11 +18,12 @@ const CONTRACTOR_TYPES = [
   'HVAC Contractor',
   'Painting Contractor',
   'Carpentry Contractor',
-  'Interior Contractor',
+  'Furniture Contractor',
   'Landscape Contractor',
   'False Ceiling Contractor',
   'Flooring Contractor',
   'Waterproofing Contractor',
+  'Project Manager',
   'Other'
 ];
 
