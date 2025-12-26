@@ -1351,7 +1351,8 @@ async def approve_reject_user(user_id: str, action: str):
                 print(f"WhatsApp notification failed (non-critical): {str(e)}")
             
             # Redirect to success page (preserves owner's login state)
-            user_name_encoded = __import__('urllib.parse').quote(user['name'])
+            from urllib.parse import quote
+            user_name_encoded = quote(user['name'])
             return RedirectResponse(url=f"{frontend_url}/approval-success?action=approved&user={user_name_encoded}")
         else:
             await db.users.update_one(
@@ -1365,7 +1366,8 @@ async def approve_reject_user(user_id: str, action: str):
             await send_approval_notification(user, approved=False)
             
             # Redirect to success page (preserves owner's login state)
-            user_name_encoded = __import__('urllib.parse').quote(user['name'])
+            from urllib.parse import quote
+            user_name_encoded = quote(user['name'])
             return RedirectResponse(url=f"{frontend_url}/approval-success?action=rejected&user={user_name_encoded}")
         
     except HTTPException:
