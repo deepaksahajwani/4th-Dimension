@@ -6465,10 +6465,11 @@ from api_notifications_payments import notifications_payments_router
 app.include_router(notifications_payments_router, prefix="/api")
 
 # Mount uploads directory for serving static files
+# Using /api/uploads prefix to ensure Kubernetes ingress routes to backend
 from pathlib import Path
 uploads_path = Path(__file__).parent / "uploads"
 uploads_path.mkdir(parents=True, exist_ok=True)
-app.mount("/uploads", StaticFiles(directory=str(uploads_path)), name="uploads")
+app.mount("/api/uploads", StaticFiles(directory=str(uploads_path)), name="uploads")
 
 app.add_middleware(
     CORSMiddleware,
