@@ -1,8 +1,9 @@
 """
 Invite Service - Send invitations via WhatsApp (preferred) or SMS (fallback)
 Strategy:
-1. Try WhatsApp first (works if recipient is in 24-hour window or template is approved)
-2. Fall back to SMS if WhatsApp fails
+1. Try WhatsApp template first (approved templates work for business-initiated messages)
+2. Fall back to SMS if WhatsApp template fails
+3. Include prompt for users to reply "START" to enable future freeform messages
 """
 
 import os
@@ -15,8 +16,11 @@ logger = logging.getLogger(__name__)
 
 APP_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://designresources.preview.emergentagent.com')
 
-# WhatsApp Business Number
-WHATSAPP_NUMBER = "+917016779166"
+# WhatsApp Business Number (Production)
+WHATSAPP_NUMBER = "+917016779016"
+
+# Keyword for users to reply to open 24-hour conversation window
+REPLY_KEYWORD = "START"
 
 # Human-readable invitee type labels
 INVITEE_TYPE_LABELS = {
@@ -35,7 +39,7 @@ async def send_registration_invite(
     invited_by_name: str
 ) -> dict:
     """
-    Send invitation - tries WhatsApp first, falls back to SMS
+    Send invitation - tries WhatsApp template first, falls back to SMS
     
     Args:
         name: Name of person being invited
@@ -53,45 +57,11 @@ async def send_registration_invite(
         # Get human-readable invitee type
         invitee_label = INVITEE_TYPE_LABELS.get(invitee_type, invitee_type.replace('_', ' ').title())
         
-        # WhatsApp message (freeform - works if recipient is in 24hr window)
-        whatsapp_message = f"""🎉 *Welcome to 4th Dimension!*
-
-Hi {name}!
-
-{invited_by_name} has invited you to join as a *{invitee_label}*.
-
-📱 *Register here:*
-{registration_url}
-
-Once registered, you'll be able to:
-• View your projects and drawings
-• Receive real-time updates
-• Collaborate with the team
-
-We look forward to working with you!
-
-_- 4th Dimension Architects_"""
-
-        # Try WhatsApp first
-        whatsapp_result = await notification_service.send_whatsapp(
-            phone_number=phone,
-            message=whatsapp_message
-        )
-        
-        if whatsapp_result.get('success'):
-            logger.info(f"WhatsApp invite sent to {name} ({phone}) as {invitee_type}")
-            return {
-                "success": True,
-                "message": f"WhatsApp invite sent to {name}",
-                "message_sid": whatsapp_result.get('message_sid'),
-                "channel": "whatsapp"
-            }
-        
-        # WhatsApp failed (likely outside 24hr window), try template
-        logger.info(f"WhatsApp freeform failed for {phone}, trying template...")
+        # Try WhatsApp template first (primary method for business-initiated messages)
         template_sid = WHATSAPP_TEMPLATES.get("invitation")
         
         if template_sid:
+            logger.info(f"Sending WhatsApp template invitation to {name} ({phone})...")
             template_result = await notification_service.send_whatsapp_template(
                 phone_number=phone,
                 content_sid=template_sid,
@@ -111,9 +81,11 @@ _- 4th Dimension Architects_"""
                     "message_sid": template_result.get('message_sid'),
                     "channel": "whatsapp_template"
                 }
+            else:
+                logger.warning(f"WhatsApp template failed for {phone}: {template_result.get('error')}")
         
-        # Both WhatsApp methods failed, fall back to SMS
-        logger.info(f"WhatsApp failed for {phone}, falling back to SMS...")
+        # WhatsApp template failed, fall back to SMS
+        logger.info(f"WhatsApp template failed for {phone}, falling back to SMS...")
         
         sms_message = f"""Hi {name}!
 
@@ -123,7 +95,9 @@ _- 4th Dimension Architects_"""
 {registration_url}
 
 💬 FOR WHATSAPP UPDATES:
-Save our number {WHATSAPP_NUMBER} and send "Hi" to receive project notifications on WhatsApp.
+1. Save our number: {WHATSAPP_NUMBER}
+2. Send "{REPLY_KEYWORD}" to us on WhatsApp
+3. Start receiving instant project notifications!
 
 Welcome aboard!
 - 4th Dimension Architects"""
@@ -137,7 +111,7 @@ Welcome aboard!
             logger.info(f"SMS invite sent to {name} ({phone}) as {invitee_type}")
             return {
                 "success": True,
-                "message": f"SMS invite sent to {name} (WhatsApp unavailable)",
+                "message": f"SMS invite sent to {name} (WhatsApp template unavailable)",
                 "message_sid": sms_result.get('message_sid'),
                 "channel": "sms"
             }
