@@ -136,7 +136,7 @@ async def send_whatsapp_optin_sms(
     context: str = "project updates"
 ) -> dict:
     """
-    Send SMS asking user to opt-in to WhatsApp notifications
+    Send SMS asking user to opt-in to WhatsApp notifications by replying START
     """
     try:
         sms_message = f"""Hi {name}!
@@ -144,7 +144,7 @@ async def send_whatsapp_optin_sms(
 To receive {context} on WhatsApp from 4th Dimension Architects:
 
 1️⃣ Save this number: {WHATSAPP_NUMBER}
-2️⃣ Open WhatsApp and send "Hi" to us
+2️⃣ Open WhatsApp and send "{REPLY_KEYWORD}" to us
 
 Once connected, you'll receive instant notifications about your projects!
 
