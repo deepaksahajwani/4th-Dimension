@@ -1535,7 +1535,7 @@ async def send_approval_notification(user: dict, approved: bool):
         from sendgrid.helpers.mail import Mail
         
         message = Mail(
-            from_email=sender_email,
+            from_email=get_email_sender(),
             to_emails=user['email'],
             subject=subject,
             html_content=html_content
