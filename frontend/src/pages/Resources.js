@@ -74,7 +74,10 @@ export default function Resources({ user }) {
   const fetchResources = async () => {
     try {
       setLoading(true);
-      const response = await api.get('/api/resources');
+      const token = localStorage.getItem('token');
+      const response = await axios.get(`${API_URL}/api/resources`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
       setResources(response.data);
     } catch (error) {
       console.error('Error fetching resources:', error);
@@ -90,7 +93,10 @@ export default function Resources({ user }) {
 
   const handleSeedDefaults = async () => {
     try {
-      const response = await api.post('/api/resources/seed-defaults');
+      const token = localStorage.getItem('token');
+      const response = await axios.post(`${API_URL}/api/resources/seed-defaults`, {}, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
       if (response.data.success) {
         toast.success(response.data.message);
         fetchResources();
@@ -109,13 +115,15 @@ export default function Resources({ user }) {
         return;
       }
       
-      const response = await api.post('/api/resources', formData);
+      const token = localStorage.getItem('token');
+      const response = await axios.post(`${API_URL}/api/resources`, formData, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
       toast.success('Resource created successfully');
       setShowAddDialog(false);
       resetForm();
       fetchResources();
       
-      // If we have a file to upload
       if (uploadingFile) {
         await handleFileUpload(response.data.id, uploadingFile);
       }
@@ -126,7 +134,10 @@ export default function Resources({ user }) {
 
   const handleUpdateResource = async () => {
     try {
-      await api.put(`/api/resources/${editingResource.id}`, formData);
+      const token = localStorage.getItem('token');
+      await axios.put(`${API_URL}/api/resources/${editingResource.id}`, formData, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
       toast.success('Resource updated successfully');
       setEditingResource(null);
       resetForm();
@@ -140,7 +151,10 @@ export default function Resources({ user }) {
     if (!window.confirm('Are you sure you want to delete this resource?')) return;
     
     try {
-      await api.delete(`/api/resources/${resourceId}`);
+      const token = localStorage.getItem('token');
+      await axios.delete(`${API_URL}/api/resources/${resourceId}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
       toast.success('Resource deleted successfully');
       fetchResources();
     } catch (error) {
@@ -150,11 +164,15 @@ export default function Resources({ user }) {
 
   const handleFileUpload = async (resourceId, file) => {
     try {
-      const formData = new FormData();
-      formData.append('file', file);
+      const token = localStorage.getItem('token');
+      const uploadData = new FormData();
+      uploadData.append('file', file);
       
-      await api.post(`/api/resources/${resourceId}/upload`, formData, {
-        headers: { 'Content-Type': 'multipart/form-data' }
+      await axios.post(`${API_URL}/api/resources/${resourceId}/upload`, uploadData, {
+        headers: { 
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'multipart/form-data' 
+        }
       });
       
       toast.success('File uploaded successfully');
@@ -172,7 +190,11 @@ export default function Resources({ user }) {
     
     if (resource.url) {
       try {
-        const response = await api.get(resource.url, { responseType: 'blob' });
+        const token = localStorage.getItem('token');
+        const response = await axios.get(`${API_URL}${resource.url}`, { 
+          responseType: 'blob',
+          headers: { Authorization: `Bearer ${token}` }
+        });
         const url = window.URL.createObjectURL(new Blob([response.data]));
         const link = document.createElement('a');
         link.href = url;
