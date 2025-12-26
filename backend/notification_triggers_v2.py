@@ -1053,32 +1053,24 @@ _4th Dimension Architects_"""
         whatsapp_sent = False
         if person_phone:
             try:
-                # Try using template first (for business-initiated)
-                template_sid = WHATSAPP_TEMPLATES.get('invitation')
-                if template_sid:
-                    result = await notification_service.send_whatsapp_template(
-                        phone_number=person_phone,
-                        content_sid=template_sid,
-                        content_variables={
-                            "1": person_name,
-                            "2": owner_name,
-                            "3": f"{role_type} {person_type.replace('_', ' ').title()}",
-                            "4": APP_URL
-                        }
-                    )
-                    whatsapp_sent = result.get('success', False)
+                # For project assignment, try freeform message first (works if within 24hr window)
+                # This is different from registration - they're already in the system
+                result = await notification_service.send_whatsapp(person_phone, whatsapp_message)
+                whatsapp_sent = result.get('success', False)
                 
                 if not whatsapp_sent:
-                    # Fallback to freeform (works if within 24hr window)
-                    result = await notification_service.send_whatsapp(person_phone, whatsapp_message)
-                    whatsapp_sent = result.get('success', False)
+                    logger.info(f"Freeform WhatsApp failed for {person_name}, trying SMS fallback")
                     
             except Exception as e:
                 logger.warning(f"WhatsApp failed for {person_name}: {str(e)}")
         
         # Send SMS if WhatsApp failed
         if not whatsapp_sent and person_phone:
-            sms_message = f"""Hi {person_name}! You've been assigned as {role_type} {person_type.replace('_', ' ')} for project "{project_title}" at 4th Dimension Architects. Login: {APP_URL}"""
+            sms_message = f"""Hi {person_name}! You've been assigned as {role_type} {person_type.replace('_', ' ').title()} for project "{project_title}" at 4th Dimension Architects. 
+
+View project details: {APP_URL}
+
+- 4th Dimension Architects"""
             await notification_service.send_sms(person_phone, sms_message)
         
         # Send Email
