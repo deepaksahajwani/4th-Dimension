@@ -1398,11 +1398,46 @@ async def approve_user_from_dashboard(
             # If a specific role is provided, update it
             if role:
                 update_data["role"] = role
+                update_data["designation"] = role.replace('_', ' ').title()
             
             await db.users.update_one(
                 {"id": user_id},
                 {"$set": update_data}
             )
+            
+            # Update contractor/consultant record with the assigned type
+            original_role = user.get('role', '')
+            if role and original_role in ['contractor', 'civil_contractor', 'electrical_contractor', 'plumbing_contractor', 
+                                          'furniture_contractor', 'hvac_contractor', 'painting_contractor', 'flooring_contractor',
+                                          'structural_contractor', 'project_manager']:
+                # Update contractor record with the specific type
+                contractor_type = role.replace('_contractor', '').replace('_', ' ').title()
+                if role == 'project_manager':
+                    contractor_type = 'Project Manager'
+                
+                await db.contractors.update_one(
+                    {"user_id": user_id},
+                    {"$set": {
+                        "contractor_type": contractor_type,
+                        "notes": f"Approved as {contractor_type}"
+                    }}
+                )
+                print(f"✅ Updated contractor type to '{contractor_type}' for {user['name']}")
+                
+            elif role and original_role in ['consultant', 'structural_consultant', 'mep_consultant', 'electrical_consultant',
+                                             'plumbing_consultant', 'landscape_consultant', 'interior_consultant',
+                                             'sustainability_consultant', 'fire_safety_consultant']:
+                # Update consultant record with the specific type
+                consultant_type = role.replace('_consultant', '').replace('_', ' ').title()
+                
+                await db.consultants.update_one(
+                    {"user_id": user_id},
+                    {"$set": {
+                        "type": consultant_type,
+                        "notes": f"Approved as {consultant_type} Consultant"
+                    }}
+                )
+                print(f"✅ Updated consultant type to '{consultant_type}' for {user['name']}")
             
             # NOTE: Notification is now sent separately via /send-approval-notification
             # This allows owner to create project first before notifying client
@@ -1410,7 +1445,7 @@ async def approve_user_from_dashboard(
             return {
                 "success": True,
                 "message": f"{user['name']} has been approved successfully",
-                "user_role": user.get('role')
+                "user_role": role or user.get('role')
             }
         else:
             await db.users.update_one(
