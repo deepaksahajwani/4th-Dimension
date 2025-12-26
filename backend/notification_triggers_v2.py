@@ -132,12 +132,26 @@ async def notify_user_approval(user_id: str):
             channels=['in_app']
         )
         
-        # Notify approved user
-        # NOTE: There is NO WhatsApp template for user_approved yet, so we use SMS primarily
-        # SMS works immediately without needing Meta/WhatsApp approval
+        # Notify approved user using WhatsApp TEMPLATE
+        whatsapp_sent = False
         if user_mobile:
-            # Send welcome SMS
-            sms_message = f"""🎉 Welcome to 4th Dimension, {user_name}!
+            template_sid = WHATSAPP_TEMPLATES.get("user_approved")
+            if template_sid:
+                result = await notification_service.send_whatsapp_template(
+                    phone_number=user_mobile,
+                    content_sid=template_sid,
+                    content_variables={
+                        "1": user_name,
+                        "2": APP_URL
+                    }
+                )
+                whatsapp_sent = result.get('success', False)
+                if whatsapp_sent:
+                    logger.info(f"WhatsApp welcome sent to {user_name}")
+            
+            # Fallback to SMS if WhatsApp template failed
+            if not whatsapp_sent:
+                sms_message = f"""🎉 Welcome to 4th Dimension, {user_name}!
 
 Your registration has been approved. You are now part of the 4th Dimension family as {user_designation}.
 
@@ -146,12 +160,9 @@ Your registration has been approved. You are now part of the 4th Dimension famil
 We're excited to work with you!
 - 4th Dimension Architects
 +917016779016"""
-            
-            sms_result = await notification_service.send_sms(user_mobile, sms_message)
-            if sms_result.get('success'):
-                logger.info(f"SMS welcome sent to {user_name}")
-            else:
-                logger.warning(f"SMS failed for {user_name}: {sms_result.get('error')}")
+                
+                await notification_service.send_sms(user_mobile, sms_message)
+                logger.info(f"SMS welcome sent to {user_name} (WhatsApp fallback)")
         
         # Generate professional HTML email template (English only)
         login_url = f"{APP_URL}"
