@@ -631,6 +631,7 @@ class ContractorType(str, Enum):
     PROFILE = "Profile"
     GARDNER = "Gardner"
     FABRICATOR = "Fabricator"
+    PROJECT_MANAGER = "Project Manager"
     CUSTOM = "Custom"  # For custom types
 
 class Contractor(BaseModel):
