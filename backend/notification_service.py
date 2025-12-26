@@ -275,8 +275,10 @@ class NotificationService:
     async def send_email(to_email: str, subject: str, html_content: str) -> bool:
         """Send email via SendGrid"""
         try:
-            # Use display name format: "Display Name <email@domain.com>"
-            from_email_with_name = ("4th Dimension Architects", SENDER_EMAIL)
+            from sendgrid.helpers.mail import Email
+            
+            # Use Email object with display name
+            from_email_with_name = Email(SENDER_EMAIL, "4th Dimension Architects")
             
             message = Mail(
                 from_email=from_email_with_name,
