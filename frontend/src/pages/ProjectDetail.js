@@ -115,6 +115,23 @@ export default function ProjectDetail({ user, onLogout }) {
     notes: ''
   });
 
+  // Project Team states (contractors, consultants)
+  const [projectTeam, setProjectTeam] = useState({ contractors: [], consultants: [], co_clients: [] });
+  const [allContractors, setAllContractors] = useState([]);
+  const [allConsultants, setAllConsultants] = useState([]);
+  const [contractorTypes, setContractorTypes] = useState([]);
+  const [consultantTypes, setConsultantTypes] = useState([]);
+  const [assignContractorDialogOpen, setAssignContractorDialogOpen] = useState(false);
+  const [assignConsultantDialogOpen, setAssignConsultantDialogOpen] = useState(false);
+  const [selectedContractorType, setSelectedContractorType] = useState('');
+  const [selectedContractorId, setSelectedContractorId] = useState('');
+  const [selectedConsultantType, setSelectedConsultantType] = useState('');
+  const [selectedConsultantId, setSelectedConsultantId] = useState('');
+  const [inviteNewContractor, setInviteNewContractor] = useState(false);
+  const [inviteNewConsultant, setInviteNewConsultant] = useState(false);
+  const [newContractorData, setNewContractorData] = useState({ name: '', phone: '', email: '' });
+  const [newConsultantData, setNewConsultantData] = useState({ name: '', phone: '', email: '' });
+
   useEffect(() => {
     fetchProjectData();
   }, [projectId]);
