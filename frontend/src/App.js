@@ -392,6 +392,14 @@ function App() {
                 </ProtectedRoute>
               }
             />
+            <Route
+              path="/resources"
+              element={
+                <ProtectedRoute>
+                  <Resources user={user} onLogout={handleLogout} />
+                </ProtectedRoute>
+              }
+            />
           </Routes>
         )}
       </BrowserRouter>
