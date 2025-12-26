@@ -2806,6 +2806,232 @@ export default function ProjectDetail({ user, onLogout }) {
             </form>
           </DialogContent>
         </Dialog>
+
+        {/* Assign Contractor Dialog */}
+        <Dialog open={assignContractorDialogOpen} onOpenChange={setAssignContractorDialogOpen}>
+          <DialogContent className="max-w-xl">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <HardHat className="w-5 h-5 text-orange-600" />
+                Assign Contractor to Project
+              </DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4">
+              <div>
+                <Label>Contractor Type *</Label>
+                <select
+                  className="flex h-10 w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm"
+                  value={selectedContractorType}
+                  onChange={(e) => setSelectedContractorType(e.target.value)}
+                  required
+                >
+                  <option value="">Select type...</option>
+                  {contractorTypes.map((type) => (
+                    <option key={type.value} value={type.value}>{type.label}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  id="inviteNewContractor"
+                  checked={inviteNewContractor}
+                  onChange={(e) => setInviteNewContractor(e.target.checked)}
+                  className="rounded border-slate-300"
+                />
+                <Label htmlFor="inviteNewContractor" className="cursor-pointer">Invite new contractor (not in system)</Label>
+              </div>
+
+              {!inviteNewContractor ? (
+                <div>
+                  <Label>Select Existing Contractor *</Label>
+                  <select
+                    className="flex h-10 w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm"
+                    value={selectedContractorId}
+                    onChange={(e) => setSelectedContractorId(e.target.value)}
+                  >
+                    <option value="">Select contractor...</option>
+                    {allContractors
+                      .filter(c => !selectedContractorType || c.contractor_type === selectedContractorType)
+                      .map((contractor) => (
+                        <option key={contractor.id} value={contractor.id}>
+                          {contractor.name} ({contractor.contractor_type}) - {contractor.phone}
+                        </option>
+                      ))}
+                  </select>
+                </div>
+              ) : (
+                <div className="space-y-3 p-4 bg-orange-50 rounded-lg border border-orange-200">
+                  <p className="text-sm font-medium text-orange-800">New Contractor Details</p>
+                  <div>
+                    <Label>Name *</Label>
+                    <Input
+                      value={newContractorData.name}
+                      onChange={(e) => setNewContractorData({ ...newContractorData, name: e.target.value })}
+                      placeholder="Contractor name"
+                    />
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <Label>Phone *</Label>
+                      <Input
+                        type="tel"
+                        value={newContractorData.phone}
+                        onChange={(e) => setNewContractorData({ ...newContractorData, phone: e.target.value })}
+                        placeholder="+919876543210"
+                      />
+                    </div>
+                    <div>
+                      <Label>Email</Label>
+                      <Input
+                        type="email"
+                        value={newContractorData.email}
+                        onChange={(e) => setNewContractorData({ ...newContractorData, email: e.target.value })}
+                        placeholder="email@example.com"
+                      />
+                    </div>
+                  </div>
+                  <p className="text-xs text-orange-600">
+                    An invitation will be sent to the contractor's phone
+                  </p>
+                </div>
+              )}
+
+              <DialogFooter>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => {
+                    setAssignContractorDialogOpen(false);
+                    resetContractorForm();
+                  }}
+                >
+                  Cancel
+                </Button>
+                <Button 
+                  onClick={handleAssignContractor}
+                  className="bg-orange-500 hover:bg-orange-600"
+                >
+                  {inviteNewContractor ? 'Invite & Assign' : 'Assign Contractor'}
+                </Button>
+              </DialogFooter>
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        {/* Assign Consultant Dialog */}
+        <Dialog open={assignConsultantDialogOpen} onOpenChange={setAssignConsultantDialogOpen}>
+          <DialogContent className="max-w-xl">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <Briefcase className="w-5 h-5 text-blue-600" />
+                Assign Consultant to Project
+              </DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4">
+              <div>
+                <Label>Consultant Type *</Label>
+                <select
+                  className="flex h-10 w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm"
+                  value={selectedConsultantType}
+                  onChange={(e) => setSelectedConsultantType(e.target.value)}
+                  required
+                >
+                  <option value="">Select type...</option>
+                  {consultantTypes.map((type) => (
+                    <option key={type.value} value={type.value}>{type.label}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  id="inviteNewConsultant"
+                  checked={inviteNewConsultant}
+                  onChange={(e) => setInviteNewConsultant(e.target.checked)}
+                  className="rounded border-slate-300"
+                />
+                <Label htmlFor="inviteNewConsultant" className="cursor-pointer">Add new consultant (contact info only)</Label>
+              </div>
+
+              {!inviteNewConsultant ? (
+                <div>
+                  <Label>Select Existing Consultant</Label>
+                  <select
+                    className="flex h-10 w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm"
+                    value={selectedConsultantId}
+                    onChange={(e) => setSelectedConsultantId(e.target.value)}
+                  >
+                    <option value="">Select consultant...</option>
+                    {allConsultants
+                      .filter(c => !selectedConsultantType || c.type === selectedConsultantType)
+                      .map((consultant) => (
+                        <option key={consultant.id} value={consultant.id}>
+                          {consultant.name} ({consultant.type}) - {consultant.phone}
+                        </option>
+                      ))}
+                  </select>
+                </div>
+              ) : (
+                <div className="space-y-3 p-4 bg-blue-50 rounded-lg border border-blue-200">
+                  <p className="text-sm font-medium text-blue-800">New Consultant Contact Details</p>
+                  <div>
+                    <Label>Name *</Label>
+                    <Input
+                      value={newConsultantData.name}
+                      onChange={(e) => setNewConsultantData({ ...newConsultantData, name: e.target.value })}
+                      placeholder="Consultant name"
+                    />
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <Label>Phone *</Label>
+                      <Input
+                        type="tel"
+                        value={newConsultantData.phone}
+                        onChange={(e) => setNewConsultantData({ ...newConsultantData, phone: e.target.value })}
+                        placeholder="+919876543210"
+                      />
+                    </div>
+                    <div>
+                      <Label>Email</Label>
+                      <Input
+                        type="email"
+                        value={newConsultantData.email}
+                        onChange={(e) => setNewConsultantData({ ...newConsultantData, email: e.target.value })}
+                        placeholder="email@example.com"
+                      />
+                    </div>
+                  </div>
+                  <p className="text-xs text-blue-600">
+                    This will add contact information only (no portal access)
+                  </p>
+                </div>
+              )}
+
+              <DialogFooter>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => {
+                    setAssignConsultantDialogOpen(false);
+                    resetConsultantForm();
+                  }}
+                >
+                  Cancel
+                </Button>
+                <Button 
+                  onClick={handleAssignConsultant}
+                  className="bg-blue-500 hover:bg-blue-600"
+                >
+                  {inviteNewConsultant ? 'Add Contact' : 'Assign Consultant'}
+                </Button>
+              </DialogFooter>
+            </div>
+          </DialogContent>
+        </Dialog>
       </div>
     </Layout>
   );
