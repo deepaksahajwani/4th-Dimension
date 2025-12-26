@@ -2469,7 +2469,7 @@ export default function ProjectDetail({ user, onLogout }) {
                             🔄 Mark drawing for revision
                           </span>
                           <p className="text-xs text-amber-700 mt-1">
-                            Check this if the drawing needs changes and should return to "Revision Needed" status
+                            Check this if the drawing needs changes and should return to &quot;Revision Needed&quot; status
                           </p>
                         </div>
                       </label>
