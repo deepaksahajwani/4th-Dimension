@@ -462,11 +462,11 @@ class DrawingComment(BaseModel):
 
 class DrawingCommentCreate(BaseModel):
     drawing_id: str
-    comment_text: str
+    comment_text: Optional[str] = ""  # Optional - can be empty if voice note or file is attached
     requires_revision: Optional[bool] = False
 
 class DrawingCommentUpdate(BaseModel):
-    comment_text: str
+    comment_text: Optional[str] = ""  # Optional for updates
 
 class ChecklistPreset(BaseModel):
     model_config = ConfigDict(extra="ignore")
