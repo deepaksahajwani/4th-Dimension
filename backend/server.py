@@ -819,7 +819,7 @@ async def public_register(registration_data: PublicRegistration):
         from sendgrid.helpers.mail import Mail
         
         message = Mail(
-            from_email=sender_email,
+            from_email=get_email_sender(),
             to_emails=registration_data.email,
             subject='Verify Your Registration - 4th Dimension',
             html_content=html_content
