@@ -1953,7 +1953,7 @@ export default function ProjectDetail({ user, onLogout }) {
                                 <audio 
                                   controls 
                                   className="w-full h-8"
-                                  src={`${API}${comment.voice_note_url}`}
+                                  src={`${API}/voice-notes/${comment.voice_note_url.split('/').pop()}`}
                                   preload="metadata"
                                 >
                                   Your browser does not support audio playback.
