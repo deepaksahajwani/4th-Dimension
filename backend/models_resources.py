@@ -25,6 +25,7 @@ class ResourceType(str, Enum):
     VIDEO = "video"
     IMAGE = "image"
     LINK = "link"
+    CAD = "cad"  # AutoCAD DWG, DXF files
 
 
 class ResourceBase(BaseModel):
