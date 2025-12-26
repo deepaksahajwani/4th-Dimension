@@ -961,6 +961,145 @@ export default function ProjectDetail({ user, onLogout }) {
     });
   };
 
+  // Contractor handlers
+  const handleAssignContractor = async () => {
+    if (!selectedContractorType) {
+      toast.error('Please select a contractor type');
+      return;
+    }
+
+    try {
+      if (inviteNewContractor) {
+        // First create the contractor, then assign
+        if (!newContractorData.name || !newContractorData.phone) {
+          toast.error('Name and phone are required for new contractor');
+          return;
+        }
+        
+        const createRes = await axios.post(`${API}/contractors`, {
+          name: newContractorData.name,
+          phone: newContractorData.phone,
+          email: newContractorData.email || null,
+          contractor_type: selectedContractorType
+        });
+        
+        const newContractor = createRes.data;
+        
+        await axios.post(`${API}/projects/${projectId}/assign-contractor`, {
+          contractor_id: newContractor.id,
+          contractor_type: selectedContractorType,
+          send_notification: true
+        });
+        
+        toast.success(`${newContractorData.name} invited and assigned as ${selectedContractorType} contractor!`);
+      } else {
+        if (!selectedContractorId) {
+          toast.error('Please select a contractor');
+          return;
+        }
+        
+        await axios.post(`${API}/projects/${projectId}/assign-contractor`, {
+          contractor_id: selectedContractorId,
+          contractor_type: selectedContractorType,
+          send_notification: true
+        });
+        
+        toast.success(`Contractor assigned as ${selectedContractorType}!`);
+      }
+      
+      setAssignContractorDialogOpen(false);
+      resetContractorForm();
+      fetchProjectData();
+    } catch (error) {
+      toast.error(formatErrorMessage(error, 'Failed to assign contractor'));
+    }
+  };
+
+  const handleUnassignContractor = async (contractorType) => {
+    if (!confirm(`Remove ${contractorType} contractor from this project?`)) return;
+    
+    try {
+      await axios.delete(`${API}/projects/${projectId}/unassign-contractor/${contractorType}`);
+      toast.success(`${contractorType} contractor removed from project`);
+      fetchProjectData();
+    } catch (error) {
+      toast.error(formatErrorMessage(error, 'Failed to remove contractor'));
+    }
+  };
+
+  const resetContractorForm = () => {
+    setSelectedContractorType('');
+    setSelectedContractorId('');
+    setInviteNewContractor(false);
+    setNewContractorData({ name: '', phone: '', email: '' });
+  };
+
+  // Consultant handlers
+  const handleAssignConsultant = async () => {
+    if (!selectedConsultantType) {
+      toast.error('Please select a consultant type');
+      return;
+    }
+
+    try {
+      if (inviteNewConsultant) {
+        // Create contact-only consultant assignment
+        if (!newConsultantData.name || !newConsultantData.phone) {
+          toast.error('Name and phone are required');
+          return;
+        }
+        
+        await axios.post(`${API}/projects/${projectId}/assign-consultant`, {
+          consultant_type: selectedConsultantType,
+          consultant_name: newConsultantData.name,
+          consultant_phone: newConsultantData.phone,
+          consultant_email: newConsultantData.email || null,
+          send_notification: false  // No notification for contact-only
+        });
+        
+        toast.success(`${newConsultantData.name} added as ${selectedConsultantType} consultant!`);
+      } else {
+        if (!selectedConsultantId) {
+          toast.error('Please select a consultant');
+          return;
+        }
+        
+        await axios.post(`${API}/projects/${projectId}/assign-consultant`, {
+          consultant_id: selectedConsultantId,
+          consultant_type: selectedConsultantType,
+          send_notification: true
+        });
+        
+        toast.success(`Consultant assigned as ${selectedConsultantType}!`);
+      }
+      
+      setAssignConsultantDialogOpen(false);
+      resetConsultantForm();
+      fetchProjectData();
+    } catch (error) {
+      toast.error(formatErrorMessage(error, 'Failed to assign consultant'));
+    }
+  };
+
+  const handleUnassignConsultant = async (consultantType) => {
+    if (!confirm(`Remove ${consultantType} consultant from this project?`)) return;
+    
+    try {
+      await axios.delete(`${API}/projects/${projectId}/unassign-consultant/${consultantType}`);
+      toast.success(`${consultantType} consultant removed from project`);
+      fetchProjectData();
+    } catch (error) {
+      toast.error(formatErrorMessage(error, 'Failed to remove consultant'));
+    }
+  };
+
+  const resetConsultantForm = () => {
+    setSelectedConsultantType('');
+    setSelectedConsultantId('');
+    setInviteNewConsultant(false);
+    setNewConsultantData({ name: '', phone: '', email: '' });
+  };
+
   // Drawing N/A handler
   const handleMarkAsNotApplicable = async (drawingId) => {
     if (!confirm('Mark this drawing as Not Applicable? It will be removed from the drawing list for this project.')) {
