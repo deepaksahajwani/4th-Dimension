@@ -37,7 +37,6 @@ export default function ProjectDetail({ user, onLogout }) {
   const [drawings, setDrawings] = useState([]);
   const [brandCategories, setBrandCategories] = useState([]);
   const [teamLeader, setTeamLeader] = useState(null);
-  const [projectTeam, setProjectTeam] = useState([]);
   const [allTeamMembers, setAllTeamMembers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('drawings');
