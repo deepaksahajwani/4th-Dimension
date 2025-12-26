@@ -3721,6 +3721,37 @@ async def mark_comments_read(
     )
     return {"message": "Comments marked as read"}
 
+@api_router.get("/voice-notes/{filename}")
+async def get_voice_note(filename: str):
+    """Serve voice note file - no auth required for playback"""
+    from fastapi.responses import FileResponse
+    
+    file_path = Path("uploads/voice_notes") / filename
+    
+    if not file_path.exists():
+        raise HTTPException(status_code=404, detail="Voice note not found")
+    
+    # Determine media type based on file extension
+    extension = file_path.suffix.lower()
+    media_types = {
+        '.webm': 'audio/webm',
+        '.mp3': 'audio/mpeg',
+        '.wav': 'audio/wav',
+        '.m4a': 'audio/mp4',
+        '.ogg': 'audio/ogg'
+    }
+    media_type = media_types.get(extension, 'audio/webm')
+    
+    return FileResponse(
+        path=str(file_path),
+        media_type=media_type,
+        filename=filename,
+        headers={
+            "Accept-Ranges": "bytes",
+            "Cache-Control": "public, max-age=3600",
+        }
+    )
+
 @api_router.get("/comments/reference/{filename}/download")
 async def download_comment_reference(
     filename: str,
