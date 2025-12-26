@@ -1128,12 +1128,3 @@ View project details: {APP_URL}
         
     except Exception as e:
         logger.error(f"Error in notify_project_assignment: {str(e)}")
-
-
-# Alias for backward compatibility
-async def notify_contractor_consultant_added(project_id: str, person_id: str, person_type: str):
-    """Backward compatible wrapper"""
-    project = await get_project_by_id(project_id)
-    if project:
-        role_type = person_type.title()  # Default role type
-        await notify_project_assignment(project, person_id, person_type, role_type)
