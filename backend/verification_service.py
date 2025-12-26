@@ -38,7 +38,7 @@ async def send_verification_email(
     Returns: (success: bool, error_message: Optional[str])
     """
     try:
-        sender_email = os.getenv('SENDER_EMAIL')
+        from_email = Email(SENDER_EMAIL, SENDER_NAME)
         
         html_content = f"""
         <html>
