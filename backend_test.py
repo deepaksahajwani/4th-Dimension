@@ -4859,6 +4859,11 @@ class BackendTester:
         self.test_team_member_invitation_flow()
         self.test_comprehensive_drawing_workflow_e2e()
         
+        # User Approval Notification Flow (as requested in review)
+        print("\n📧 USER APPROVAL NOTIFICATION FLOW TEST")
+        print("-" * 40)
+        self.test_user_approval_notification_flow()
+        
         # Summary
         print("=" * 60)
         print("📊 TEST SUMMARY")
