@@ -452,8 +452,8 @@ def get_welcome_email_content(user: dict, login_url: str) -> tuple[str, str]:
         </html>
         """
     
-    elif role == 'vendor':
-        subject = "Welcome to 4th Dimension Vendor Network 🏪"
+    elif role_category == 'vendor':
+        subject = f"Welcome to 4th Dimension - {display_role}! 🏪"
         html_content = f"""
         <html>
             <head>
@@ -469,7 +469,12 @@ def get_welcome_email_content(user: dict, login_url: str) -> tuple[str, str]:
                     
                     <h2 style="color: #1F2937; font-size: 24px;">Dear {name},</h2>
                     
-                    <p style="font-size: 16px; line-height: 1.8;">Welcome to the 4th Dimension vendor network! We're excited to partner with you for supplying quality materials and products for our architectural projects. Your reliability and product excellence are crucial to our project success.</p>
+                    <div style="background: #DCFCE7; padding: 20px; border-radius: 10px; margin: 20px 0; text-align: center; border: 2px solid #22C55E;">
+                        <p style="margin: 0; font-size: 14px; color: #15803D;">Your Category</p>
+                        <p style="margin: 10px 0 0 0; font-size: 24px; font-weight: bold; color: #166534;">{display_role}</p>
+                    </div>
+                    
+                    <p style="font-size: 16px; line-height: 1.8;">Welcome to the 4th Dimension vendor network as our <strong>{display_role}</strong>! We're excited to partner with you for supplying quality materials and products for our architectural projects. Your reliability and product excellence are crucial to our project success.</p>
                     
                     <div style="{section_style}">
                         <h3 style="color: #4F46E5; margin-top: 0;">🤝 Partnership Benefits</h3>
