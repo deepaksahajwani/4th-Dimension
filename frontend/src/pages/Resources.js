@@ -32,6 +32,7 @@ const RESOURCE_TYPES = [
   { value: 'document', label: 'Word Document' },
   { value: 'spreadsheet', label: 'Spreadsheet' },
   { value: 'presentation', label: 'Presentation' },
+  { value: 'cad', label: 'CAD File (DWG/DXF)' },
   { value: 'video', label: 'Video' },
   { value: 'image', label: 'Image' },
   { value: 'link', label: 'External Link' }
@@ -44,6 +45,7 @@ const getFileIcon = (type) => {
     case 'spreadsheet': return FileSpreadsheet;
     case 'presentation': return Presentation;
     case 'video': return Video;
+    case 'cad': return PenTool;
     default: return FileText;
   }
 };
