@@ -100,7 +100,7 @@ async def send_verification_email(
         """
         
         message = Mail(
-            from_email=sender_email,
+            from_email=from_email,
             to_emails=to_email,
             subject='Verify Your Email - 4th Dimension Team',
             html_content=html_content
