@@ -1019,7 +1019,6 @@ async def set_password_after_otp(password_data: SetPasswordAfterOTP):
 async def send_approval_request_email(owner_email: str, user_data: dict):
     """Send approval request email to owner"""
     try:
-        sender_email = os.getenv('SENDER_EMAIL')
         backend_url = os.getenv('REACT_APP_BACKEND_URL')
         approval_link = f"{backend_url}/api/approve-user?user_id={user_data['id']}&action=approve"
         reject_link = f"{backend_url}/api/approve-user?user_id={user_data['id']}&action=reject"
@@ -1117,7 +1116,6 @@ async def send_approval_request_email(owner_email: str, user_data: dict):
 async def send_registration_complete_email(user_data: dict):
     """Send welcome email to newly registered user"""
     try:
-        sender_email = os.getenv('SENDER_EMAIL')
         
         html_content = f"""
         <html>
@@ -1491,7 +1489,6 @@ async def get_pending_registrations(current_user: User = Depends(require_owner))
 async def send_approval_notification(user: dict, approved: bool):
     """Send approval/rejection notification to user with role-specific welcome email"""
     try:
-        sender_email = os.getenv('SENDER_EMAIL')
         login_url = os.getenv('REACT_APP_BACKEND_URL')
         
         if approved:
@@ -1610,7 +1607,6 @@ async def forgot_password(request: ForgotPasswordRequest):
         from sendgrid import SendGridAPIClient
         from sendgrid.helpers.mail import Mail
         
-        sender_email = os.getenv('SENDER_EMAIL')
         frontend_url = os.getenv('REACT_APP_BACKEND_URL')
         reset_link = f"{frontend_url}/reset-password?token={reset_token}"
         
@@ -2888,7 +2884,6 @@ async def request_project_deletion_otp(
         
         # Send OTP via email
         from verification_service import send_verification_email
-        sender_email = os.getenv('SENDER_EMAIL')
         
         html_content = f"""
         <html>
