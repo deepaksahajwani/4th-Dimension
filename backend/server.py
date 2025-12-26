@@ -1666,7 +1666,7 @@ async def forgot_password(request: ForgotPasswordRequest):
         """
         
         message = Mail(
-            from_email=sender_email,
+            from_email=get_email_sender(),
             to_emails=request.email,
             subject='Reset Your 4th Dimension Password',
             html_content=html_content
