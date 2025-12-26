@@ -23,6 +23,10 @@ WHATSAPP_TEMPLATES = {
     # Variables: {{1}}=name, {{2}}=inviter, {{3}}=role, {{4}}=register_url
     "invitation": "HX6b1d5f9a7a01af474f0875e734e9d548",
     
+    # User approved - welcome message after approval
+    # Variables: {{1}}=user_name, {{2}}=login_url
+    "user_approved": "HX4e5e653e8e2b3dede43f73d32bb2c75f",
+    
     # Project created - notification to client
     # Variables: {{1}}=client_name, {{2}}=project_name, {{3}}=team_leader_name, {{4}}=team_leader_phone, {{5}}=app_url
     "project_created_client": "HX465fd35b0d97f4b51b6bce3e14cb9afd",
@@ -38,9 +42,6 @@ WHATSAPP_TEMPLATES = {
     # Task assigned - notification when task is assigned
     # Variables: {{1}}=assignee_name, {{2}}=assigner_name, {{3}}=task_title, {{4}}=due_date, {{5}}=task_url
     "task_assigned": "HXddd309318f33cb50eb38a4b40aaa13e2",
-    
-    # NOTE: The following templates DO NOT EXIST yet and need to be created in Twilio:
-    # - user_approved: For welcoming newly approved users (currently using SMS fallback)
 }
 
 # Template variable mappings (for reference and validation)
