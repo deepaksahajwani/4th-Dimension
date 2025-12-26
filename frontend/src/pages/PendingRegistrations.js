@@ -69,9 +69,10 @@ const CONTRACTOR_ROLES = {
   plumbing_contractor: 'Plumbing Contractor',
   hvac_contractor: 'HVAC Contractor',
   structural_contractor: 'Structural Contractor',
-  interior_contractor: 'Interior Contractor',
+  furniture_contractor: 'Furniture Contractor',
   painting_contractor: 'Painting Contractor',
   flooring_contractor: 'Flooring Contractor',
+  project_manager: 'Project Manager',
   contractor: 'Contractor (General)'
 };
 
