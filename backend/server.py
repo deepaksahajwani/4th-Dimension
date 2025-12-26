@@ -971,10 +971,10 @@ async def set_password_after_otp(password_data: SetPasswordAfterOTP):
                 "email": pending_reg['email'],
                 "phone": pending_reg['mobile'],
                 "address": f"{pending_reg.get('address_line_1', '')}, {pending_reg.get('city', '')}, {pending_reg.get('state', '')}".strip(', '),
-                "contractor_type": "Other",  # Can be updated later
+                "contractor_type": "Pending Assignment",  # Will be set during approval
                 "created_at": datetime.now(timezone.utc),
                 "created_by": user_id,
-                "notes": "Auto-created from user registration"
+                "notes": "Awaiting role assignment during approval"
             }
             await db.contractors.insert_one(contractor_record)
             print(f"✅ Contractor record created for {pending_reg['name']}")
@@ -987,10 +987,10 @@ async def set_password_after_otp(password_data: SetPasswordAfterOTP):
                 "email": pending_reg['email'],
                 "phone": pending_reg['mobile'],
                 "address": f"{pending_reg.get('address_line_1', '')}, {pending_reg.get('city', '')}, {pending_reg.get('state', '')}".strip(', '),
-                "type": "Other",  # Can be updated later
+                "type": "Pending Assignment",  # Will be set during approval
                 "created_at": datetime.now(timezone.utc),
                 "created_by": user_id,
-                "notes": "Auto-created from user registration"
+                "notes": "Awaiting role assignment during approval"
             }
             await db.consultants.insert_one(consultant_record)
             print(f"✅ Consultant record created for {pending_reg['name']}")
