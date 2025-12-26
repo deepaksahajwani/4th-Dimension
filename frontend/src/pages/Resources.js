@@ -23,7 +23,7 @@ const CATEGORIES = {
 // File type icons
 const getFileIcon = (type) => {
   switch(type) {
-    case 'pdf': return FilePdf;
+    case 'pdf': return File;
     case 'image': return FileImage;
     case 'spreadsheet': return FileSpreadsheet;
     case 'presentation': return Presentation;
