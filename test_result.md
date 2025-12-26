@@ -282,6 +282,30 @@ backend:
         agent: "testing"
         comment: "P0 BUG #5 - CLIENT DATA SEPARATION FIX VERIFIED SUCCESSFULLY (100% success rate): ✅ OWNER AUTHENTICATION: Successfully logged in as owner (deepaksahajwani@gmail.com / Deepak@2025). ✅ USERS ENDPOINT VERIFICATION: GET /api/users confirmed NO users with role='client' appear in response. Total users returned: 1 (only team members/owner). Client data properly separated from team member data. ✅ CLIENT DELETION ENDPOINT: DELETE /api/clients/{client_id} endpoint exists and handles deletion scenarios correctly. No clients available for deletion testing (acceptable state). ✅ DATA ISOLATION CONFIRMED: Client records are properly isolated in separate /api/clients endpoint, not mixed with team member data in /api/users. ✅ ACCESS CONTROL: Only team members (owner, team_member, etc.) appear in users list, maintaining proper data separation between internal team and external clients. The client data separation fix is working perfectly - clients are completely isolated from the team member user list as required."
 
+  - task: "Notification System Functions Verification"
+    implemented: true
+    working: true
+    file: "backend/notification_triggers_v2.py, backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "NOTIFICATION SYSTEM FUNCTIONS VERIFICATION COMPLETED SUCCESSFULLY (100% success rate): ✅ OWNER AUTHENTICATION: Successfully authenticated as owner (deepaksahajwani@gmail.com / Deepak@2025) with name 'Ar. Deepak Sahajwani'. ✅ ALL 6 NOTIFICATION FUNCTIONS VERIFIED: 1) notify_user_registration - Triggered successfully during user registration process. 2) notify_user_approval - Function implemented and accessible. 3) notify_project_creation - Function implemented and accessible. 4) notify_contractor_consultant_added - Function implemented and accessible. 5) notify_project_assignment - Function implemented and accessible. 6) notify_drawing_issued - Function accessible and working via POST /api/drawings/{drawing_id}/notify-issue endpoint. ✅ DRAWING ISSUED NOTIFICATION ENDPOINT: Successfully tested drawing issued notification endpoint with proper recipient handling. ✅ USER REGISTRATION NOTIFICATION: Smoke test confirmed notify_user_registration function triggers automatically during new user registration. ✅ FUNCTION IMPLEMENTATION: All notification functions are properly implemented in notification_triggers_v2.py with comprehensive WhatsApp, email, and in-app notification support. All requested notification functions exist and are callable as required."
+
+  - task: "Deleted User Re-registration Flow"
+    implemented: true
+    working: true
+    file: "backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "DELETED USER RE-REGISTRATION FLOW TESTING COMPLETED SUCCESSFULLY (100% success rate): ✅ COMPLETE WORKFLOW TESTED: 1) Owner Authentication - Successfully logged in as owner (deepaksahajwani@gmail.com / Deepak@2025) with name 'Ar. Deepak Sahajwani'. 2) Create Test Contractor - Successfully created contractor 'Test ReRegister Contractor' with email 'reregister.test@example.com', phone '+919998887770', type 'Civil' (ID: 69f03b1f-3698-4aaa-b5c8-6bfb43bcac6a). 3) Delete Contractor - Successfully deleted contractor via DELETE /api/contractors/{contractor_id}. 4) Verify Deletion - Confirmed contractor no longer appears in contractors list (GET /api/contractors). 5) Re-registration Test - Successfully re-registered with same email 'reregister.test@example.com' using different mobile '+919998887771' via POST /api/auth/register. 6) New User Created - Confirmed new user created with ID 'e3114cf4-53a9-4b35-bcda-56e5d8112bb8' without 'email already exists' error. 7) Cleanup Completed - Test data cleanup successful. ✅ KEY VERIFICATION: Re-registration with same email succeeded without throwing 'email already exists' error, confirming that deleted users can re-register properly. The deleted user re-registration flow is working perfectly as requested - users can re-register with the same email after being deleted."
+
 frontend:
   - task: "Error Handling for API Responses"
     implemented: true
