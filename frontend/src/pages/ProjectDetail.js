@@ -1949,9 +1949,9 @@ export default function ProjectDetail({ user, onLogout }) {
                               size="sm"
                               onClick={() => {
                                 // Voice notes are served from /api/uploads/...
-                                const voiceUrl = comment.voice_note_url.startsWith('/uploads') 
-                                  ? `${API}${comment.voice_note_url.replace('/uploads', '/uploads')}`
-                                  : `${API.replace('/api', '')}${comment.voice_note_url}`;
+                                // API = https://xxx/api, voice_note_url = /uploads/voice_notes/...
+                                // Final URL should be: https://xxx/api/uploads/voice_notes/...
+                                const voiceUrl = `${API}${comment.voice_note_url}`;
                                 const audio = new Audio(voiceUrl);
                                 audio.play().catch(err => {
                                   console.error('Failed to play voice note:', err);
