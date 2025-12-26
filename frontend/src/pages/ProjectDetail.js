@@ -1943,27 +1943,23 @@ export default function ProjectDetail({ user, onLogout }) {
                         
                         {/* Voice Note */}
                         {comment.voice_note_url && (
-                          <div className="mt-3 flex items-center gap-2 bg-blue-50 px-3 py-2 rounded-lg border border-blue-200">
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => {
-                                // Voice notes are served from /api/uploads/...
-                                // API = https://xxx/api, voice_note_url = /uploads/voice_notes/...
-                                // Final URL should be: https://xxx/api/uploads/voice_notes/...
-                                const voiceUrl = `${API}${comment.voice_note_url}`;
-                                const audio = new Audio(voiceUrl);
-                                audio.play().catch(err => {
-                                  console.error('Failed to play voice note:', err);
-                                  toast.error('Failed to play voice note');
-                                });
-                              }}
-                              className="text-blue-700 hover:bg-blue-100 h-8 px-2"
-                            >
-                              <Play className="w-4 h-4 mr-1" />
-                              Play Voice Note
-                            </Button>
-                            <span className="text-sm text-blue-600">🎙️</span>
+                          <div className="mt-3 bg-gradient-to-r from-blue-50 to-indigo-50 px-4 py-3 rounded-lg border border-blue-200">
+                            <div className="flex items-center gap-3">
+                              <div className="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center">
+                                <Mic className="w-4 h-4 text-white" />
+                              </div>
+                              <div className="flex-1">
+                                <p className="text-xs text-blue-600 font-medium mb-1">Voice Note</p>
+                                <audio 
+                                  controls 
+                                  className="w-full h-8"
+                                  src={`${API}${comment.voice_note_url}`}
+                                  preload="metadata"
+                                >
+                                  Your browser does not support audio playback.
+                                </audio>
+                              </div>
+                            </div>
                           </div>
                         )}
                         
