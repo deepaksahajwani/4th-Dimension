@@ -2,14 +2,13 @@ import { useState, useEffect } from 'react';
 import { 
   Book, FileText, Video, Download, ExternalLink, Search,
   FolderOpen, Bookmark, CheckCircle, Clock, Star,
-  FileImage, FilePdf, FileSpreadsheet, Presentation
+  FileImage, File, FileSpreadsheet, Presentation
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../components/ui/card';
 import { Input } from '../components/ui/input';
 import { Button } from '../components/ui/button';
 import { Badge } from '../components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
-import api from '../api/axios';
 
 // Resource categories with icons and colors
 const CATEGORIES = {
