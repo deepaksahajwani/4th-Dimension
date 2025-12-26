@@ -71,6 +71,15 @@ UPLOAD_DIR.mkdir(exist_ok=True)
 # Logger setup
 logger = logging.getLogger(__name__)
 
+# Email Configuration - Consistent sender name for all emails
+EMAIL_SENDER_ADDRESS = os.getenv('SENDER_EMAIL', 'contact@4thdimensionarchitect.com')
+EMAIL_SENDER_NAME = "4th Dimension Architects"
+
+def get_email_sender():
+    """Get SendGrid Email object with consistent sender name"""
+    from sendgrid.helpers.mail import Email
+    return Email(EMAIL_SENDER_ADDRESS, EMAIL_SENDER_NAME)
+
 # Create the main app without a prefix
 app = FastAPI(title="Architecture Firm Management System")
 
