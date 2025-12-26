@@ -116,6 +116,8 @@ async def notify_user_approval(user_id: str):
         user_name = user.get('name')
         user_email = user.get('email')
         user_mobile = user.get('mobile')
+        user_role = user.get('role', 'team_member')
+        user_designation = user.get('designation') or user_role.replace('_', ' ').title()
         
         # Get owner
         owner = await db.users.find_one({"is_owner": True}, {"_id": 0})
