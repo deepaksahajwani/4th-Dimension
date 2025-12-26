@@ -2892,7 +2892,7 @@ export default function ProjectDetail({ user, onLogout }) {
                     </div>
                   </div>
                   <p className="text-xs text-orange-600">
-                    An invitation will be sent to the contractor's phone
+                    An invitation will be sent to the contractor&apos;s phone
                   </p>
                 </div>
               )}
