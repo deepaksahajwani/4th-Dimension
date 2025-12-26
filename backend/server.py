@@ -1555,7 +1555,7 @@ async def send_approval_notification(user: dict, approved: bool):
                             <p style="margin: 0; color: #991B1B;">After careful review, we regret to inform you that we are unable to approve your registration at this time.</p>
                         </div>
                         
-                        <p style="font-size: 16px;">If you believe this is an error or have any questions, please contact us at <a href="mailto:{sender_email}" style="color: #4F46E5;">{sender_email}</a>.</p>
+                        <p style="font-size: 16px;">If you believe this is an error or have any questions, please contact us at <a href="mailto:contact@4thdimensionarchitect.com" style="color: #4F46E5;">contact@4thdimensionarchitect.com</a>.</p>
                         
                         <div style="margin-top: 40px; padding-top: 25px; border-top: 2px solid #E5E7EB; text-align: center; color: #6B7280; font-size: 13px;">
                             <p style="margin: 5px 0;"><strong style="color: #4F46E5;">4th Dimension - Architecture & Design</strong></p>
