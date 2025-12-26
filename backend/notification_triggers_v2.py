@@ -153,7 +153,7 @@ async def notify_user_approval(user_id: str):
             if not whatsapp_sent:
                 sms_message = f"""🎉 Welcome to 4th Dimension, {user_name}!
 
-Your registration has been approved. You are now part of the 4th Dimension family as a {designation}.
+Your registration has been approved. You are now part of the 4th Dimension family as {user_designation}.
 
 Login to your account: {APP_URL}
 
