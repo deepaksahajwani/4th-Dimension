@@ -5576,6 +5576,328 @@ class BackendTester:
         
         return passed == total if total > 0 else False
 
+    def test_project_team_management(self):
+        """Test Project Team Management feature as requested in review"""
+        print(f"\n👥 Testing Project Team Management Feature")
+        print("=" * 60)
+        
+        # Step 1: Login as owner with provided credentials
+        try:
+            print("Step 1: Login as owner...")
+            owner_credentials = {
+                "email": "deepaksahajwani@gmail.com",
+                "password": "Deepak@2025"
+            }
+            
+            login_response = self.session.post(f"{BACKEND_URL}/auth/login", json=owner_credentials)
+            
+            if login_response.status_code == 200:
+                login_data = login_response.json()
+                self.owner_token = login_data["access_token"]
+                self.log_result("Project Team - Owner Login", True, 
+                              f"Owner authenticated successfully: {login_data.get('user', {}).get('name', 'N/A')}")
+            else:
+                self.log_result("Project Team - Owner Login", False, 
+                              f"Owner login failed: {login_response.status_code} - {login_response.text}")
+                return
+                
+        except Exception as e:
+            self.log_result("Project Team - Owner Login", False, f"Exception: {str(e)}")
+            return
+
+        owner_headers = {"Authorization": f"Bearer {self.owner_token}"}
+        
+        # Step 2: Get contractor types
+        try:
+            print("Step 2: Get contractor types...")
+            contractor_types_response = self.session.get(f"{BACKEND_URL}/contractor-types", headers=owner_headers)
+            
+            if contractor_types_response.status_code == 200:
+                contractor_types = contractor_types_response.json()
+                
+                # Verify expected contractor types exist
+                expected_types = ["Civil", "Plumbing", "Electrical"]
+                found_types = [ct.get("value") for ct in contractor_types if isinstance(ct, dict)]
+                
+                if all(expected_type in found_types for expected_type in expected_types):
+                    self.log_result("Project Team - Get Contractor Types", True, 
+                                  f"Found {len(contractor_types)} contractor types including Civil, Plumbing, Electrical")
+                else:
+                    self.log_result("Project Team - Get Contractor Types", False, 
+                                  f"Missing expected contractor types. Found: {found_types}")
+            else:
+                self.log_result("Project Team - Get Contractor Types", False, 
+                              f"Failed to get contractor types: {contractor_types_response.status_code}")
+                return
+                
+        except Exception as e:
+            self.log_result("Project Team - Get Contractor Types", False, f"Exception: {str(e)}")
+            return
+
+        # Step 3: Get consultant types
+        try:
+            print("Step 3: Get consultant types...")
+            consultant_types_response = self.session.get(f"{BACKEND_URL}/consultant-types", headers=owner_headers)
+            
+            if consultant_types_response.status_code == 200:
+                consultant_types = consultant_types_response.json()
+                
+                # Verify expected consultant types exist
+                expected_consultant_types = ["Structure", "Landscape"]
+                found_consultant_types = [ct.get("value") for ct in consultant_types if isinstance(ct, dict)]
+                
+                if any(expected_type in found_consultant_types for expected_type in expected_consultant_types):
+                    self.log_result("Project Team - Get Consultant Types", True, 
+                                  f"Found {len(consultant_types)} consultant types including Structure/Landscape")
+                else:
+                    self.log_result("Project Team - Get Consultant Types", False, 
+                                  f"Missing expected consultant types. Found: {found_consultant_types}")
+            else:
+                self.log_result("Project Team - Get Consultant Types", False, 
+                              f"Failed to get consultant types: {consultant_types_response.status_code}")
+                
+        except Exception as e:
+            self.log_result("Project Team - Get Consultant Types", False, f"Exception: {str(e)}")
+
+        # Step 4: Get projects and find one with "Boulevard" in title
+        try:
+            print("Step 4: Get projects and find Boulevard project...")
+            projects_response = self.session.get(f"{BACKEND_URL}/projects", headers=owner_headers)
+            
+            if projects_response.status_code == 200:
+                projects = projects_response.json()
+                
+                # Find project with "Boulevard" in title
+                boulevard_project = None
+                for project in projects:
+                    if "Boulevard" in project.get("title", ""):
+                        boulevard_project = project
+                        break
+                
+                if boulevard_project:
+                    self.project_id = boulevard_project["id"]
+                    self.log_result("Project Team - Find Boulevard Project", True, 
+                                  f"Found Boulevard project: {boulevard_project.get('title')} (ID: {self.project_id})")
+                else:
+                    # Use first available project if no Boulevard project found
+                    if len(projects) > 0:
+                        self.project_id = projects[0]["id"]
+                        self.log_result("Project Team - Find Boulevard Project", True, 
+                                      f"No Boulevard project found, using: {projects[0].get('title')} (ID: {self.project_id})")
+                    else:
+                        self.log_result("Project Team - Find Boulevard Project", False, 
+                                      "No projects found")
+                        return
+            else:
+                self.log_result("Project Team - Find Boulevard Project", False, 
+                              f"Failed to get projects: {projects_response.status_code}")
+                return
+                
+        except Exception as e:
+            self.log_result("Project Team - Find Boulevard Project", False, f"Exception: {str(e)}")
+            return
+
+        # Step 5: Get project team
+        try:
+            print("Step 5: Get project team...")
+            team_response = self.session.get(f"{BACKEND_URL}/projects/{self.project_id}/team", headers=owner_headers)
+            
+            if team_response.status_code == 200:
+                team_data = team_response.json()
+                
+                # Verify team structure
+                expected_fields = ["contractors", "consultants", "co_clients"]
+                if all(field in team_data for field in expected_fields):
+                    contractors_count = len(team_data.get("contractors", []))
+                    consultants_count = len(team_data.get("consultants", []))
+                    co_clients_count = len(team_data.get("co_clients", []))
+                    
+                    self.log_result("Project Team - Get Project Team", True, 
+                                  f"Team structure valid: {contractors_count} contractors, {consultants_count} consultants, {co_clients_count} co-clients")
+                    self.initial_contractors_count = contractors_count
+                else:
+                    self.log_result("Project Team - Get Project Team", False, 
+                                  f"Missing team fields: {[f for f in expected_fields if f not in team_data]}")
+            else:
+                self.log_result("Project Team - Get Project Team", False, 
+                              f"Failed to get project team: {team_response.status_code}")
+                
+        except Exception as e:
+            self.log_result("Project Team - Get Project Team", False, f"Exception: {str(e)}")
+
+        # Step 6: Create a new contractor
+        try:
+            print("Step 6: Create a new contractor...")
+            contractor_data = {
+                "name": "Test Civil Contractor",
+                "phone": "+919876543210",
+                "email": "testcontractor@test.com",
+                "contractor_type": "Civil"
+            }
+            
+            create_contractor_response = self.session.post(f"{BACKEND_URL}/contractors", 
+                                                         json=contractor_data, headers=owner_headers)
+            
+            if create_contractor_response.status_code == 200:
+                created_contractor = create_contractor_response.json()
+                
+                # Verify contractor structure
+                required_fields = ["id", "name", "contractor_type", "phone", "email"]
+                if all(field in created_contractor for field in required_fields):
+                    self.contractor_id = created_contractor["id"]
+                    self.log_result("Project Team - Create Contractor", True, 
+                                  f"Contractor created: {created_contractor['name']} (ID: {self.contractor_id})")
+                else:
+                    self.log_result("Project Team - Create Contractor", False, 
+                                  f"Missing contractor fields: {[f for f in required_fields if f not in created_contractor]}")
+                    return
+            else:
+                self.log_result("Project Team - Create Contractor", False, 
+                              f"Failed to create contractor: {create_contractor_response.status_code} - {create_contractor_response.text}")
+                return
+                
+        except Exception as e:
+            self.log_result("Project Team - Create Contractor", False, f"Exception: {str(e)}")
+            return
+
+        # Step 7: Assign contractor to project
+        try:
+            print("Step 7: Assign contractor to project...")
+            assign_data = {
+                "contractor_id": self.contractor_id,
+                "contractor_type": "Civil",
+                "send_notification": False
+            }
+            
+            assign_response = self.session.post(f"{BACKEND_URL}/projects/{self.project_id}/assign-contractor", 
+                                              json=assign_data, headers=owner_headers)
+            
+            if assign_response.status_code == 200:
+                assign_result = assign_response.json()
+                
+                # Verify assignment response
+                if "message" in assign_result and "contractor" in assign_result:
+                    self.log_result("Project Team - Assign Contractor", True, 
+                                  f"Contractor assigned successfully: {assign_result['message']}")
+                else:
+                    self.log_result("Project Team - Assign Contractor", False, 
+                                  f"Invalid assignment response structure: {assign_result}")
+            else:
+                self.log_result("Project Team - Assign Contractor", False, 
+                              f"Failed to assign contractor: {assign_response.status_code} - {assign_response.text}")
+                
+        except Exception as e:
+            self.log_result("Project Team - Assign Contractor", False, f"Exception: {str(e)}")
+
+        # Step 8: Verify team updated
+        try:
+            print("Step 8: Verify team updated...")
+            updated_team_response = self.session.get(f"{BACKEND_URL}/projects/{self.project_id}/team", headers=owner_headers)
+            
+            if updated_team_response.status_code == 200:
+                updated_team_data = updated_team_response.json()
+                
+                updated_contractors_count = len(updated_team_data.get("contractors", []))
+                
+                # Check if contractor was added
+                if hasattr(self, 'initial_contractors_count') and updated_contractors_count > self.initial_contractors_count:
+                    # Find our contractor in the list
+                    our_contractor = None
+                    for contractor in updated_team_data.get("contractors", []):
+                        if contractor.get("id") == self.contractor_id:
+                            our_contractor = contractor
+                            break
+                    
+                    if our_contractor:
+                        self.log_result("Project Team - Verify Team Updated", True, 
+                                      f"Contractor successfully added to team. Total contractors: {updated_contractors_count}")
+                    else:
+                        self.log_result("Project Team - Verify Team Updated", False, 
+                                      "Contractor count increased but our contractor not found in team")
+                else:
+                    self.log_result("Project Team - Verify Team Updated", False, 
+                                  f"Contractor count did not increase. Before: {getattr(self, 'initial_contractors_count', 'N/A')}, After: {updated_contractors_count}")
+            else:
+                self.log_result("Project Team - Verify Team Updated", False, 
+                              f"Failed to get updated team: {updated_team_response.status_code}")
+                
+        except Exception as e:
+            self.log_result("Project Team - Verify Team Updated", False, f"Exception: {str(e)}")
+
+        # Step 9: Unassign contractor
+        try:
+            print("Step 9: Unassign contractor...")
+            unassign_response = self.session.delete(f"{BACKEND_URL}/projects/{self.project_id}/unassign-contractor/Civil", 
+                                                   headers=owner_headers)
+            
+            if unassign_response.status_code == 200:
+                unassign_result = unassign_response.json()
+                
+                if "message" in unassign_result:
+                    self.log_result("Project Team - Unassign Contractor", True, 
+                                  f"Contractor unassigned successfully: {unassign_result['message']}")
+                else:
+                    self.log_result("Project Team - Unassign Contractor", False, 
+                                  f"Invalid unassign response: {unassign_result}")
+            else:
+                self.log_result("Project Team - Unassign Contractor", False, 
+                              f"Failed to unassign contractor: {unassign_response.status_code} - {unassign_response.text}")
+                
+        except Exception as e:
+            self.log_result("Project Team - Unassign Contractor", False, f"Exception: {str(e)}")
+
+        # Step 10: Cleanup - Delete the test contractor
+        try:
+            print("Step 10: Cleanup - Delete test contractor...")
+            if hasattr(self, 'contractor_id'):
+                delete_response = self.session.delete(f"{BACKEND_URL}/contractors/{self.contractor_id}", 
+                                                    headers=owner_headers)
+                
+                if delete_response.status_code == 200:
+                    self.log_result("Project Team - Cleanup Contractor", True, 
+                                  "Test contractor deleted successfully")
+                else:
+                    self.log_result("Project Team - Cleanup Contractor", False, 
+                                  f"Failed to delete contractor: {delete_response.status_code}")
+            else:
+                self.log_result("Project Team - Cleanup Contractor", False, 
+                              "No contractor ID available for cleanup")
+                
+        except Exception as e:
+            self.log_result("Project Team - Cleanup Contractor", False, f"Exception: {str(e)}")
+
+        print("✅ Project Team Management feature testing completed")
+
+    def run_project_team_management_tests(self):
+        """Run only the Project Team Management tests"""
+        print(f"🚀 Starting Project Team Management Tests")
+        print(f"Backend URL: {BACKEND_URL}")
+        print("=" * 60)
+        
+        self.test_project_team_management()
+        
+        # Summary
+        print("=" * 60)
+        print("📊 PROJECT TEAM MANAGEMENT TEST SUMMARY")
+        print("=" * 60)
+        
+        team_tests = [result for result in self.test_results if "Project Team" in result["test"]]
+        passed = sum(1 for result in team_tests if result["success"])
+        total = len(team_tests)
+        
+        print(f"Project Team Management Tests: {total}")
+        print(f"Passed: {passed}")
+        print(f"Failed: {total - passed}")
+        print(f"Success Rate: {(passed/total)*100:.1f}%" if total > 0 else "No tests run")
+        
+        if total - passed > 0:
+            print("\n❌ FAILED PROJECT TEAM MANAGEMENT TESTS:")
+            for result in team_tests:
+                if not result["success"]:
+                    print(f"  - {result['test']}: {result['details']}")
+        
+        return passed == total if total > 0 else False
+
     def run_drawing_management_tests(self):
         """Run only the drawing management tests"""
         print(f"🚀 Starting Drawing Management API Tests")
