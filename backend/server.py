@@ -782,7 +782,6 @@ async def public_register(registration_data: PublicRegistration):
         await db.pending_registrations.insert_one(pending_registration)
         
         # Send email OTP
-        sender_email = os.getenv('SENDER_EMAIL')
         html_content = f"""
         <html>
             <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
