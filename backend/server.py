@@ -1103,7 +1103,7 @@ async def send_approval_request_email(owner_email: str, user_data: dict):
         from sendgrid.helpers.mail import Mail
         
         message = Mail(
-            from_email=sender_email,
+            from_email=get_email_sender(),
             to_emails=owner_email,
             subject=f'New Registration - {user_data["name"]} ({user_data["role"].replace("_", " ").title()})',
             html_content=html_content
