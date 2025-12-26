@@ -260,7 +260,7 @@ async def upload_resource_file(
                 "file_name": file.filename,
                 "file_size": len(content),
                 "mime_type": content_type,
-                "type": allowed_types[content_type],
+                "type": file_type,
                 "updated_at": datetime.now(timezone.utc).isoformat()
             }}
         )
