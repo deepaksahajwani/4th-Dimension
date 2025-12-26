@@ -140,17 +140,27 @@ export default function ProjectDetail({ user, onLogout }) {
     try {
       // Add timestamp to prevent caching
       const timestamp = Date.now();
-      const [projectRes, drawingsRes, brandCategoriesRes, usersRes] = await Promise.all([
+      const [projectRes, drawingsRes, brandCategoriesRes, usersRes, teamRes, contractorsRes, consultantsRes, contractorTypesRes, consultantTypesRes] = await Promise.all([
         axios.get(`${API}/projects/${projectId}?t=${timestamp}`),
         axios.get(`${API}/projects/${projectId}/drawings?t=${timestamp}`),
         axios.get(`${API}/brand-categories`),
-        axios.get(`${API}/users`)
+        axios.get(`${API}/users`),
+        axios.get(`${API}/projects/${projectId}/team?t=${timestamp}`).catch(() => ({ data: { contractors: [], consultants: [], co_clients: [] } })),
+        axios.get(`${API}/contractors`).catch(() => ({ data: [] })),
+        axios.get(`${API}/consultants`).catch(() => ({ data: [] })),
+        axios.get(`${API}/contractor-types`).catch(() => ({ data: [] })),
+        axios.get(`${API}/consultant-types`).catch(() => ({ data: [] }))
       ]);
       
       setProject(projectRes.data);
       setDrawings(drawingsRes.data);
       setBrandCategories(brandCategoriesRes.data);
       setAllTeamMembers(usersRes.data);
+      setProjectTeam(teamRes.data);
+      setAllContractors(contractorsRes.data);
+      setAllConsultants(consultantsRes.data);
+      setContractorTypes(contractorTypesRes.data);
+      setConsultantTypes(consultantTypesRes.data);
       
       // Find team leader
       if (projectRes.data.lead_architect_id) {
