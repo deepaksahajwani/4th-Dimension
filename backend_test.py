@@ -6611,10 +6611,12 @@ if __name__ == "__main__":
             success = tester.run_drawing_tests_only()
         elif sys.argv[1] == "team":
             success = tester.run_project_team_management_tests()
+        elif sys.argv[1] == "notification":
+            success = tester.run_notification_and_reregistration_tests()
         else:
             success = tester.run_all_tests()
     else:
-        # Default to Project Team Management tests for this specific review request
-        success = tester.run_project_team_management_tests()
+        # Default to notification and re-registration tests for this specific review request
+        success = tester.run_notification_and_reregistration_tests()
     
     sys.exit(0 if success else 1)
