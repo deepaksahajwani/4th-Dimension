@@ -14,7 +14,9 @@ import { Label } from '../components/ui/label';
 import { Textarea } from '../components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
 import { toast } from 'sonner';
-import api from '../api/axios';
+import axios from 'axios';
+
+const API_URL = process.env.REACT_APP_BACKEND_URL;
 
 const CATEGORIES = {
   onboarding: { label: 'Onboarding', icon: CheckCircle, color: 'bg-green-100 text-green-700' },
