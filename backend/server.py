@@ -1169,7 +1169,7 @@ async def send_registration_complete_email(user_data: dict):
         from sendgrid.helpers.mail import Mail
         
         message = Mail(
-            from_email=sender_email,
+            from_email=get_email_sender(),
             to_emails=user_data['email'],
             subject='Welcome to 4th Dimension Family!',
             html_content=html_content
