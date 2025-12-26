@@ -441,6 +441,12 @@ async def require_admin(current_user: User = Depends(get_current_user)):
         raise HTTPException(status_code=403, detail="Only owner or administrator can perform this action")
     return current_user
 
+async def require_owner_or_team_leader(current_user: User = Depends(get_current_user)):
+    """Allow owner or team members (who can be team leaders)"""
+    if not current_user.is_owner and current_user.role != 'team_member':
+        raise HTTPException(status_code=403, detail="Only owner or team leader can perform this action")
+    return current_user
+
 
 # ==================== AUTH ROUTES ====================
 
