@@ -7,12 +7,16 @@ import string
 from datetime import datetime, timezone, timedelta
 from typing import Optional, Tuple
 from sendgrid import SendGridAPIClient
-from sendgrid.helpers.mail import Mail
+from sendgrid.helpers.mail import Mail, Email
 from twilio.rest import Client
 
 # Initialize clients
 sendgrid_client = SendGridAPIClient(os.getenv('SENDGRID_API_KEY'))
 twilio_client = Client(os.getenv('TWILIO_ACCOUNT_SID'), os.getenv('TWILIO_AUTH_TOKEN'))
+
+# Email sender with display name
+SENDER_EMAIL = os.getenv('SENDER_EMAIL', 'contact@4thdimensionarchitect.com')
+SENDER_NAME = "4th Dimension Architects"
 
 def generate_otp(length: int = 6) -> str:
     """Generate a random OTP code"""
