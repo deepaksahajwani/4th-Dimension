@@ -3912,6 +3912,271 @@ async def get_contractor_types():
     """Get list of predefined contractor types"""
     return [{"value": t.value, "label": t.value} for t in ContractorType]
 
+@api_router.get("/consultant-types")
+async def get_consultant_types():
+    """Get list of predefined consultant types"""
+    return [{"value": t.value, "label": t.value} for t in ConsultantType]
+
+# ==================== PROJECT TEAM MANAGEMENT ROUTES ====================
+
+@api_router.get("/projects/{project_id}/team")
+async def get_project_team(
+    project_id: str,
+    current_user: User = Depends(get_current_user)
+):
+    """Get all team members assigned to a project (contractors, consultants, co-clients)"""
+    project = await db.projects.find_one({"id": project_id, "deleted_at": None}, {"_id": 0})
+    if not project:
+        raise HTTPException(status_code=404, detail="Project not found")
+    
+    team = {
+        "contractors": [],
+        "consultants": [],
+        "co_clients": [],
+        "team_leader": None
+    }
+    
+    # Get assigned contractors
+    assigned_contractors = project.get('assigned_contractors', {})
+    for contractor_type, contractor_id in assigned_contractors.items():
+        if contractor_id:
+            contractor = await db.contractors.find_one({"id": contractor_id, "deleted_at": None}, {"_id": 0})
+            if contractor:
+                contractor['assigned_type'] = contractor_type
+                team['contractors'].append(contractor)
+    
+    # Get assigned consultants from project fields
+    consultant_fields = {
+        'structural_consultant': 'Structural',
+        'electrical_consultant': 'Electrical',
+        'plumbing_consultant': 'Plumbing',
+        'landscape_consultant': 'Landscape',
+        'automation_consultant': 'Automation'
+    }
+    
+    for field, consultant_type in consultant_fields.items():
+        consultant_info = project.get(field)
+        if consultant_info and isinstance(consultant_info, dict):
+            # Check if it has an ID (linked to consultant record)
+            if consultant_info.get('id'):
+                consultant = await db.consultants.find_one({"id": consultant_info['id'], "deleted_at": None}, {"_id": 0})
+                if consultant:
+                    consultant['assigned_type'] = consultant_type
+                    team['consultants'].append(consultant)
+            elif consultant_info.get('name'):
+                # Contact info style (not linked to consultant record)
+                team['consultants'].append({
+                    'name': consultant_info.get('name'),
+                    'phone': consultant_info.get('phone'),
+                    'email': consultant_info.get('email'),
+                    'assigned_type': consultant_type,
+                    'is_contact_only': True
+                })
+    
+    # Get co-clients
+    co_clients = await db.co_clients.find(
+        {"project_id": project_id, "deleted_at": None},
+        {"_id": 0}
+    ).to_list(100)
+    team['co_clients'] = co_clients
+    
+    # Get team leader
+    if project.get('team_leader_id'):
+        team_leader = await db.users.find_one(
+            {"id": project['team_leader_id']},
+            {"_id": 0, "password": 0}
+        )
+        team['team_leader'] = team_leader
+    
+    return team
+
+@api_router.post("/projects/{project_id}/assign-contractor")
+async def assign_contractor_to_project(
+    project_id: str,
+    contractor_id: str = Body(...),
+    contractor_type: str = Body(...),
+    send_notification: bool = Body(True),
+    current_user: User = Depends(require_owner_or_team_leader)
+):
+    """Assign a contractor to a project"""
+    # Verify project exists
+    project = await db.projects.find_one({"id": project_id, "deleted_at": None}, {"_id": 0})
+    if not project:
+        raise HTTPException(status_code=404, detail="Project not found")
+    
+    # Verify contractor exists
+    contractor = await db.contractors.find_one({"id": contractor_id, "deleted_at": None}, {"_id": 0})
+    if not contractor:
+        raise HTTPException(status_code=404, detail="Contractor not found")
+    
+    # Update project's assigned_contractors
+    assigned_contractors = project.get('assigned_contractors', {})
+    assigned_contractors[contractor_type] = contractor_id
+    
+    await db.projects.update_one(
+        {"id": project_id},
+        {"$set": {
+            "assigned_contractors": assigned_contractors,
+            "updated_at": datetime.now(timezone.utc).isoformat()
+        }}
+    )
+    
+    # Send notification to contractor
+    if send_notification:
+        try:
+            from notification_triggers_v2 import notify_project_assignment
+            await notify_project_assignment(
+                project=project,
+                person_id=contractor_id,
+                person_type='contractor',
+                role_type=contractor_type
+            )
+        except Exception as e:
+            logger.error(f"Error sending contractor assignment notification: {str(e)}")
+    
+    return {
+        "message": f"{contractor['name']} assigned as {contractor_type} contractor",
+        "contractor": contractor
+    }
+
+@api_router.delete("/projects/{project_id}/unassign-contractor/{contractor_type}")
+async def unassign_contractor_from_project(
+    project_id: str,
+    contractor_type: str,
+    current_user: User = Depends(require_owner_or_team_leader)
+):
+    """Remove a contractor assignment from a project"""
+    project = await db.projects.find_one({"id": project_id, "deleted_at": None}, {"_id": 0})
+    if not project:
+        raise HTTPException(status_code=404, detail="Project not found")
+    
+    assigned_contractors = project.get('assigned_contractors', {})
+    if contractor_type in assigned_contractors:
+        del assigned_contractors[contractor_type]
+        
+        await db.projects.update_one(
+            {"id": project_id},
+            {"$set": {
+                "assigned_contractors": assigned_contractors,
+                "updated_at": datetime.now(timezone.utc).isoformat()
+            }}
+        )
+    
+    return {"message": f"{contractor_type} contractor unassigned from project"}
+
+@api_router.post("/projects/{project_id}/assign-consultant")
+async def assign_consultant_to_project(
+    project_id: str,
+    consultant_id: str = Body(None),
+    consultant_type: str = Body(...),
+    consultant_name: str = Body(None),
+    consultant_phone: str = Body(None),
+    consultant_email: str = Body(None),
+    send_notification: bool = Body(True),
+    current_user: User = Depends(require_owner_or_team_leader)
+):
+    """Assign a consultant to a project (either existing consultant or contact info)"""
+    project = await db.projects.find_one({"id": project_id, "deleted_at": None}, {"_id": 0})
+    if not project:
+        raise HTTPException(status_code=404, detail="Project not found")
+    
+    # Map consultant type to project field
+    field_mapping = {
+        'Structural': 'structural_consultant',
+        'Structure': 'structural_consultant',
+        'Electrical': 'electrical_consultant',
+        'Plumbing': 'plumbing_consultant',
+        'Landscape': 'landscape_consultant',
+        'Automation': 'automation_consultant',
+        'MEP': 'mep_consultant',
+        'Air Conditioning': 'ac_consultant'
+    }
+    
+    field_name = field_mapping.get(consultant_type)
+    if not field_name:
+        field_name = f"{consultant_type.lower().replace(' ', '_')}_consultant"
+    
+    consultant_data = None
+    consultant_record = None
+    
+    if consultant_id:
+        # Link to existing consultant
+        consultant_record = await db.consultants.find_one({"id": consultant_id, "deleted_at": None}, {"_id": 0})
+        if not consultant_record:
+            raise HTTPException(status_code=404, detail="Consultant not found")
+        
+        consultant_data = {
+            "id": consultant_id,
+            "name": consultant_record.get('name'),
+            "phone": consultant_record.get('phone'),
+            "email": consultant_record.get('email')
+        }
+    else:
+        # Create contact info only
+        consultant_data = {
+            "name": consultant_name,
+            "phone": consultant_phone,
+            "email": consultant_email
+        }
+    
+    await db.projects.update_one(
+        {"id": project_id},
+        {"$set": {
+            field_name: consultant_data,
+            "updated_at": datetime.now(timezone.utc).isoformat()
+        }}
+    )
+    
+    # Send notification
+    if send_notification and consultant_id and consultant_record:
+        try:
+            from notification_triggers_v2 import notify_project_assignment
+            await notify_project_assignment(
+                project=project,
+                person_id=consultant_id,
+                person_type='consultant',
+                role_type=consultant_type
+            )
+        except Exception as e:
+            logger.error(f"Error sending consultant assignment notification: {str(e)}")
+    
+    return {
+        "message": f"Consultant assigned as {consultant_type}",
+        "consultant": consultant_data
+    }
+
+@api_router.delete("/projects/{project_id}/unassign-consultant/{consultant_type}")
+async def unassign_consultant_from_project(
+    project_id: str,
+    consultant_type: str,
+    current_user: User = Depends(require_owner_or_team_leader)
+):
+    """Remove a consultant assignment from a project"""
+    project = await db.projects.find_one({"id": project_id, "deleted_at": None}, {"_id": 0})
+    if not project:
+        raise HTTPException(status_code=404, detail="Project not found")
+    
+    field_mapping = {
+        'Structural': 'structural_consultant',
+        'Structure': 'structural_consultant',
+        'Electrical': 'electrical_consultant',
+        'Plumbing': 'plumbing_consultant',
+        'Landscape': 'landscape_consultant',
+        'Automation': 'automation_consultant',
+        'MEP': 'mep_consultant'
+    }
+    
+    field_name = field_mapping.get(consultant_type)
+    if not field_name:
+        field_name = f"{consultant_type.lower().replace(' ', '_')}_consultant"
+    
+    await db.projects.update_one(
+        {"id": project_id},
+        {"$unset": {field_name: ""}}
+    )
+    
+    return {"message": f"{consultant_type} consultant unassigned from project"}
+
 
 # ==================== VENDOR ROUTES ====================
 
