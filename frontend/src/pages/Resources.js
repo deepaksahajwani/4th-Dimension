@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { 
   Book, FileText, Video, Download, ExternalLink, Search,
   FolderOpen, Bookmark, CheckCircle, Clock, Star,
-  FileImage, File, FileSpreadsheet, Presentation, Plus, Trash2, Edit, Upload
+  FileImage, File, FileSpreadsheet, Presentation, Plus, Trash2, Edit, Upload, PenTool
 } from 'lucide-react';
 import { Card, CardContent } from '../components/ui/card';
 import { Input } from '../components/ui/input';
