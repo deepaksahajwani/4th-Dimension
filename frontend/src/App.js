@@ -41,6 +41,7 @@ import Accounting from './pages/Accounting';
 import Drawings from './pages/Drawings';
 import Tasks from './pages/Tasks';
 import Settings from './pages/Settings';
+import Resources from './pages/Resources';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
