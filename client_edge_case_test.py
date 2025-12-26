@@ -7,7 +7,7 @@ import requests
 import json
 import uuid
 
-BACKEND_URL = "https://tasktracker-bugs.preview.emergentagent.com/api"
+BACKEND_URL = "https://designresources.preview.emergentagent.com/api"
 
 def test_edge_cases():
     """Test edge cases for project_types field"""

@@ -13,7 +13,7 @@ from whatsapp_templates import WHATSAPP_TEMPLATES
 
 logger = logging.getLogger(__name__)
 
-APP_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://tasktracker-bugs.preview.emergentagent.com')
+APP_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://designresources.preview.emergentagent.com')
 
 # WhatsApp Business Number
 WHATSAPP_NUMBER = "+917016779166"
