@@ -360,8 +360,8 @@ def get_welcome_email_content(user: dict, login_url: str) -> tuple[str, str]:
         </html>
         """
     
-    elif role == 'consultant':
-        subject = "Welcome to 4th Dimension Consultant Network 🎓"
+    elif role_category == 'consultant':
+        subject = f"Welcome to 4th Dimension - {display_role}! 🎓"
         html_content = f"""
         <html>
             <head>
@@ -377,7 +377,12 @@ def get_welcome_email_content(user: dict, login_url: str) -> tuple[str, str]:
                     
                     <h2 style="color: #1F2937; font-size: 24px;">Dear {name},</h2>
                     
-                    <p style="font-size: 16px; line-height: 1.8;">Welcome to the 4th Dimension consultant network! We're honored to collaborate with your expertise. Your specialized knowledge will be instrumental in delivering exceptional projects and innovative solutions to our clients.</p>
+                    <div style="background: #E0E7FF; padding: 20px; border-radius: 10px; margin: 20px 0; text-align: center; border: 2px solid #6366F1;">
+                        <p style="margin: 0; font-size: 14px; color: #4338CA;">Your Specialization</p>
+                        <p style="margin: 10px 0 0 0; font-size: 24px; font-weight: bold; color: #4F46E5;">{display_role}</p>
+                    </div>
+                    
+                    <p style="font-size: 16px; line-height: 1.8;">Welcome to the 4th Dimension consultant network as our <strong>{display_role}</strong>! We're honored to collaborate with your expertise. Your specialized knowledge will be instrumental in delivering exceptional projects and innovative solutions to our clients.</p>
                     
                     <div style="{section_style}">
                         <h3 style="color: #4F46E5; margin-top: 0;">🌟 Collaboration Value</h3>
