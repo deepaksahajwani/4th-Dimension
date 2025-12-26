@@ -198,25 +198,51 @@ async def upload_resource_file(
         
         # Validate file type
         allowed_types = {
+            # Documents
             "application/pdf": "pdf",
             "application/msword": "document",
             "application/vnd.openxmlformats-officedocument.wordprocessingml.document": "document",
+            # Spreadsheets
             "application/vnd.ms-excel": "spreadsheet",
             "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": "spreadsheet",
+            # Presentations
             "application/vnd.ms-powerpoint": "presentation",
             "application/vnd.openxmlformats-officedocument.presentationml.presentation": "presentation",
+            # Images
             "image/jpeg": "image",
             "image/png": "image",
+            # Videos
             "video/mp4": "video",
-            "video/webm": "video"
+            "video/webm": "video",
+            # CAD Files (AutoCAD)
+            "application/acad": "cad",
+            "application/x-acad": "cad",
+            "application/autocad_dwg": "cad",
+            "application/dwg": "cad",
+            "application/x-dwg": "cad",
+            "image/vnd.dwg": "cad",
+            "image/x-dwg": "cad",
+            "application/octet-stream": "cad",  # DWG files often come as octet-stream
+            # Other CAD formats
+            "application/dxf": "cad",
+            "application/x-dxf": "cad",
         }
         
+        # Also allow by file extension for CAD files (since MIME types can be unreliable)
+        file_ext = file.filename.split(".")[-1].lower() if "." in file.filename else ""
+        cad_extensions = ['dwg', 'dxf', 'dwt', 'dws']
+        
         content_type = file.content_type
-        if content_type not in allowed_types:
-            raise HTTPException(status_code=400, detail=f"File type {content_type} not allowed")
+        if content_type not in allowed_types and file_ext not in cad_extensions:
+            raise HTTPException(status_code=400, detail=f"File type {content_type} (.{file_ext}) not allowed")
+        
+        # Determine file type
+        if file_ext in cad_extensions:
+            file_type = "cad"
+        else:
+            file_type = allowed_types.get(content_type, "document")
         
         # Generate unique filename
-        file_ext = file.filename.split(".")[-1] if "." in file.filename else ""
         unique_filename = f"{resource_id}_{uuid4().hex[:8]}.{file_ext}"
         file_path = os.path.join(UPLOAD_DIR, unique_filename)
         
