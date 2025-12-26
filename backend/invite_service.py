@@ -1,13 +1,15 @@
 """
-Invite Service - Send invitations via SMS with WhatsApp opt-in instructions
-Since WhatsApp Business API requires user to message first (24-hour window rule),
-we send SMS inviting them to connect on WhatsApp for future notifications.
+Invite Service - Send invitations via WhatsApp (preferred) or SMS (fallback)
+Strategy:
+1. Try WhatsApp first (works if recipient is in 24-hour window or template is approved)
+2. Fall back to SMS if WhatsApp fails
 """
 
 import os
 import logging
 from typing import Optional
 from notification_service import notification_service
+from whatsapp_templates import WHATSAPP_TEMPLATES
 
 logger = logging.getLogger(__name__)
 
@@ -33,7 +35,7 @@ async def send_registration_invite(
     invited_by_name: str
 ) -> dict:
     """
-    Send invitation via SMS with WhatsApp opt-in instructions
+    Send invitation - tries WhatsApp first, falls back to SMS
     
     Args:
         name: Name of person being invited
@@ -51,7 +53,68 @@ async def send_registration_invite(
         # Get human-readable invitee type
         invitee_label = INVITEE_TYPE_LABELS.get(invitee_type, invitee_type.replace('_', ' ').title())
         
-        # Create SMS message with WhatsApp opt-in
+        # WhatsApp message (freeform - works if recipient is in 24hr window)
+        whatsapp_message = f"""🎉 *Welcome to 4th Dimension!*
+
+Hi {name}!
+
+{invited_by_name} has invited you to join as a *{invitee_label}*.
+
+📱 *Register here:*
+{registration_url}
+
+Once registered, you'll be able to:
+• View your projects and drawings
+• Receive real-time updates
+• Collaborate with the team
+
+We look forward to working with you!
+
+_- 4th Dimension Architects_"""
+
+        # Try WhatsApp first
+        whatsapp_result = await notification_service.send_whatsapp(
+            phone_number=phone,
+            message=whatsapp_message
+        )
+        
+        if whatsapp_result.get('success'):
+            logger.info(f"WhatsApp invite sent to {name} ({phone}) as {invitee_type}")
+            return {
+                "success": True,
+                "message": f"WhatsApp invite sent to {name}",
+                "message_sid": whatsapp_result.get('message_sid'),
+                "channel": "whatsapp"
+            }
+        
+        # WhatsApp failed (likely outside 24hr window), try template
+        logger.info(f"WhatsApp freeform failed for {phone}, trying template...")
+        template_sid = WHATSAPP_TEMPLATES.get("invitation")
+        
+        if template_sid:
+            template_result = await notification_service.send_whatsapp_template(
+                phone_number=phone,
+                content_sid=template_sid,
+                content_variables={
+                    "1": name,
+                    "2": invited_by_name,
+                    "3": invitee_label,
+                    "4": registration_url
+                }
+            )
+            
+            if template_result.get('success'):
+                logger.info(f"WhatsApp template invite sent to {name} ({phone}) as {invitee_type}")
+                return {
+                    "success": True,
+                    "message": f"WhatsApp invite sent to {name}",
+                    "message_sid": template_result.get('message_sid'),
+                    "channel": "whatsapp_template"
+                }
+        
+        # Both WhatsApp methods failed, fall back to SMS
+        logger.info(f"WhatsApp failed for {phone}, falling back to SMS...")
+        
         sms_message = f"""Hi {name}!
 
 {invited_by_name} from 4th Dimension Architects has invited you to join as a {invitee_label}.
@@ -65,25 +128,24 @@ Save our number {WHATSAPP_NUMBER} and send "Hi" to receive project notifications
 Welcome aboard!
 - 4th Dimension Architects"""
 
-        # Send SMS
-        result = await notification_service.send_sms(
+        sms_result = await notification_service.send_sms(
             phone_number=phone,
             message=sms_message
         )
         
-        if result.get('success'):
+        if sms_result.get('success'):
             logger.info(f"SMS invite sent to {name} ({phone}) as {invitee_type}")
             return {
                 "success": True,
-                "message": f"SMS invite sent to {name}",
-                "message_sid": result.get('message_sid'),
+                "message": f"SMS invite sent to {name} (WhatsApp unavailable)",
+                "message_sid": sms_result.get('message_sid'),
                 "channel": "sms"
             }
         else:
-            logger.error(f"Failed to send SMS invite: {result.get('error')}")
+            logger.error(f"All invite methods failed for {name} ({phone})")
             return {
                 "success": False,
-                "message": f"Failed to send SMS invite: {result.get('error')}"
+                "message": f"Failed to send invite: {sms_result.get('error')}"
             }
             
     except Exception as e:
@@ -101,11 +163,6 @@ async def send_whatsapp_optin_sms(
 ) -> dict:
     """
     Send SMS asking user to opt-in to WhatsApp notifications
-    
-    Args:
-        name: User's name
-        phone: Phone number
-        context: What notifications they'll receive (e.g., "project updates", "drawing notifications")
     """
     try:
         sms_message = f"""Hi {name}!
