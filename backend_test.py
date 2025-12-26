@@ -5941,10 +5941,12 @@ if __name__ == "__main__":
             success = tester.run_drawing_management_tests()
         elif sys.argv[1] == "issue-revision":
             success = tester.run_drawing_tests_only()
+        elif sys.argv[1] == "team":
+            success = tester.run_project_team_management_tests()
         else:
             success = tester.run_all_tests()
     else:
-        # Default to P0 tests for this specific review request
-        success = tester.run_p0_tests()
+        # Default to Project Team Management tests for this specific review request
+        success = tester.run_project_team_management_tests()
     
     sys.exit(0 if success else 1)
