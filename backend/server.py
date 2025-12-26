@@ -957,7 +957,7 @@ async def set_password_after_otp(password_data: SetPasswordAfterOTP):
                 "address": f"{pending_reg.get('address_line_1', '')}, {pending_reg.get('city', '')}, {pending_reg.get('state', '')}".strip(', '),
                 "created_at": datetime.now(timezone.utc),
                 "created_by": user_id,
-                "notes": "Auto-created from user registration",
+                "notes": "",
                 "archived": False
             }
             await db.clients.insert_one(client_record)
