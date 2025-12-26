@@ -925,3 +925,223 @@ View: {APP_URL}/accounting"""
         
     except Exception as e:
         logger.error(f"Error in notify_fees_received_by_owner: {str(e)}")
+
+
+# ============================================
+# 13. PROJECT TEAM ASSIGNMENT
+# ============================================
+async def notify_project_assignment(
+    project: Dict,
+    person_id: str,
+    person_type: str,  # 'contractor', 'consultant', 'co_client'
+    role_type: str  # 'Civil', 'Structural', 'Spouse', etc.
+):
+    """
+    Trigger: Contractor/Consultant/Co-Client assigned to project
+    Recipients: The assigned person
+    Channels: WhatsApp, SMS (fallback), Email
+    """
+    try:
+        project_title = project.get('title') or project.get('name', 'Untitled Project')
+        owner = await db.users.find_one({"is_owner": True}, {"_id": 0})
+        owner_name = owner.get('name', '4th Dimension Architects') if owner else '4th Dimension Architects'
+        
+        # Get person details based on type
+        person = None
+        collection = None
+        
+        if person_type == 'contractor':
+            person = await db.contractors.find_one({"id": person_id}, {"_id": 0})
+            collection = 'contractors'
+        elif person_type == 'consultant':
+            person = await db.consultants.find_one({"id": person_id}, {"_id": 0})
+            collection = 'consultants'
+        elif person_type == 'co_client':
+            person = await db.co_clients.find_one({"id": person_id}, {"_id": 0})
+            collection = 'co_clients'
+        
+        if not person:
+            logger.warning(f"Person not found: {person_type} {person_id}")
+            return
+        
+        person_name = person.get('name', 'Team Member')
+        person_phone = person.get('phone') or person.get('mobile')
+        person_email = person.get('email')
+        
+        # Create appropriate message based on person type
+        if person_type == 'contractor':
+            whatsapp_message = f"""🏗️ *New Project Assignment*
+
+Hi {person_name}!
+
+You have been assigned as *{role_type} Contractor* for the following project:
+
+📁 *Project:* {project_title}
+📍 *Location:* {project.get('site_address', 'As per discussion')}
+👔 *Firm:* 4th Dimension Architects
+
+*What's Next?*
+• Log in to the 4D portal to view project details and drawings
+• You'll receive notifications for relevant updates
+• Contact us for any queries
+
+Portal: {APP_URL}
+
+Looking forward to a successful collaboration!
+
+Best regards,
+{owner_name}
+_4th Dimension Architects_"""
+            
+            email_subject = f"Project Assignment - {role_type} Contractor for {project_title}"
+            
+        elif person_type == 'consultant':
+            whatsapp_message = f"""🔬 *Consultant Engagement*
+
+Dear {person_name},
+
+We are pleased to engage you as *{role_type} Consultant* for:
+
+📁 *Project:* {project_title}
+📍 *Location:* {project.get('site_address', 'As per discussion')}
+👔 *Firm:* 4th Dimension Architects
+
+*Your Role:*
+• Provide {role_type.lower()} design and consultation
+• Review and approve relevant drawings
+• Coordinate with the project team
+
+Portal Access: {APP_URL}
+
+We look forward to your expert guidance on this project.
+
+Warm regards,
+{owner_name}
+_4th Dimension Architects_"""
+            
+            email_subject = f"Consultant Engagement - {role_type} for {project_title}"
+            
+        else:  # co_client
+            relationship = person.get('relationship', 'Associate')
+            client = await db.users.find_one({"id": project.get('client_id')}, {"_id": 0})
+            client_name = client.get('name', 'the client') if client else 'the client'
+            
+            whatsapp_message = f"""🏠 *Project Access Granted*
+
+Hi {person_name}!
+
+{client_name} has added you as *{relationship}* to their project:
+
+📁 *Project:* {project_title}
+📍 *Location:* {project.get('site_address', 'Your property')}
+
+*As an associate, you can:*
+• View all project drawings and updates
+• Add comments and feedback
+• Track project progress
+
+Log in to view: {APP_URL}
+
+Welcome aboard!
+
+Best regards,
+_4th Dimension Architects_"""
+            
+            email_subject = f"Project Access - {project_title}"
+        
+        # Send WhatsApp notification
+        whatsapp_sent = False
+        if person_phone:
+            try:
+                # Try using template first (for business-initiated)
+                template_sid = WHATSAPP_TEMPLATES.get('invitation')
+                if template_sid:
+                    result = await notification_service.send_whatsapp_template(
+                        phone_number=person_phone,
+                        content_sid=template_sid,
+                        content_variables={
+                            "1": person_name,
+                            "2": owner_name,
+                            "3": f"{role_type} {person_type.replace('_', ' ').title()}",
+                            "4": APP_URL
+                        }
+                    )
+                    whatsapp_sent = result.get('success', False)
+                
+                if not whatsapp_sent:
+                    # Fallback to freeform (works if within 24hr window)
+                    result = await notification_service.send_whatsapp(person_phone, whatsapp_message)
+                    whatsapp_sent = result.get('success', False)
+                    
+            except Exception as e:
+                logger.warning(f"WhatsApp failed for {person_name}: {str(e)}")
+        
+        # Send SMS if WhatsApp failed
+        if not whatsapp_sent and person_phone:
+            sms_message = f"""Hi {person_name}! You've been assigned as {role_type} {person_type.replace('_', ' ')} for project "{project_title}" at 4th Dimension Architects. Login: {APP_URL}"""
+            await notification_service.send_sms(person_phone, sms_message)
+        
+        # Send Email
+        if person_email:
+            email_html = f"""
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <style>
+                    body {{ font-family: 'Segoe UI', Arial, sans-serif; line-height: 1.6; color: #333; }}
+                    .container {{ max-width: 600px; margin: 0 auto; padding: 20px; }}
+                    .header {{ background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }}
+                    .content {{ background: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px; }}
+                    .highlight {{ background: #fff; padding: 20px; border-radius: 8px; border-left: 4px solid #667eea; margin: 20px 0; }}
+                    .button {{ display: inline-block; background: #667eea; color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; margin-top: 20px; }}
+                    .footer {{ text-align: center; margin-top: 20px; color: #666; font-size: 14px; }}
+                </style>
+            </head>
+            <body>
+                <div class="container">
+                    <div class="header">
+                        <h1>{'🏗️ Project Assignment' if person_type == 'contractor' else '🔬 Consultant Engagement' if person_type == 'consultant' else '🏠 Project Access'}</h1>
+                    </div>
+                    <div class="content">
+                        <p>Dear {person_name},</p>
+                        
+                        <div class="highlight">
+                            <p><strong>{'You have been assigned as' if person_type == 'contractor' else 'You have been engaged as' if person_type == 'consultant' else 'You have been added as'}:</strong> {role_type} {person_type.replace('_', ' ').title()}</p>
+                            <p><strong>Project:</strong> {project_title}</p>
+                            <p><strong>Location:</strong> {project.get('site_address', 'As per discussion')}</p>
+                        </div>
+                        
+                        <p>Please log in to the 4D Architects portal to view project details, drawings, and updates.</p>
+                        
+                        <center>
+                            <a href="{APP_URL}" class="button">Access Portal</a>
+                        </center>
+                        
+                        <div class="footer">
+                            <p>Best regards,<br><strong>{owner_name}</strong><br>4th Dimension Architects</p>
+                        </div>
+                    </div>
+                </div>
+            </body>
+            </html>
+            """
+            
+            await notification_service.send_email(
+                to_email=person_email,
+                subject=email_subject,
+                html_content=email_html
+            )
+        
+        logger.info(f"Project assignment notification sent to {person_name} ({person_type})")
+        
+    except Exception as e:
+        logger.error(f"Error in notify_project_assignment: {str(e)}")
+
+
+# Alias for backward compatibility
+async def notify_contractor_consultant_added(project_id: str, person_id: str, person_type: str):
+    """Backward compatible wrapper"""
+    project = await get_project_by_id(project_id)
+    if project:
+        role_type = person_type.title()  # Default role type
+        await notify_project_assignment(project, person_id, person_type, role_type)
