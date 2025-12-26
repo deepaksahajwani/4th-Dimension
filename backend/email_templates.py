@@ -34,6 +34,47 @@ def get_welcome_email_content(user: dict, login_url: str) -> tuple[str, str]:
     user_id = user.get('id', '')
     registered_via = user.get('registered_via', 'email')
     
+    # Format the role for display (e.g., "senior_interior_designer" -> "Senior Interior Designer")
+    display_role = role.replace('_', ' ').title()
+    
+    # Determine the role category for template selection
+    # Team members include various designations
+    team_member_roles = [
+        'team_member', 'owner', 'principal_architect', 'senior_architect', 'junior_architect',
+        'senior_interior_designer', 'junior_interior_designer', 'interior_designer',
+        'project_manager', 'site_engineer', 'draftsman', 'cad_operator',
+        'design_lead', 'design_associate', 'team_lead', 'team_leader'
+    ]
+    
+    # Contractor types
+    contractor_roles = [
+        'contractor', 'furniture_contractor', 'electrical_contractor', 'plumbing_contractor',
+        'civil_contractor', 'painting_contractor', 'flooring_contractor', 'hvac_contractor',
+        'glass_contractor', 'false_ceiling_contractor', 'landscaping_contractor'
+    ]
+    
+    # Consultant types
+    consultant_roles = [
+        'consultant', 'structural_consultant', 'mep_consultant', 'electrical_consultant',
+        'plumbing_consultant', 'hvac_consultant', 'fire_consultant', 'acoustics_consultant',
+        'lighting_consultant', 'landscape_consultant', 'vastu_consultant'
+    ]
+    
+    # Determine category
+    if role in team_member_roles or role in ['owner']:
+        role_category = 'team_member'
+    elif role in contractor_roles or 'contractor' in role:
+        role_category = 'contractor'
+    elif role in consultant_roles or 'consultant' in role:
+        role_category = 'consultant'
+    elif role == 'client':
+        role_category = 'client'
+    elif role == 'vendor':
+        role_category = 'vendor'
+    else:
+        # Default to team member for unrecognized internal roles
+        role_category = 'team_member'
+    
     # Common styling
     header_style = "text-align: center; margin-bottom: 30px;"
     section_style = "background: #F3F4F6; padding: 25px; border-radius: 10px; margin: 25px 0;"
@@ -54,7 +95,7 @@ def get_welcome_email_content(user: dict, login_url: str) -> tuple[str, str]:
     """
     
     # Role-specific content
-    if role == 'client':
+    if role_category == 'client':
         subject = "Welcome to 4th Dimension - Your Architectural Journey Begins! 🏛️"
         html_content = f"""
         <html>
