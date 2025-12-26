@@ -131,10 +131,11 @@ async def notify_user_approval(user_id: str):
         )
         
         # Notify approved user using WhatsApp TEMPLATE (for business-initiated messages)
+        whatsapp_sent = False
         if user_mobile:
             template_sid = WHATSAPP_TEMPLATES.get("user_approved")
             if template_sid:
-                await notification_service.send_whatsapp_template(
+                result = await notification_service.send_whatsapp_template(
                     phone_number=user_mobile,
                     content_sid=template_sid,
                     content_variables={
@@ -142,7 +143,23 @@ async def notify_user_approval(user_id: str):
                         "2": APP_URL
                     }
                 )
-                logger.info(f"WhatsApp template sent to approved user {user_name}")
+                whatsapp_sent = result.get('success', False)
+                if whatsapp_sent:
+                    logger.info(f"WhatsApp template sent to approved user {user_name}")
+            
+            # Fallback to SMS if WhatsApp template failed
+            if not whatsapp_sent:
+                sms_message = f"""🎉 Welcome to 4th Dimension, {user_name}!
+
+Your registration has been approved. You are now part of the 4th Dimension family as a {designation}.
+
+Login to your account: {APP_URL}
+
+Looking forward to working with you!
+- 4th Dimension Architects"""
+                
+                await notification_service.send_sms(user_mobile, sms_message)
+                logger.info(f"SMS approval notification sent to {user_name}")
         
         # Generate professional HTML email template (English only)
         login_url = f"{APP_URL}"
