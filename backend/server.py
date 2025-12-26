@@ -1158,7 +1158,7 @@ async def send_registration_complete_email(user_data: dict):
                         <p style="font-size: 18px; color: #4F46E5; font-weight: bold;">Building Dreams, Creating Realities</p>
                         <p style="margin-top: 15px;">
                             <strong>4th Dimension - Architecture & Design</strong><br>
-                            Contact: {sender_email}
+                            Contact: contact@4thdimensionarchitect.com
                         </p>
                     </div>
                 </div>
