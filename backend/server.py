@@ -735,7 +735,8 @@ async def public_register(registration_data: PublicRegistration):
     """
     try:
         # Check if user already exists with approved status
-        existing_user = await db.users.find_one({"email": registration_data.email}, {"_id": 0})
+        # Note: We check for deleted_at to allow re-registration of deleted users
+        existing_user = await db.users.find_one({"email": registration_data.email, "deleted_at": None}, {"_id": 0})
         if existing_user:
             # Allow re-registration for rejected users
             if existing_user.get('approval_status') == 'rejected':
@@ -745,6 +746,9 @@ async def public_register(registration_data: PublicRegistration):
                 raise HTTPException(status_code=400, detail="Email already registered. Please login instead.")
             elif existing_user.get('approval_status') == 'pending':
                 raise HTTPException(status_code=400, detail="Registration pending approval. Please wait for admin approval.")
+        
+        # Also clean up any soft-deleted user records with the same email
+        await db.users.delete_many({"email": registration_data.email, "deleted_at": {"$ne": None}})
         
         # Check if there's a pending registration
         pending_reg = await db.pending_registrations.find_one({"email": registration_data.email}, {"_id": 0})
