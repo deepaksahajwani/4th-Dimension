@@ -2937,7 +2937,7 @@ async def request_project_deletion_otp(
         from sendgrid.helpers.mail import Mail
         
         message = Mail(
-            from_email=sender_email,
+            from_email=get_email_sender(),
             to_emails=current_user.email,
             subject='🚨 Project Deletion - OTP Verification Required',
             html_content=html_content
