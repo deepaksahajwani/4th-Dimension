@@ -1948,8 +1948,15 @@ export default function ProjectDetail({ user, onLogout }) {
                               variant="ghost"
                               size="sm"
                               onClick={() => {
-                                const audio = new Audio(`${API.replace('/api', '')}${comment.voice_note_url}`);
-                                audio.play();
+                                // Voice notes are served from /api/uploads/...
+                                const voiceUrl = comment.voice_note_url.startsWith('/uploads') 
+                                  ? `${API}${comment.voice_note_url.replace('/uploads', '/uploads')}`
+                                  : `${API.replace('/api', '')}${comment.voice_note_url}`;
+                                const audio = new Audio(voiceUrl);
+                                audio.play().catch(err => {
+                                  console.error('Failed to play voice note:', err);
+                                  toast.error('Failed to play voice note');
+                                });
                               }}
                               className="text-blue-700 hover:bg-blue-100 h-8 px-2"
                             >
