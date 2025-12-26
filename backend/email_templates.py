@@ -181,8 +181,8 @@ def get_welcome_email_content(user: dict, login_url: str) -> tuple[str, str]:
         </html>
         """
     
-    elif role == 'team_member':
-        subject = "Welcome to the 4th Dimension Team! 🎯"
+    elif role_category == 'team_member':
+        subject = f"Welcome to 4th Dimension - {display_role}! 🎯"
         html_content = f"""
         <html>
             <head>
@@ -198,7 +198,12 @@ def get_welcome_email_content(user: dict, login_url: str) -> tuple[str, str]:
                     
                     <h2 style="color: #1F2937; font-size: 24px;">Dear {name},</h2>
                     
-                    <p style="font-size: 16px; line-height: 1.8;">Congratulations and welcome to 4th Dimension! We're thrilled to have you join our talented team of architects and designers. Together, we'll continue to create exceptional spaces that inspire and transform lives.</p>
+                    <div style="background: #EEF2FF; padding: 20px; border-radius: 10px; margin: 20px 0; text-align: center; border: 2px solid #4F46E5;">
+                        <p style="margin: 0; font-size: 14px; color: #6B7280;">Your Role</p>
+                        <p style="margin: 10px 0 0 0; font-size: 24px; font-weight: bold; color: #4F46E5;">{display_role}</p>
+                    </div>
+                    
+                    <p style="font-size: 16px; line-height: 1.8;">Congratulations and welcome to 4th Dimension! We're thrilled to have you join our talented team as <strong>{display_role}</strong>. Together, we'll continue to create exceptional spaces that inspire and transform lives.</p>
                     
                     <div style="{section_style}">
                         <h3 style="color: #4F46E5; margin-top: 0;">🎯 What 4th Dimension Offers You</h3>
