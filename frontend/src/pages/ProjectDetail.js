@@ -1632,7 +1632,7 @@ export default function ProjectDetail({ user, onLogout }) {
                       <p className="text-sm font-medium text-green-900">
                         {getCompletedDrawings().length} drawings completed
                       </p>
-                      <p className="text-xs text-green-700">View all in "All Drawings" tab</p>
+                      <p className="text-xs text-green-700">View all in &quot;All Drawings&quot; tab</p>
                     </div>
                   </div>
                 </CardContent>
