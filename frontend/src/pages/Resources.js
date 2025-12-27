@@ -51,7 +51,7 @@ const getFileIcon = (type) => {
   }
 };
 
-export default function Resources({ user }) {
+export default function Resources({ user, onLogout }) {
   const [resources, setResources] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
