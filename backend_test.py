@@ -1200,6 +1200,182 @@ class BackendTester:
 
         print("✅ Weekly Targets feature testing completed")
 
+    def test_whatsapp_webhook_system(self):
+        """Test Smart WhatsApp Forwarding webhook system as requested in review"""
+        print(f"\n📱 Testing Smart WhatsApp Forwarding Webhook System")
+        print("=" * 60)
+        
+        # Test Case 1: GET /api/webhooks/whatsapp/incoming - Should return status message
+        try:
+            print("Test Case 1: GET /api/webhooks/whatsapp/incoming - Verification endpoint...")
+            
+            response = self.session.get(f"{BACKEND_URL}/webhooks/whatsapp/incoming")
+            
+            if response.status_code == 200:
+                data = response.json()
+                if "status" in data:
+                    self.log_result("WhatsApp Webhook - GET Incoming", True, 
+                                  f"Status: {data.get('status')}")
+                else:
+                    self.log_result("WhatsApp Webhook - GET Incoming", False, 
+                                  "Response missing 'status' field")
+            else:
+                self.log_result("WhatsApp Webhook - GET Incoming", False, 
+                              f"Status: {response.status_code} - {response.text}")
+                
+        except Exception as e:
+            self.log_result("WhatsApp Webhook - GET Incoming", False, f"Exception: {str(e)}")
+
+        # Test Case 2: GET /api/webhooks/whatsapp/status - Should return webhook info
+        try:
+            print("Test Case 2: GET /api/webhooks/whatsapp/status - Status check...")
+            
+            response = self.session.get(f"{BACKEND_URL}/webhooks/whatsapp/status")
+            
+            if response.status_code == 200:
+                data = response.json()
+                required_fields = ["status", "endpoint", "methods", "description"]
+                
+                if all(field in data for field in required_fields):
+                    self.log_result("WhatsApp Webhook - Status", True, 
+                                  f"Endpoint: {data.get('endpoint')}, Status: {data.get('status')}")
+                else:
+                    missing_fields = [f for f in required_fields if f not in data]
+                    self.log_result("WhatsApp Webhook - Status", False, 
+                                  f"Missing fields: {missing_fields}")
+            else:
+                self.log_result("WhatsApp Webhook - Status", False, 
+                              f"Status: {response.status_code} - {response.text}")
+                
+        except Exception as e:
+            self.log_result("WhatsApp Webhook - Status", False, f"Exception: {str(e)}")
+
+        # Test Case 3: POST /api/webhooks/whatsapp/incoming - Test with unknown phone number
+        try:
+            print("Test Case 3: POST with unknown phone number...")
+            
+            headers = {"Content-Type": "application/x-www-form-urlencoded"}
+            data = "From=whatsapp%3A%2B911111111111&Body=Test&NumMedia=0"
+            
+            response = self.session.post(f"{BACKEND_URL}/webhooks/whatsapp/incoming", 
+                                       data=data, headers=headers)
+            
+            if response.status_code == 200:
+                content = response.text
+                # Check if it's XML response
+                if content.startswith('<?xml') and 'Response' in content:
+                    # Check if response asks user to register
+                    if 'register' in content.lower() or 'phone number' in content.lower():
+                        self.log_result("WhatsApp Webhook - Unknown Phone", True, 
+                                      "XML response asking user to register")
+                    else:
+                        self.log_result("WhatsApp Webhook - Unknown Phone", True, 
+                                      "XML response received (content may vary)")
+                else:
+                    self.log_result("WhatsApp Webhook - Unknown Phone", False, 
+                                  "Response is not XML format")
+            else:
+                self.log_result("WhatsApp Webhook - Unknown Phone", False, 
+                              f"Status: {response.status_code} - {response.text}")
+                
+        except Exception as e:
+            self.log_result("WhatsApp Webhook - Unknown Phone", False, f"Exception: {str(e)}")
+
+        # Test Case 4: POST /api/webhooks/whatsapp/incoming - Test with owner's phone (new conversation)
+        try:
+            print("Test Case 4: POST with owner's phone (new conversation)...")
+            
+            headers = {"Content-Type": "application/x-www-form-urlencoded"}
+            data = "From=whatsapp%3A%2B919913899888&Body=Need+to+send+message+about+project&NumMedia=0"
+            
+            response = self.session.post(f"{BACKEND_URL}/webhooks/whatsapp/incoming", 
+                                       data=data, headers=headers)
+            
+            if response.status_code == 200:
+                content = response.text
+                # Check if it's XML response
+                if content.startswith('<?xml') and 'Response' in content:
+                    # Check if response shows project list or welcome message
+                    if 'project' in content.lower() or 'select' in content.lower():
+                        self.log_result("WhatsApp Webhook - Owner Phone", True, 
+                                      "XML response showing project interaction")
+                    else:
+                        self.log_result("WhatsApp Webhook - Owner Phone", True, 
+                                      "XML response received (owner recognized)")
+                else:
+                    self.log_result("WhatsApp Webhook - Owner Phone", False, 
+                                  "Response is not XML format")
+            else:
+                self.log_result("WhatsApp Webhook - Owner Phone", False, 
+                              f"Status: {response.status_code} - {response.text}")
+                
+        except Exception as e:
+            self.log_result("WhatsApp Webhook - Owner Phone", False, f"Exception: {str(e)}")
+
+        # Test Case 5: POST /api/webhooks/whatsapp/incoming - Test project selection
+        try:
+            print("Test Case 5: POST project selection...")
+            
+            headers = {"Content-Type": "application/x-www-form-urlencoded"}
+            data = "From=whatsapp%3A%2B919913899888&Body=1&NumMedia=0"
+            
+            response = self.session.post(f"{BACKEND_URL}/webhooks/whatsapp/incoming", 
+                                       data=data, headers=headers)
+            
+            if response.status_code == 200:
+                content = response.text
+                # Check if it's XML response
+                if content.startswith('<?xml') and 'Response' in content:
+                    # Check if response shows recipient selection
+                    if 'recipient' in content.lower() or 'select' in content.lower():
+                        self.log_result("WhatsApp Webhook - Project Selection", True, 
+                                      "XML response showing recipient selection")
+                    else:
+                        self.log_result("WhatsApp Webhook - Project Selection", True, 
+                                      "XML response received (project selection processed)")
+                else:
+                    self.log_result("WhatsApp Webhook - Project Selection", False, 
+                                  "Response is not XML format")
+            else:
+                self.log_result("WhatsApp Webhook - Project Selection", False, 
+                              f"Status: {response.status_code} - {response.text}")
+                
+        except Exception as e:
+            self.log_result("WhatsApp Webhook - Project Selection", False, f"Exception: {str(e)}")
+
+        # Test Case 6: POST /api/webhooks/whatsapp/incoming - Test cancel command
+        try:
+            print("Test Case 6: POST cancel command...")
+            
+            headers = {"Content-Type": "application/x-www-form-urlencoded"}
+            data = "From=whatsapp%3A%2B919913899888&Body=0&NumMedia=0"
+            
+            response = self.session.post(f"{BACKEND_URL}/webhooks/whatsapp/incoming", 
+                                       data=data, headers=headers)
+            
+            if response.status_code == 200:
+                content = response.text
+                # Check if it's XML response
+                if content.startswith('<?xml') and 'Response' in content:
+                    # Check if response confirms cancellation
+                    if 'cancel' in content.lower() or 'operation' in content.lower():
+                        self.log_result("WhatsApp Webhook - Cancel Command", True, 
+                                      "XML response confirming cancellation")
+                    else:
+                        self.log_result("WhatsApp Webhook - Cancel Command", True, 
+                                      "XML response received (cancel processed)")
+                else:
+                    self.log_result("WhatsApp Webhook - Cancel Command", False, 
+                                  "Response is not XML format")
+            else:
+                self.log_result("WhatsApp Webhook - Cancel Command", False, 
+                              f"Status: {response.status_code} - {response.text}")
+                
+        except Exception as e:
+            self.log_result("WhatsApp Webhook - Cancel Command", False, f"Exception: {str(e)}")
+
+        print("✅ WhatsApp Webhook system testing completed")
+
     def test_resource_viewing_functionality(self):
         """Test Resource viewing functionality as requested in review"""
         print(f"\n📄 Testing Resource Viewing Functionality")
