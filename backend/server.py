@@ -4494,7 +4494,55 @@ async def create_contractor(
 
 @api_router.get("/contractors")
 async def get_contractors(current_user: User = Depends(get_current_user)):
-    """Get all approved contractors"""
+    """
+    Get contractors based on user role:
+    - Owner/Team Members: See all approved contractors
+    - Clients: See ONLY contractors assigned to their projects
+    - Contractors: See only themselves
+    """
+    
+    # If client, filter to only contractors on their projects
+    if current_user.role == "client":
+        # Find client's projects
+        client = await db.clients.find_one({"email": current_user.email}, {"_id": 0, "id": 1})
+        if client:
+            client_projects = await db.projects.find(
+                {"client_id": client["id"], "deleted_at": None},
+                {"_id": 0, "assigned_contractors": 1}
+            ).to_list(100)
+        else:
+            client_projects = await db.projects.find(
+                {"client_id": current_user.id, "deleted_at": None},
+                {"_id": 0, "assigned_contractors": 1}
+            ).to_list(100)
+        
+        # Collect all contractor IDs from client's projects
+        contractor_ids = set()
+        for project in client_projects:
+            assigned = project.get('assigned_contractors', {})
+            if isinstance(assigned, dict):
+                contractor_ids.update(assigned.values())
+        
+        if not contractor_ids:
+            return []
+        
+        # Get only those contractors
+        contractors = await db.contractors.find(
+            {"id": {"$in": list(contractor_ids)}, "deleted_at": None},
+            {"_id": 0}
+        ).to_list(100)
+        
+        return contractors
+    
+    # If contractor, only return self
+    if current_user.role == "contractor":
+        contractor = await db.contractors.find_one(
+            {"email": current_user.email, "deleted_at": None},
+            {"_id": 0}
+        )
+        return [contractor] if contractor else []
+    
+    # Owner and team members see all
     contractors = await db.contractors.find(
         {"deleted_at": None},
         {"_id": 0}
