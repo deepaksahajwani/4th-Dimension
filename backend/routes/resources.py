@@ -318,7 +318,11 @@ async def download_resource(
                 return FileResponse(
                     path=file_path,
                     filename=resource.get("file_name", filename),
-                    media_type=resource.get("mime_type", "application/octet-stream")
+                    media_type=resource.get("mime_type", "application/octet-stream"),
+                    headers={
+                        "Content-Disposition": f'attachment; filename="{resource.get("file_name", filename)}"',
+                        "Cache-Control": "no-cache"
+                    }
                 )
         
         raise HTTPException(status_code=404, detail="File not found")
@@ -327,6 +331,61 @@ async def download_resource(
         raise
     except Exception as e:
         logger.error(f"Error downloading resource: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.get("/{resource_id}/view-url")
+async def get_resource_view_url(
+    resource_id: str,
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Get a URL to view the resource in browser using Microsoft Office Online viewer
+    """
+    try:
+        resource = await db.resources.find_one({"id": resource_id}, {"_id": 0})
+        
+        if not resource:
+            raise HTTPException(status_code=404, detail="Resource not found")
+        
+        # Check visibility
+        visible_to = resource.get("visible_to", ["all"])
+        if "all" not in visible_to and current_user.role not in visible_to and not current_user.is_owner:
+            raise HTTPException(status_code=403, detail="You don't have access to this resource")
+        
+        if not resource.get("url"):
+            raise HTTPException(status_code=400, detail="No file attached to this resource")
+        
+        # Get the base URL from environment or request
+        base_url = os.environ.get('REACT_APP_BACKEND_URL', 'https://architect-notify.preview.emergentagent.com')
+        
+        # Build the direct file URL
+        file_url = f"{base_url}{resource['url']}"
+        
+        # For Office documents, use Microsoft Office Online viewer
+        mime_type = resource.get("mime_type", "")
+        file_name = resource.get("file_name", "").lower()
+        
+        if any(ext in file_name for ext in ['.docx', '.doc', '.xlsx', '.xls', '.pptx', '.ppt']):
+            # Use Microsoft Office Online viewer
+            import urllib.parse
+            encoded_url = urllib.parse.quote(file_url, safe='')
+            view_url = f"https://view.officeapps.live.com/op/view.aspx?src={encoded_url}"
+            return {"view_url": view_url, "viewer": "microsoft"}
+        elif file_name.endswith('.pdf'):
+            # PDFs can be viewed directly in browser
+            return {"view_url": file_url, "viewer": "browser"}
+        else:
+            # Use Google Docs viewer as fallback
+            import urllib.parse
+            encoded_url = urllib.parse.quote(file_url, safe='')
+            view_url = f"https://docs.google.com/viewer?url={encoded_url}&embedded=true"
+            return {"view_url": view_url, "viewer": "google"}
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error getting view URL: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
 
