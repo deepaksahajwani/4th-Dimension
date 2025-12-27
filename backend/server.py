@@ -6791,6 +6791,7 @@ async def remove_co_client(
 # Include modular routers
 from routes import auth, dashboard, notifications as notif_routes, projects, drawings
 from routes import resources as resources_routes
+from routes import whatsapp_webhook
 
 # Include the new modular routers under /api
 api_router.include_router(auth.router)
@@ -6799,6 +6800,7 @@ api_router.include_router(notif_routes.router)
 api_router.include_router(projects.router)
 api_router.include_router(drawings.router)
 api_router.include_router(resources_routes.router)
+api_router.include_router(whatsapp_webhook.router)
 
 # Note: clients, contractors, consultants routers exist but need updating to use new auth utils
 # They will be fully integrated in Phase 1B
