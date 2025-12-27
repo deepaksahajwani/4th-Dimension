@@ -152,19 +152,6 @@ export const DrawingCard = ({
             </Button>
           )}
           
-          {/* STATE 5: ISSUED - Show UN-ISSUE button */}
-          {drawing.is_issued && (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => onToggleIssued(drawing)}
-              className="flex-1 sm:flex-none text-xs h-8"
-              title="Un-Issue Drawing"
-            >
-              Un-Issue
-            </Button>
-          )}
-          
           {/* PDF Button */}
           {drawing.file_url && (drawing.under_review || drawing.is_approved || drawing.is_issued || drawing.has_pending_revision === true) && (
             <DropdownMenu>
