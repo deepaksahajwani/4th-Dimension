@@ -14,7 +14,7 @@ from whatsapp_templates import WHATSAPP_TEMPLATES
 
 logger = logging.getLogger(__name__)
 
-APP_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://designresources.preview.emergentagent.com')
+APP_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://architect-notify.preview.emergentagent.com')
 
 # WhatsApp Business Number (Production)
 WHATSAPP_NUMBER = "+917016779016"
