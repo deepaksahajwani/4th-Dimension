@@ -7112,8 +7112,29 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
+# Background task reference
+_reminder_task = None
+
+@app.on_event("startup")
+async def startup_event():
+    """Start background tasks on app startup"""
+    global _reminder_task
+    try:
+        from drawing_approval_reminders import reminder_scheduler
+        _reminder_task = asyncio.create_task(reminder_scheduler())
+        logger.info("Drawing approval reminder scheduler started")
+    except Exception as e:
+        logger.error(f"Failed to start reminder scheduler: {str(e)}")
+
 @app.on_event("shutdown")
 async def shutdown_db_client():
+    global _reminder_task
+    if _reminder_task:
+        _reminder_task.cancel()
+        try:
+            await _reminder_task
+        except asyncio.CancelledError:
+            pass
     client.close()
 
 # ==================== WHATSAPP NOTIFICATION ENDPOINTS ====================
