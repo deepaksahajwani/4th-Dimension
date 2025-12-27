@@ -7492,6 +7492,34 @@ class BackendTester:
                     print(f"  - {result['test']}: {result['details']}")
         
         return passed == total if total > 0 else False
+    def run_phase_2_tests(self):
+        """Run Phase 2 implementation tests"""
+        print("🚀 PHASE 2 IMPLEMENTATION TESTS")
+        print("=" * 60)
+        
+        self.test_phase_2_implementations()
+        
+        # Summary
+        print("=" * 60)
+        print("📊 PHASE 2 IMPLEMENTATION TEST SUMMARY")
+        print("=" * 60)
+        
+        phase2_tests = [result for result in self.test_results if "Phase 2" in result["test"]]
+        passed = sum(1 for result in phase2_tests if result["success"])
+        total = len(phase2_tests)
+        
+        print(f"Phase 2 Tests: {total}")
+        print(f"Passed: {passed}")
+        print(f"Failed: {total - passed}")
+        print(f"Success Rate: {(passed/total)*100:.1f}%" if total > 0 else "No tests run")
+        
+        if total - passed > 0:
+            print("\n❌ FAILED PHASE 2 TESTS:")
+            for result in phase2_tests:
+                if not result["success"]:
+                    print(f"  - {result['test']}: {result['details']}")
+        
+        return passed == total if total > 0 else False
 
 if __name__ == "__main__":
     tester = BackendTester()
