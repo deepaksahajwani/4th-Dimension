@@ -132,17 +132,26 @@ async def notify_user_approval(user_id: str):
             channels=['in_app']
         )
         
-        # Notify approved user using WhatsApp TEMPLATE
+        # Notify approved user using WhatsApp TEMPLATE (v2 with 5 variables)
         whatsapp_sent = False
         if user_mobile:
             template_sid = WHATSAPP_TEMPLATES.get("user_approved")
             if template_sid:
+                # Get approver name (owner)
+                approver_name = owner.get('name', 'Admin') if owner else 'Admin'
+                # Format approval date
+                from datetime import datetime, timezone
+                approval_date = datetime.now(timezone.utc).strftime("%d %b %Y")
+                
                 result = await notification_service.send_whatsapp_template(
                     phone_number=user_mobile,
                     content_sid=template_sid,
                     content_variables={
                         "1": user_name,
-                        "2": APP_URL
+                        "2": user_designation,
+                        "3": approver_name,
+                        "4": approval_date,
+                        "5": APP_URL
                     }
                 )
                 whatsapp_sent = result.get('success', False)
@@ -153,11 +162,12 @@ async def notify_user_approval(user_id: str):
             if not whatsapp_sent:
                 sms_message = f"""🎉 Welcome to 4th Dimension, {user_name}!
 
-Your registration has been approved. You are now part of the 4th Dimension family as {user_designation}.
+Your registration as {user_designation} has been approved.
 
 🔐 Login to your account: {APP_URL}
 
-We're excited to work with you!
+Reply START to receive WhatsApp notifications.
+
 - 4th Dimension Architects
 +917016779016"""
                 
