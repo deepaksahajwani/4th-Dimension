@@ -103,6 +103,13 @@ export default function ProjectDetail({ user, onLogout }) {
     revision_due_date: ''
   });
   
+  // Revision voice note and file states
+  const [revisionIsRecording, setRevisionIsRecording] = useState(false);
+  const [revisionAudioBlob, setRevisionAudioBlob] = useState(null);
+  const [revisionMediaRecorder, setRevisionMediaRecorder] = useState(null);
+  const [revisionRecordingTime, setRevisionRecordingTime] = useState(0);
+  const [revisionFiles, setRevisionFiles] = useState([]);
+  
   // Co-Client states
   const [coClients, setCoClients] = useState([]);
   const [coClientDialogOpen, setCoClientDialogOpen] = useState(false);
