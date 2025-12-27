@@ -358,22 +358,133 @@ export default function ProjectDetail({ user, onLogout }) {
       revision_notes: '',
       revision_due_date: ''
     });
+    setRevisionAudioBlob(null);
+    setRevisionFiles([]);
+    setRevisionRecordingTime(0);
     setRevisionDialogOpen(true);
+  };
+
+  // Revision voice note functions
+  const startRevisionRecording = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const recorder = new MediaRecorder(stream, { mimeType: 'audio/webm' });
+      const chunks = [];
+      
+      recorder.ondataavailable = (e) => chunks.push(e.data);
+      recorder.onstop = () => {
+        const blob = new Blob(chunks, { type: 'audio/webm' });
+        setRevisionAudioBlob(blob);
+        setRevisionIsRecording(false);
+        stream.getTracks().forEach(track => track.stop());
+      };
+      
+      setRevisionMediaRecorder(recorder);
+      recorder.start();
+      setRevisionIsRecording(true);
+      setRevisionRecordingTime(0);
+      
+      // Update recording time
+      const interval = setInterval(() => {
+        setRevisionRecordingTime(prev => prev + 1);
+      }, 1000);
+      recorder.onstart = () => recorder._interval = interval;
+      recorder.onstop = () => {
+        clearInterval(recorder._interval);
+        const blob = new Blob(chunks, { type: 'audio/webm' });
+        setRevisionAudioBlob(blob);
+        setRevisionIsRecording(false);
+        stream.getTracks().forEach(track => track.stop());
+      };
+    } catch (error) {
+      console.error('Revision recording error:', error);
+      toast.error('Could not access microphone');
+    }
+  };
+
+  const stopRevisionRecording = () => {
+    if (revisionMediaRecorder && revisionMediaRecorder.state === 'recording') {
+      revisionMediaRecorder.stop();
+    }
+  };
+
+  const clearRevisionVoiceNote = () => {
+    setRevisionAudioBlob(null);
+    setRevisionRecordingTime(0);
+  };
+
+  const playRevisionVoiceNote = () => {
+    if (revisionAudioBlob) {
+      const audio = new Audio(URL.createObjectURL(revisionAudioBlob));
+      audio.play();
+    }
+  };
+
+  const handleRevisionFileChange = (e) => {
+    const files = Array.from(e.target.files);
+    setRevisionFiles(prev => [...prev, ...files]);
+  };
+
+  const removeRevisionFile = (index) => {
+    setRevisionFiles(prev => prev.filter((_, i) => i !== index));
   };
 
   const handleRequestRevision = async (e) => {
     e.preventDefault();
+    
+    // Validate - need at least notes or voice note
+    if (!revisionFormData.revision_notes.trim() && !revisionAudioBlob) {
+      toast.error('Please provide revision notes or a voice note');
+      return;
+    }
+    
     try {
       const token = localStorage.getItem('token');
+      
+      // First, update the drawing with revision request
       await axios.put(`${API}/drawings/${selectedDrawing.id}`, {
         has_pending_revision: true,
-        revision_notes: revisionFormData.revision_notes,
+        revision_notes: revisionFormData.revision_notes || '[Voice Note]',
         revision_due_date: revisionFormData.revision_due_date
       }, {
         headers: { Authorization: `Bearer ${token}` }
       });
+      
+      // Upload voice note if present
+      if (revisionAudioBlob) {
+        const formData = new FormData();
+        formData.append('voice_note', revisionAudioBlob, 'revision_voice_note.webm');
+        formData.append('drawing_id', selectedDrawing.id);
+        formData.append('type', 'revision_request');
+        
+        await axios.post(`${API}/drawings/${selectedDrawing.id}/voice-note`, formData, {
+          headers: { 
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'multipart/form-data'
+          }
+        });
+      }
+      
+      // Upload reference files if present
+      if (revisionFiles.length > 0) {
+        const formData = new FormData();
+        revisionFiles.forEach(file => {
+          formData.append('files', file);
+        });
+        formData.append('type', 'revision_reference');
+        
+        await axios.post(`${API}/drawings/${selectedDrawing.id}/revision-files`, formData, {
+          headers: { 
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'multipart/form-data'
+          }
+        });
+      }
+      
       toast.success('Revision requested successfully!');
       setRevisionDialogOpen(false);
+      setRevisionAudioBlob(null);
+      setRevisionFiles([]);
       fetchProjectData();
     } catch (error) {
       console.error('Request revision error:', error);
