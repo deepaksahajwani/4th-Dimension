@@ -1333,6 +1333,9 @@ async def notify_owner_drawing_revision_posted(
         project = await get_project_by_id(project_id)
         project_name = project.get('title', 'Unknown Project') if project else 'Unknown Project'
         
+        # Deep link to the specific drawing
+        deep_link = f"{APP_URL}/projects/{project_id}?drawing={drawing_id}"
+        
         message = f"""🔄 *Revised Drawing Posted*
 
 📁 *Drawing:* {drawing_name} (R{revision_number})
@@ -1342,7 +1345,8 @@ async def notify_owner_drawing_revision_posted(
 
 The revised drawing is ready for review.
 
-{APP_URL}"""
+👉 *View & approve:*
+{deep_link}"""
 
         # Send WhatsApp
         result = await notification_service.send_whatsapp(owner['mobile'], message)
