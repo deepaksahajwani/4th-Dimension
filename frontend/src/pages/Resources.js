@@ -438,10 +438,18 @@ export default function Resources({ user }) {
                               <Clock className="w-3 h-3" />
                               {resource.download_count || 0} downloads
                             </span>
-                            <Button variant="outline" size="sm" onClick={() => handleDownload(resource)}>
-                              <Download className="w-4 h-4 mr-1" />
-                              {resource.url || resource.external_link ? 'Download' : 'View'}
-                            </Button>
+                            <div className="flex gap-1">
+                              {(resource.url || resource.external_link) && (
+                                <Button variant="outline" size="sm" onClick={() => handleView(resource)}>
+                                  <Eye className="w-4 h-4 mr-1" />
+                                  View
+                                </Button>
+                              )}
+                              <Button variant="outline" size="sm" onClick={() => handleDownload(resource)}>
+                                <Download className="w-4 h-4 mr-1" />
+                                {resource.url || resource.external_link ? 'Download' : 'No File'}
+                              </Button>
+                            </div>
                           </div>
                         </CardContent>
                       </Card>
