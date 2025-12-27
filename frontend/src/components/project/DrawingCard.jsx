@@ -55,7 +55,7 @@ export const DrawingCard = ({
   onMarkAsNotApplicable,
   onDeleteDrawing
 }) => (
-  <Card className="hover:shadow-md transition-shadow">
+  <Card id={`drawing-${drawing.id}`} className="hover:shadow-md transition-all duration-300">
     <CardContent className="p-3 sm:p-4">
       <div className="flex flex-col sm:flex-row sm:items-start gap-3">
         <div className="flex items-start gap-2 sm:gap-3 flex-1 min-w-0">
