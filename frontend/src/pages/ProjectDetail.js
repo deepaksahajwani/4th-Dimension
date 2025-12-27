@@ -2197,7 +2197,7 @@ export default function ProjectDetail({ user, onLogout }) {
 
         {/* Request Revision Dialog */}
         <Dialog open={revisionDialogOpen} onOpenChange={setRevisionDialogOpen}>
-          <DialogContent className="max-w-2xl">
+          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>Request Revision</DialogTitle>
             </DialogHeader>
@@ -2208,14 +2208,109 @@ export default function ProjectDetail({ user, onLogout }) {
               </div>
 
               <div>
-                <Label>What revisions are required? *</Label>
+                <Label>What revisions are required?</Label>
                 <textarea
-                  className="flex min-h-[120px] w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm"
+                  className="flex min-h-[100px] w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm"
                   value={revisionFormData.revision_notes}
                   onChange={(e) => setRevisionFormData({ ...revisionFormData, revision_notes: e.target.value })}
-                  placeholder="Describe the revisions needed in detail..."
-                  required
+                  placeholder="Describe the revisions needed in detail... (optional if using voice note)"
                 />
+              </div>
+
+              {/* Voice Note Section */}
+              <div className="border rounded-lg p-3 bg-slate-50">
+                <Label className="mb-2 block">Voice Note (Optional)</Label>
+                <div className="flex items-center gap-2">
+                  {!revisionIsRecording && !revisionAudioBlob && (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={startRevisionRecording}
+                      className="flex items-center gap-2"
+                    >
+                      <Mic className="w-4 h-4" />
+                      Record Voice Note
+                    </Button>
+                  )}
+                  
+                  {revisionIsRecording && (
+                    <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-1 text-red-500">
+                        <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse" />
+                        Recording: {Math.floor(revisionRecordingTime / 60)}:{(revisionRecordingTime % 60).toString().padStart(2, '0')}
+                      </div>
+                      <Button
+                        type="button"
+                        variant="destructive"
+                        size="sm"
+                        onClick={stopRevisionRecording}
+                      >
+                        <Square className="w-4 h-4 mr-1" />
+                        Stop
+                      </Button>
+                    </div>
+                  )}
+                  
+                  {revisionAudioBlob && !revisionIsRecording && (
+                    <div className="flex items-center gap-2">
+                      <Badge variant="outline" className="bg-green-50 text-green-700">
+                        Voice note recorded ({Math.floor(revisionRecordingTime / 60)}:{(revisionRecordingTime % 60).toString().padStart(2, '0')})
+                      </Badge>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={playRevisionVoiceNote}
+                      >
+                        <Play className="w-4 h-4" />
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={clearRevisionVoiceNote}
+                        className="text-red-500"
+                      >
+                        <X className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* File Attachments Section */}
+              <div className="border rounded-lg p-3 bg-slate-50">
+                <Label className="mb-2 block">Reference Files (Optional)</Label>
+                <div className="space-y-2">
+                  <input
+                    type="file"
+                    multiple
+                    onChange={handleRevisionFileChange}
+                    className="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-amber-50 file:text-amber-700 hover:file:bg-amber-100"
+                    accept=".pdf,.jpg,.jpeg,.png,.dwg,.dxf"
+                  />
+                  <p className="text-xs text-slate-500">Attach reference images, marked-up PDFs, or CAD files</p>
+                  
+                  {revisionFiles.length > 0 && (
+                    <div className="mt-2 space-y-1">
+                      {revisionFiles.map((file, index) => (
+                        <div key={index} className="flex items-center justify-between bg-white p-2 rounded border">
+                          <span className="text-sm truncate">{file.name}</span>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => removeRevisionFile(index)}
+                            className="text-red-500 h-6 w-6 p-0"
+                          >
+                            <X className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
               </div>
 
               <div>
@@ -2232,7 +2327,11 @@ export default function ProjectDetail({ user, onLogout }) {
                 <Button
                   type="button"
                   variant="outline"
-                  onClick={() => setRevisionDialogOpen(false)}
+                  onClick={() => {
+                    setRevisionDialogOpen(false);
+                    setRevisionAudioBlob(null);
+                    setRevisionFiles([]);
+                  }}
                 >
                   Cancel
                 </Button>
