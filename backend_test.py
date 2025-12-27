@@ -5262,6 +5262,11 @@ class BackendTester:
         print("-" * 40)
         self.test_user_approval_notification_flow()
         
+        # WhatsApp Webhook System Tests (as requested in review)
+        print("\n📱 WHATSAPP WEBHOOK SYSTEM TESTS")
+        print("-" * 40)
+        self.test_whatsapp_webhook_system()
+        
         # Summary
         print("=" * 60)
         print("📊 TEST SUMMARY")
