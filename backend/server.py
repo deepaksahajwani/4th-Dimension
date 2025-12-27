@@ -3540,6 +3540,20 @@ async def create_drawing_comment(
     except Exception as e:
         logger.warning(f"Failed to create comment notifications: {e}")
     
+    # Send WhatsApp notification to owner for drawing comment
+    try:
+        from notification_triggers_v2 import notify_owner_drawing_comment
+        await notify_owner_drawing_comment(
+            drawing_id=drawing_id,
+            drawing_name=drawing.get('name', 'Drawing'),
+            project_id=drawing.get('project_id'),
+            commenter_name=current_user.name,
+            comment_text=comment_data.comment_text,
+            requires_revision=comment_data.requires_revision or False
+        )
+    except Exception as e:
+        logger.warning(f"Owner WhatsApp notification failed (non-critical): {str(e)}")
+    
     return comment
 
 @api_router.get("/drawings/{drawing_id}/comments")
