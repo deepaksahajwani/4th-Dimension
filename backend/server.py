@@ -2790,29 +2790,108 @@ async def get_projects(
     include_archived: bool = False,
     current_user: User = Depends(get_current_user)
 ):
-    """Get projects based on user role"""
+    """Get projects based on user role with proper access control"""
     query = {"deleted_at": None}
     if not include_archived:
         query["archived"] = {"$ne": True}
     
     # Role-based filtering
-    if current_user.role == "client":
-        # Clients see projects where their client_id matches
-        # First find the client record by email
+    if current_user.is_owner:
+        # Owner sees all projects
+        pass
+    elif current_user.role == "client":
+        # Clients see ONLY projects where they are the client
         client = await db.clients.find_one({"email": current_user.email}, {"_id": 0, "id": 1})
         if client:
-            query["client_id"] = client["id"]
+            # Also check co-clients
+            co_client_projects = await db.project_co_clients.find(
+                {"client_id": client["id"]},
+                {"_id": 0, "project_id": 1}
+            ).to_list(100)
+            co_client_project_ids = [p["project_id"] for p in co_client_projects]
+            
+            query["$or"] = [
+                {"client_id": client["id"]},
+                {"id": {"$in": co_client_project_ids}}
+            ]
         else:
-            # If no client record found, return empty list
-            return []
+            # Also check if user_id matches
+            query["$or"] = [
+                {"client_id": current_user.id},
+                {"user_id": current_user.id}
+            ]
     elif current_user.role in ["contractor", "consultant"]:
-        # Contractors/Consultants see projects where they're assigned
-        # Find contractor/consultant record by email
+        # Contractors/Consultants see ONLY projects where they're assigned
         contractor = await db.contractors.find_one({"email": current_user.email}, {"_id": 0, "id": 1})
+        if not contractor:
+            contractor = await db.consultants.find_one({"email": current_user.email}, {"_id": 0, "id": 1})
+        
         if contractor:
-            # Find projects that have this contractor assigned
-            query["assigned_contractors.contractor_id"] = contractor["id"]
-    # Owners and team_members see all projects (no additional filter)
+            contractor_id = contractor["id"]
+            # Need to find projects where this contractor is in assigned_contractors or assigned_consultants
+            all_projects = await db.projects.find(query, {"_id": 0}).to_list(1000)
+            filtered_projects = []
+            
+            for project in all_projects:
+                assigned_contractors = project.get('assigned_contractors', {})
+                assigned_consultants = project.get('assigned_consultants', {})
+                
+                # Check if contractor is assigned
+                is_assigned = False
+                if isinstance(assigned_contractors, dict) and contractor_id in assigned_contractors.values():
+                    is_assigned = True
+                elif isinstance(assigned_consultants, dict) and contractor_id in assigned_consultants.values():
+                    is_assigned = True
+                
+                if is_assigned:
+                    # Convert date fields
+                    for field in ['created_at', 'updated_at', 'start_date', 'end_date']:
+                        if isinstance(project.get(field), str) and project.get(field):
+                            try:
+                                project[field] = datetime.fromisoformat(project[field])
+                            except ValueError:
+                                pass
+                    filtered_projects.append(project)
+            
+            return filtered_projects
+        else:
+            return []
+    elif current_user.role == "team_leader" or current_user.designation == "Team Leader":
+        # Team leaders see projects they lead OR have temporary access to
+        team_access_projects = await db.project_team_access.find({
+            "user_id": current_user.id,
+            "$or": [
+                {"expires_at": {"$gt": datetime.now(timezone.utc).isoformat()}},
+                {"expires_at": None}
+            ]
+        }, {"_id": 0, "project_id": 1}).to_list(100)
+        
+        access_project_ids = [p["project_id"] for p in team_access_projects]
+        
+        query["$or"] = [
+            {"team_leader_id": current_user.id},
+            {"id": {"$in": access_project_ids}}
+        ]
+    elif current_user.role == "team_member":
+        # Regular team members see projects they're assigned to as team leader
+        # or have temporary access
+        team_access_projects = await db.project_team_access.find({
+            "user_id": current_user.id,
+            "$or": [
+                {"expires_at": {"$gt": datetime.now(timezone.utc).isoformat()}},
+                {"expires_at": None}
+            ]
+        }, {"_id": 0, "project_id": 1}).to_list(100)
+        
+        access_project_ids = [p["project_id"] for p in team_access_projects]
+        
+        if access_project_ids:
+            query["$or"] = [
+                {"team_leader_id": current_user.id},
+                {"id": {"$in": access_project_ids}}
+            ]
+        else:
+            query["team_leader_id"] = current_user.id
     
     projects = await db.projects.find(query, {"_id": 0}).to_list(1000)
     for project in projects:
