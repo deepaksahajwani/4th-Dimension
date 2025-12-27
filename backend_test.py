@@ -5704,6 +5704,11 @@ class BackendTester:
         print("-" * 40)
         self.test_whatsapp_webhook_system()
         
+        # Phase 3 RBAC Tests (as requested in review)
+        print("\n🔐 PHASE 3 ROLE-BASED ACCESS CONTROL TESTS")
+        print("-" * 50)
+        self.test_phase_3_rbac_implementations()
+        
         # Summary
         print("=" * 60)
         print("📊 TEST SUMMARY")
