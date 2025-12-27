@@ -1200,6 +1200,228 @@ class BackendTester:
 
         print("✅ Weekly Targets feature testing completed")
 
+    def test_resource_viewing_functionality(self):
+        """Test Resource viewing functionality as requested in review"""
+        print(f"\n📄 Testing Resource Viewing Functionality")
+        print("=" * 60)
+        
+        # Test credentials from review request
+        test_email = "deepaksahajwani@gmail.com"
+        test_password = "Deepak@2025"
+        test_resource_id = "0050d039-e1fb-4172-ab71-05d9f84878b2"
+        
+        # Step 1: Test public-view endpoint (no auth required)
+        try:
+            print("Step 1: Testing public-view endpoint (no auth required)...")
+            
+            public_view_url = f"{BACKEND_URL}/resources/{test_resource_id}/public-view"
+            response = self.session.get(public_view_url)
+            
+            if response.status_code == 200:
+                # Check if it's a valid file response
+                content_type = response.headers.get('content-type', '')
+                content_length = len(response.content)
+                
+                if content_length > 0:
+                    self.log_result("Resource Public View", True, 
+                                  f"File returned successfully. Content-Type: {content_type}, Size: {content_length} bytes")
+                else:
+                    self.log_result("Resource Public View", False, 
+                                  "Empty file response")
+            elif response.status_code == 404:
+                self.log_result("Resource Public View", False, 
+                              f"Resource not found: {test_resource_id}")
+            else:
+                self.log_result("Resource Public View", False, 
+                              f"Unexpected status: {response.status_code} - {response.text}")
+                
+        except Exception as e:
+            self.log_result("Resource Public View", False, f"Exception: {str(e)}")
+
+        # Step 2: Login for authenticated tests
+        auth_token = None
+        try:
+            print("Step 2: Logging in for authenticated tests...")
+            
+            login_payload = {
+                "email": test_email,
+                "password": test_password
+            }
+            
+            login_response = self.session.post(f"{BACKEND_URL}/auth/login", json=login_payload)
+            
+            if login_response.status_code == 200:
+                login_data = login_response.json()
+                auth_token = login_data.get("access_token")
+                
+                if auth_token:
+                    self.log_result("Resource Auth Login", True, 
+                                  f"Login successful for {test_email}")
+                else:
+                    self.log_result("Resource Auth Login", False, 
+                                  "No access token in response")
+                    return
+            else:
+                self.log_result("Resource Auth Login", False, 
+                              f"Login failed: {login_response.status_code} - {login_response.text}")
+                return
+                
+        except Exception as e:
+            self.log_result("Resource Auth Login", False, f"Exception: {str(e)}")
+            return
+
+        auth_headers = {"Authorization": f"Bearer {auth_token}"}
+
+        # Step 3: Test view-url endpoint (requires auth)
+        try:
+            print("Step 3: Testing view-url endpoint (requires auth)...")
+            
+            view_url_endpoint = f"{BACKEND_URL}/resources/{test_resource_id}/view-url"
+            response = self.session.get(view_url_endpoint, headers=auth_headers)
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                if "view_url" in data:
+                    view_url = data["view_url"]
+                    viewer = data.get("viewer", "unknown")
+                    
+                    # Check if it's a Microsoft Office Online URL
+                    if "view.officeapps.live.com" in view_url:
+                        self.log_result("Resource View URL", True, 
+                                      f"Microsoft Office Online URL generated. Viewer: {viewer}")
+                    elif "docs.google.com/viewer" in view_url:
+                        self.log_result("Resource View URL", True, 
+                                      f"Google Docs viewer URL generated. Viewer: {viewer}")
+                    else:
+                        self.log_result("Resource View URL", True, 
+                                      f"Direct view URL generated. Viewer: {viewer}")
+                else:
+                    self.log_result("Resource View URL", False, 
+                                  "Response missing 'view_url' field")
+            elif response.status_code == 404:
+                self.log_result("Resource View URL", False, 
+                              f"Resource not found: {test_resource_id}")
+            elif response.status_code == 400:
+                data = response.json()
+                if "No file attached" in data.get("detail", ""):
+                    self.log_result("Resource View URL", False, 
+                                  "Resource exists but no file attached")
+                else:
+                    self.log_result("Resource View URL", False, 
+                                  f"Bad request: {data.get('detail', 'Unknown error')}")
+            else:
+                self.log_result("Resource View URL", False, 
+                              f"Unexpected status: {response.status_code} - {response.text}")
+                
+        except Exception as e:
+            self.log_result("Resource View URL", False, f"Exception: {str(e)}")
+
+        # Step 4: Test download endpoint (requires auth)
+        try:
+            print("Step 4: Testing download endpoint (requires auth)...")
+            
+            download_url = f"{BACKEND_URL}/resources/{test_resource_id}/download"
+            response = self.session.get(download_url, headers=auth_headers)
+            
+            if response.status_code == 200:
+                # Check if it's a valid file response
+                content_type = response.headers.get('content-type', '')
+                content_disposition = response.headers.get('content-disposition', '')
+                content_length = len(response.content)
+                
+                if content_length > 0:
+                    self.log_result("Resource Download", True, 
+                                  f"File downloaded successfully. Content-Type: {content_type}, Size: {content_length} bytes")
+                else:
+                    self.log_result("Resource Download", False, 
+                                  "Empty file response")
+            elif response.status_code == 404:
+                self.log_result("Resource Download", False, 
+                              f"Resource or file not found: {test_resource_id}")
+            elif response.status_code == 403:
+                self.log_result("Resource Download", False, 
+                              "Access denied - insufficient permissions")
+            else:
+                self.log_result("Resource Download", False, 
+                              f"Unexpected status: {response.status_code} - {response.text}")
+                
+        except Exception as e:
+            self.log_result("Resource Download", False, f"Exception: {str(e)}")
+
+        # Step 5: Test resources list endpoint
+        try:
+            print("Step 5: Testing resources list endpoint...")
+            
+            resources_url = f"{BACKEND_URL}/resources"
+            response = self.session.get(resources_url, headers=auth_headers)
+            
+            if response.status_code == 200:
+                resources_data = response.json()
+                
+                if isinstance(resources_data, list):
+                    # Check if resources have "url" field set for resources with files
+                    resources_with_files = [r for r in resources_data if r.get("url")]
+                    total_resources = len(resources_data)
+                    
+                    self.log_result("Resources List", True, 
+                                  f"Retrieved {total_resources} resources, {len(resources_with_files)} have files attached")
+                    
+                    # Look for our test resource
+                    test_resource = None
+                    for resource in resources_data:
+                        if resource.get("id") == test_resource_id:
+                            test_resource = resource
+                            break
+                    
+                    if test_resource:
+                        has_url = bool(test_resource.get("url"))
+                        self.log_result("Test Resource in List", True, 
+                                      f"Test resource found in list. Has URL: {has_url}")
+                    else:
+                        self.log_result("Test Resource in List", False, 
+                                      f"Test resource {test_resource_id} not found in list")
+                else:
+                    self.log_result("Resources List", False, 
+                                  "Response is not a list")
+            else:
+                self.log_result("Resources List", False, 
+                              f"Failed to get resources: {response.status_code} - {response.text}")
+                
+        except Exception as e:
+            self.log_result("Resources List", False, f"Exception: {str(e)}")
+
+        # Step 6: Test unauthorized access to protected endpoints
+        try:
+            print("Step 6: Testing unauthorized access to protected endpoints...")
+            
+            # Test view-url without auth
+            view_url_endpoint = f"{BACKEND_URL}/resources/{test_resource_id}/view-url"
+            response = self.session.get(view_url_endpoint)  # No auth headers
+            
+            if response.status_code == 401:
+                self.log_result("Resource Auth Protection - View URL", True, 
+                              "Correctly rejected unauthorized access to view-url")
+            else:
+                self.log_result("Resource Auth Protection - View URL", False, 
+                              f"Expected 401, got {response.status_code}")
+            
+            # Test download without auth
+            download_url = f"{BACKEND_URL}/resources/{test_resource_id}/download"
+            response = self.session.get(download_url)  # No auth headers
+            
+            if response.status_code == 401:
+                self.log_result("Resource Auth Protection - Download", True, 
+                              "Correctly rejected unauthorized access to download")
+            else:
+                self.log_result("Resource Auth Protection - Download", False, 
+                              f"Expected 401, got {response.status_code}")
+                
+        except Exception as e:
+            self.log_result("Resource Auth Protection", False, f"Exception: {str(e)}")
+
+        print("✅ Resource viewing functionality testing completed")
+
     def test_ad_hoc_task_creation_and_dashboard(self):
         """Test ad-hoc task creation endpoint and verify it appears in weekly dashboard"""
         print(f"\n📋 Testing Ad-Hoc Task Creation and Dashboard Integration")
