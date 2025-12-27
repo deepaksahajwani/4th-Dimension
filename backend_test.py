@@ -6818,6 +6818,36 @@ class BackendTester:
         
         return passed == total if total > 0 else False
 
+    def run_resource_viewing_tests(self):
+        """Run only the resource viewing functionality tests"""
+        print(f"🚀 Starting Resource Viewing Functionality Tests")
+        print(f"Backend URL: {BACKEND_URL}")
+        print("=" * 60)
+        
+        self.test_resource_viewing_functionality()
+        
+        # Summary
+        print("=" * 60)
+        print("📊 RESOURCE VIEWING FUNCTIONALITY TEST SUMMARY")
+        print("=" * 60)
+        
+        resource_tests = [result for result in self.test_results if "Resource" in result["test"]]
+        passed = sum(1 for result in resource_tests if result["success"])
+        total = len(resource_tests)
+        
+        print(f"Resource Viewing Tests: {total}")
+        print(f"Passed: {passed}")
+        print(f"Failed: {total - passed}")
+        print(f"Success Rate: {(passed/total)*100:.1f}%" if total > 0 else "No tests run")
+        
+        if total - passed > 0:
+            print("\n❌ FAILED RESOURCE VIEWING TESTS:")
+            for result in resource_tests:
+                if not result["success"]:
+                    print(f"  - {result['test']}: {result['details']}")
+        
+        return passed == total if total > 0 else False
+
 if __name__ == "__main__":
     tester = BackendTester()
     
