@@ -31,6 +31,7 @@ const DRAWING_CATEGORIES = ['Architecture', 'Interior', 'Landscape', 'Planning']
 export default function ProjectDetail({ user, onLogout }) {
   const { projectId } = useParams();
   const navigate = useNavigate();
+  const location = window.location;
   
   const [project, setProject] = useState(null);
   const [client, setClient] = useState(null);
@@ -40,6 +41,7 @@ export default function ProjectDetail({ user, onLogout }) {
   const [allTeamMembers, setAllTeamMembers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('drawings');
+  const [highlightedDrawingId, setHighlightedDrawingId] = useState(null);
   
   // Drawing dialog states
   const [drawingDialogOpen, setDrawingDialogOpen] = useState(false);
