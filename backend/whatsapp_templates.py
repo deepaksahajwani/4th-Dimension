@@ -8,24 +8,34 @@ To add a new template:
 2. Submit for WhatsApp approval (takes 1-3 days)
 3. Once approved, add the SID here
 
-Current Templates (as of Dec 2024):
-- 4d_invitation: For inviting new users to register
-- 4d_project_created_client: Notify client when project is created
-- 4d_project_created_team: Notify team leader when assigned to project
-- 4d_drawing_issued: Notify recipients when drawing is issued
-- 4d_task_assigned: Notify team member when task is assigned
+Last Updated: Dec 2024
 """
 
 # Template Content SIDs (from Twilio Console)
-# These are the ACTUAL templates that exist and are approved
 WHATSAPP_TEMPLATES = {
-    # Invitation template - for inviting new users to register
+    # ============================================
+    # INVITATION TEMPLATES
+    # ============================================
+    
+    # Original invitation template (keeping active)
     # Variables: {{1}}=name, {{2}}=inviter, {{3}}=role, {{4}}=register_url
     "invitation": "HX6b1d5f9a7a01af474f0875e734e9d548",
     
-    # User approved - welcome message after approval
-    # Variables: {{1}}=user_name, {{2}}=login_url
-    "user_approved": "HX4e5e653e8e2b3dede43f73d32bb2c75f",
+    # New invitation template with START prompt (preferred)
+    # Variables: {{1}}=invitee_name, {{2}}=inviter_name, {{3}}=role, {{4}}=register_url
+    "new_invitation": "HX2a73a67f15f212fc2d7e5b1295468d2c",
+    
+    # ============================================
+    # USER APPROVAL TEMPLATE
+    # ============================================
+    
+    # User approved v2 - welcome message after approval (5 variables)
+    # Variables: {{1}}=user_name, {{2}}=role, {{3}}=approver_name, {{4}}=approval_date, {{5}}=login_url
+    "user_approved": "HX8756b3df94104dcf48df9e8819b1e13d",
+    
+    # ============================================
+    # PROJECT TEMPLATES
+    # ============================================
     
     # Project created - notification to client
     # Variables: {{1}}=client_name, {{2}}=project_name, {{3}}=team_leader_name, {{4}}=team_leader_phone, {{5}}=app_url
@@ -34,6 +44,10 @@ WHATSAPP_TEMPLATES = {
     # Project created - notification to team leader
     # Variables: {{1}}=project_name, {{2}}=client_name, {{3}}=client_phone, {{4}}=app_url
     "project_created_team": "HXa8d19f666431bbae451c42409d809cca",
+    
+    # ============================================
+    # DRAWING & TASK TEMPLATES
+    # ============================================
     
     # Drawing issued - notification to recipients
     # Variables: {{1}}=recipient_name, {{2}}=project_name, {{3}}=drawing_name, {{4}}=issue_date, {{5}}=drawing_url
@@ -47,10 +61,23 @@ WHATSAPP_TEMPLATES = {
 # Template variable mappings (for reference and validation)
 TEMPLATE_VARIABLES = {
     "invitation": {
-        "1": "name",           # Person being invited
-        "2": "invited_by",     # Person sending invite
-        "3": "role",           # Client, Team Member, etc.
-        "4": "register_url"    # Registration URL
+        "1": "invitee_name",
+        "2": "inviter_name",
+        "3": "role",
+        "4": "register_url"
+    },
+    "new_invitation": {
+        "1": "invitee_name",
+        "2": "inviter_name",
+        "3": "role",
+        "4": "register_url"
+    },
+    "user_approved": {
+        "1": "user_name",
+        "2": "role",
+        "3": "approver_name",
+        "4": "approval_date",
+        "5": "login_url"
     },
     "project_created_client": {
         "1": "client_name",
