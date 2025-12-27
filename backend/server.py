@@ -3174,14 +3174,12 @@ async def update_drawing(
     if update_dict.get('is_issued') == True:
         update_dict['issued_date'] = datetime.now(timezone.utc).isoformat()
     
-    # If un-issuing (is_issued changing from True to False)
+    # REMOVED: Un-issue feature disabled - drawings cannot be un-issued once issued
+    # If someone tries to un-issue, we simply ignore this update
     if update_dict.get('is_issued') == False and drawing.get('is_issued') == True:
-        # Reset to pending state - clear everything
-        update_dict['issued_date'] = None
-        update_dict['under_review'] = False
-        update_dict['is_approved'] = False
-        update_dict['approved_date'] = None
-        update_dict['file_url'] = None  # Clear the file so Upload button appears
+        # Block un-issuing - remove is_issued from update dict
+        del update_dict['is_issued']
+        logger.info(f"Un-issue attempt blocked for drawing {drawing_id}")
     
     # If marking has_pending_revision as True (requesting revision)
     if update_dict.get('has_pending_revision') == True:
