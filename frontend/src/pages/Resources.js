@@ -4,6 +4,7 @@ import {
   FolderOpen, Bookmark, CheckCircle, Clock, Star,
   FileImage, File, FileSpreadsheet, Presentation, Plus, Trash2, Edit, Upload, PenTool, Eye
 } from 'lucide-react';
+import Layout from '@/components/Layout';
 import { Card, CardContent } from '../components/ui/card';
 import { Input } from '../components/ui/input';
 import { Button } from '../components/ui/button';
