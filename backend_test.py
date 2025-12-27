@@ -1326,17 +1326,17 @@ class BackendTester:
                     if len(projects) > 0:
                         # Verify project structure
                         first_project = projects[0]
-                        project_fields = ["id", "name"]
+                        project_fields = ["id", "title"]  # Changed from "name" to "title"
                         
                         if all(field in first_project for field in project_fields):
                             self.log_result("Phase 3 RBAC - Projects List", True, 
-                                          f"Found {len(projects)} projects. Owner sees all projects.")
+                                          f"Found {len(projects)} projects. Owner sees all projects. First project: '{first_project['title']}'")
                             
                             # Store project ID for access list test
                             self.test_project_id = first_project["id"]
                         else:
                             self.log_result("Phase 3 RBAC - Projects List", False, 
-                                          f"Project missing required fields: {project_fields}")
+                                          f"Project missing required fields: {project_fields}. Available fields: {list(first_project.keys())}")
                     else:
                         self.log_result("Phase 3 RBAC - Projects List", True, 
                                       "No projects found (empty list is valid)")
