@@ -1200,6 +1200,197 @@ class BackendTester:
 
         print("✅ Weekly Targets feature testing completed")
 
+    def test_phase_2_implementations(self):
+        """Test Phase 2 implementations as requested in review"""
+        print(f"\n🚀 Testing Phase 2 Implementations")
+        print("=" * 60)
+        
+        # Test Case 1: Health endpoint
+        try:
+            print("Test Case 1: Health endpoint - GET /api/health...")
+            
+            response = self.session.get(f"{BACKEND_URL}/health")
+            
+            if response.status_code == 200:
+                data = response.json()
+                expected_response = {"ok": True, "status": "healthy"}
+                
+                if data == expected_response:
+                    self.log_result("Phase 2 - Health Endpoint", True, 
+                                  f"Health endpoint returns correct response: {data}")
+                else:
+                    self.log_result("Phase 2 - Health Endpoint", False, 
+                                  f"Expected {expected_response}, got {data}")
+            else:
+                self.log_result("Phase 2 - Health Endpoint", False, 
+                              f"Status: {response.status_code} - {response.text}")
+                
+        except Exception as e:
+            self.log_result("Phase 2 - Health Endpoint", False, f"Exception: {str(e)}")
+
+        # Test Case 2: Drawing update - verify un-issue is blocked
+        try:
+            print("Test Case 2: Drawing update - verify un-issue is blocked...")
+            
+            # Step 2a: Login first
+            login_credentials = {
+                "email": "deepaksahajwani@gmail.com",
+                "password": "Deepak@2025"
+            }
+            
+            login_response = self.session.post(f"{BACKEND_URL}/auth/login", json=login_credentials)
+            
+            if login_response.status_code != 200:
+                self.log_result("Phase 2 - Drawing Un-issue Block", False, 
+                              f"Login failed: {login_response.status_code}")
+                return
+            
+            auth_token = login_response.json()["access_token"]
+            headers = {"Authorization": f"Bearer {auth_token}"}
+            
+            # Step 2b: Get projects
+            projects_response = self.session.get(f"{BACKEND_URL}/projects", headers=headers)
+            
+            if projects_response.status_code != 200:
+                self.log_result("Phase 2 - Drawing Un-issue Block", False, 
+                              f"Failed to get projects: {projects_response.status_code}")
+                return
+            
+            projects = projects_response.json()
+            if not projects:
+                self.log_result("Phase 2 - Drawing Un-issue Block", False, 
+                              "No projects found")
+                return
+            
+            project_id = projects[0]["id"]
+            
+            # Step 2c: Get drawings for the project
+            drawings_response = self.session.get(f"{BACKEND_URL}/projects/{project_id}/drawings", headers=headers)
+            
+            if drawings_response.status_code != 200:
+                self.log_result("Phase 2 - Drawing Un-issue Block", False, 
+                              f"Failed to get drawings: {drawings_response.status_code}")
+                return
+            
+            drawings = drawings_response.json()
+            if not drawings:
+                self.log_result("Phase 2 - Drawing Un-issue Block", False, 
+                              "No drawings found")
+                return
+            
+            # Step 2d: Find an issued drawing or issue one first
+            issued_drawing = None
+            for drawing in drawings:
+                if drawing.get("is_issued") == True:
+                    issued_drawing = drawing
+                    break
+            
+            if not issued_drawing:
+                # Issue the first drawing to test un-issue blocking
+                drawing_id = drawings[0]["id"]
+                issue_data = {"is_issued": True}
+                
+                issue_response = self.session.put(f"{BACKEND_URL}/drawings/{drawing_id}", 
+                                                json=issue_data, headers=headers)
+                
+                if issue_response.status_code == 200:
+                    issued_drawing = {"id": drawing_id, "is_issued": True}
+                else:
+                    self.log_result("Phase 2 - Drawing Un-issue Block", False, 
+                                  f"Failed to issue drawing for test: {issue_response.status_code}")
+                    return
+            
+            # Step 2e: Try to un-issue the drawing (should be blocked)
+            drawing_id = issued_drawing["id"]
+            unissue_data = {"is_issued": False}
+            
+            unissue_response = self.session.put(f"{BACKEND_URL}/drawings/{drawing_id}", 
+                                              json=unissue_data, headers=headers)
+            
+            if unissue_response.status_code == 200:
+                # Check if the drawing is still issued (value should remain true)
+                check_response = self.session.get(f"{BACKEND_URL}/projects/{project_id}/drawings", headers=headers)
+                
+                if check_response.status_code == 200:
+                    updated_drawings = check_response.json()
+                    updated_drawing = None
+                    for drawing in updated_drawings:
+                        if drawing["id"] == drawing_id:
+                            updated_drawing = drawing
+                            break
+                    
+                    if updated_drawing and updated_drawing.get("is_issued") == True:
+                        self.log_result("Phase 2 - Drawing Un-issue Block", True, 
+                                      "Un-issue correctly blocked - drawing remains issued")
+                    else:
+                        self.log_result("Phase 2 - Drawing Un-issue Block", False, 
+                                      "Un-issue was not blocked - drawing was un-issued")
+                else:
+                    self.log_result("Phase 2 - Drawing Un-issue Block", False, 
+                                  f"Failed to verify drawing status: {check_response.status_code}")
+            else:
+                self.log_result("Phase 2 - Drawing Un-issue Block", False, 
+                              f"Un-issue request failed: {unissue_response.status_code}")
+                
+        except Exception as e:
+            self.log_result("Phase 2 - Drawing Un-issue Block", False, f"Exception: {str(e)}")
+
+        # Test Case 3: Drawing voice note endpoint
+        try:
+            print("Test Case 3: Drawing voice note endpoint...")
+            
+            # Use the same auth from previous test
+            if 'headers' in locals() and 'drawing_id' in locals():
+                # Just verify the endpoint exists (don't actually upload)
+                voice_note_response = self.session.post(f"{BACKEND_URL}/drawings/{drawing_id}/voice-note", 
+                                                      headers=headers)
+                
+                # We expect either 400 (missing file) or 422 (validation error) - not 404
+                if voice_note_response.status_code in [400, 422]:
+                    self.log_result("Phase 2 - Voice Note Endpoint", True, 
+                                  f"Voice note endpoint exists (status: {voice_note_response.status_code})")
+                elif voice_note_response.status_code == 404:
+                    self.log_result("Phase 2 - Voice Note Endpoint", False, 
+                                  "Voice note endpoint not found (404)")
+                else:
+                    self.log_result("Phase 2 - Voice Note Endpoint", True, 
+                                  f"Voice note endpoint exists (status: {voice_note_response.status_code})")
+            else:
+                self.log_result("Phase 2 - Voice Note Endpoint", False, 
+                              "No auth token or drawing ID available from previous test")
+                
+        except Exception as e:
+            self.log_result("Phase 2 - Voice Note Endpoint", False, f"Exception: {str(e)}")
+
+        # Test Case 4: Revision files endpoint
+        try:
+            print("Test Case 4: Revision files endpoint...")
+            
+            # Use the same auth from previous test
+            if 'headers' in locals() and 'drawing_id' in locals():
+                # Just verify the endpoint exists (don't actually upload)
+                revision_files_response = self.session.post(f"{BACKEND_URL}/drawings/{drawing_id}/revision-files", 
+                                                          headers=headers)
+                
+                # We expect either 400 (missing file) or 422 (validation error) - not 404
+                if revision_files_response.status_code in [400, 422]:
+                    self.log_result("Phase 2 - Revision Files Endpoint", True, 
+                                  f"Revision files endpoint exists (status: {revision_files_response.status_code})")
+                elif revision_files_response.status_code == 404:
+                    self.log_result("Phase 2 - Revision Files Endpoint", False, 
+                                  "Revision files endpoint not found (404)")
+                else:
+                    self.log_result("Phase 2 - Revision Files Endpoint", True, 
+                                  f"Revision files endpoint exists (status: {revision_files_response.status_code})")
+            else:
+                self.log_result("Phase 2 - Revision Files Endpoint", False, 
+                              "No auth token or drawing ID available from previous test")
+                
+        except Exception as e:
+            self.log_result("Phase 2 - Revision Files Endpoint", False, f"Exception: {str(e)}")
+
+        print("✅ Phase 2 implementations testing completed")
+
     def test_whatsapp_webhook_system(self):
         """Test Smart WhatsApp Forwarding webhook system as requested in review"""
         print(f"\n📱 Testing Smart WhatsApp Forwarding Webhook System")
