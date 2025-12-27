@@ -185,6 +185,30 @@ export default function ProjectDetail({ user, onLogout }) {
       // Fetch co-clients
       const coClientsRes = await axios.get(`${API}/projects/${projectId}/co-clients?t=${timestamp}`);
       setCoClients(coClientsRes.data);
+      
+      // Handle deep link - check if there's a drawing query parameter
+      const urlParams = new URLSearchParams(window.location.search);
+      const drawingId = urlParams.get('drawing');
+      if (drawingId) {
+        setActiveTab('drawings');
+        setHighlightedDrawingId(drawingId);
+        
+        // Scroll to the drawing after a short delay
+        setTimeout(() => {
+          const drawingElement = document.getElementById(`drawing-${drawingId}`);
+          if (drawingElement) {
+            drawingElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            // Flash highlight effect
+            drawingElement.classList.add('ring-4', 'ring-amber-400', 'ring-opacity-75');
+            setTimeout(() => {
+              drawingElement.classList.remove('ring-4', 'ring-amber-400', 'ring-opacity-75');
+            }, 3000);
+          }
+        }, 500);
+        
+        // Clear the query parameter from URL
+        window.history.replaceState({}, '', `/projects/${projectId}`);
+      }
     } catch (error) {
       toast.error('Failed to load project data');
       console.error(error);
