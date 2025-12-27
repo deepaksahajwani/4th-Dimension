@@ -39,7 +39,7 @@ async def send_registration_invite(
     invited_by_name: str
 ) -> dict:
     """
-    Send invitation - tries WhatsApp template first, falls back to SMS
+    Send invitation - sends BOTH WhatsApp template AND SMS to ensure delivery
     
     Args:
         name: Name of person being invited
@@ -56,6 +56,8 @@ async def send_registration_invite(
         
         # Get human-readable invitee type
         invitee_label = INVITEE_TYPE_LABELS.get(invitee_type, invitee_type.replace('_', ' ').title())
+        
+        results = {"whatsapp": None, "sms": None}
         
         # Try WhatsApp template first (primary method for business-initiated messages)
         template_sid = WHATSAPP_TEMPLATES.get("invitation")
@@ -75,17 +77,13 @@ async def send_registration_invite(
             
             if template_result.get('success'):
                 logger.info(f"WhatsApp template invite sent to {name} ({phone}) as {invitee_type}")
-                return {
-                    "success": True,
-                    "message": f"WhatsApp invite sent to {name}",
-                    "message_sid": template_result.get('message_sid'),
-                    "channel": "whatsapp_template"
-                }
+                results["whatsapp"] = "sent"
             else:
                 logger.warning(f"WhatsApp template failed for {phone}: {template_result.get('error')}")
+                results["whatsapp"] = "failed"
         
-        # WhatsApp template failed, fall back to SMS
-        logger.info(f"WhatsApp template failed for {phone}, falling back to SMS...")
+        # ALWAYS send SMS as backup (WhatsApp delivery can fail silently with error 63049)
+        logger.info(f"Sending SMS invite to {name} ({phone}) as backup...")
         
         sms_message = f"""Hi {name}!
 
@@ -109,17 +107,29 @@ Welcome aboard!
         
         if sms_result.get('success'):
             logger.info(f"SMS invite sent to {name} ({phone}) as {invitee_type}")
+            results["sms"] = "sent"
+        else:
+            logger.warning(f"SMS invite failed for {phone}: {sms_result.get('error')}")
+            results["sms"] = "failed"
+        
+        # Determine overall success
+        if results["whatsapp"] == "sent" or results["sms"] == "sent":
+            channels = []
+            if results["whatsapp"] == "sent":
+                channels.append("WhatsApp")
+            if results["sms"] == "sent":
+                channels.append("SMS")
+            
             return {
                 "success": True,
-                "message": f"SMS invite sent to {name} (WhatsApp template unavailable)",
-                "message_sid": sms_result.get('message_sid'),
-                "channel": "sms"
+                "message": f"Invite sent to {name} via {' and '.join(channels)}",
+                "channels": results
             }
         else:
-            logger.error(f"All invite methods failed for {name} ({phone})")
             return {
                 "success": False,
-                "message": f"Failed to send invite: {sms_result.get('error')}"
+                "message": f"Failed to send invite via both WhatsApp and SMS",
+                "channels": results
             }
             
     except Exception as e:
