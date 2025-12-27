@@ -2223,7 +2223,7 @@ async def verify_otp(request: OTPVerify, current_user: User = Depends(require_ow
 
 @api_router.delete("/users/{user_id}")
 async def delete_user(user_id: str, current_user: User = Depends(require_owner)):
-    """Delete a team member (Owner only)"""
+    """HARD DELETE a team member (Owner only) - Complete cleanup for fresh re-registration"""
     
     # Don't allow deleting yourself
     if user_id == current_user.id:
@@ -2234,21 +2234,30 @@ async def delete_user(user_id: str, current_user: User = Depends(require_owner))
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
     
-    # Get user email for cleanup
+    # Get user info for cleanup
     user_email = user.get('email')
+    user_phone = user.get('mobile')
     
     # Delete user
     await db.users.delete_one({"id": user_id})
+    logger.info(f"Hard deleted user: {user.get('name')}")
     
     # Delete user's sessions
     await db.user_sessions.delete_many({"user_id": user_id})
     
-    # Delete any pending registrations
+    # Clean up related records to allow fresh re-registration
     if user_email:
         await db.pending_registrations.delete_many({"email": user_email})
         await db.team_verifications.delete_many({"email": user_email})
+        await db.invitations.delete_many({"email": user_email})
     
-    return {"message": "Team member deleted successfully"}
+    if user_phone:
+        # Normalize phone for cleanup
+        phone_digits = ''.join(filter(str.isdigit, user_phone))[-10:]
+        await db.invitations.delete_many({"phone": {"$regex": phone_digits}})
+        await db.pending_registrations.delete_many({"phone": {"$regex": phone_digits}})
+    
+    return {"message": "Team member permanently deleted. They can now be invited fresh."}
 
 @api_router.put("/users/{user_id}")
 async def update_user(user_id: str, user_data: UpdateTeamMember, current_user: User = Depends(require_owner)):
