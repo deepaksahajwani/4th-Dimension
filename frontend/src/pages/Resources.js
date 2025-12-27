@@ -204,11 +204,41 @@ export default function Resources({ user }) {
         document.body.appendChild(link);
         link.click();
         link.remove();
+        window.URL.revokeObjectURL(url);
+        toast.success('Download started');
       } catch (error) {
         toast.error('Failed to download file');
       }
     } else {
       toast.info('No file attached to this resource yet');
+    }
+  };
+
+  const handleView = async (resource) => {
+    if (resource.external_link) {
+      window.open(resource.external_link, '_blank');
+      return;
+    }
+    
+    if (!resource.url) {
+      toast.info('No file attached to this resource yet');
+      return;
+    }
+
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.get(`${API_URL}/api/resources/${resource.id}/view-url`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      
+      if (response.data.view_url) {
+        window.open(response.data.view_url, '_blank');
+      } else {
+        toast.error('Unable to generate view URL');
+      }
+    } catch (error) {
+      console.error('View error:', error);
+      toast.error('Failed to open file for viewing');
     }
   };
 
