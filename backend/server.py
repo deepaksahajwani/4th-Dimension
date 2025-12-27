@@ -3318,13 +3318,15 @@ async def update_drawing(
             notify_owner_drawing_issued,
             notify_owner_drawing_revision_posted
         )
+        from drawing_approval_reminders import send_immediate_approval_notification
         
         project_id = drawing.get('project_id')
         drawing_name = drawing.get('name', 'Drawing')
         
-        # Notification 1: Drawing uploaded for review
+        # Notification 1: Drawing uploaded for review - Send IMMEDIATE approval notification
         if update_dict.get('under_review') == True and not drawing.get('under_review'):
-            await notify_owner_drawing_uploaded(
+            # Send immediate notification with deep link and reminder warning
+            await send_immediate_approval_notification(
                 drawing_id=drawing_id,
                 drawing_name=drawing_name,
                 project_id=project_id,
