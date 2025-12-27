@@ -349,6 +349,7 @@ export default function Resources({ user }) {
               {featuredResources.slice(0, 4).map(resource => {
                 const CategoryIcon = CATEGORIES[resource.category]?.icon || FileText;
                 const FileIcon = getFileIcon(resource.type);
+                const hasFile = resource.url || resource.external_link;
                 return (
                   <Card key={resource.id} className="hover:shadow-md transition-shadow border-l-4 border-l-indigo-500">
                     <CardContent className="p-4">
@@ -360,10 +361,18 @@ export default function Resources({ user }) {
                       </div>
                       <h3 className="font-semibold text-slate-800 mb-1 line-clamp-1">{resource.title}</h3>
                       <p className="text-sm text-slate-500 line-clamp-2 mb-3">{resource.description}</p>
-                      <Button variant="outline" size="sm" className="w-full" onClick={() => handleDownload(resource)}>
-                        <Download className="w-4 h-4 mr-2" />
-                        {resource.url || resource.external_link ? 'Download' : 'View'}
-                      </Button>
+                      <div className="flex gap-2">
+                        {hasFile && (
+                          <Button variant="outline" size="sm" className="flex-1" onClick={() => handleView(resource)}>
+                            <Eye className="w-4 h-4 mr-1" />
+                            View
+                          </Button>
+                        )}
+                        <Button variant="outline" size="sm" className="flex-1" onClick={() => handleDownload(resource)}>
+                          <Download className="w-4 h-4 mr-1" />
+                          {hasFile ? 'Download' : 'No File'}
+                        </Button>
+                      </div>
                     </CardContent>
                   </Card>
                 );
