@@ -5254,7 +5254,7 @@ async def delete_consultant(
     consultant_id: str,
     current_user: User = Depends(get_current_user)
 ):
-    """Soft delete consultant - Only if no active projects exist"""
+    """HARD DELETE consultant - Only if no active projects exist"""
     existing = await db.consultants.find_one({"id": consultant_id}, {"_id": 0})
     if not existing:
         raise HTTPException(status_code=404, detail="Consultant not found")
@@ -5275,17 +5275,33 @@ async def delete_consultant(
             detail=f"Cannot delete consultant. Active projects exist: {project_names}. Please archive these projects first."
         )
     
-    await db.consultants.update_one(
-        {"id": consultant_id},
-        {"$set": {"deleted_at": datetime.now(timezone.utc).isoformat()}}
-    )
+    # Get consultant info for cleanup
+    consultant_email = existing.get('email')
+    consultant_phone = existing.get('phone')
+    consultant_user_id = existing.get('user_id')
+    
+    # HARD DELETE from consultants collection
+    await db.consultants.delete_one({"id": consultant_id})
+    logger.info(f"Hard deleted consultant: {existing.get('name')}")
     
     # Delete the associated user account (if exists)
-    if existing.get('user_id'):
-        await db.users.delete_one({"id": existing['user_id']})
-        print(f"✅ Deleted user account for consultant: {existing.get('name')}")
+    if consultant_user_id:
+        await db.users.delete_one({"id": consultant_user_id})
+        logger.info(f"Hard deleted user account for consultant: {existing.get('name')}")
     
-    return {"message": "Consultant and associated user account deleted successfully"}
+    # Clean up related records to allow fresh re-registration
+    if consultant_email:
+        await db.pending_registrations.delete_many({"email": consultant_email})
+        await db.invitations.delete_many({"email": consultant_email})
+        await db.team_verifications.delete_many({"email": consultant_email})
+    
+    if consultant_phone:
+        # Normalize phone for cleanup
+        phone_digits = ''.join(filter(str.isdigit, consultant_phone))[-10:]
+        await db.invitations.delete_many({"phone": {"$regex": phone_digits}})
+        await db.pending_registrations.delete_many({"phone": {"$regex": phone_digits}})
+    
+    return {"message": "Consultant permanently deleted. They can now be invited fresh."}
 
 # Checklist Presets
 @api_router.get("/checklist-presets", response_model=List[ChecklistPreset])
