@@ -3780,6 +3780,150 @@ async def upload_comment_voice_note(
     
     return {"voice_url": voice_url, "message": "Voice note uploaded successfully"}
 
+
+@api_router.post("/drawings/{drawing_id}/voice-note")
+async def upload_drawing_voice_note(
+    drawing_id: str,
+    voice_note: UploadFile = File(...),
+    type: str = Form("revision_request"),
+    current_user: User = Depends(get_current_user)
+):
+    """Upload a voice note for a drawing (revision request or feedback)"""
+    # Verify drawing exists
+    drawing = await db.project_drawings.find_one({"id": drawing_id}, {"_id": 0})
+    if not drawing:
+        raise HTTPException(status_code=404, detail="Drawing not found")
+    
+    # Validate file type
+    file_extension = Path(voice_note.filename).suffix.lower()
+    if file_extension not in ['.webm', '.mp3', '.wav', '.m4a', '.ogg']:
+        raise HTTPException(status_code=400, detail="Invalid audio file type")
+    
+    # Create unique filename
+    unique_filename = f"drawing_{drawing_id}_{type}_{uuid.uuid4().hex[:8]}{file_extension}"
+    
+    # Save voice note
+    upload_dir = Path("uploads/drawing_voice_notes")
+    upload_dir.mkdir(parents=True, exist_ok=True)
+    
+    file_path = upload_dir / unique_filename
+    try:
+        content = await voice_note.read()
+        with open(file_path, "wb") as f:
+            f.write(content)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to save voice note: {str(e)}")
+    
+    voice_url = f"/api/drawing-voice-notes/{unique_filename}"
+    
+    # Update drawing with voice note URL based on type
+    if type == "revision_request":
+        await db.project_drawings.update_one(
+            {"id": drawing_id},
+            {"$set": {"revision_voice_note_url": voice_url}}
+        )
+    
+    return {"voice_url": voice_url, "message": "Voice note uploaded successfully"}
+
+
+@api_router.post("/drawings/{drawing_id}/revision-files")
+async def upload_drawing_revision_files(
+    drawing_id: str,
+    files: List[UploadFile] = File(...),
+    type: str = Form("revision_reference"),
+    current_user: User = Depends(get_current_user)
+):
+    """Upload reference files for a drawing revision request"""
+    # Verify drawing exists
+    drawing = await db.project_drawings.find_one({"id": drawing_id}, {"_id": 0})
+    if not drawing:
+        raise HTTPException(status_code=404, detail="Drawing not found")
+    
+    # Allowed file types
+    allowed_extensions = ['.pdf', '.jpg', '.jpeg', '.png', '.dwg', '.dxf', '.webp']
+    
+    upload_dir = Path("uploads/revision_files")
+    upload_dir.mkdir(parents=True, exist_ok=True)
+    
+    uploaded_files = []
+    for file in files:
+        file_extension = Path(file.filename).suffix.lower()
+        if file_extension not in allowed_extensions:
+            continue  # Skip invalid files
+        
+        # Create unique filename
+        unique_filename = f"rev_{drawing_id}_{uuid.uuid4().hex[:8]}{file_extension}"
+        file_path = upload_dir / unique_filename
+        
+        try:
+            content = await file.read()
+            with open(file_path, "wb") as f:
+                f.write(content)
+            
+            file_url = f"/api/revision-files/{unique_filename}"
+            uploaded_files.append({
+                "filename": file.filename,
+                "url": file_url,
+                "uploaded_at": datetime.now(timezone.utc).isoformat()
+            })
+        except Exception as e:
+            logger.error(f"Failed to save revision file: {str(e)}")
+    
+    # Update drawing with revision file URLs
+    if uploaded_files:
+        existing_files = drawing.get("revision_reference_files", [])
+        await db.project_drawings.update_one(
+            {"id": drawing_id},
+            {"$set": {"revision_reference_files": existing_files + uploaded_files}}
+        )
+    
+    return {"files": uploaded_files, "message": f"{len(uploaded_files)} file(s) uploaded successfully"}
+
+
+@api_router.get("/drawing-voice-notes/{filename}")
+async def serve_drawing_voice_note(filename: str, current_user: User = Depends(get_current_user)):
+    """Serve drawing voice note files"""
+    from fastapi.responses import FileResponse
+    
+    file_path = Path("uploads/drawing_voice_notes") / filename
+    if not file_path.exists():
+        raise HTTPException(status_code=404, detail="Voice note not found")
+    
+    return FileResponse(
+        path=str(file_path),
+        media_type="audio/webm",
+        filename=filename
+    )
+
+
+@api_router.get("/revision-files/{filename}")
+async def serve_revision_file(filename: str, current_user: User = Depends(get_current_user)):
+    """Serve revision reference files"""
+    from fastapi.responses import FileResponse
+    
+    file_path = Path("uploads/revision_files") / filename
+    if not file_path.exists():
+        raise HTTPException(status_code=404, detail="File not found")
+    
+    # Determine media type
+    ext = Path(filename).suffix.lower()
+    media_types = {
+        '.pdf': 'application/pdf',
+        '.jpg': 'image/jpeg',
+        '.jpeg': 'image/jpeg',
+        '.png': 'image/png',
+        '.webp': 'image/webp',
+        '.dwg': 'application/acad',
+        '.dxf': 'application/dxf'
+    }
+    
+    return FileResponse(
+        path=str(file_path),
+        media_type=media_types.get(ext, 'application/octet-stream'),
+        filename=filename
+    )
+
+
 @api_router.post("/drawings/{drawing_id}/notify-issue")
 async def notify_drawing_issue(
     drawing_id: str,
