@@ -87,6 +87,22 @@ app = FastAPI(title="Architecture Firm Management System")
 api_router = APIRouter(prefix="/api")
 
 
+# ==================== HEALTH CHECK ENDPOINT (Cold-Start Prevention) ====================
+
+@app.get("/health")
+async def health_check():
+    """
+    Lightweight health check endpoint for keep-alive pings.
+    Use with UptimeRobot or cron job every 5 minutes to prevent cold starts.
+    """
+    return {"ok": True, "status": "healthy"}
+
+@api_router.get("/health")
+async def api_health_check():
+    """API-prefixed health check"""
+    return {"ok": True, "status": "healthy"}
+
+
 # ==================== MODELS ====================
 
 class User(BaseModel):
