@@ -573,6 +573,6 @@ export default function Resources({ user, onLogout }) {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </div>
+    </Layout>
   );
 }
