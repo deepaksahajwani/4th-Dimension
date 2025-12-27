@@ -1510,15 +1510,15 @@ export default function ProjectDetail({ user, onLogout }) {
                           </div>
                           
                           <div className="flex flex-wrap gap-1.5 sm:gap-2">
-                            {/* Issue/Unissue button - hidden when there's a pending revision */}
-                            {!drawing.has_pending_revision && (
+                            {/* Issue button - only shown when not issued and no pending revision */}
+                            {!drawing.is_issued && !drawing.has_pending_revision && (
                               <Button
                                 variant="outline"
                                 size="sm"
                                 onClick={() => handleToggleIssued(drawing)}
                                 className="flex-1 sm:flex-none text-xs h-8"
                               >
-                                {drawing.is_issued ? "Unissue" : "Issue"}
+                                Issue
                               </Button>
                             )}
                             
