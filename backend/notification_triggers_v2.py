@@ -1158,3 +1158,191 @@ View project details: {APP_URL}
         
     except Exception as e:
         logger.error(f"Error in notify_project_assignment: {str(e)}")
+
+
+# ============================================
+# DRAWING NOTIFICATIONS - Owner WhatsApp Alerts
+# ============================================
+
+async def get_owner_info() -> Optional[Dict]:
+    """Get owner user info"""
+    return await db.users.find_one({"is_owner": True}, {"_id": 0})
+
+
+async def notify_owner_drawing_uploaded(
+    drawing_id: str,
+    drawing_name: str,
+    project_id: str,
+    uploaded_by_name: str
+):
+    """
+    Notify owner when a drawing is uploaded for review
+    """
+    try:
+        owner = await get_owner_info()
+        if not owner or not owner.get('mobile'):
+            logger.warning("Owner not found or no mobile number for drawing upload notification")
+            return
+        
+        project = await get_project_by_id(project_id)
+        project_name = project.get('title', 'Unknown Project') if project else 'Unknown Project'
+        
+        message = f"""📤 *Drawing Uploaded for Review*
+
+📁 *Drawing:* {drawing_name}
+🏗️ *Project:* {project_name}
+👤 *Uploaded by:* {uploaded_by_name}
+📅 *Time:* {datetime.now(timezone.utc).strftime('%d %b %Y, %I:%M %p')}
+
+Please review and approve in the portal.
+
+{APP_URL}"""
+
+        # Send WhatsApp
+        result = await notification_service.send_whatsapp(owner['mobile'], message)
+        if result.get('success'):
+            logger.info(f"Owner notified of drawing upload: {drawing_name}")
+        else:
+            # Fallback to SMS
+            await notification_service.send_sms(owner['mobile'], message)
+            
+    except Exception as e:
+        logger.error(f"Error notifying owner of drawing upload: {str(e)}")
+
+
+async def notify_owner_drawing_issued(
+    drawing_id: str,
+    drawing_name: str,
+    project_id: str,
+    issued_by_name: str,
+    revision_number: int = 0
+):
+    """
+    Notify owner when a drawing is issued
+    """
+    try:
+        owner = await get_owner_info()
+        if not owner or not owner.get('mobile'):
+            logger.warning("Owner not found or no mobile number for drawing issue notification")
+            return
+        
+        project = await get_project_by_id(project_id)
+        project_name = project.get('title', 'Unknown Project') if project else 'Unknown Project'
+        
+        revision_text = f" (R{revision_number})" if revision_number > 0 else ""
+        
+        message = f"""✅ *Drawing Issued*
+
+📁 *Drawing:* {drawing_name}{revision_text}
+🏗️ *Project:* {project_name}
+👤 *Issued by:* {issued_by_name}
+📅 *Time:* {datetime.now(timezone.utc).strftime('%d %b %Y, %I:%M %p')}
+
+The drawing has been issued to relevant parties.
+
+{APP_URL}"""
+
+        # Send WhatsApp
+        result = await notification_service.send_whatsapp(owner['mobile'], message)
+        if result.get('success'):
+            logger.info(f"Owner notified of drawing issue: {drawing_name}")
+        else:
+            # Fallback to SMS
+            await notification_service.send_sms(owner['mobile'], message)
+            
+    except Exception as e:
+        logger.error(f"Error notifying owner of drawing issue: {str(e)}")
+
+
+async def notify_owner_drawing_comment(
+    drawing_id: str,
+    drawing_name: str,
+    project_id: str,
+    commenter_name: str,
+    comment_text: str,
+    requires_revision: bool = False
+):
+    """
+    Notify owner when a comment is added on a drawing
+    """
+    try:
+        owner = await get_owner_info()
+        if not owner or not owner.get('mobile'):
+            logger.warning("Owner not found or no mobile number for drawing comment notification")
+            return
+        
+        # Don't notify owner if they made the comment
+        if commenter_name == owner.get('name'):
+            return
+        
+        project = await get_project_by_id(project_id)
+        project_name = project.get('title', 'Unknown Project') if project else 'Unknown Project'
+        
+        revision_alert = "\n⚠️ *REVISION REQUESTED*" if requires_revision else ""
+        
+        # Truncate comment if too long
+        comment_preview = comment_text[:100] + "..." if len(comment_text) > 100 else comment_text
+        
+        message = f"""💬 *New Comment on Drawing*{revision_alert}
+
+📁 *Drawing:* {drawing_name}
+🏗️ *Project:* {project_name}
+👤 *From:* {commenter_name}
+
+📝 *Comment:*
+"{comment_preview}"
+
+{APP_URL}"""
+
+        # Send WhatsApp
+        result = await notification_service.send_whatsapp(owner['mobile'], message)
+        if result.get('success'):
+            logger.info(f"Owner notified of drawing comment: {drawing_name}")
+        else:
+            # Fallback to SMS
+            await notification_service.send_sms(owner['mobile'], message)
+            
+    except Exception as e:
+        logger.error(f"Error notifying owner of drawing comment: {str(e)}")
+
+
+async def notify_owner_drawing_revision_posted(
+    drawing_id: str,
+    drawing_name: str,
+    project_id: str,
+    posted_by_name: str,
+    revision_number: int
+):
+    """
+    Notify owner when a revised drawing is posted
+    """
+    try:
+        owner = await get_owner_info()
+        if not owner or not owner.get('mobile'):
+            logger.warning("Owner not found or no mobile number for revision notification")
+            return
+        
+        project = await get_project_by_id(project_id)
+        project_name = project.get('title', 'Unknown Project') if project else 'Unknown Project'
+        
+        message = f"""🔄 *Revised Drawing Posted*
+
+📁 *Drawing:* {drawing_name} (R{revision_number})
+🏗️ *Project:* {project_name}
+👤 *Revised by:* {posted_by_name}
+📅 *Time:* {datetime.now(timezone.utc).strftime('%d %b %Y, %I:%M %p')}
+
+The revised drawing is ready for review.
+
+{APP_URL}"""
+
+        # Send WhatsApp
+        result = await notification_service.send_whatsapp(owner['mobile'], message)
+        if result.get('success'):
+            logger.info(f"Owner notified of drawing revision: {drawing_name} R{revision_number}")
+        else:
+            # Fallback to SMS
+            await notification_service.send_sms(owner['mobile'], message)
+            
+    except Exception as e:
+        logger.error(f"Error notifying owner of drawing revision: {str(e)}")
