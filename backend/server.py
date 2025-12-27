@@ -4087,6 +4087,313 @@ async def download_comment_reference(
     )
 
 
+# ==================== CONTRACTOR PROGRESS TRACKING ====================
+
+@api_router.get("/contractor-task-types")
+async def get_contractor_task_types():
+    """Get all contractor types and their task checklists"""
+    from contractor_progress import CONTRACTOR_TASK_CHECKLISTS, get_all_contractor_types
+    return {
+        "contractor_types": get_all_contractor_types(),
+        "task_checklists": CONTRACTOR_TASK_CHECKLISTS
+    }
+
+
+@api_router.get("/contractor-tasks/{contractor_type}")
+async def get_tasks_for_contractor_type(contractor_type: str):
+    """Get task checklist for a specific contractor type"""
+    from contractor_progress import get_contractor_tasks
+    tasks = get_contractor_tasks(contractor_type)
+    return {"contractor_type": contractor_type, "tasks": tasks}
+
+
+@api_router.get("/drawings/{drawing_id}/contractor-progress/{contractor_id}")
+async def get_drawing_contractor_progress(
+    drawing_id: str,
+    contractor_id: str,
+    current_user: User = Depends(get_current_user)
+):
+    """Get contractor's progress on a specific drawing"""
+    from contractor_progress import get_contractor_tasks, calculate_progress_percentage
+    
+    # Get the drawing
+    drawing = await db.project_drawings.find_one({"id": drawing_id}, {"_id": 0})
+    if not drawing:
+        raise HTTPException(status_code=404, detail="Drawing not found")
+    
+    # Get contractor info
+    contractor = await db.contractors.find_one({"id": contractor_id}, {"_id": 0})
+    if not contractor:
+        contractor = await db.users.find_one({"id": contractor_id}, {"_id": 0})
+    
+    if not contractor:
+        raise HTTPException(status_code=404, detail="Contractor not found")
+    
+    contractor_type = contractor.get('contractor_type', 'Other')
+    
+    # Get all tasks for this contractor type
+    all_tasks = get_contractor_tasks(contractor_type)
+    
+    # Get progress data for this drawing+contractor
+    progress_data = drawing.get('contractor_progress', {}).get(contractor_id, {})
+    completed_tasks = progress_data.get('completed_tasks', [])
+    
+    # Calculate percentage
+    percentage = calculate_progress_percentage(completed_tasks, contractor_type)
+    
+    return {
+        "drawing_id": drawing_id,
+        "contractor_id": contractor_id,
+        "contractor_type": contractor_type,
+        "tasks": all_tasks,
+        "completed_tasks": completed_tasks,
+        "progress_percentage": percentage,
+        "last_updated": progress_data.get('last_updated')
+    }
+
+
+@api_router.post("/drawings/{drawing_id}/contractor-progress/{contractor_id}/update")
+async def update_drawing_contractor_progress(
+    drawing_id: str,
+    contractor_id: str,
+    task_id: str = Body(..., embed=True),
+    completed: bool = Body(..., embed=True),
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Update contractor progress on a drawing - mark a task as complete or incomplete.
+    Contractors can mark tasks complete.
+    Owner/Client can remove completed tasks (with required comment).
+    """
+    from contractor_progress import get_contractor_tasks, calculate_progress_percentage
+    
+    # Get the drawing
+    drawing = await db.project_drawings.find_one({"id": drawing_id}, {"_id": 0})
+    if not drawing:
+        raise HTTPException(status_code=404, detail="Drawing not found")
+    
+    # Get contractor info
+    contractor = await db.contractors.find_one({"id": contractor_id}, {"_id": 0})
+    if not contractor:
+        contractor = await db.users.find_one({"id": contractor_id}, {"_id": 0})
+    
+    if not contractor:
+        raise HTTPException(status_code=404, detail="Contractor not found")
+    
+    contractor_type = contractor.get('contractor_type', 'Other')
+    
+    # Verify task exists
+    all_tasks = get_contractor_tasks(contractor_type)
+    task_ids = [t['id'] for t in all_tasks]
+    if task_id not in task_ids:
+        raise HTTPException(status_code=400, detail="Invalid task ID for this contractor type")
+    
+    # Get current progress
+    progress_data = drawing.get('contractor_progress', {})
+    contractor_progress = progress_data.get(contractor_id, {'completed_tasks': []})
+    completed_tasks = contractor_progress.get('completed_tasks', [])
+    
+    # Permission check for removing completion (only owner/client can remove)
+    if not completed and task_id in completed_tasks:
+        if not current_user.is_owner and current_user.role != 'client':
+            raise HTTPException(
+                status_code=403, 
+                detail="Only owner or client can remove completed task marks"
+            )
+    
+    # Update completed tasks
+    if completed and task_id not in completed_tasks:
+        completed_tasks.append(task_id)
+    elif not completed and task_id in completed_tasks:
+        completed_tasks.remove(task_id)
+    
+    # Update the database
+    contractor_progress['completed_tasks'] = completed_tasks
+    contractor_progress['last_updated'] = datetime.now(timezone.utc).isoformat()
+    contractor_progress['last_updated_by'] = current_user.id
+    
+    progress_data[contractor_id] = contractor_progress
+    
+    await db.project_drawings.update_one(
+        {"id": drawing_id},
+        {"$set": {"contractor_progress": progress_data}}
+    )
+    
+    # Calculate new percentage
+    percentage = calculate_progress_percentage(completed_tasks, contractor_type)
+    
+    return {
+        "success": True,
+        "task_id": task_id,
+        "completed": completed,
+        "progress_percentage": percentage,
+        "completed_tasks": completed_tasks
+    }
+
+
+@api_router.post("/drawings/{drawing_id}/contractor-progress/{contractor_id}/remove-task")
+async def remove_contractor_task_completion(
+    drawing_id: str,
+    contractor_id: str,
+    task_id: str = Body(..., embed=True),
+    reason: str = Body(..., embed=True, min_length=10),
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Remove a completed task mark - requires a reason comment.
+    Only owner or client can do this.
+    """
+    # Verify permission
+    if not current_user.is_owner and current_user.role != 'client':
+        raise HTTPException(
+            status_code=403, 
+            detail="Only owner or client can remove completed task marks"
+        )
+    
+    # Get the drawing
+    drawing = await db.project_drawings.find_one({"id": drawing_id}, {"_id": 0})
+    if not drawing:
+        raise HTTPException(status_code=404, detail="Drawing not found")
+    
+    # Get current progress
+    progress_data = drawing.get('contractor_progress', {})
+    contractor_progress = progress_data.get(contractor_id, {'completed_tasks': []})
+    completed_tasks = contractor_progress.get('completed_tasks', [])
+    
+    if task_id not in completed_tasks:
+        raise HTTPException(status_code=400, detail="Task is not marked as completed")
+    
+    # Remove the task
+    completed_tasks.remove(task_id)
+    
+    # Log the removal with reason
+    removal_log = contractor_progress.get('removal_log', [])
+    removal_log.append({
+        "task_id": task_id,
+        "removed_by": current_user.id,
+        "removed_by_name": current_user.name,
+        "reason": reason,
+        "removed_at": datetime.now(timezone.utc).isoformat()
+    })
+    
+    contractor_progress['completed_tasks'] = completed_tasks
+    contractor_progress['removal_log'] = removal_log
+    contractor_progress['last_updated'] = datetime.now(timezone.utc).isoformat()
+    
+    progress_data[contractor_id] = contractor_progress
+    
+    await db.project_drawings.update_one(
+        {"id": drawing_id},
+        {"$set": {"contractor_progress": progress_data}}
+    )
+    
+    # Also add a comment on the drawing about the removal
+    comment = {
+        "id": str(uuid.uuid4()),
+        "drawing_id": drawing_id,
+        "user_id": current_user.id,
+        "user_name": current_user.name,
+        "comment_text": f"Task completion removed: {reason}",
+        "comment_type": "progress_removal",
+        "created_at": datetime.now(timezone.utc).isoformat()
+    }
+    await db.drawing_comments.insert_one(comment)
+    
+    return {
+        "success": True,
+        "message": "Task completion removed",
+        "reason": reason
+    }
+
+
+@api_router.get("/contractors/{contractor_id}/projects-progress")
+async def get_contractor_projects_progress(
+    contractor_id: str,
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Get all projects a contractor is involved in with their progress on each.
+    Shows overall progress report for the contractor.
+    """
+    from contractor_progress import get_contractor_tasks, calculate_progress_percentage
+    
+    # Get contractor info
+    contractor = await db.contractors.find_one({"id": contractor_id}, {"_id": 0})
+    if not contractor:
+        contractor = await db.users.find_one({"id": contractor_id}, {"_id": 0})
+    
+    if not contractor:
+        raise HTTPException(status_code=404, detail="Contractor not found")
+    
+    contractor_type = contractor.get('contractor_type', 'Other')
+    contractor_name = contractor.get('name', 'Contractor')
+    
+    # Find all projects where this contractor is assigned
+    projects = []
+    async for project in db.projects.find({}, {"_id": 0}):
+        assigned_contractors = project.get('assigned_contractors', {})
+        is_assigned = False
+        
+        if isinstance(assigned_contractors, dict):
+            if contractor_id in assigned_contractors.values():
+                is_assigned = True
+        elif isinstance(assigned_contractors, list):
+            if contractor_id in assigned_contractors:
+                is_assigned = True
+        
+        if not is_assigned:
+            continue
+        
+        # Get all issued drawings for this project
+        drawings = await db.project_drawings.find({
+            "project_id": project['id'],
+            "is_issued": True
+        }, {"_id": 0}).to_list(100)
+        
+        # Calculate progress for each drawing
+        drawing_progress = []
+        total_tasks = 0
+        completed_tasks_count = 0
+        
+        for drawing in drawings:
+            progress_data = drawing.get('contractor_progress', {}).get(contractor_id, {})
+            completed_tasks = progress_data.get('completed_tasks', [])
+            all_tasks = get_contractor_tasks(contractor_type)
+            
+            percentage = calculate_progress_percentage(completed_tasks, contractor_type)
+            
+            drawing_progress.append({
+                "drawing_id": drawing['id'],
+                "drawing_name": drawing.get('name', 'Drawing'),
+                "progress_percentage": percentage,
+                "completed_tasks": len(completed_tasks),
+                "total_tasks": len(all_tasks)
+            })
+            
+            total_tasks += len(all_tasks)
+            completed_tasks_count += len(completed_tasks)
+        
+        # Calculate overall project progress
+        overall_progress = int((completed_tasks_count / total_tasks) * 100) if total_tasks > 0 else 0
+        
+        projects.append({
+            "project_id": project['id'],
+            "project_name": project.get('title', project.get('name', 'Project')),
+            "project_code": project.get('code'),
+            "issued_drawings_count": len(drawings),
+            "overall_progress": overall_progress,
+            "drawing_progress": drawing_progress
+        })
+    
+    return {
+        "contractor_id": contractor_id,
+        "contractor_name": contractor_name,
+        "contractor_type": contractor_type,
+        "total_projects": len(projects),
+        "projects": projects
+    }
+
+
 # ==================== CONTRACTOR MANAGEMENT ROUTES ====================
 
 @api_router.post("/contractors")
