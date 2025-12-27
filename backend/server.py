@@ -2429,7 +2429,7 @@ async def archive_client(client_id: str, archived: bool = True, current_user: Us
 
 @api_router.delete("/clients/{client_id}")
 async def delete_client(client_id: str, current_user: User = Depends(require_owner)):
-    """Permanently delete client (soft delete) - Only if no active projects exist"""
+    """Permanently delete client (HARD DELETE) - Only if no active projects exist"""
     # Check in both clients collection and users collection (legacy clients)
     client = await db.clients.find_one({"id": client_id}, {"_id": 0})
     user_client = await db.users.find_one({"id": client_id, "role": "client"}, {"_id": 0})
@@ -2454,24 +2454,47 @@ async def delete_client(client_id: str, current_user: User = Depends(require_own
             detail=f"Cannot delete client. {len(active_projects)} active project(s) exist: {project_names}. Please archive or delete these projects first."
         )
     
-    # Soft delete from clients collection if exists
+    # Get client info for cleanup
+    client_email = None
+    client_phone = None
+    client_user_id = None
+    
     if client:
-        await db.clients.update_one(
-            {"id": client_id},
-            {"$set": {"deleted_at": datetime.now(timezone.utc).isoformat()}}
-        )
+        client_email = client.get('email')
+        client_phone = client.get('phone')
+        client_user_id = client.get('user_id')
+    if user_client:
+        client_email = client_email or user_client.get('email')
+        client_phone = client_phone or user_client.get('mobile')
+    
+    # HARD DELETE from clients collection
+    if client:
+        await db.clients.delete_one({"id": client_id})
+        logger.info(f"Hard deleted client: {client.get('name')}")
     
     # Delete from users collection if exists (legacy clients stored as users)
     if user_client:
         await db.users.delete_one({"id": client_id})
-        logger.info(f"Deleted legacy client from users: {user_client.get('name')}")
+        logger.info(f"Hard deleted legacy client from users: {user_client.get('name')}")
     
     # Also delete associated user account if stored separately
-    if client and client.get('user_id'):
-        await db.users.delete_one({"id": client['user_id']})
-        logger.info(f"Deleted user account for client: {client.get('name')}")
+    if client_user_id:
+        await db.users.delete_one({"id": client_user_id})
+        logger.info(f"Hard deleted user account for client: {client.get('name')}")
     
-    return {"message": "Client and associated user account deleted successfully"}
+    # Clean up related records to allow fresh re-registration
+    if client_email:
+        await db.pending_registrations.delete_many({"email": client_email})
+        await db.invitations.delete_many({"email": client_email})
+        await db.team_verifications.delete_many({"email": client_email})
+    
+    if client_phone:
+        # Normalize phone for cleanup
+        phone_digits = ''.join(filter(str.isdigit, client_phone))[-10:]
+        await db.invitations.delete_many({"phone": {"$regex": phone_digits}})
+        await db.pending_registrations.delete_many({"phone": {"$regex": phone_digits}})
+    
+    return {"message": "Client permanently deleted. They can now be invited fresh."}
 
 
 
