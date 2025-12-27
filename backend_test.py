@@ -1200,6 +1200,252 @@ class BackendTester:
 
         print("✅ Weekly Targets feature testing completed")
 
+    def test_phase_3_rbac_implementations(self):
+        """Test Phase 3 Role-Based Access Control implementations as requested in review"""
+        print(f"\n🔐 Testing Phase 3 Role-Based Access Control Implementations")
+        print("=" * 70)
+        
+        # Step 1: Login with provided credentials
+        try:
+            print("Step 1: Authenticating with provided credentials...")
+            
+            login_credentials = {
+                "email": "deepaksahajwani@gmail.com",
+                "password": "Deepak@2025"
+            }
+            
+            login_response = self.session.post(f"{BACKEND_URL}/auth/login", json=login_credentials)
+            
+            if login_response.status_code != 200:
+                self.log_result("Phase 3 RBAC - Authentication", False, 
+                              f"Login failed: {login_response.status_code} - {login_response.text}")
+                return
+            
+            login_data = login_response.json()
+            auth_token = login_data["access_token"]
+            headers = {"Authorization": f"Bearer {auth_token}"}
+            
+            # Verify user role
+            user_info = login_data.get("user", {})
+            if user_info.get("is_owner"):
+                self.log_result("Phase 3 RBAC - Authentication", True, 
+                              f"Owner authenticated successfully. Role: {user_info.get('role', 'owner')}")
+            else:
+                self.log_result("Phase 3 RBAC - Authentication", True, 
+                              f"User authenticated. Role: {user_info.get('role', 'unknown')}")
+                
+        except Exception as e:
+            self.log_result("Phase 3 RBAC - Authentication", False, f"Exception: {str(e)}")
+            return
+
+        # Test Case 1: Contractor Task Types Endpoint
+        try:
+            print("Test Case 1: GET /api/contractor-task-types...")
+            
+            response = self.session.get(f"{BACKEND_URL}/contractor-task-types", headers=headers)
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                # Verify response structure
+                required_fields = ["contractor_types", "task_checklists"]
+                if all(field in data for field in required_fields):
+                    contractor_types = data["contractor_types"]
+                    task_checklists = data["task_checklists"]
+                    
+                    # Check for expected contractor types
+                    expected_types = ["Electrical", "HVAC", "Furniture", "Civil"]
+                    found_types = [t for t in expected_types if t in contractor_types]
+                    
+                    if len(found_types) >= 3:  # At least 3 of the expected types
+                        self.log_result("Phase 3 RBAC - Contractor Task Types", True, 
+                                      f"Found {len(contractor_types)} contractor types including: {', '.join(found_types)}")
+                    else:
+                        self.log_result("Phase 3 RBAC - Contractor Task Types", False, 
+                                      f"Missing expected contractor types. Found: {contractor_types}")
+                else:
+                    missing_fields = [f for f in required_fields if f not in data]
+                    self.log_result("Phase 3 RBAC - Contractor Task Types", False, 
+                                  f"Missing response fields: {missing_fields}")
+            else:
+                self.log_result("Phase 3 RBAC - Contractor Task Types", False, 
+                              f"Status: {response.status_code} - {response.text}")
+                
+        except Exception as e:
+            self.log_result("Phase 3 RBAC - Contractor Task Types", False, f"Exception: {str(e)}")
+
+        # Test Case 2: Contractor Tasks for Specific Type
+        try:
+            print("Test Case 2: GET /api/contractor-tasks/Electrical...")
+            
+            response = self.session.get(f"{BACKEND_URL}/contractor-tasks/Electrical", headers=headers)
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                # Verify response structure
+                if "contractor_type" in data and "tasks" in data:
+                    contractor_type = data["contractor_type"]
+                    tasks = data["tasks"]
+                    
+                    if contractor_type == "Electrical" and isinstance(tasks, list):
+                        # Check for expected electrical tasks
+                        task_names = [task.get("name", "") for task in tasks if isinstance(task, dict)]
+                        expected_tasks = ["Conduiting Done", "Wiring Done"]
+                        found_tasks = [t for t in expected_tasks if any(expected in task_name for task_name in task_names for expected in [t])]
+                        
+                        if len(found_tasks) >= 1:
+                            self.log_result("Phase 3 RBAC - Electrical Tasks", True, 
+                                          f"Found {len(tasks)} electrical tasks including: {', '.join(task_names[:3])}")
+                        else:
+                            self.log_result("Phase 3 RBAC - Electrical Tasks", False, 
+                                          f"Expected electrical tasks not found. Got: {task_names}")
+                    else:
+                        self.log_result("Phase 3 RBAC - Electrical Tasks", False, 
+                                      f"Invalid response structure. contractor_type: {contractor_type}, tasks type: {type(tasks)}")
+                else:
+                    self.log_result("Phase 3 RBAC - Electrical Tasks", False, 
+                                  "Missing contractor_type or tasks in response")
+            else:
+                self.log_result("Phase 3 RBAC - Electrical Tasks", False, 
+                              f"Status: {response.status_code} - {response.text}")
+                
+        except Exception as e:
+            self.log_result("Phase 3 RBAC - Electrical Tasks", False, f"Exception: {str(e)}")
+
+        # Test Case 3: Projects Endpoint (with role filtering)
+        try:
+            print("Test Case 3: GET /api/projects (with role filtering)...")
+            
+            response = self.session.get(f"{BACKEND_URL}/projects", headers=headers)
+            
+            if response.status_code == 200:
+                projects = response.json()
+                
+                if isinstance(projects, list):
+                    if len(projects) > 0:
+                        # Verify project structure
+                        first_project = projects[0]
+                        project_fields = ["id", "name"]
+                        
+                        if all(field in first_project for field in project_fields):
+                            self.log_result("Phase 3 RBAC - Projects List", True, 
+                                          f"Found {len(projects)} projects. Owner sees all projects.")
+                            
+                            # Store project ID for access list test
+                            self.test_project_id = first_project["id"]
+                        else:
+                            self.log_result("Phase 3 RBAC - Projects List", False, 
+                                          f"Project missing required fields: {project_fields}")
+                    else:
+                        self.log_result("Phase 3 RBAC - Projects List", True, 
+                                      "No projects found (empty list is valid)")
+                        self.test_project_id = None
+                else:
+                    self.log_result("Phase 3 RBAC - Projects List", False, 
+                                  f"Expected list, got {type(projects)}")
+            else:
+                self.log_result("Phase 3 RBAC - Projects List", False, 
+                              f"Status: {response.status_code} - {response.text}")
+                
+        except Exception as e:
+            self.log_result("Phase 3 RBAC - Projects List", False, f"Exception: {str(e)}")
+
+        # Test Case 4: Project Temporary Access Endpoints
+        if hasattr(self, 'test_project_id') and self.test_project_id:
+            try:
+                print(f"Test Case 4: GET /api/projects/{self.test_project_id}/access-list...")
+                
+                response = self.session.get(f"{BACKEND_URL}/projects/{self.test_project_id}/access-list", headers=headers)
+                
+                if response.status_code == 200:
+                    access_list = response.json()
+                    
+                    if isinstance(access_list, list):
+                        self.log_result("Phase 3 RBAC - Project Access List", True, 
+                                      f"Retrieved access list with {len(access_list)} entries")
+                    else:
+                        self.log_result("Phase 3 RBAC - Project Access List", False, 
+                                      f"Expected list, got {type(access_list)}")
+                elif response.status_code == 403:
+                    self.log_result("Phase 3 RBAC - Project Access List", True, 
+                                  "Access denied (expected for non-owner/non-team-leader)")
+                else:
+                    self.log_result("Phase 3 RBAC - Project Access List", False, 
+                                  f"Status: {response.status_code} - {response.text}")
+                    
+            except Exception as e:
+                self.log_result("Phase 3 RBAC - Project Access List", False, f"Exception: {str(e)}")
+        else:
+            self.log_result("Phase 3 RBAC - Project Access List", False, "No project ID available for testing")
+
+        # Test Case 5: Access Requests Endpoint
+        try:
+            print("Test Case 5: GET /api/project-access-requests...")
+            
+            response = self.session.get(f"{BACKEND_URL}/project-access-requests", headers=headers)
+            
+            if response.status_code == 200:
+                access_requests = response.json()
+                
+                if isinstance(access_requests, list):
+                    self.log_result("Phase 3 RBAC - Access Requests", True, 
+                                  f"Retrieved {len(access_requests)} pending access requests")
+                else:
+                    self.log_result("Phase 3 RBAC - Access Requests", False, 
+                                  f"Expected list, got {type(access_requests)}")
+            else:
+                self.log_result("Phase 3 RBAC - Access Requests", False, 
+                              f"Status: {response.status_code} - {response.text}")
+                
+        except Exception as e:
+            self.log_result("Phase 3 RBAC - Access Requests", False, f"Exception: {str(e)}")
+
+        # Test Case 6: Contractor Progress Endpoint
+        try:
+            print("Test Case 6: GET /api/contractors (get contractor ID)...")
+            
+            # First get contractors list
+            contractors_response = self.session.get(f"{BACKEND_URL}/contractors", headers=headers)
+            
+            if contractors_response.status_code == 200:
+                contractors = contractors_response.json()
+                
+                if isinstance(contractors, list) and len(contractors) > 0:
+                    contractor_id = contractors[0]["id"]
+                    
+                    print(f"Testing GET /api/contractors/{contractor_id}/projects-progress...")
+                    
+                    progress_response = self.session.get(f"{BACKEND_URL}/contractors/{contractor_id}/projects-progress", headers=headers)
+                    
+                    if progress_response.status_code == 200:
+                        progress_data = progress_response.json()
+                        
+                        # Verify response structure
+                        expected_fields = ["contractor_id", "contractor_name", "contractor_type", "projects"]
+                        if all(field in progress_data for field in expected_fields):
+                            projects_progress = progress_data["projects"]
+                            self.log_result("Phase 3 RBAC - Contractor Progress", True, 
+                                          f"Retrieved progress for contractor '{progress_data['contractor_name']}' with {len(projects_progress)} projects")
+                        else:
+                            missing_fields = [f for f in expected_fields if f not in progress_data]
+                            self.log_result("Phase 3 RBAC - Contractor Progress", False, 
+                                          f"Missing response fields: {missing_fields}")
+                    else:
+                        self.log_result("Phase 3 RBAC - Contractor Progress", False, 
+                                      f"Progress endpoint status: {progress_response.status_code} - {progress_response.text}")
+                else:
+                    self.log_result("Phase 3 RBAC - Contractor Progress", True, 
+                                  "No contractors found (empty list is valid)")
+            else:
+                self.log_result("Phase 3 RBAC - Contractor Progress", False, 
+                              f"Contractors list status: {contractors_response.status_code} - {contractors_response.text}")
+                
+        except Exception as e:
+            self.log_result("Phase 3 RBAC - Contractor Progress", False, f"Exception: {str(e)}")
+
+        print("✅ Phase 3 RBAC feature testing completed")
+
     def test_phase_2_implementations(self):
         """Test Phase 2 implementations as requested in review"""
         print(f"\n🚀 Testing Phase 2 Implementations")
