@@ -67,3 +67,23 @@ Testing the new View functionality for resource documents
 
 ## Incorporate User Feedback
 None yet
+
+---
+
+## Smart WhatsApp Forwarding Tests
+
+### Webhook Endpoints
+1. **GET /api/webhooks/whatsapp/incoming** - Verification endpoint
+2. **GET /api/webhooks/whatsapp/status** - Status check
+3. **POST /api/webhooks/whatsapp/incoming** - Main webhook for incoming messages
+
+### Test Flow
+1. Send initial message from registered user
+2. If multiple projects, select project by number
+3. Select recipients (A for all, T for team leader + owner, or comma-separated numbers)
+4. Confirm with YES
+
+### Test Credentials
+- Owner Phone: +919913899888
+- Owner Name: Ar. Deepak Sahajwani
+
