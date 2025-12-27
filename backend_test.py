@@ -7319,10 +7319,12 @@ if __name__ == "__main__":
             success = tester.run_notification_and_reregistration_tests()
         elif sys.argv[1] == "resource":
             success = tester.run_resource_viewing_tests()
+        elif sys.argv[1] == "drawing-notification":
+            success = tester.run_drawing_notification_tests()
         else:
             success = tester.run_all_tests()
     else:
-        # Default to resource viewing tests for this specific review request
-        success = tester.run_resource_viewing_tests()
+        # Default to drawing notification tests for this specific review request
+        success = tester.run_drawing_notification_tests()
     
     sys.exit(0 if success else 1)
