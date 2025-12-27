@@ -1302,8 +1302,6 @@ async def notify_owner_drawing_comment(
 👉 *View & respond:*
 {deep_link}"""
 
-{APP_URL}"""
-
         # Send WhatsApp
         result = await notification_service.send_whatsapp(owner['mobile'], message)
         if result.get('success'):
