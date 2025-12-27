@@ -282,6 +282,48 @@ async def upload_resource_file(
         raise HTTPException(status_code=500, detail=str(e))
 
 
+@router.get("/{resource_id}/public-view")
+async def public_view_resource(
+    resource_id: str,
+    token: str = Query(None, description="Optional view token for authentication")
+):
+    """
+    Public endpoint for viewing resource files (for Office Online viewer)
+    This endpoint allows unauthenticated access for document viewers
+    """
+    from fastapi.responses import FileResponse
+    
+    try:
+        resource = await db.resources.find_one({"id": resource_id}, {"_id": 0})
+        
+        if not resource:
+            raise HTTPException(status_code=404, detail="Resource not found")
+        
+        # Find the file
+        file_pattern = f"{resource_id}_"
+        for filename in os.listdir(UPLOAD_DIR):
+            if filename.startswith(file_pattern):
+                file_path = os.path.join(UPLOAD_DIR, filename)
+                
+                return FileResponse(
+                    path=file_path,
+                    filename=resource.get("file_name", filename),
+                    media_type=resource.get("mime_type", "application/octet-stream"),
+                    headers={
+                        "Access-Control-Allow-Origin": "*",
+                        "Cache-Control": "public, max-age=3600"
+                    }
+                )
+        
+        raise HTTPException(status_code=404, detail="File not found")
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error serving resource for view: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 @router.get("/{resource_id}/download")
 async def download_resource(
     resource_id: str,
