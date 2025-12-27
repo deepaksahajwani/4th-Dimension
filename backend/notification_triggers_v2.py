@@ -1231,6 +1231,9 @@ async def notify_owner_drawing_issued(
         
         revision_text = f" (R{revision_number})" if revision_number > 0 else ""
         
+        # Deep link to the specific drawing
+        deep_link = f"{APP_URL}/projects/{project_id}?drawing={drawing_id}"
+        
         message = f"""✅ *Drawing Issued*
 
 📁 *Drawing:* {drawing_name}{revision_text}
@@ -1240,7 +1243,8 @@ async def notify_owner_drawing_issued(
 
 The drawing has been issued to relevant parties.
 
-{APP_URL}"""
+👉 *View drawing:*
+{deep_link}"""
 
         # Send WhatsApp
         result = await notification_service.send_whatsapp(owner['mobile'], message)
