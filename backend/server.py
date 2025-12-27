@@ -3944,7 +3944,7 @@ async def delete_contractor(
     contractor_id: str,
     current_user: User = Depends(require_owner)
 ):
-    """Soft delete a contractor (Owner only) - Only if no active projects exist"""
+    """HARD DELETE a contractor (Owner only) - Only if no active projects exist"""
     # Get contractor to find associated user_id
     contractor = await db.contractors.find_one({"id": contractor_id}, {"_id": 0})
     if not contractor:
@@ -3966,19 +3966,33 @@ async def delete_contractor(
             detail=f"Cannot delete contractor. Active projects exist: {project_names}. Please archive these projects first."
         )
     
-    result = await db.contractors.update_one(
-        {"id": contractor_id},
-        {"$set": {
-            "deleted_at": datetime.now(timezone.utc).isoformat()
-        }}
-    )
+    # Get contractor info for cleanup
+    contractor_email = contractor.get('email')
+    contractor_phone = contractor.get('phone')
+    contractor_user_id = contractor.get('user_id')
+    
+    # HARD DELETE from contractors collection
+    await db.contractors.delete_one({"id": contractor_id})
+    logger.info(f"Hard deleted contractor: {contractor.get('name')}")
     
     # Delete the associated user account (if exists)
-    if contractor.get('user_id'):
-        await db.users.delete_one({"id": contractor['user_id']})
-        print(f"✅ Deleted user account for contractor: {contractor.get('name')}")
+    if contractor_user_id:
+        await db.users.delete_one({"id": contractor_user_id})
+        logger.info(f"Hard deleted user account for contractor: {contractor.get('name')}")
     
-    return {"message": "Contractor and associated user account deleted successfully"}
+    # Clean up related records to allow fresh re-registration
+    if contractor_email:
+        await db.pending_registrations.delete_many({"email": contractor_email})
+        await db.invitations.delete_many({"email": contractor_email})
+        await db.team_verifications.delete_many({"email": contractor_email})
+    
+    if contractor_phone:
+        # Normalize phone for cleanup
+        phone_digits = ''.join(filter(str.isdigit, contractor_phone))[-10:]
+        await db.invitations.delete_many({"phone": {"$regex": phone_digits}})
+        await db.pending_registrations.delete_many({"phone": {"$regex": phone_digits}})
+    
+    return {"message": "Contractor permanently deleted. They can now be invited fresh."}
 
 @api_router.get("/contractor-types")
 async def get_contractor_types():
