@@ -401,26 +401,25 @@ async def get_resource_view_url(
         # Get the base URL from environment or request
         base_url = os.environ.get('REACT_APP_BACKEND_URL', 'https://architect-notify.preview.emergentagent.com')
         
-        # Build the direct file URL
-        file_url = f"{base_url}{resource['url']}"
+        # Build the public view URL (no auth required for Office Online viewer)
+        public_file_url = f"{base_url}/api/resources/{resource_id}/public-view"
         
         # For Office documents, use Microsoft Office Online viewer
-        mime_type = resource.get("mime_type", "")
         file_name = resource.get("file_name", "").lower()
         
         if any(ext in file_name for ext in ['.docx', '.doc', '.xlsx', '.xls', '.pptx', '.ppt']):
             # Use Microsoft Office Online viewer
             import urllib.parse
-            encoded_url = urllib.parse.quote(file_url, safe='')
+            encoded_url = urllib.parse.quote(public_file_url, safe='')
             view_url = f"https://view.officeapps.live.com/op/view.aspx?src={encoded_url}"
             return {"view_url": view_url, "viewer": "microsoft"}
         elif file_name.endswith('.pdf'):
             # PDFs can be viewed directly in browser
-            return {"view_url": file_url, "viewer": "browser"}
+            return {"view_url": public_file_url, "viewer": "browser"}
         else:
             # Use Google Docs viewer as fallback
             import urllib.parse
-            encoded_url = urllib.parse.quote(file_url, safe='')
+            encoded_url = urllib.parse.quote(public_file_url, safe='')
             view_url = f"https://docs.google.com/viewer?url={encoded_url}&embedded=true"
             return {"view_url": view_url, "viewer": "google"}
         
