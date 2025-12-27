@@ -299,21 +299,9 @@ export default function ProjectDetail({ user, onLogout }) {
   };
 
   const handleToggleIssued = async (drawing) => {
-    // If drawing is currently issued, un-issue it
+    // Only allow issuing, not un-issuing (un-issue feature removed)
     if (drawing.is_issued) {
-      try {
-        const token = localStorage.getItem('token');
-        await axios.put(`${API}/drawings/${drawing.id}`, {
-          is_issued: false
-        }, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
-        toast.success('Drawing un-issued');
-        fetchProjectData();
-      } catch (error) {
-        console.error('Un-issue error:', error);
-        toast.error(formatErrorMessage(error, 'Failed to un-issue drawing'));
-      }
+      toast.info('This drawing has already been issued');
       return;
     }
     
