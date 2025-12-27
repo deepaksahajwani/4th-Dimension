@@ -7246,6 +7246,7 @@ class BackendTester:
             print("Step 7: Testing drawing comment with revision request...")
             
             revision_comment_payload = {
+                "drawing_id": drawing_id,
                 "comment_text": "This drawing needs revision - test from backend testing",
                 "requires_revision": True
             }
