@@ -3297,6 +3297,48 @@ async def update_drawing(
     # Fetch and return updated drawing
     updated_drawing = await db.project_drawings.find_one({"id": drawing_id}, {"_id": 0})
     
+    # Send owner notifications for drawing events (non-blocking)
+    try:
+        from notification_triggers_v2 import (
+            notify_owner_drawing_uploaded,
+            notify_owner_drawing_issued,
+            notify_owner_drawing_revision_posted
+        )
+        
+        project_id = drawing.get('project_id')
+        drawing_name = drawing.get('name', 'Drawing')
+        
+        # Notification 1: Drawing uploaded for review
+        if update_dict.get('under_review') == True and not drawing.get('under_review'):
+            await notify_owner_drawing_uploaded(
+                drawing_id=drawing_id,
+                drawing_name=drawing_name,
+                project_id=project_id,
+                uploaded_by_name=current_user.name
+            )
+        
+        # Notification 2: Drawing issued
+        if update_dict.get('is_issued') == True and not drawing.get('is_issued'):
+            await notify_owner_drawing_issued(
+                drawing_id=drawing_id,
+                drawing_name=drawing_name,
+                project_id=project_id,
+                issued_by_name=current_user.name,
+                revision_number=drawing.get('revision_count', 0)
+            )
+        
+        # Notification 3: Revision posted (has_pending_revision cleared after upload)
+        if update_dict.get('has_pending_revision') == False and drawing.get('has_pending_revision') == True:
+            await notify_owner_drawing_revision_posted(
+                drawing_id=drawing_id,
+                drawing_name=drawing_name,
+                project_id=project_id,
+                posted_by_name=current_user.name,
+                revision_number=updated_drawing.get('revision_count', 1)
+            )
+    except Exception as e:
+        logger.warning(f"Drawing notification failed (non-critical): {str(e)}")
+    
     # Convert ISO strings to datetime for serialization
     for field in ['created_at', 'updated_at', 'due_date', 'issued_date', 'current_revision_due_date']:
         if isinstance(updated_drawing.get(field), str) and updated_drawing.get(field):
