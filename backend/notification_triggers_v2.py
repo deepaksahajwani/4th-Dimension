@@ -1287,6 +1287,9 @@ async def notify_owner_drawing_comment(
         # Truncate comment if too long
         comment_preview = comment_text[:100] + "..." if len(comment_text) > 100 else comment_text
         
+        # Deep link to the specific drawing
+        deep_link = f"{APP_URL}/projects/{project_id}?drawing={drawing_id}"
+        
         message = f"""💬 *New Comment on Drawing*{revision_alert}
 
 📁 *Drawing:* {drawing_name}
@@ -1295,6 +1298,9 @@ async def notify_owner_drawing_comment(
 
 📝 *Comment:*
 "{comment_preview}"
+
+👉 *View & respond:*
+{deep_link}"""
 
 {APP_URL}"""
 
