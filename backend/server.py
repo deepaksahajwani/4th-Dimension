@@ -4616,6 +4616,292 @@ async def get_consultant_types():
     """Get list of predefined consultant types"""
     return [{"value": t.value, "label": t.value} for t in ConsultantType]
 
+
+# ==================== PROJECT TEMPORARY ACCESS MANAGEMENT ====================
+
+@api_router.post("/projects/{project_id}/grant-access")
+async def grant_temporary_project_access(
+    project_id: str,
+    user_id: str = Body(..., embed=True),
+    expires_at: str = Body(..., embed=True),  # ISO date string
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Grant temporary access to a project for another team member.
+    Only owner or project team leader can grant access.
+    """
+    # Get project
+    project = await db.projects.find_one({"id": project_id, "deleted_at": None}, {"_id": 0})
+    if not project:
+        raise HTTPException(status_code=404, detail="Project not found")
+    
+    # Check permission - only owner or team leader of this project
+    if not current_user.is_owner and project.get('team_leader_id') != current_user.id:
+        raise HTTPException(status_code=403, detail="Only owner or team leader can grant access")
+    
+    # Get the user to grant access to
+    target_user = await db.users.find_one({"id": user_id}, {"_id": 0})
+    if not target_user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    # Parse expiry date
+    try:
+        expiry_date = datetime.fromisoformat(expires_at.replace('Z', '+00:00'))
+    except:
+        raise HTTPException(status_code=400, detail="Invalid date format")
+    
+    # Check if access already exists
+    existing = await db.project_team_access.find_one({
+        "project_id": project_id,
+        "user_id": user_id
+    })
+    
+    if existing:
+        # Update existing access
+        await db.project_team_access.update_one(
+            {"project_id": project_id, "user_id": user_id},
+            {"$set": {
+                "expires_at": expiry_date.isoformat(),
+                "granted_by": current_user.id,
+                "granted_at": datetime.now(timezone.utc).isoformat()
+            }}
+        )
+    else:
+        # Create new access
+        access_record = {
+            "id": str(uuid.uuid4()),
+            "project_id": project_id,
+            "user_id": user_id,
+            "user_name": target_user.get('name'),
+            "granted_by": current_user.id,
+            "granted_by_name": current_user.name,
+            "expires_at": expiry_date.isoformat(),
+            "granted_at": datetime.now(timezone.utc).isoformat()
+        }
+        await db.project_team_access.insert_one(access_record)
+    
+    return {
+        "success": True,
+        "message": f"Access granted to {target_user.get('name')} until {expiry_date.strftime('%d %b %Y')}"
+    }
+
+
+@api_router.delete("/projects/{project_id}/revoke-access/{user_id}")
+async def revoke_project_access(
+    project_id: str,
+    user_id: str,
+    current_user: User = Depends(get_current_user)
+):
+    """Revoke temporary project access"""
+    # Get project
+    project = await db.projects.find_one({"id": project_id, "deleted_at": None}, {"_id": 0})
+    if not project:
+        raise HTTPException(status_code=404, detail="Project not found")
+    
+    # Check permission
+    if not current_user.is_owner and project.get('team_leader_id') != current_user.id:
+        raise HTTPException(status_code=403, detail="Only owner or team leader can revoke access")
+    
+    result = await db.project_team_access.delete_one({
+        "project_id": project_id,
+        "user_id": user_id
+    })
+    
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Access record not found")
+    
+    return {"success": True, "message": "Access revoked"}
+
+
+@api_router.get("/projects/{project_id}/access-list")
+async def get_project_access_list(
+    project_id: str,
+    current_user: User = Depends(get_current_user)
+):
+    """Get list of users with temporary access to project"""
+    # Get project
+    project = await db.projects.find_one({"id": project_id, "deleted_at": None}, {"_id": 0})
+    if not project:
+        raise HTTPException(status_code=404, detail="Project not found")
+    
+    # Check permission - only owner or team leader
+    if not current_user.is_owner and project.get('team_leader_id') != current_user.id:
+        raise HTTPException(status_code=403, detail="Access denied")
+    
+    access_list = await db.project_team_access.find(
+        {"project_id": project_id},
+        {"_id": 0}
+    ).to_list(100)
+    
+    # Filter out expired entries
+    now = datetime.now(timezone.utc)
+    active_access = []
+    for access in access_list:
+        expires_at = access.get('expires_at')
+        if expires_at:
+            try:
+                exp_date = datetime.fromisoformat(expires_at.replace('Z', '+00:00'))
+                if exp_date > now:
+                    access['is_active'] = True
+                    active_access.append(access)
+            except:
+                pass
+    
+    return active_access
+
+
+@api_router.post("/projects/{project_id}/request-access")
+async def request_project_access(
+    project_id: str,
+    message: str = Body("", embed=True),
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Request access to a project from team leader/owner.
+    Creates an access request that team leader/owner can approve.
+    """
+    # Get project
+    project = await db.projects.find_one({"id": project_id, "deleted_at": None}, {"_id": 0})
+    if not project:
+        raise HTTPException(status_code=404, detail="Project not found")
+    
+    # Check if already has access or is the team leader
+    if project.get('team_leader_id') == current_user.id:
+        raise HTTPException(status_code=400, detail="You are already the team leader of this project")
+    
+    existing_access = await db.project_team_access.find_one({
+        "project_id": project_id,
+        "user_id": current_user.id,
+        "expires_at": {"$gt": datetime.now(timezone.utc).isoformat()}
+    })
+    
+    if existing_access:
+        raise HTTPException(status_code=400, detail="You already have access to this project")
+    
+    # Check for pending request
+    pending_request = await db.project_access_requests.find_one({
+        "project_id": project_id,
+        "requester_id": current_user.id,
+        "status": "pending"
+    })
+    
+    if pending_request:
+        raise HTTPException(status_code=400, detail="You already have a pending access request")
+    
+    # Create access request
+    request_record = {
+        "id": str(uuid.uuid4()),
+        "project_id": project_id,
+        "project_name": project.get('title', project.get('name', 'Project')),
+        "requester_id": current_user.id,
+        "requester_name": current_user.name,
+        "message": message,
+        "status": "pending",
+        "created_at": datetime.now(timezone.utc).isoformat()
+    }
+    await db.project_access_requests.insert_one(request_record)
+    
+    # TODO: Send notification to team leader/owner
+    
+    return {
+        "success": True,
+        "message": "Access request sent. The team leader or owner will review your request."
+    }
+
+
+@api_router.get("/project-access-requests")
+async def get_pending_access_requests(
+    current_user: User = Depends(get_current_user)
+):
+    """Get pending access requests for projects the user leads or owns"""
+    if current_user.is_owner:
+        # Owner sees all pending requests
+        requests = await db.project_access_requests.find(
+            {"status": "pending"},
+            {"_id": 0}
+        ).to_list(100)
+    else:
+        # Team leader sees requests for their projects
+        user_projects = await db.projects.find(
+            {"team_leader_id": current_user.id, "deleted_at": None},
+            {"_id": 0, "id": 1}
+        ).to_list(100)
+        project_ids = [p["id"] for p in user_projects]
+        
+        requests = await db.project_access_requests.find(
+            {"project_id": {"$in": project_ids}, "status": "pending"},
+            {"_id": 0}
+        ).to_list(100)
+    
+    return requests
+
+
+@api_router.post("/project-access-requests/{request_id}/respond")
+async def respond_to_access_request(
+    request_id: str,
+    approved: bool = Body(..., embed=True),
+    expires_at: str = Body(None, embed=True),
+    current_user: User = Depends(get_current_user)
+):
+    """Approve or deny an access request"""
+    # Get the request
+    access_request = await db.project_access_requests.find_one(
+        {"id": request_id, "status": "pending"},
+        {"_id": 0}
+    )
+    
+    if not access_request:
+        raise HTTPException(status_code=404, detail="Access request not found")
+    
+    # Get project
+    project = await db.projects.find_one(
+        {"id": access_request["project_id"]},
+        {"_id": 0}
+    )
+    
+    # Check permission
+    if not current_user.is_owner and project.get('team_leader_id') != current_user.id:
+        raise HTTPException(status_code=403, detail="Only owner or team leader can respond to requests")
+    
+    if approved:
+        if not expires_at:
+            # Default to 30 days
+            expiry_date = datetime.now(timezone.utc) + timedelta(days=30)
+        else:
+            try:
+                expiry_date = datetime.fromisoformat(expires_at.replace('Z', '+00:00'))
+            except:
+                expiry_date = datetime.now(timezone.utc) + timedelta(days=30)
+        
+        # Grant access
+        access_record = {
+            "id": str(uuid.uuid4()),
+            "project_id": access_request["project_id"],
+            "user_id": access_request["requester_id"],
+            "user_name": access_request["requester_name"],
+            "granted_by": current_user.id,
+            "granted_by_name": current_user.name,
+            "expires_at": expiry_date.isoformat(),
+            "granted_at": datetime.now(timezone.utc).isoformat()
+        }
+        await db.project_team_access.insert_one(access_record)
+    
+    # Update request status
+    await db.project_access_requests.update_one(
+        {"id": request_id},
+        {"$set": {
+            "status": "approved" if approved else "denied",
+            "responded_by": current_user.id,
+            "responded_at": datetime.now(timezone.utc).isoformat()
+        }}
+    )
+    
+    return {
+        "success": True,
+        "message": "Access granted" if approved else "Access denied"
+    }
+
+
 # ==================== PROJECT TEAM MANAGEMENT ROUTES ====================
 
 @api_router.get("/projects/{project_id}/team")
