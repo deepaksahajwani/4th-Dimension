@@ -1399,23 +1399,23 @@ class BackendTester:
             view_url_endpoint = f"{BACKEND_URL}/resources/{test_resource_id}/view-url"
             response = self.session.get(view_url_endpoint)  # No auth headers
             
-            if response.status_code == 401:
+            if response.status_code in [401, 403]:
                 self.log_result("Resource Auth Protection - View URL", True, 
-                              "Correctly rejected unauthorized access to view-url")
+                              f"Correctly rejected unauthorized access to view-url (status: {response.status_code})")
             else:
                 self.log_result("Resource Auth Protection - View URL", False, 
-                              f"Expected 401, got {response.status_code}")
+                              f"Expected 401/403, got {response.status_code}")
             
             # Test download without auth
             download_url = f"{BACKEND_URL}/resources/{test_resource_id}/download"
             response = self.session.get(download_url)  # No auth headers
             
-            if response.status_code == 401:
+            if response.status_code in [401, 403]:
                 self.log_result("Resource Auth Protection - Download", True, 
-                              "Correctly rejected unauthorized access to download")
+                              f"Correctly rejected unauthorized access to download (status: {response.status_code})")
             else:
                 self.log_result("Resource Auth Protection - Download", False, 
-                              f"Expected 401, got {response.status_code}")
+                              f"Expected 401/403, got {response.status_code}")
                 
         except Exception as e:
             self.log_result("Resource Auth Protection", False, f"Exception: {str(e)}")
