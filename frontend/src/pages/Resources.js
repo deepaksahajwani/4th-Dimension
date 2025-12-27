@@ -279,14 +279,16 @@ export default function Resources({ user, onLogout }) {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-slate-50 p-6 flex items-center justify-center">
-        <div className="text-slate-500">Loading resources...</div>
-      </div>
+      <Layout user={user} onLogout={onLogout}>
+        <div className="flex items-center justify-center py-12">
+          <div className="text-slate-500">Loading resources...</div>
+        </div>
+      </Layout>
     );
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 p-4 md:p-6">
+    <Layout user={user} onLogout={onLogout}>
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6 gap-4">
