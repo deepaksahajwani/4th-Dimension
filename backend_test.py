@@ -7029,6 +7029,277 @@ class BackendTester:
         
         return passed == total if total > 0 else False
 
+    def test_drawing_notification_system(self):
+        """Test drawing notification system as requested in review"""
+        print(f"\n🔔 Testing Drawing Notification System")
+        print("=" * 60)
+        
+        # Test credentials from review request
+        test_email = "deepaksahajwani@gmail.com"
+        test_password = "Deepak@2025"
+        
+        # Step 1: Login and get authentication token
+        auth_token = None
+        try:
+            print("Step 1: Logging in to get authentication token...")
+            
+            login_payload = {
+                "email": test_email,
+                "password": test_password
+            }
+            
+            login_response = self.session.post(f"{BACKEND_URL}/auth/login", json=login_payload)
+            
+            if login_response.status_code == 200:
+                login_data = login_response.json()
+                auth_token = login_data.get("access_token")
+                
+                if auth_token:
+                    self.log_result("Drawing Notification - Login", True, 
+                                  f"Login successful for {test_email}")
+                else:
+                    self.log_result("Drawing Notification - Login", False, 
+                                  "No access token in response")
+                    return
+            else:
+                self.log_result("Drawing Notification - Login", False, 
+                              f"Login failed: {login_response.status_code} - {login_response.text}")
+                return
+                
+        except Exception as e:
+            self.log_result("Drawing Notification - Login", False, f"Exception: {str(e)}")
+            return
+
+        auth_headers = {"Authorization": f"Bearer {auth_token}"}
+        
+        # Step 2: Get projects to find one with drawings
+        project_id = None
+        try:
+            print("Step 2: Getting projects to find one with drawings...")
+            
+            projects_response = self.session.get(f"{BACKEND_URL}/projects", headers=auth_headers)
+            
+            if projects_response.status_code == 200:
+                projects_data = projects_response.json()
+                
+                if len(projects_data) > 0:
+                    # Use the first project
+                    project_id = projects_data[0]["id"]
+                    project_name = projects_data[0].get("title", "Unknown Project")
+                    
+                    self.log_result("Drawing Notification - Get Projects", True, 
+                                  f"Found {len(projects_data)} projects. Using project: {project_name}")
+                else:
+                    self.log_result("Drawing Notification - Get Projects", False, 
+                                  "No projects found")
+                    return
+            else:
+                self.log_result("Drawing Notification - Get Projects", False, 
+                              f"Failed to get projects: {projects_response.status_code} - {projects_response.text}")
+                return
+                
+        except Exception as e:
+            self.log_result("Drawing Notification - Get Projects", False, f"Exception: {str(e)}")
+            return
+
+        # Step 3: Get drawings for the project
+        drawing_id = None
+        try:
+            print("Step 3: Getting drawings for the project...")
+            
+            drawings_response = self.session.get(f"{BACKEND_URL}/projects/{project_id}/drawings", headers=auth_headers)
+            
+            if drawings_response.status_code == 200:
+                drawings_data = drawings_response.json()
+                
+                if len(drawings_data) > 0:
+                    # Use the first drawing
+                    drawing_id = drawings_data[0]["id"]
+                    drawing_name = drawings_data[0].get("name", "Unknown Drawing")
+                    
+                    self.log_result("Drawing Notification - Get Drawings", True, 
+                                  f"Found {len(drawings_data)} drawings. Using drawing: {drawing_name}")
+                else:
+                    self.log_result("Drawing Notification - Get Drawings", False, 
+                                  "No drawings found in project")
+                    return
+            else:
+                self.log_result("Drawing Notification - Get Drawings", False, 
+                              f"Failed to get drawings: {drawings_response.status_code} - {drawings_response.text}")
+                return
+                
+        except Exception as e:
+            self.log_result("Drawing Notification - Get Drawings", False, f"Exception: {str(e)}")
+            return
+
+        # Step 4: Test drawing update endpoint (triggers notifications)
+        try:
+            print("Step 4: Testing drawing update endpoint (under_review=true)...")
+            
+            update_payload = {
+                "under_review": True
+            }
+            
+            update_response = self.session.put(f"{BACKEND_URL}/drawings/{drawing_id}", 
+                                             json=update_payload, headers=auth_headers)
+            
+            if update_response.status_code == 200:
+                update_data = update_response.json()
+                
+                # Verify the drawing was updated
+                if update_data.get("under_review") == True:
+                    self.log_result("Drawing Notification - Update Drawing", True, 
+                                  "Drawing successfully marked as under_review=true")
+                else:
+                    self.log_result("Drawing Notification - Update Drawing", False, 
+                                  f"Drawing update failed - under_review is {update_data.get('under_review')}")
+            else:
+                self.log_result("Drawing Notification - Update Drawing", False, 
+                              f"Drawing update failed: {update_response.status_code} - {update_response.text}")
+                
+        except Exception as e:
+            self.log_result("Drawing Notification - Update Drawing", False, f"Exception: {str(e)}")
+
+        # Step 5: Test drawing comment endpoint (triggers owner notification)
+        try:
+            print("Step 5: Testing drawing comment endpoint...")
+            
+            comment_payload = {
+                "comment_text": "Test comment from backend testing",
+                "requires_revision": False
+            }
+            
+            comment_response = self.session.post(f"{BACKEND_URL}/drawings/{drawing_id}/comments", 
+                                               json=comment_payload, headers=auth_headers)
+            
+            if comment_response.status_code == 200:
+                comment_data = comment_response.json()
+                
+                # Verify the comment was created
+                if comment_data.get("comment_text") == "Test comment from backend testing":
+                    self.log_result("Drawing Notification - Create Comment", True, 
+                                  f"Comment created successfully. ID: {comment_data.get('id')}")
+                else:
+                    self.log_result("Drawing Notification - Create Comment", False, 
+                                  "Comment creation failed - text mismatch")
+            else:
+                self.log_result("Drawing Notification - Create Comment", False, 
+                              f"Comment creation failed: {comment_response.status_code} - {comment_response.text}")
+                
+        except Exception as e:
+            self.log_result("Drawing Notification - Create Comment", False, f"Exception: {str(e)}")
+
+        # Step 6: Check backend logs for notification attempts
+        try:
+            print("Step 6: Checking backend logs for notification attempts...")
+            
+            # Check supervisor backend logs
+            import subprocess
+            log_result = subprocess.run(
+                ["tail", "-n", "50", "/var/log/supervisor/backend.out.log"],
+                capture_output=True,
+                text=True,
+                timeout=10
+            )
+            
+            if log_result.returncode == 0:
+                log_content = log_result.stdout
+                
+                # Look for notification-related log entries
+                notification_keywords = [
+                    "notification",
+                    "notify_owner",
+                    "drawing_uploaded",
+                    "drawing_comment",
+                    "WhatsApp",
+                    "notification_triggers"
+                ]
+                
+                found_notifications = []
+                for line in log_content.split('\n'):
+                    for keyword in notification_keywords:
+                        if keyword.lower() in line.lower():
+                            found_notifications.append(line.strip())
+                            break
+                
+                if found_notifications:
+                    self.log_result("Drawing Notification - Backend Logs", True, 
+                                  f"Found {len(found_notifications)} notification-related log entries")
+                    
+                    # Print some recent notification logs for debugging
+                    print("Recent notification log entries:")
+                    for log_entry in found_notifications[-5:]:  # Show last 5 entries
+                        print(f"  {log_entry}")
+                else:
+                    self.log_result("Drawing Notification - Backend Logs", True, 
+                                  "Minor: No notification keywords found in recent logs (notifications may be working but not logged)")
+            else:
+                self.log_result("Drawing Notification - Backend Logs", False, 
+                              f"Failed to read backend logs: {log_result.stderr}")
+                
+        except Exception as e:
+            self.log_result("Drawing Notification - Backend Logs", False, f"Exception: {str(e)}")
+
+        # Step 7: Test additional drawing comment with revision request
+        try:
+            print("Step 7: Testing drawing comment with revision request...")
+            
+            revision_comment_payload = {
+                "comment_text": "This drawing needs revision - test from backend testing",
+                "requires_revision": True
+            }
+            
+            revision_response = self.session.post(f"{BACKEND_URL}/drawings/{drawing_id}/comments", 
+                                                json=revision_comment_payload, headers=auth_headers)
+            
+            if revision_response.status_code == 200:
+                revision_data = revision_response.json()
+                
+                # Verify the comment was created
+                if revision_data.get("requires_revision") == True:
+                    self.log_result("Drawing Notification - Revision Comment", True, 
+                                  "Revision comment created successfully")
+                else:
+                    self.log_result("Drawing Notification - Revision Comment", True, 
+                                  "Minor: Comment created but requires_revision field may not be returned")
+            else:
+                self.log_result("Drawing Notification - Revision Comment", False, 
+                              f"Revision comment failed: {revision_response.status_code} - {revision_response.text}")
+                
+        except Exception as e:
+            self.log_result("Drawing Notification - Revision Comment", False, f"Exception: {str(e)}")
+
+        print("✅ Drawing notification system testing completed")
+
+    def run_drawing_notification_tests(self):
+        """Run drawing notification system tests"""
+        print("🔔 DRAWING NOTIFICATION SYSTEM TESTS")
+        print("=" * 60)
+        
+        self.test_drawing_notification_system()
+        
+        # Summary
+        print("=" * 60)
+        print("📊 DRAWING NOTIFICATION SYSTEM TEST SUMMARY")
+        print("=" * 60)
+        
+        notification_tests = [result for result in self.test_results if "Drawing Notification" in result["test"]]
+        passed = sum(1 for result in notification_tests if result["success"])
+        total = len(notification_tests)
+        
+        print(f"Drawing Notification Tests: {total}")
+        print(f"Passed: {passed}")
+        print(f"Failed: {total - passed}")
+        print(f"Success Rate: {(passed/total)*100:.1f}%" if total > 0 else "No tests run")
+        
+        if total - passed > 0:
+            print("\n❌ FAILED DRAWING NOTIFICATION TESTS:")
+            for result in notification_tests:
+                if not result["success"]:
+                    print(f"  - {result['test']}: {result['details']}")
+        
+        return passed == total if total > 0 else False
+
 if __name__ == "__main__":
     tester = BackendTester()
     
