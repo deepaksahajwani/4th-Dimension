@@ -453,7 +453,7 @@ def get_welcome_email_content(user: dict, login_url: str) -> tuple[str, str]:
         """
     
     elif role_category == 'vendor':
-        subject = f"Welcome to 4th Dimension - {display_role}! 🏪"
+        subject = f"Registration Approved - Welcome {display_role}! 🏪"
         html_content = f"""
         <html>
             <head>
