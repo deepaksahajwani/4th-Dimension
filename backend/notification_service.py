@@ -275,7 +275,7 @@ class NotificationService:
     async def send_email(to_email: str, subject: str, html_content: str) -> bool:
         """Send email via SendGrid"""
         try:
-            from sendgrid.helpers.mail import Email
+            from sendgrid.helpers.mail import Email, TrackingSettings, ClickTracking
             
             # Use Email object with display name
             from_email_with_name = Email(SENDER_EMAIL, "4th Dimension Architects")
@@ -286,6 +286,12 @@ class NotificationService:
                 subject=subject,
                 html_content=html_content
             )
+            
+            # Disable click tracking to prevent URL rewriting
+            # This fixes the url5071.4thdimensionarchitect.com DNS error
+            tracking_settings = TrackingSettings()
+            tracking_settings.click_tracking = ClickTracking(enable=False, enable_text=False)
+            message.tracking_settings = tracking_settings
             
             sg = SendGridAPIClient(SENDGRID_API_KEY)
             response = sg.send(message)
