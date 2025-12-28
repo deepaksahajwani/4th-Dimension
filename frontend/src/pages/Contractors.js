@@ -13,20 +13,26 @@ import { toast } from 'sonner';
 
 const API = process.env.REACT_APP_BACKEND_URL + '/api';
 
+// Unified contractor types - matches backend and project assignment
 const CONTRACTOR_TYPES = [
-  'Civil Contractor',
-  'Electrical Contractor',
-  'Plumbing Contractor',
-  'HVAC Contractor',
-  'Painting Contractor',
-  'Carpentry Contractor',
-  'Furniture Contractor',
-  'Landscape Contractor',
-  'False Ceiling Contractor',
-  'Flooring Contractor',
-  'Waterproofing Contractor',
-  'Project Manager',
-  'Other'
+  'Civil',
+  'Plumbing',
+  'Electrical',
+  'HVAC',
+  'Marble and Tile',
+  'False Ceiling',
+  'Furniture',
+  'Modular',
+  'Kitchen',
+  'Landscape',
+  'Glass',
+  'Aluminium Profile',
+  'Painting',
+  'Waterproofing',
+  'Flooring',
+  'Carpentry',
+  'Fabricator',
+  'Gardner'
 ];
 
 export default function Contractors({ user, onLogout }) {
