@@ -35,6 +35,9 @@ export default function Contractors({ user, onLogout }) {
   const [inviteDialogOpen, setInviteDialogOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [editingContractor, setEditingContractor] = useState(null);
+  const [progressDialogOpen, setProgressDialogOpen] = useState(false);
+  const [selectedContractor, setSelectedContractor] = useState(null);
+  const [expandedContractor, setExpandedContractor] = useState(null);
   const [inviteForm, setInviteForm] = useState({
     name: '',
     countryCode: '+91',
