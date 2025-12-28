@@ -1810,6 +1810,7 @@ export default function ProjectDetail({ user, onLogout }) {
                           key={drawing.id} 
                           drawing={drawing}
                           user={user}
+                          projectContractors={projectTeam.contractors || []}
                           onToggleIssued={handleToggleIssued}
                           onResolveRevision={handleResolveRevision}
                           onOpenRevisionDialog={handleOpenRevisionDialog}
@@ -1824,6 +1825,7 @@ export default function ProjectDetail({ user, onLogout }) {
                           onOpenComments={handleOpenComments}
                           onMarkAsNotApplicable={handleMarkAsNotApplicable}
                           onDeleteDrawing={handleDeleteDrawing}
+                          onProgressUpdate={fetchProjectData}
                         />
                       ))}
                     </div>
