@@ -235,53 +235,86 @@ export default function Contractors({ user, onLogout }) {
                 </div>
                 <div className="divide-y">
                   {contractorsList.map((contractor) => (
-                    <div key={contractor.id} className="p-6 hover:bg-slate-50 transition-colors">
-                      <div className="flex justify-between items-start">
-                        <div className="flex-1">
-                          <div className="flex items-center gap-3 mb-2">
-                            <h3 className="text-lg font-semibold text-slate-900">{contractor.name}</h3>
-                            {contractor.company_name && (
-                              <span className="text-sm text-slate-500">({contractor.company_name})</span>
-                            )}
-                          </div>
-                          
-                          <div className="grid grid-cols-2 gap-4 mt-3">
-                            {contractor.email && (
-                              <div className="flex items-center gap-2 text-slate-600">
-                                <Mail className="w-4 h-4" />
-                                <span className="text-sm">{contractor.email}</span>
-                              </div>
-                            )}
-                            {contractor.phone && (
-                              <div className="flex items-center gap-2 text-slate-600">
-                                <Phone className="w-4 h-4" />
-                                <span className="text-sm">{contractor.phone}</span>
-                              </div>
-                            )}
-                            {contractor.address && (
-                              <div className="flex items-center gap-2 text-slate-600">
-                                <MapPin className="w-4 h-4" />
-                                <span className="text-sm">{contractor.address}</span>
-                              </div>
+                    <div key={contractor.id} className="hover:bg-slate-50 transition-colors">
+                      <div className="p-6">
+                        <div className="flex justify-between items-start">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-3 mb-2">
+                              <h3 
+                                className="text-lg font-semibold text-slate-900 cursor-pointer hover:text-orange-600"
+                                onClick={() => setExpandedContractor(expandedContractor === contractor.id ? null : contractor.id)}
+                              >
+                                {contractor.name}
+                              </h3>
+                              {contractor.company_name && (
+                                <span className="text-sm text-slate-500">({contractor.company_name})</span>
+                              )}
+                              {/* Project Count Badge */}
+                              {contractor.project_count > 0 && (
+                                <Badge 
+                                  variant="outline" 
+                                  className="cursor-pointer bg-blue-50 text-blue-700 border-blue-200 hover:bg-blue-100"
+                                  onClick={() => setExpandedContractor(expandedContractor === contractor.id ? null : contractor.id)}
+                                >
+                                  <FolderOpen className="w-3 h-3 mr-1" />
+                                  {contractor.project_count} {contractor.project_count === 1 ? 'Project' : 'Projects'}
+                                  {expandedContractor === contractor.id ? (
+                                    <ChevronUp className="w-3 h-3 ml-1" />
+                                  ) : (
+                                    <ChevronDown className="w-3 h-3 ml-1" />
+                                  )}
+                                </Badge>
+                              )}
+                            </div>
+                            
+                            <div className="grid grid-cols-2 gap-4 mt-3">
+                              {contractor.email && (
+                                <div className="flex items-center gap-2 text-slate-600">
+                                  <Mail className="w-4 h-4" />
+                                  <span className="text-sm">{contractor.email}</span>
+                                </div>
+                              )}
+                              {contractor.phone && (
+                                <div className="flex items-center gap-2 text-slate-600">
+                                  <Phone className="w-4 h-4" />
+                                  <span className="text-sm">{contractor.phone}</span>
+                                </div>
+                              )}
+                              {contractor.address && (
+                                <div className="flex items-center gap-2 text-slate-600">
+                                  <MapPin className="w-4 h-4" />
+                                  <span className="text-sm">{contractor.address}</span>
+                                </div>
+                              )}
+                            </div>
+
+                            {contractor.notes && (
+                              <p className="text-sm text-slate-600 mt-3 italic">{contractor.notes}</p>
                             )}
                           </div>
 
-                          {contractor.notes && (
-                            <p className="text-sm text-slate-600 mt-3 italic">{contractor.notes}</p>
+                          {user?.is_owner && (
+                            <div className="flex gap-2 ml-4">
+                              <Button variant="ghost" size="sm" onClick={() => handleEdit(contractor)}>
+                                <Edit className="w-4 h-4" />
+                              </Button>
+                              <Button variant="ghost" size="sm" onClick={() => handleDelete(contractor.id)}>
+                                <Trash2 className="w-4 h-4 text-red-500" />
+                              </Button>
+                            </div>
                           )}
                         </div>
-
-                        {user?.is_owner && (
-                          <div className="flex gap-2 ml-4">
-                            <Button variant="ghost" size="sm" onClick={() => handleEdit(contractor)}>
-                              <Edit className="w-4 h-4" />
-                            </Button>
-                            <Button variant="ghost" size="sm" onClick={() => handleDelete(contractor.id)}>
-                              <Trash2 className="w-4 h-4 text-red-500" />
-                            </Button>
-                          </div>
-                        )}
                       </div>
+                      
+                      {/* Expanded Progress View */}
+                      {expandedContractor === contractor.id && (
+                        <div className="px-6 pb-6 border-t border-slate-100 bg-slate-50">
+                          <ContractorProgressSummary 
+                            contractorId={contractor.id} 
+                            contractorName={contractor.name}
+                          />
+                        </div>
+                      )}
                     </div>
                   ))}
                 </div>
