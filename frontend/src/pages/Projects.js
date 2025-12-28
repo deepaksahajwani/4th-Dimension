@@ -413,6 +413,9 @@ export default function Projects({ user, onLogout }) {
     );
   }
 
+  // Check if user can create projects (owner and team members only)
+  const canCreateProject = user?.is_owner || user?.role === 'team_member' || user?.role === 'team_leader';
+  
   return (
     <Layout user={user} onLogout={onLogout}>
       <div className="max-w-7xl mx-auto">
@@ -422,13 +425,15 @@ export default function Projects({ user, onLogout }) {
             <h1 className="text-2xl sm:text-3xl font-bold text-slate-900">Projects</h1>
             <p className="text-sm sm:text-base text-slate-600 mt-1">{projects.length} total projects</p>
           </div>
-          <Button 
-            onClick={() => setDialogOpen(true)}
-            className="bg-orange-500 hover:bg-orange-600 w-full sm:w-auto"
-          >
-            <Plus className="w-4 h-4 mr-2" />
-            New Project
-          </Button>
+          {canCreateProject && (
+            <Button 
+              onClick={() => setDialogOpen(true)}
+              className="bg-orange-500 hover:bg-orange-600 w-full sm:w-auto"
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              New Project
+            </Button>
+          )}
         </div>
 
         {/* Projects Grid */}
