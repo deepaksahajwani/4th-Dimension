@@ -98,10 +98,10 @@ CONTRACTOR_TASK_CHECKLISTS: Dict[str, List[Dict]] = {
         {"id": "paint_8", "name": "Final Inspection", "description": "Paint work inspection completed"}
     ],
     
-    "Glass & Aluminum": [
+    "Glass": [
         {"id": "glass_1", "name": "Measurements Taken", "description": "Site measurements completed"},
         {"id": "glass_2", "name": "Fabrication Done", "description": "Frame fabrication completed"},
-        {"id": "glass_3", "name": "Frame Fixed", "description": "Aluminum frames installed"},
+        {"id": "glass_3", "name": "Frame Fixed", "description": "Frames installed"},
         {"id": "glass_4", "name": "Glass Fitted", "description": "Glass panels installed"},
         {"id": "glass_5", "name": "Hardware Fixed", "description": "Handles and locks installed"},
         {"id": "glass_6", "name": "Sealant Applied", "description": "Silicone sealant applied"},
@@ -109,7 +109,95 @@ CONTRACTOR_TASK_CHECKLISTS: Dict[str, List[Dict]] = {
         {"id": "glass_8", "name": "Final Handover", "description": "Work completed and handed over"}
     ],
     
-    "Landscaping": [
+    "Aluminium Profile": [
+        {"id": "alum_1", "name": "Measurements Taken", "description": "Site measurements completed"},
+        {"id": "alum_2", "name": "Fabrication Done", "description": "Profile fabrication completed"},
+        {"id": "alum_3", "name": "Frame Fixed", "description": "Aluminum frames installed"},
+        {"id": "alum_4", "name": "Glass/Panel Fitted", "description": "Glass or panels installed"},
+        {"id": "alum_5", "name": "Hardware Fixed", "description": "Handles and locks installed"},
+        {"id": "alum_6", "name": "Sealant Applied", "description": "Silicone sealant applied"},
+        {"id": "alum_7", "name": "Cleaning Done", "description": "Cleaning completed"},
+        {"id": "alum_8", "name": "Final Handover", "description": "Work completed and handed over"}
+    ],
+    
+    "Marble and Tile": [
+        {"id": "marble_1", "name": "Material Selection", "description": "Material selected and ordered"},
+        {"id": "marble_2", "name": "Sub-floor Preparation", "description": "Floor base leveling done"},
+        {"id": "marble_3", "name": "Material Received", "description": "Marble/tiles received at site"},
+        {"id": "marble_4", "name": "Laying Started", "description": "Tile/marble laying started"},
+        {"id": "marble_5", "name": "Laying Complete", "description": "Floor tiles/marble laid"},
+        {"id": "marble_6", "name": "Grouting Done", "description": "Grouting completed"},
+        {"id": "marble_7", "name": "Polishing Done", "description": "Polishing completed"},
+        {"id": "marble_8", "name": "Final Cleaning", "description": "Cleaning and handover"}
+    ],
+    
+    "Modular": [
+        {"id": "mod_1", "name": "Design Finalized", "description": "Modular design finalized"},
+        {"id": "mod_2", "name": "Material Ordered", "description": "Materials ordered"},
+        {"id": "mod_3", "name": "Fabrication Started", "description": "Factory fabrication started"},
+        {"id": "mod_4", "name": "Material Received", "description": "Modules received at site"},
+        {"id": "mod_5", "name": "Installation Started", "description": "Installation work started"},
+        {"id": "mod_6", "name": "Carcass Fixed", "description": "Carcass and framework fixed"},
+        {"id": "mod_7", "name": "Shutters Fixed", "description": "Shutters and panels installed"},
+        {"id": "mod_8", "name": "Final Handover", "description": "Work completed and handed over"}
+    ],
+    
+    "Kitchen": [
+        {"id": "kit_1", "name": "Design Approved", "description": "Kitchen design approved"},
+        {"id": "kit_2", "name": "Material Ordered", "description": "Materials and appliances ordered"},
+        {"id": "kit_3", "name": "Plumbing Points", "description": "Plumbing points completed"},
+        {"id": "kit_4", "name": "Electrical Points", "description": "Electrical points completed"},
+        {"id": "kit_5", "name": "Carcass Fixed", "description": "Kitchen carcass installed"},
+        {"id": "kit_6", "name": "Countertop Fixed", "description": "Countertop installed"},
+        {"id": "kit_7", "name": "Appliances Fitted", "description": "Appliances installed"},
+        {"id": "kit_8", "name": "Final Handover", "description": "Kitchen work completed"}
+    ],
+    
+    "Waterproofing": [
+        {"id": "wp_1", "name": "Surface Preparation", "description": "Surface cleaning and preparation"},
+        {"id": "wp_2", "name": "Primer Applied", "description": "Waterproofing primer applied"},
+        {"id": "wp_3", "name": "First Coat", "description": "First waterproofing coat applied"},
+        {"id": "wp_4", "name": "Membrane Applied", "description": "Waterproofing membrane applied"},
+        {"id": "wp_5", "name": "Second Coat", "description": "Second coat applied"},
+        {"id": "wp_6", "name": "Curing Done", "description": "Proper curing completed"},
+        {"id": "wp_7", "name": "Water Testing", "description": "Water ponding test done"},
+        {"id": "wp_8", "name": "Final Handover", "description": "Work completed and approved"}
+    ],
+    
+    "Carpentry": [
+        {"id": "carp_1", "name": "Wood Selection", "description": "Wood material selected"},
+        {"id": "carp_2", "name": "Cutting Done", "description": "Wood cutting completed"},
+        {"id": "carp_3", "name": "Framework Done", "description": "Framework construction done"},
+        {"id": "carp_4", "name": "Assembly Started", "description": "Assembly work started"},
+        {"id": "carp_5", "name": "Assembly Complete", "description": "Assembly completed"},
+        {"id": "carp_6", "name": "Finishing Started", "description": "Finishing work started"},
+        {"id": "carp_7", "name": "Polish/Paint Done", "description": "Polish or paint applied"},
+        {"id": "carp_8", "name": "Final Handover", "description": "Carpentry work completed"}
+    ],
+    
+    "Fabricator": [
+        {"id": "fab_1", "name": "Drawing Approved", "description": "Fabrication drawings approved"},
+        {"id": "fab_2", "name": "Material Procured", "description": "Metal materials procured"},
+        {"id": "fab_3", "name": "Cutting Done", "description": "Metal cutting completed"},
+        {"id": "fab_4", "name": "Welding Done", "description": "Welding work completed"},
+        {"id": "fab_5", "name": "Grinding Done", "description": "Grinding and finishing done"},
+        {"id": "fab_6", "name": "Coating Applied", "description": "Coating/painting applied"},
+        {"id": "fab_7", "name": "Installation Done", "description": "Fabricated items installed"},
+        {"id": "fab_8", "name": "Final Handover", "description": "Work completed and handed over"}
+    ],
+    
+    "Gardner": [
+        {"id": "gard_1", "name": "Site Assessment", "description": "Garden site assessed"},
+        {"id": "gard_2", "name": "Soil Preparation", "description": "Garden soil prepared"},
+        {"id": "gard_3", "name": "Plants Selected", "description": "Plants and seeds selected"},
+        {"id": "gard_4", "name": "Planting Done", "description": "Plants and seeds planted"},
+        {"id": "gard_5", "name": "Irrigation Setup", "description": "Irrigation system set up"},
+        {"id": "gard_6", "name": "Mulching Done", "description": "Mulching completed"},
+        {"id": "gard_7", "name": "Initial Care", "description": "Initial plant care provided"},
+        {"id": "gard_8", "name": "Final Handover", "description": "Garden work completed"}
+    ],
+    
+    "Landscape": [
         {"id": "land_1", "name": "Site Clearing", "description": "Site clearing and leveling"},
         {"id": "land_2", "name": "Soil Preparation", "description": "Garden soil prepared"},
         {"id": "land_3", "name": "Hardscape Work", "description": "Pathways and paving done"},
@@ -118,17 +206,6 @@ CONTRACTOR_TASK_CHECKLISTS: Dict[str, List[Dict]] = {
         {"id": "land_6", "name": "Plants Planted", "description": "Trees and plants installed"},
         {"id": "land_7", "name": "Lighting Installed", "description": "Garden lighting installed"},
         {"id": "land_8", "name": "Final Handover", "description": "Landscape work completed"}
-    ],
-    
-    "Other": [
-        {"id": "other_1", "name": "Work Started", "description": "Work commenced on site"},
-        {"id": "other_2", "name": "25% Complete", "description": "25% of work completed"},
-        {"id": "other_3", "name": "50% Complete", "description": "50% of work completed"},
-        {"id": "other_4", "name": "75% Complete", "description": "75% of work completed"},
-        {"id": "other_5", "name": "Work Complete", "description": "100% work completed"},
-        {"id": "other_6", "name": "Inspection Done", "description": "Work inspected"},
-        {"id": "other_7", "name": "Corrections Done", "description": "Corrections completed"},
-        {"id": "other_8", "name": "Final Handover", "description": "Work handed over"}
     ]
 }
 
