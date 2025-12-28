@@ -8001,6 +8001,35 @@ class BackendTester:
         
         return passed == total if total > 0 else False
 
+    def run_user_approval_notification_tests(self):
+        """Run User Approval Notification Flow tests"""
+        print("📧 USER APPROVAL NOTIFICATION FLOW TESTS")
+        print("=" * 60)
+        
+        self.test_user_approval_notification_flow()
+        
+        # Summary
+        print("=" * 60)
+        print("📊 USER APPROVAL NOTIFICATION TEST SUMMARY")
+        print("=" * 60)
+        
+        approval_tests = [result for result in self.test_results if "User Approval Flow" in result["test"]]
+        passed = sum(1 for result in approval_tests if result["success"])
+        total = len(approval_tests)
+        
+        print(f"User Approval Tests: {total}")
+        print(f"Passed: {passed}")
+        print(f"Failed: {total - passed}")
+        print(f"Success Rate: {(passed/total)*100:.1f}%" if total > 0 else "No tests run")
+        
+        if total - passed > 0:
+            print("\n❌ FAILED USER APPROVAL TESTS:")
+            for result in approval_tests:
+                if not result["success"]:
+                    print(f"  - {result['test']}: {result['details']}")
+        
+        return passed == total if total > 0 else False
+
 if __name__ == "__main__":
     tester = BackendTester()
     
