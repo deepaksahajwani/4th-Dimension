@@ -546,7 +546,7 @@ def get_welcome_email_content(user: dict, login_url: str) -> tuple[str, str]:
     
     else:
         # Default/fallback template
-        subject = "Welcome to 4th Dimension! 🎉"
+        subject = "Registration Approved - Welcome to 4th Dimension! 🎉"
         html_content = f"""
         <html>
             <head>
