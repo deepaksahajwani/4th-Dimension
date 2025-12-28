@@ -236,34 +236,30 @@ export default function ProjectDetail({ user, onLogout }) {
 
   const loadRecipientsForCategory = async (category) => {
     console.log('Loading recipients for category:', category);
-    console.log('Project data:', project);
-    console.log('Client data:', client);
-    console.log('Team Leader:', teamLeader);
-    console.log('User:', user);
     
     const recipients = [];
     
-    // Always include the current user (owner)
-    if (user) {
+    // Always include the current user (owner) if they are the owner
+    if (user && user.is_owner) {
       recipients.push({
         id: user.id || 'owner',
         name: user.name || 'Owner',
         type: 'owner',
-        role: user.role || 'Owner'
+        role: 'Owner'
       });
     }
     
-    // Add client if available
+    // Add client if available (project's client)
     if (client) {
       recipients.push({
-        id: client.user_id || client.id,  // Use user_id for notifications, fallback to client.id
+        id: client.user_id || client.id,
         name: client.name || 'Project Client',
         type: 'client',
         role: 'Client'
       });
     }
     
-    // Add team leader/project manager if assigned
+    // Add team leader/project manager if assigned to this project
     if (teamLeader) {
       recipients.push({
         id: teamLeader.id,
@@ -273,59 +269,49 @@ export default function ProjectDetail({ user, onLogout }) {
       });
     }
     
-    // Add other team members from allTeamMembers (excluding already added)
-    if (allTeamMembers && Array.isArray(allTeamMembers)) {
-      allTeamMembers.forEach(member => {
-        // Avoid duplicates (skip if already added as owner or team leader)
-        if (member && member.id && !recipients.find(r => r.id === member.id)) {
+    // Add PROJECT-SPECIFIC contractors from projectTeam (not all contractors)
+    if (projectTeam && projectTeam.contractors && Array.isArray(projectTeam.contractors)) {
+      projectTeam.contractors.forEach(contractor => {
+        if (contractor && contractor.id && !recipients.find(r => r.id === contractor.id)) {
           recipients.push({
-            id: member.id,
-            name: `${member.name || 'Team Member'} (${member.role || 'Team Member'})`,
-            type: 'team_member',
-            role: member.role || 'Team Member'
+            id: contractor.user_id || contractor.id,
+            name: `${contractor.name || 'Contractor'} (${contractor.contractor_type || 'Contractor'})`,
+            type: 'contractor',
+            role: contractor.contractor_type || 'Contractor'
           });
         }
       });
     }
     
-    // Add contractors based on drawing category
-    const categoryContractorMapping = {
-      'Architecture': ['Civil', 'Structural'],
-      'Interior': ['Tile and Marble', 'Furniture', 'Kitchen', 'Modular'],
-      'Landscape': ['Landscape'],
-      'Planning': ['Civil']
-    };
-    
-    const relevantContractorTypes = categoryContractorMapping[category] || ['Civil'];
-    
-    // Add relevant contractors from project assigned_contractors
-    if (project && project.assigned_contractors && typeof project.assigned_contractors === 'object') {
-      relevantContractorTypes.forEach(contractorType => {
-        const contractorId = project.assigned_contractors[contractorType];
-        if (contractorId) {
+    // Add PROJECT-SPECIFIC consultants from projectTeam
+    if (projectTeam && projectTeam.consultants && Array.isArray(projectTeam.consultants)) {
+      projectTeam.consultants.forEach(consultant => {
+        if (consultant && consultant.id && !recipients.find(r => r.id === consultant.id)) {
           recipients.push({
-            id: contractorId,
-            name: `${contractorType} Contractor`,
-            type: 'contractor',
-            role: contractorType
-          });
-        }
-      });
-      
-      // Also add all assigned contractors regardless of category for flexibility
-      Object.entries(project.assigned_contractors).forEach(([contractorType, contractorId]) => {
-        if (contractorId && !recipients.find(r => r.id === contractorId)) {
-          recipients.push({
-            id: contractorId,
-            name: `${contractorType} Contractor`,
-            type: 'contractor',
-            role: contractorType
+            id: consultant.user_id || consultant.id,
+            name: `${consultant.name || 'Consultant'} (${consultant.type || 'Consultant'})`,
+            type: 'consultant',
+            role: consultant.type || 'Consultant'
           });
         }
       });
     }
     
-    console.log('Loaded recipients:', recipients);
+    // Add co-clients if any
+    if (projectTeam && projectTeam.co_clients && Array.isArray(projectTeam.co_clients)) {
+      projectTeam.co_clients.forEach(coClient => {
+        if (coClient && coClient.id && !recipients.find(r => r.id === coClient.id)) {
+          recipients.push({
+            id: coClient.user_id || coClient.id,
+            name: `${coClient.name || 'Co-Client'}`,
+            type: 'co_client',
+            role: 'Co-Client'
+          });
+        }
+      });
+    }
+    
+    console.log('Loaded project-specific recipients:', recipients);
     console.log('Total recipients:', recipients.length);
     
     setAvailableRecipients(recipients);
