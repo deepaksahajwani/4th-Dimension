@@ -5,8 +5,10 @@ import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Plus, Briefcase, Phone, Mail, MapPin, Edit, Trash2 } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { Plus, Briefcase, Phone, Mail, MapPin, Edit, Trash2, FolderOpen, ChevronDown, ChevronUp } from 'lucide-react';
 import PhoneInput, { combinePhoneNumber, splitPhoneNumber } from '@/components/PhoneInput';
+import { ContractorProgressSummary } from '@/components/ContractorProgress';
 import { toast } from 'sonner';
 
 const API = process.env.REACT_APP_BACKEND_URL + '/api';
