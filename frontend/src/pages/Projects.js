@@ -516,9 +516,10 @@ export default function Projects({ user, onLogout }) {
                 onClick={() => setDialogOpen(true)}
                 className="bg-orange-500 hover:bg-orange-600 w-full sm:w-auto"
               >
-              <Plus className="w-4 h-4 mr-2" />
-              Create Project
-            </Button>
+                <Plus className="w-4 h-4 mr-2" />
+                Create Project
+              </Button>
+            )}
           </div>
         )}
 
