@@ -232,8 +232,50 @@ export const DrawingCard = ({
               <Trash2 className="w-3 h-3 sm:w-4 sm:h-4" />
             </Button>
           )}
+          
+          {/* Progress Toggle Button for Issued Drawings */}
+          {canShowProgress && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowProgress(!showProgress)}
+              className={`flex-1 sm:flex-none text-xs h-8 ${
+                showProgress 
+                  ? 'border-orange-500 text-orange-600 bg-orange-50' 
+                  : 'border-slate-300 text-slate-600'
+              }`}
+              title="View contractor progress"
+            >
+              <HardHat className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
+              Progress
+            </Button>
+          )}
         </div>
       </div>
+      
+      {/* Contractor Progress Section for Issued Drawings */}
+      {canShowProgress && showProgress && (
+        <div className="mt-4 pt-4 border-t border-slate-200">
+          <div className="flex items-center gap-2 mb-3">
+            <HardHat className="w-4 h-4 text-orange-600" />
+            <span className="text-sm font-medium text-slate-700">Contractor Progress</span>
+          </div>
+          <div className="space-y-2">
+            {projectContractors.map((contractor) => (
+              <ContractorProgressTracker
+                key={contractor.id}
+                drawingId={drawing.id}
+                contractorId={contractor.id}
+                contractorName={contractor.name}
+                contractorType={contractor.contractor_type || contractor.type || 'Other'}
+                user={user}
+                onProgressUpdate={onProgressUpdate}
+              />
+            ))}
+          </div>
+        </div>
+      )}
     </CardContent>
   </Card>
-);
+  );
+};
