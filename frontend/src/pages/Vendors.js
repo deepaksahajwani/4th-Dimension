@@ -53,7 +53,6 @@ export default function Vendors({ user, onLogout }) {
   const [loading, setLoading] = useState(true);
   const [inviteDialogOpen, setInviteDialogOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
-  const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [editingVendor, setEditingVendor] = useState(null);
   const [expandedType, setExpandedType] = useState(null);
   const [inviteForm, setInviteForm] = useState({
