@@ -1,179 +1,204 @@
-<analysis>Here is a detailed handover summary of the work done in this session.
+<analysis>**original_problem_statement:**
+The user provided a comprehensive list of updates after deploying and testing the application. The requests are grouped into three phases:
 
-**original_problem_statement:**
-The user's primary goal was to create a robust and reliable notification system (Email, WhatsApp) and enhance project management capabilities.
+**Phase 1: Performance & Quick Fixes (Completed)**
+1.  **Revise Section:** Add file upload and voice note capabilities to the drawing revision dialog.
+2.  **Un-issue Feature:** Completely remove the feature allowing drawings to be un-issued.
+3.  **Performance:**
+    *   Add a  endpoint to eliminate cold-start issues.
+    *   Implement caching for static data.
+4.  **Branding:** Remove the Made with Emergent watermark from the application.
 
-Initial and subsequent requests included:
-1.  **Resource Documents:** Generate 14 industry-standard resource documents, provide them in an editable format (DOCX) for user review, and prepare for upload.
-2.  **In-App Voice Notes:** Fix the broken voice note feature, ensuring users can listen to recordings and can send voice notes without mandatory text comments.
-3.  **Project Team Management:** Implement a feature to add contractors, consultants, and co-clients to projects from the project detail page and send appropriate notifications upon assignment.
-4.  **Notification System Overhaul:**
-    *   **Sender Identity:** Ensure all emails are sent from 4th Dimension Architects instead of Contact. Guide the user on setting up a branded SMS Sender ID and WhatsApp Business Profile.
-    *   **Message Appropriateness:** Fix logic where users received incorrect notifications (e.g., a project assignment message containing a registration link). Ensure all messages (registration, approval, project assignment, etc.) are contextually appropriate.
-    *   **Reliability & Bugs:** Fix bugs where notifications were not being triggered upon user approval. Fix a bug preventing soft-deleted users from re-registering.
-    *   **WhatsApp Template Integration:** Diagnose and fix all WhatsApp failures by identifying missing/unapproved templates, guiding the user to create new ones (, ), and integrating the approved templates with the correct variables.
+**Phase 2: Notifications & Workload (Completed)**
+1.  **Drawing Approval Reminders:** Notify the owner immediately when a drawing is uploaded for approval. If not approved within 6 hours, send hourly reminders.
+2.  **Deep Linking:** When a user clicks a notification link for a drawing or comment, it should take them directly to a page showing only that specific drawing.
+3.  **Team Workload:** The Team Workload view should only display workload for the internal office team, excluding contractors.
+
+**Phase 3: Role-Based Access Control & Contractor Progress (Backend Complete, Frontend In Progress)**
+1.  **Role-Based Access Control (RBAC):** Implement strict access controls based on user roles:
+    *   **Client:** Can only view/download/comment on their own project's drawings. Cannot see other projects, all team members, or the main contractors page. Can only see contractors assigned to their project. Connects only with their project leader and the owner.
+    *   **Team Leader:** Can only see their own projects. Can grant temporary project access to other team leaders.
+    *   **Contractor/Consultant:** Can only see projects they are involved in.
+2.  **Contractor Progress Tracking:**
+    *   On the contractor's page, their card should show the number of projects they are handling. Clicking it should reveal project details and a progress report.
+    *   For each issued drawing, contractors should have role-specific buttons to mark task completion (e.g., Electrical: Conduiting done, Wiring Done; HVAC: Copper piping done).
+    *   These tasks appear as a checklist. The owner/client can un-tick an item if unsatisfied, but must provide a comment.
 
 **User's preferred language**: English
 
 **what currently exists?**
-The application is a full-stack React/FastAPI/MongoDB project with a comprehensive project management and notification system. The voice note feature is now fully functional, and a Team management tab has been added to projects. The notification system has been significantly refactored to use correct, user-approved WhatsApp templates and consistent email sender branding. An SMS fallback is in place for critical notifications.
+The application is a full-stack project with a resource management system, a conversational WhatsApp webhook for message forwarding, and robust notification triggers.
+
+Recent work has completed the backend for a comprehensive Role-Based Access Control (RBAC) system and a contractor progress tracking feature. Performance enhancements like a health check endpoint and watermark removal have been implemented. The drawing management system now includes features like owner notifications, approval reminders, deep linking from notifications, and the ability to add voice notes/files to revisions. The un-issue drawing feature has been completely removed.
 
 **Last working item**:
--   Last item agent was working: The agent was in the process of integrating two new, user-approved WhatsApp templates:  and . It successfully updated the configuration in  and the approval notification logic in . The next immediate step is to update the user invitation logic.
+-   Last item agent was working: The agent was beginning the frontend implementation for the extensive **Phase 3** features (Role-Based Access Control and Contractor Progress Tracking). It had just created the initial file for a new component, , to display the new progress tracking UI.
 -   Status: **IN PROGRESS**
 -   Agent Testing Done: N
--   Which testing method agent to use? Backend testing agent to test the  and  flows. This should be followed by manual testing (inviting a new user and approving them) to confirm the correct WhatsApp messages are sent.
+-   Which testing method agent to use? Frontend testing agent, once the UI for Phase 3 is fully implemented.
 -   User Testing Done: N
 
 **All Pending/In progress Issue list**:
--   **Issue 1: Finalize WhatsApp Invitation Template Integration (P0)**
-
-Issues Detail:
--   **Issue 1: Finalize WhatsApp Invitation Template Integration (P0)**
-    -   **Attempted fixes**: The agent has already updated the  config file and the  file for the new user approval template. The invitation logic is the last piece.
-    -   **Next debug checklist**:
-        1.  View the file .
-        2.  Locate the function responsible for sending invitations.
-        3.  Replace the existing WhatsApp template logic to primarily use the new  template ().
-        4.  Ensure the correct 4 variables (, , , ) are passed to the template.
-        5.  Keep the old template or SMS as a fallback.
-        6.  Restart the backend and test the full invitation flow.
-    -   **Why fix this issue and what will be achieved with the fix?**: This will complete the WhatsApp notification overhaul, ensuring new user invitations use the user's desired wording, which encourages recipients to reply START and open the 24-hour communication window.
-    -   **Status**: IN PROGRESS
-    -   **Is recurring issue?**: Y
-    -   **Should Test frontend/backend/both after fix?**: Backend
-    -   **Blocked on other issue**: None
+-   None.
 
 **In progress Task List**:
--   **Task 1: Populate the Resources Section (P1)**
+-   **Task 1: Complete Phase 3 Frontend Implementation (P0)**
 
 Task Detail:
--   **Task 1: Populate the Resources Section (P1)**
-    -   **Where to resume**: The user has been provided with a  file containing 14 resource documents in editable  format. Their approval is required before proceeding.
-    -   **Next steps**:
-        1.  Ask the user if they have reviewed the documents and are ready to upload them.
-        2.  Upon approval, create a script or use  commands to upload the finalized files (either the original  or converted  files, per user preference) to the application via the  endpoint.
-        3.  Verify on the frontend that all resources appear correctly.
-    -   **What will be achieved with this?**: The Resources section will be populated with valuable, industry-standard content for the user's team.
-    -   **Status**: BLOCKED (on user approval of content)
-    -   **Should Test frontend/backend/both after fix?**: Both
-    -   **Blocked on something**: User approval of the generated resource content.
+-   **Task 1: Complete Phase 3 Frontend Implementation (P0)**
+    -   **Where to resume**: The backend logic for RBAC and contractor progress is complete. The frontend work has just begun with the creation of . The next step is to build out the UI for all Phase 3 features.
+    -   **Next Steps**:
+        1.  **Contractor Progress:**
+            *   Build the UI in  to display checklists and progress buttons based on the data from the new backend endpoints.
+            *   Integrate this component into  and/or a new contractor-specific project view.
+            *   Implement the logic for contractors to tick items and for owners/clients to untick items with a mandatory comment.
+        2.  **Role-Based UI:**
+            *   Update the  list page to correctly display the filtered list of projects sent by the backend based on the user's role.
+            *   Update the  list page to only show contractors assigned to a client's project if the user is a client.
+            *   Conditionally render buttons and UI elements throughout the application (e.g., hide admin-only buttons from clients/contractors).
+        3.  **Team Leader Features:**
+            *   Create a UI for Team Leaders to grant/revoke temporary project access to other team members.
+    -   **What will be achieved with this?**: This will complete the user's extensive feature request, securing the application with granular permissions and providing a detailed progress tracking system for construction tasks.
+    -   **Status**: IN PROGRESS
+    -   **Should Test frontend/backend/both after fix?**: Frontend
+    -   **Blocked on something**: None
 
 **Upcoming and Future Tasks**
--   **Upcoming Tasks:**
-    -   **(P1) Smart WhatsApp Forwarding:** Design and implement the smart solution requested by the user to handle incoming WhatsApp messages (text and voice), identify the relevant project, and forward them to the correct team members.
+-   **Future Tasks:**
     -   **(P1) Weekly Target System:** Implement the comprehensive weekly target, star rewards, and badge system.
     -   **(P2) Archived Projects:** Create the UI and backend logic for archiving projects.
     -   **(P2) Drawing List Management:** Build the initial version of the page for managing drawing templates.
--   **Future Tasks:**
-    -   Complete Backend & Frontend Refactoring (e.g., ).
+    -   Complete Backend & Frontend Refactoring.
     -   Social Media Management feature.
     -   Document Generation Module (invoices, letters).
     -   Client Dashboard Financials UI.
 
 **Completed work in this session**
--   **Voice Note Feature Fixed**: Resolved the critical bug preventing users from listening to voice notes by implementing a dedicated, authenticated API endpoint () that works with the environment's ingress routing. Also removed the mandatory text comment requirement for voice notes.
--   **Project Team Management Feature Implemented**:
-    -   Built a new Team tab on the project detail page.
-    -   Created backend APIs and frontend UI to assign and unassign contractors and consultants to a project.
--   **Comprehensive Notification System Fixes**:
-    -   **Sender Identity:** Standardized all email sending logic to use 4th Dimension Architects as the display name.
-    -   **Message Appropriateness:** Corrected multiple logic errors where users received the wrong notification for a given context (e.g., project assignment vs. new user registration).
-    -   **Re-Registration Bug Fixed:** Resolved an issue that prevented soft-deleted users from being able to re-register.
-    -   **WhatsApp Template Integration:** Successfully diagnosed all WhatsApp failures, guided the user to create correct and approvable templates, and integrated the new templates (, ) into the notification system. Implemented robust SMS fallbacks.
--   **Data Integrity & Naming:**
-    -   Renamed Interior Contractor to Furniture Contractor and added Project Manager as a role throughout the application.
-    -   Fixed logic to ensure a contractor's specific type (e.g., Civil Contractor) is correctly saved upon approval, rather than being hardcoded as Other.
--   **Resource Content Generation**: Researched and created 14 resource documents, converted them to markdown, PDF, and DOCX, and delivered them to the user in a downloadable zip file for review.
+-   **Phase 1 (Performance & Quick Fixes) Completed:**
+    -   Removed the Made with Emergent watermark from .
+    -   Added a  endpoint in  for cold-start prevention.
+    -   Completely removed the un-issue drawing feature from both frontend (, ) and backend ().
+    -   Added file upload and voice note functionality to the drawing revision dialog in  and created corresponding backend endpoints.
+-   **Phase 2 (Notifications & Workload) Completed:**
+    -   Created a background scheduler () for hourly drawing approval reminders to the owner.
+    -   Implemented deep linking by adding  to notification URLs and adding handling logic in  to scroll to the specific drawing.
+    -   Verified that the existing Team Workload backend logic already correctly excludes contractors.
+-   **Phase 3 (RBAC & Contractor Progress) - Backend Completed:**
+    -   Created a contractor progress tracking system () with predefined task checklists.
+    -   Added new API endpoints for getting/updating contractor progress.
+    -   Implemented comprehensive RBAC by filtering API responses for projects () and contractors () based on user role.
+    -   Added API endpoints for team leaders to grant/revoke temporary project access.
+-   **Resource Management:** Successfully uploaded 14 user-provided documents and implemented a View in Browser feature using a public-facing endpoint and the Microsoft Office Online viewer.
+-   **Layout Fix:** Fixed the  page to include the main site navigation sidebar by wrapping it in the  component.
+-   **Smart WhatsApp Forwarding:** Implemented a conversational webhook to receive and forward WhatsApp messages from known users to project participants.
+-   **Hard Delete Implementation:** Changed all user/client/contractor deletion endpoints to perform a hard delete from the database, preventing recurring issues with re-inviting soft-deleted users. Also implemented a dual WhatsApp/SMS invite system for better reliability.
+-   **Drawing Notifications:** Added compulsory WhatsApp notifications to the owner for all key drawing events (upload, issue, comment, revision).
 
 **Earlier issues found/mentioned but not fixed**
 -   None.
 
 **Known issue recurrence from previous fork**
--   **Issue recurrence in previous fork**: WhatsApp notifications failing.
--   **Recurrence count**: 5+
--   **Status**: **IN PROGRESS**. The root cause (missing/unapproved templates and incorrect variable mapping) has been fixed. The final step is to finish integrating the new  template and perform a full end-to-end test.
+-   **Issue recurrence in previous fork**: WhatsApp notifications failing for re-invited users.
+-   **Recurrence count**: 1 in this session.
+-   **Status**: **RESOLVED**. The issue was traced to two causes: 1) WhatsApp (Meta) rate-limiting marketing messages to the recipient (Error 63049), which is an external factor. 2) The application's soft-delete logic preventing clean re-registration. The agent implemented a **hard-delete** policy for all user types and made the invitation system more robust by sending **both SMS and WhatsApp** invites simultaneously.
 
 **Code Architecture**
 
 
 **Key Technical Concepts**
--   **Twilio WhatsApp API:** Deep debugging of template SIDs, placeholder variables, and error codes (21656 - invalid variables, 20404 - resource not found).
--   **Kubernetes Ingress Routing Workaround:** Diagnosed an issue where a static file mount was not being routed correctly by the ingress. Created a dedicated API endpoint () to serve files programmatically as a reliable solution.
--   **FastAPI Refactoring:** Centralized email sending into a helper function to ensure consistency. Created new dependency functions () for route protection. Made Pydantic model fields optional ().
--   **Systematic Notification Debugging:** Traced notification failures from the trigger event through the entire stack (API endpoint -> trigger function -> service -> 3rd party API), using logs to pinpoint the exact point of failure.
+-   **Role-Based Access Control (RBAC):** Implemented on the backend by filtering database queries in API endpoints based on the authenticated user's role ().
+-   **Background Tasks:** Used  to run a persistent background job for sending hourly notification reminders.
+-   **Deep Linking:** Implemented using URL query parameters () and frontend JavaScript (, ) to navigate users to specific content on a page.
+-   **Hard vs. Soft Delete:** Migrated the system from soft-deletes ( timestamp) to hard-deletes () to ensure data integrity and prevent re-registration conflicts.
+-   **External API Workaround:** Created a dedicated, unauthenticated public endpoint () to serve files to the Microsoft Office viewer, which cannot handle authenticated URLs.
+-   **Conversational Webhook:** Built a stateful webhook handler that guides a user through a multi-step conversation over WhatsApp to forward a message.
 
 **key DB schema**
--   **projects**:  and  fields are now used to store dictionaries of assigned team members.
--   **users**: The  field is now checked during registration to allow re-registration. The  field is critical for personalizing welcome notifications.
--   **contractors/consultants**: The  is now correctly updated from the  provided during user approval.
+-   **projects**:  field (dictionary) added to handle temporary project access for team leaders.
+-   **drawings**:  field (dictionary) will be used to store the completion status of contractor tasks for an issued drawing.
+-   No longer using  for soft-deletes on , , , . Records are now removed permanently.
 
 **changes in tech stack**
 -   None.
 
 **All files of reference**
--   **/app/backend/server.py**: Contains new project team APIs, voice note fix, and fixes for registration/approval bugs.
--   **/app/backend/notification_triggers_v2.py**: Contains the core logic for all notifications, updated to use the correct WhatsApp templates and variables.
--   **/app/frontend/src/pages/ProjectDetail.js**: Contains the new Team tab UI and logic for assigning members.
--   **/app/backend/whatsapp_templates.py**: The source of truth for all approved WhatsApp template SIDs.
--   **/app/backend/invite_service.py**: The next file to be modified to complete the WhatsApp integration.
--   **/app/NOTIFICATION_SYSTEM.md**: A new reference document created by the agent that outlines all notification events.
+-   **/app/backend/server.py**: The central file containing all new RBAC logic, hard-delete implementations, and new API endpoints.
+-   **/app/frontend/src/pages/ProjectDetail.js**: The main frontend file that needs significant UI updates for contractor progress and conditional rendering based on user role.
+-   **/app/backend/contractor_progress.py**: Defines the new business logic for contractor task checklists.
+-   **/app/backend/drawing_approval_reminders.py**: Contains the logic for the new background reminder task.
+-   **/app/frontend/src/components/project/DrawingCard.jsx**: The component for displaying individual drawings, modified to remove the Un-issue button.
 
 **Areas that need refactoring**:
--   The  file has some functional duplication between  and . These could be unified into a single, more robust function to improve maintainability.
+-    is becoming very large. The new RBAC and contractor progress endpoints could be moved to their own route files in  for better organization.
 
 **key api endpoints**
--   **NEW**:
-    -   
-    -   
-    -   
-    -    (for playing voice notes)
--   **MODIFIED**:
-    -   : Now correctly handles re-registration for soft-deleted users.
-    -   : Correctly updates the contractor/consultant's specific type.
-    -   : To be updated to use the new  template.
+-   **NEW (Phase 1 & 2):**
+    -   : Health check endpoint.
+    -   : Uploads a voice note for a drawing revision.
+    -   : Uploads a file attachment for a drawing revision.
+    -   : Gets a Microsoft Office viewer URL for a document.
+    -   : Unauthenticated endpoint to serve files to the viewer.
+    -   : The entry point for the conversational WhatsApp webhook.
+-   **NEW (Phase 3 Backend):**
+    -   : Gets progress for a specific contractor.
+    -   : Updates the progress of a contractor's task on a drawing.
+    -   : Grants temporary project access to another team leader.
+    -   : Revokes temporary access.
+-   **MODIFIED:**
+    -   , , , : Now perform a hard delete.
+    -   : Now filters projects based on the user's role.
+    -   : Now filters the list for clients.
 
 **Critical Info for New Agent**
-1.  **Finish WhatsApp Integration:** Your first task is to update  to use the new  template. All necessary SIDs are in . This is the final step in resolving the long-standing WhatsApp issues. Test the full user invite flow after your change.
-2.  **Voice Notes Fixed via API:** The voice note playback issue was solved by creating a dedicated API endpoint (), NOT by fixing the static file mount. Do not revert this, as it's a workaround for an environment-specific ingress issue.
-3.  **Await User Approval for Resources:** Do not attempt to upload the 14 resource documents. The user is currently reviewing them in  format. Your next interaction on this topic should be to ask for their approval.
-4.  **Refer to :** The agent created a new document at  that details all notification triggers. Refer to this file before making any changes to the notification system to avoid breaking existing logic.
+1.  **Resume at Phase 3 Frontend:** Your primary task is to build the frontend UI for the completed Phase 3 backend. The backend already enforces all RBAC rules and provides data for contractor progress. Your job is to make the UI reflect this.
+2.  **Focus on Conditional Rendering:** A major part of the task will be conditionally rendering UI elements (buttons, pages, data lists) based on  (e.g., , , ).
+3.  **Implement Contractor Progress UI:** You need to build the UI for the contractor checklists. The data structure is defined in , and the API endpoints are ready. This involves creating buttons for each task and handling the API calls to update the status.
+4.  **Background Scheduler is Running:** The hourly drawing approval reminder system is already implemented and running as a background task initiated on server startup. You don't need to implement this.
+5.  **Hard Deletes are Active:** All delete operations are now permanent. Be aware of this when testing deletion functionality.
 
 **documents and test reports created in this job**
--    (14 markdown files for reference)
--    (14 .docx files for user review)
--    (Downloadable archive for user)
--    (New documentation for the notification system)
+-   
+-   
+-   
+-   
+-   
+-   
+-   
+-   
+-   
+-   
+-   
+-   
+-   
 
 **Last 10 User Messages and any pending HUMAN messages**
-1.  **User approved a  template.** (DONE)
-2.  **User provided an approved SID for .** (DONE)
-3.  **User provided a list of all 7 approved WhatsApp templates and their SIDs.** (DONE)
-4.  **User asked for a new  template body after rejections.** (DONE)
-5.  **User asked for a new  template body that prompts the user to reply START.** (DONE)
-6.  **User confirmed approval of the  template and provided its SID.** (DONE)
-7.  **User asked to check ALL notifications and ensure messages are appropriate and not duplicated.** (DONE, refactored logic)
-8.  **User reported a contractor was getting a registration text when onboarded to a project.** (FIXED)
-9.  **User reported that a re-registered and approved user (Vedhi Sahajwani) did not receive notifications.** (FIXED, bugs in approval flow resolved, notification sent successfully)
-10. **User wants the WhatsApp notification system resolved in all aspects.** (IN PROGRESS, final template integration pending)
+1.  **User:** continue (to start Phase 3 frontend).
+2.  **User:** Provided clarification for Phase 3 requirements. Confirmed the plan to proceed with Phase 1 -> 2 -> 3 in sequence.
+3.  **Agent:** Asked for prioritization and clarification on the large list of new requirements.
+4.  **User:** Provided a very large list of new features and fixes (Phases 1, 2, 3), including RBAC, contractor progress, performance optimization, and UI tweaks.
+5.  **Agent:** Summarized the implementation of drawing notifications.
+6.  **User:** Requested compulsory WhatsApp notifications for the owner on all drawing-related events.
+7.  **Agent:** Confirmed deployment readiness after implementing the WhatsApp forwarding webhook.
+8.  **User:** I am ready to deploy.
+9.  **User:** Reported the recurring invitation issue with a previously deleted user and requested a permanent fix for deletion.
+10. **Agent:** Summarized the completion of the smart WhatsApp forwarding feature.
 
 **Project Health Check:**
--   **Broken**: Nothing is critically broken.
+-   **Broken**: The frontend UI does not yet reflect the new backend RBAC rules, so users may see options they no longer have access to. This will be fixed by the Phase 3 frontend task.
 -   **Mocked**: None.
 
 **3rd Party Integrations**
--   **Twilio (Production)** — Uses User API Key. Used for SMS and WhatsApp. Now configured with multiple user-approved message templates.
--   **SendGrid** — Uses User API Key. Fully functional and configured to send emails with the correct 4th Dimension Architects display name.
+-   **Twilio (Production)** — Uses User API Key. Used for SMS and WhatsApp. Now used for both outbound template messages and the inbound conversational webhook.
+-   **SendGrid** — Uses User API Key. Used for email notifications.
 
 **Testing status**
--   Testing agent used after significant changes: YES, the backend testing agent was used to validate the new project team management APIs and several notification fixes.
--   Troubleshoot agent used after agent stuck in loop: NO
--   Test files created: None.
+-   Testing agent used after significant changes: YES. The backend testing agent was used to validate the Resource Management, WhatsApp Webhook, and all Phase 3 (RBAC) backend changes.
+-   Troubleshoot agent used after agent stuck in loop: NO.
+-   Test files created: Test cases were added to  for each major feature.
 -   Known regressions: None.
 
 **Credentials to test flow:**
 -   **Owner**:  / 
--   **Test User (for approval flow)**: Vedhi Sahajwani, Email: , Phone: 
 
 **What agent forgot to execute**
--   The agent was in the middle of a task. It correctly updated the user approval notification to use a new WhatsApp template but had not yet updated the user invitation service () to use the corresponding new invitation template. This is the logical next step.</analysis>
+-   The agent has been systematically following the user's phased plan and has not forgotten any requested items. It is currently in the middle of Phase 3.</analysis>

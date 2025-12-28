@@ -42,7 +42,7 @@ Testing the new View functionality for resource documents
 3. "Download" button should download the file
 
 ## Test Configuration
-- **Base URL**: https://architect-notify.preview.emergentagent.com
+- **Base URL**: https://contractor-tracker-1.preview.emergentagent.com
 - **Test Resource ID**: 0050d039-e1fb-4172-ab71-05d9f84878b2
 - **Test Credentials**: deepaksahajwani@gmail.com / Deepak@2025
 
@@ -60,7 +60,7 @@ Testing the new View functionality for resource documents
 
 ## Test Execution Details
 - **Test Date**: 2024-12-19
-- **Test Environment**: Production (https://architect-notify.preview.emergentagent.com)
+- **Test Environment**: Production (https://contractor-tracker-1.preview.emergentagent.com)
 - **Test File Type**: Microsoft Word Document (.docx)
 - **File Size**: 17,735 bytes
 - **Authentication**: JWT Bearer token authentication working correctly
@@ -106,7 +106,7 @@ None yet
 - **Success Rate**: 100%
 
 ### Test Configuration
-- **Base URL**: https://architect-notify.preview.emergentagent.com
+- **Base URL**: https://contractor-tracker-1.preview.emergentagent.com
 - **Owner Phone**: +919913899888
 - **Owner Name**: Ar. Deepak Sahajwani
 - **Test Data Format**: application/x-www-form-urlencoded (Twilio format)
@@ -125,7 +125,7 @@ None yet
 
 ### Test Execution Details
 - **Test Date**: 2024-12-19
-- **Test Environment**: Production (https://architect-notify.preview.emergentagent.com)
+- **Test Environment**: Production (https://contractor-tracker-1.preview.emergentagent.com)
 - **Webhook Handler**: whatsapp_webhook_handler.py working correctly
 - **Response Format**: TwiML XML responses for Twilio integration
 - **Conversation State**: In-memory state management working
@@ -172,7 +172,7 @@ None yet
 - **Success Rate**: 100%
 
 ### Test Configuration
-- **Base URL**: https://architect-notify.preview.emergentagent.com
+- **Base URL**: https://contractor-tracker-1.preview.emergentagent.com
 - **Test Credentials**: deepaksahajwani@gmail.com / Deepak@2025
 - **Test Project**: Interior at Boulevard (ec8ea628-e1d4-4257-896f-1775eb1c4826)
 - **Test Drawing**: LAYOUT PLAN LOWER LEVEL (8efddea8-fa06-4354-a3a0-4598e61d4a2b)
@@ -193,7 +193,7 @@ None yet
 
 ### Test Execution Details
 - **Test Date**: 2024-12-27
-- **Test Environment**: Production (https://architect-notify.preview.emergentagent.com)
+- **Test Environment**: Production (https://contractor-tracker-1.preview.emergentagent.com)
 - **Notification System**: notification_triggers_v2.py working correctly
 - **WhatsApp Status**: Credentials not configured (expected - delivery may fail)
 - **Drawing Updates**: Successfully trigger notification functions
@@ -236,7 +236,7 @@ None yet
 - **Success Rate**: 100%
 
 ### Test Configuration
-- **Base URL**: https://architect-notify.preview.emergentagent.com
+- **Base URL**: https://contractor-tracker-1.preview.emergentagent.com
 - **Test Credentials**: deepaksahajwani@gmail.com / Deepak@2025
 
 ### Backend API Endpoints Tested
@@ -253,7 +253,7 @@ None yet
 
 ### Test Execution Details
 - **Test Date**: 2024-12-27
-- **Test Environment**: Production (https://architect-notify.preview.emergentagent.com)
+- **Test Environment**: Production (https://contractor-tracker-1.preview.emergentagent.com)
 - **Authentication**: JWT Bearer token authentication working correctly
 - **Drawing Protection**: Un-issue blocking mechanism working correctly
 - **File Upload Endpoints**: Both voice note and revision files endpoints properly defined
@@ -311,7 +311,7 @@ None yet
 - **Success Rate**: 100%
 
 ### Test Configuration
-- **Base URL**: https://architect-notify.preview.emergentagent.com
+- **Base URL**: https://contractor-tracker-1.preview.emergentagent.com
 - **Test Credentials**: deepaksahajwani@gmail.com / Deepak@2025
 - **Test Project**: Interior at Boulevard (ec8ea628-e1d4-4257-896f-1775eb1c4826)
 
@@ -333,7 +333,7 @@ None yet
 
 ### Test Execution Details
 - **Test Date**: 2024-12-27
-- **Test Environment**: Production (https://architect-notify.preview.emergentagent.com)
+- **Test Environment**: Production (https://contractor-tracker-1.preview.emergentagent.com)
 - **Authentication**: JWT Bearer token authentication working correctly
 - **Role-Based Access**: Owner role has full access to all RBAC endpoints
 - **Contractor Task System**: Comprehensive task checklists for 11 contractor types

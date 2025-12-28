@@ -399,7 +399,7 @@ async def get_resource_view_url(
             raise HTTPException(status_code=400, detail="No file attached to this resource")
         
         # Get the base URL from environment or request
-        base_url = os.environ.get('REACT_APP_BACKEND_URL', 'https://architect-notify.preview.emergentagent.com')
+        base_url = os.environ.get('REACT_APP_BACKEND_URL', 'https://contractor-tracker-1.preview.emergentagent.com')
         
         # Build the public view URL (no auth required for Office Online viewer)
         public_file_url = f"{base_url}/api/resources/{resource_id}/public-view"
