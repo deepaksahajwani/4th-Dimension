@@ -620,7 +620,7 @@ class ContractorType(str, Enum):
     CIVIL = "Civil"
     PLUMBING = "Plumbing"
     ELECTRICAL = "Electrical"
-    AIR_CONDITIONING = "Air Conditioning"
+    HVAC = "HVAC"
     MARBLE_TILE = "Marble and Tile"
     FALSE_CEILING = "False Ceiling"
     FURNITURE = "Furniture"
@@ -628,11 +628,13 @@ class ContractorType(str, Enum):
     KITCHEN = "Kitchen"
     LANDSCAPE = "Landscape"
     GLASS = "Glass"
-    PROFILE = "Profile"
-    GARDNER = "Gardner"
+    ALUMINIUM_PROFILE = "Aluminium Profile"
+    PAINTING = "Painting"
+    WATERPROOFING = "Waterproofing"
+    FLOORING = "Flooring"
+    CARPENTRY = "Carpentry"
     FABRICATOR = "Fabricator"
-    PROJECT_MANAGER = "Project Manager"
-    CUSTOM = "Custom"  # For custom types
+    GARDNER = "Gardner"
 
 class Contractor(BaseModel):
     model_config = ConfigDict(extra="ignore")
