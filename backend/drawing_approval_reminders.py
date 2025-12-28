@@ -216,7 +216,7 @@ async def send_immediate_approval_notification(
     """
     try:
         owner = await get_owner_info()
-        if not owner or not owner.get('mobile'):
+        if not owner:
             logger.warning("Owner not found for immediate approval notification")
             return
         
@@ -242,13 +242,25 @@ Please review and approve this drawing.
 
 ⏰ You will receive hourly reminders if not approved within 6 hours."""
         
-        # Send WhatsApp
-        result = await notification_service.send_whatsapp(owner['mobile'], message)
-        if result.get('success'):
-            logger.info(f"Immediate approval notification sent for: {drawing_name}")
-        else:
-            # Fallback to SMS
-            await notification_service.send_sms(owner['mobile'], message)
+        # Create in-app notification FIRST (always works)
+        await notification_service.create_in_app_notification(
+            user_id=owner['id'],
+            title="Drawing Approval Needed",
+            message=f"📤 {drawing_name} uploaded for approval by {uploaded_by_name}",
+            notification_type="drawing_approval_needed",
+            link=f"/projects/{project_id}?drawing={drawing_id}",
+            project_id=project_id
+        )
+        logger.info(f"In-app notification created for drawing approval: {drawing_name}")
+        
+        # Send WhatsApp if owner has mobile
+        if owner.get('mobile'):
+            result = await notification_service.send_whatsapp(owner['mobile'], message)
+            if result.get('success'):
+                logger.info(f"Immediate approval notification sent for: {drawing_name}")
+            else:
+                # Fallback to SMS
+                await notification_service.send_sms(owner['mobile'], message)
         
         # Mark the upload time for reminder tracking
         await db.project_drawings.update_one(
