@@ -251,17 +251,12 @@ export default function Vendors({ user, onLogout }) {
           <div className="bg-white rounded-lg shadow-sm p-12 text-center">
             <Store className="w-16 h-16 mx-auto text-slate-300 mb-4" />
             <h3 className="text-lg font-medium text-slate-900 mb-2">No Vendors Yet</h3>
-            <p className="text-slate-600 mb-4">Add your first vendor to get started</p>
+            <p className="text-slate-600 mb-4">Invite your first vendor to get started</p>
             {user?.is_owner && (
-              <div className="flex justify-center gap-2">
-                <Button onClick={() => setCreateDialogOpen(true)} className="bg-orange-500 hover:bg-orange-600">
-                  <Plus className="w-4 h-4 mr-2" />
-                  Add Vendor
-                </Button>
-                <Button onClick={() => setInviteDialogOpen(true)} variant="outline">
-                  Invite Vendor
-                </Button>
-              </div>
+              <Button onClick={() => setInviteDialogOpen(true)} className="bg-orange-500 hover:bg-orange-600">
+                <Plus className="w-4 h-4 mr-2" />
+                Invite Vendor
+              </Button>
             )}
           </div>
         ) : (
