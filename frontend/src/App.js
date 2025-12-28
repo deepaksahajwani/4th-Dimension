@@ -287,6 +287,15 @@ function App() {
             />
 
             <Route
+              path="/vendors"
+              element={
+                <ProtectedRoute>
+                  <Vendors user={user} onLogout={handleLogout} />
+                </ProtectedRoute>
+              }
+            />
+
+            <Route
               path="/projects"
               element={
                 <ProtectedRoute>
