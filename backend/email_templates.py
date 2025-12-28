@@ -96,7 +96,7 @@ def get_welcome_email_content(user: dict, login_url: str) -> tuple[str, str]:
     
     # Role-specific content
     if role_category == 'client':
-        subject = "Welcome to 4th Dimension - Your Architectural Journey Begins! 🏛️"
+        subject = "Registration Approved - Welcome to 4th Dimension! 🏛️"
         html_content = f"""
         <html>
             <head>
