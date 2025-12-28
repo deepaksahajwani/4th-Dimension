@@ -236,22 +236,13 @@ export default function Vendors({ user, onLogout }) {
             <p className="text-slate-600 mt-1">Manage your material and service vendors</p>
           </div>
           {user?.is_owner && (
-            <div className="flex gap-2">
-              <Button
-                onClick={() => setCreateDialogOpen(true)}
-                className="bg-orange-500 hover:bg-orange-600"
-              >
-                <Plus className="w-4 h-4 mr-2" />
-                Add Vendor
-              </Button>
-              <Button
-                onClick={() => setInviteDialogOpen(true)}
-                variant="outline"
-              >
-                <Plus className="w-4 h-4 mr-2" />
-                Invite Vendor
-              </Button>
-            </div>
+            <Button
+              onClick={() => setInviteDialogOpen(true)}
+              className="bg-orange-500 hover:bg-orange-600"
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              Invite Vendor
+            </Button>
           )}
         </div>
 
