@@ -123,28 +123,6 @@ export default function Vendors({ user, onLogout }) {
     }
   };
 
-  const handleCreateSubmit = async (e) => {
-    e.preventDefault();
-    
-    if (!formData.company_name || !formData.vendor_type || !formData.contact_person_name || !formData.contact_person_phone) {
-      toast.error('Please fill in all required fields');
-      return;
-    }
-
-    try {
-      const token = localStorage.getItem('token');
-      await axios.post(`${API}/vendors`, formData, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      toast.success('Vendor added successfully!');
-      setCreateDialogOpen(false);
-      resetForm();
-      fetchVendors();
-    } catch (error) {
-      toast.error(error.response?.data?.detail || 'Failed to create vendor');
-    }
-  };
-
   const handleEditSubmit = async (e) => {
     e.preventDefault();
     try {
