@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent } from '../ui/card';
 import { Button } from '../ui/button';
 import {
@@ -16,8 +16,10 @@ import {
   Eye,
   Download,
   MessageSquare,
-  Trash2
+  Trash2,
+  HardHat
 } from 'lucide-react';
+import { ContractorProgressTracker } from '../ContractorProgress';
 
 const getDrawingStatusIcon = (drawing) => {
   if (drawing.has_pending_revision) {
@@ -44,6 +46,7 @@ const getDrawingStatusColor = (drawing) => {
 export const DrawingCard = ({
   drawing,
   user,
+  projectContractors = [],
   onToggleIssued,
   onResolveRevision,
   onOpenRevisionDialog,
@@ -53,8 +56,15 @@ export const DrawingCard = ({
   onDownloadPDF,
   onOpenComments,
   onMarkAsNotApplicable,
-  onDeleteDrawing
-}) => (
+  onDeleteDrawing,
+  onProgressUpdate
+}) => {
+  const [showProgress, setShowProgress] = useState(false);
+  
+  // Only show contractor progress for issued drawings
+  const canShowProgress = drawing.is_issued && projectContractors.length > 0;
+  
+  return (
   <Card id={`drawing-${drawing.id}`} className="hover:shadow-md transition-all duration-300">
     <CardContent className="p-3 sm:p-4">
       <div className="flex flex-col sm:flex-row sm:items-start gap-3">
