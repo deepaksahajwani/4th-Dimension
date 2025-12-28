@@ -1462,8 +1462,13 @@ async def approve_user_from_dashboard(
                 )
                 print(f"✅ Updated consultant type to '{consultant_type}' for {user['name']}")
             
-            # NOTE: Notification is now sent separately via /send-approval-notification
-            # This allows owner to create project first before notifying client
+            # Send approval notification automatically
+            try:
+                from notification_triggers_v2 import notify_user_approval
+                await notify_user_approval(user_id)
+                print(f"✅ Approval notification sent to {user['name']}")
+            except Exception as e:
+                print(f"Approval notification failed (non-critical): {str(e)}")
             
             return {
                 "success": True,
