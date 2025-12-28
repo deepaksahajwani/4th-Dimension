@@ -843,9 +843,11 @@ export default function Projects({ user, onLogout }) {
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {[
-                      'Civil', 'Plumbing', 'Electrical', 'Air Conditioning',
+                      'Civil', 'Plumbing', 'Electrical', 'HVAC',
                       'Marble and Tile', 'False Ceiling', 'Furniture', 'Modular',
-                      'Kitchen', 'Landscape', 'Glass', 'Profile', 'Gardner', 'Fabricator'
+                      'Kitchen', 'Landscape', 'Glass', 'Aluminium Profile',
+                      'Painting', 'Waterproofing', 'Flooring', 'Carpentry',
+                      'Fabricator', 'Gardner'
                     ].map(type => {
                       const typeContractors = contractors.filter(c => c.contractor_type === type);
                       return (
