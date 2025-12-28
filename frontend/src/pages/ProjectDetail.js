@@ -1895,6 +1895,16 @@ export default function ProjectDetail({ user, onLogout }) {
           {/* Team Tab - Contractors & Consultants */}
           <TabsContent value="team" className="mt-6">
             <div className="space-y-6">
+              {/* Team Leader Access Management */}
+              {(user?.is_owner || user?.role === 'team_leader') && (
+                <TeamLeaderAccess 
+                  projectId={projectId} 
+                  projectName={project.title}
+                  user={user}
+                  onAccessChange={fetchProjectData}
+                />
+              )}
+              
               {/* Contractors Section */}
               <Card>
                 <CardHeader>
