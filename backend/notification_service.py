@@ -346,10 +346,33 @@ class NotificationService:
             response = sg.send(message)
             
             logger.info(f"Email sent to {to_email}: {subject}")
+            
+            # Log to notification logger
+            if notification_logger:
+                await notification_logger.log(
+                    notification_type="email",
+                    channel="email",
+                    recipient=to_email,
+                    subject=subject,
+                    success=True
+                )
+            
             return True
             
         except Exception as e:
             logger.error(f"Email error: {str(e)}")
+            
+            # Log failure to notification logger
+            if notification_logger:
+                await notification_logger.log(
+                    notification_type="email",
+                    channel="email",
+                    recipient=to_email,
+                    subject=subject,
+                    success=False,
+                    error_message=str(e)
+                )
+            
             return False
     
     @staticmethod
