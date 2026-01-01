@@ -268,15 +268,42 @@ class NotificationService:
                     if response.status_code == 201:
                         result = response.json()
                         logger.info(f"WhatsApp sent to {phone_number}: {result.get('sid')}")
+                        
+                        # Log to notification logger
+                        if notification_logger:
+                            await notification_logger.log(
+                                notification_type="whatsapp_message",
+                                channel="whatsapp",
+                                recipient=phone_number,
+                                message_preview=message[:200] if message else None,
+                                success=True,
+                                message_sid=result.get('sid')
+                            )
+                        
                         return {
                             "success": True,
                             "message_sid": result.get('sid'),
                             "status": result.get('status')
                         }
                     else:
-                        error_msg = response.text
-                        logger.error(f"WhatsApp failed to {phone_number}: {error_msg}")
-                        return {"success": False, "error": error_msg}
+                        error_data = response.json() if response.text else {}
+                        error_code = error_data.get('code')
+                        error_msg = error_data.get('message', response.text)
+                        logger.error(f"WhatsApp failed to {phone_number}: [{error_code}] {error_msg}")
+                        
+                        # Log failure to notification logger
+                        if notification_logger:
+                            await notification_logger.log(
+                                notification_type="whatsapp_message",
+                                channel="whatsapp",
+                                recipient=phone_number,
+                                message_preview=message[:200] if message else None,
+                                success=False,
+                                error_code=str(error_code) if error_code else None,
+                                error_message=error_msg
+                            )
+                        
+                        return {"success": False, "error": error_msg, "error_code": error_code}
                     
         except Exception as e:
             logger.error(f"WhatsApp error: {str(e)}")
