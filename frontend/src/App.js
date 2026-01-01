@@ -380,6 +380,14 @@ function App() {
               }
             />
             <Route
+              path="/system-logs"
+              element={
+                <ProtectedRoute>
+                  <SystemLogs user={user} onLogout={handleLogout} />
+                </ProtectedRoute>
+              }
+            />
+            <Route
               path="/drawings"
               element={
                 <ProtectedRoute>
