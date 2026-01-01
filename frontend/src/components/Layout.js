@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Building2, LayoutDashboard, FolderOpen, Users, DollarSign, FileText, CheckSquare, Settings, LogOut, Menu, X, Target, Clock, BookOpen, Store } from 'lucide-react';
+import { Building2, LayoutDashboard, FolderOpen, Users, DollarSign, FileText, CheckSquare, Settings, LogOut, Menu, X, Target, Clock, BookOpen, Store, Activity } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import NotificationBell from './NotificationBell';
 
@@ -30,6 +30,7 @@ export default function Layout({ children, user, onLogout }) {
     { name: 'Team', href: '/team', icon: Users },
     { name: 'Resources', href: '/resources', icon: BookOpen },
     ...(user?.is_owner ? [{ name: 'Accounting', href: '/accounting', icon: DollarSign }] : []),
+    ...(user?.is_owner ? [{ name: 'System Logs', href: '/system-logs', icon: Activity }] : []),
   ];
 
   const mobileBottomNav = [
