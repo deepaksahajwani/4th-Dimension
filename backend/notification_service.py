@@ -307,6 +307,17 @@ class NotificationService:
                     
         except Exception as e:
             logger.error(f"WhatsApp error: {str(e)}")
+            
+            # Log exception to notification logger
+            if notification_logger:
+                await notification_logger.log(
+                    notification_type="whatsapp_message",
+                    channel="whatsapp",
+                    recipient=phone_number if phone_number else "unknown",
+                    success=False,
+                    error_message=str(e)
+                )
+            
             return {"success": False, "error": str(e)}
     
     @staticmethod
