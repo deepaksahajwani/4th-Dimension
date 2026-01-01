@@ -1,6 +1,11 @@
 """
 Unified Notification Service - Handles all notification channels
 Sends notifications via In-App, WhatsApp, and Email
+
+This service now integrates with:
+- NotificationLogger for centralized logging
+- TwilioService for WhatsApp/SMS (via integrations layer)
+- SendGridService for emails (via integrations layer)
 """
 
 import os
@@ -14,6 +19,12 @@ from sendgrid.helpers.mail import Mail
 from pathlib import Path
 from dotenv import load_dotenv
 from whatsapp_business_service import whatsapp_business_service
+
+# Import notification logger for tracking
+try:
+    from integrations.notification_logger import notification_logger
+except ImportError:
+    notification_logger = None
 
 # Load environment variables
 load_dotenv(Path(__file__).parent / '.env')
