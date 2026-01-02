@@ -229,7 +229,8 @@ export default function TeamLeaderDashboard({ user, onLogout }) {
                         <span>{formatDate(project.start_date)}</span>
                       </div>
                       <TrendingUp className="w-4 h-4 text-orange-500" />
-                  </div>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             ))}
