@@ -23,10 +23,17 @@ export default function MyWork({ user, onLogout }) {
   const [refreshing, setRefreshing] = useState(false);
 
   useEffect(() => {
-    fetchActionItems();
-  }, []);
+    if (user?.id) {
+      fetchActionItems();
+    }
+  }, [user?.id]);
 
   const fetchActionItems = async () => {
+    if (!user?.id) {
+      setLoading(false);
+      return;
+    }
+    
     try {
       const token = localStorage.getItem('token');
       const headers = { Authorization: `Bearer ${token}` };
