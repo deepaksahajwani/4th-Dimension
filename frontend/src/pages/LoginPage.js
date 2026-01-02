@@ -80,10 +80,17 @@ export default function LoginPage({ onLogin }) {
       } else {
         // Role-based redirection
         const userRole = response.data.user.role;
+        const isInternalTeamMember = ['senior_architect', 'junior_architect', 'senior_interior_designer', 
+          'junior_interior_designer', 'associate_architect', 'associate_interior_designer',
+          'landscape_designer', '3d_visualizer', 'site_engineer', 'site_supervisor', 'intern',
+          'team_member', 'team_leader'].includes(userRole);
+        
         if (userRole === 'client' || userRole === 'contractor' || userRole === 'consultant' || userRole === 'vendor') {
           navigate('/external-dashboard'); // External users go to simplified dashboard
+        } else if (isInternalTeamMember) {
+          navigate('/team-leader'); // Team members go to team leader dashboard
         } else {
-          navigate('/dashboard'); // Internal users (owner, team) go to full dashboard
+          navigate('/dashboard'); // Owner goes to full dashboard
         }
       }
     } catch (error) {
