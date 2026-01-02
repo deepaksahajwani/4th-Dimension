@@ -445,11 +445,59 @@ export default function ExternalProjectDetail({ user, onLogout }) {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-center py-8">
-                <Image className="w-12 h-12 text-slate-300 mx-auto mb-3" />
-                <p className="text-slate-500">3D Images feature coming soon</p>
-                <p className="text-xs text-slate-400 mt-1">Room-wise visualizations will appear here</p>
-              </div>
+              {images3D.length === 0 ? (
+                <div className="text-center py-8">
+                  <Image className="w-12 h-12 text-slate-300 mx-auto mb-3" />
+                  <p className="text-slate-500">No 3D images uploaded yet</p>
+                  <p className="text-xs text-slate-400 mt-1">Room-wise visualizations will appear here</p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {images3D.map(({ category, images }) => (
+                    <div key={category} className="border rounded-lg overflow-hidden">
+                      <button
+                        onClick={() => setExpandedCategories(prev => ({
+                          ...prev,
+                          [category]: !prev[category]
+                        }))}
+                        className="w-full flex items-center justify-between p-3 bg-slate-50 hover:bg-slate-100 transition-colors"
+                      >
+                        <div className="flex items-center gap-2">
+                          <Image className="w-4 h-4 text-purple-600" />
+                          <span className="font-medium text-slate-900">{category}</span>
+                          <Badge variant="outline" className="text-xs">{images.length}</Badge>
+                        </div>
+                        {expandedCategories[category] ? (
+                          <ChevronUp className="w-4 h-4 text-slate-500" />
+                        ) : (
+                          <ChevronDown className="w-4 h-4 text-slate-500" />
+                        )}
+                      </button>
+                      {expandedCategories[category] && (
+                        <div className="p-3 grid grid-cols-2 gap-2">
+                          {images.map((img) => (
+                            <div 
+                              key={img.id} 
+                              className="relative aspect-video bg-slate-100 rounded-lg overflow-hidden cursor-pointer hover:opacity-90 transition-opacity"
+                              onClick={() => window.open(`${BACKEND_URL}${img.file_url}`, '_blank')}
+                            >
+                              <img
+                                src={`${BACKEND_URL}${img.file_url}`}
+                                alt={img.title || category}
+                                className="w-full h-full object-cover"
+                                loading="lazy"
+                              />
+                              <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-2">
+                                <p className="text-white text-xs truncate">{img.title || 'View Image'}</p>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
             </CardContent>
           </Card>
         )}
