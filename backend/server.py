@@ -3548,6 +3548,148 @@ async def download_drawing_file(
     )
 
 
+# ==================== PROJECT COMMENTS ROUTES ====================
+
+@api_router.get("/projects/{project_id}/comments")
+async def get_project_comments(
+    project_id: str,
+    current_user: User = Depends(get_current_user)
+):
+    """Get all comments for a project (for client/contractor/consultant portal)"""
+    try:
+        # Verify project exists and user has access
+        project = await db.projects.find_one({"id": project_id}, {"_id": 0})
+        if not project:
+            raise HTTPException(status_code=404, detail="Project not found")
+        
+        # Get comments from project_comments collection
+        comments = await db.project_comments.find(
+            {"project_id": project_id},
+            {"_id": 0}
+        ).sort("created_at", -1).to_list(500)
+        
+        return comments
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"Error fetching project comments: {str(e)}")
+        raise HTTPException(status_code=500, detail="Failed to fetch comments")
+
+
+@api_router.post("/projects/{project_id}/comments")
+async def create_project_comment(
+    project_id: str,
+    text: str = Form(""),
+    file: UploadFile = File(None),
+    voice_note: UploadFile = File(None),
+    current_user: User = Depends(get_current_user)
+):
+    """Create a comment on a project (supports text, file, voice note)"""
+    from uuid import uuid4
+    
+    try:
+        # Verify project exists
+        project = await db.projects.find_one({"id": project_id}, {"_id": 0})
+        if not project:
+            raise HTTPException(status_code=404, detail="Project not found")
+        
+        comment_id = str(uuid4())
+        comment = {
+            "id": comment_id,
+            "project_id": project_id,
+            "user_id": current_user.id,
+            "user_name": current_user.name,
+            "user_role": current_user.role or "user",
+            "text": text,
+            "file_url": None,
+            "file_name": None,
+            "voice_note_url": None,
+            "created_at": datetime.now(timezone.utc).isoformat()
+        }
+        
+        # Handle file upload
+        if file and file.filename:
+            import os
+            upload_dir = "/app/backend/uploads/comments"
+            os.makedirs(upload_dir, exist_ok=True)
+            
+            file_ext = os.path.splitext(file.filename)[1]
+            file_id = str(uuid4())
+            file_path = f"{upload_dir}/{file_id}{file_ext}"
+            
+            content = await file.read()
+            with open(file_path, "wb") as f:
+                f.write(content)
+            
+            comment["file_url"] = f"{BACKEND_URL}/api/comments/file/{file_id}{file_ext}"
+            comment["file_name"] = file.filename
+        
+        # Handle voice note upload
+        if voice_note and voice_note.filename:
+            import os
+            upload_dir = "/app/backend/uploads/voice_notes"
+            os.makedirs(upload_dir, exist_ok=True)
+            
+            voice_id = str(uuid4())
+            voice_path = f"{upload_dir}/{voice_id}.webm"
+            
+            content = await voice_note.read()
+            with open(voice_path, "wb") as f:
+                f.write(content)
+            
+            comment["voice_note_url"] = f"{BACKEND_URL}/api/comments/voice/{voice_id}.webm"
+        
+        # Insert comment
+        await db.project_comments.insert_one(comment)
+        
+        # Send notification to project team (owner + team leader)
+        try:
+            from notification_triggers_v2 import notify_project_comment
+            asyncio.create_task(notify_project_comment(
+                project_id=project_id,
+                comment_id=comment_id,
+                commenter_name=current_user.name,
+                comment_preview=text[:100] if text else "Voice/File attachment"
+            ))
+        except Exception as e:
+            print(f"Comment notification error: {str(e)}")
+        
+        return {"success": True, "comment_id": comment_id}
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"Error creating project comment: {str(e)}")
+        raise HTTPException(status_code=500, detail="Failed to create comment")
+
+
+@api_router.get("/comments/file/{filename}")
+async def get_comment_file(filename: str):
+    """Serve comment file attachments"""
+    from fastapi.responses import FileResponse
+    import os
+    
+    file_path = f"/app/backend/uploads/comments/{filename}"
+    if not os.path.exists(file_path):
+        raise HTTPException(status_code=404, detail="File not found")
+    
+    return FileResponse(file_path)
+
+
+@api_router.get("/comments/voice/{filename}")
+async def get_comment_voice(filename: str):
+    """Serve comment voice notes"""
+    from fastapi.responses import FileResponse
+    import os
+    
+    file_path = f"/app/backend/uploads/voice_notes/{filename}"
+    if not os.path.exists(file_path):
+        raise HTTPException(status_code=404, detail="Voice note not found")
+    
+    return FileResponse(file_path, media_type="audio/webm")
+
+
 # ==================== DRAWING COMMENTS ROUTES ====================
 
 @api_router.post("/drawings/{drawing_id}/comments")
