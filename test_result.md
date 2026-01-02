@@ -253,3 +253,84 @@ The External Project Detail page (`/project/{id}`) is not properly fetching or d
 ### Test Credentials:
 - Owner: deepaksahajwani@gmail.com / Deepak@2025
 - Team Leader: balbirgkaur@gmail.com / TeamLeader@123
+
+---
+
+## Backend API Testing Results (2026-01-02)
+
+### Review Request Testing:
+**Tested the following endpoints and flows as requested:**
+
+1. **My Work Endpoint Test:**
+   - ✅ Login as team leader (balbirgkaur@gmail.com / TeamLeader@123) - SUCCESS
+   - ✅ Fetch projects via GET /api/projects - SUCCESS
+   - ✅ Verified response includes `team_leader_id` field - SUCCESS
+   - ✅ Verified project has correct team_leader_id matching logged in user's ID (354afa65-0337-4859-ba4d-0e66d5dfd5f1) - SUCCESS
+
+2. **3D Images Endpoint Test:**
+   - ✅ Login as owner (deepaksahajwani@gmail.com / Deepak@2025) - SUCCESS
+   - ✅ Get project ID from /api/projects - SUCCESS
+   - ✅ Fetch 3D images via GET /api/projects/{project_id}/3d-images - SUCCESS
+   - ✅ Verified file_url field starts with `/api/uploads/3d_images/` - SUCCESS
+   - ✅ Verified images are accessible by fetching the file URL (all 9 images return 200) - SUCCESS
+
+3. **Team Leader Dashboard vs My Work Differentiation:**
+   - ✅ Login as team leader - SUCCESS
+   - ✅ Fetch projects - verified team_leader_id field exists - SUCCESS
+   - ✅ Fetch drawings for project - verified fields like `has_pending_revision`, `under_review`, `is_approved`, `is_issued` exist - SUCCESS
+   - ✅ These fields are used to differentiate actionable items in My Work - SUCCESS
+
+### Additional Tests Performed:
+- ✅ 3D Image Categories endpoint - Found 28 preset categories with custom category support
+- ✅ User-specific projects endpoint - Working correctly for team leaders
+
+### Test Results Summary:
+- **Total Tests**: 7
+- **Passed**: 7
+- **Failed**: 0
+- **Success Rate**: 100.0%
+
+### ✅ ALL BACKEND TESTS PASSED:
+1. **Team Leader Authentication** - ✅ WORKING
+   - Login successful with provided credentials
+   - User ID correctly matches expected value (354afa65-0337-4859-ba4d-0e66d5dfd5f1)
+   - Role: senior_interior_designer
+
+2. **Owner Authentication** - ✅ WORKING
+   - Login successful with provided credentials
+   - User correctly marked as owner
+
+3. **My Work Endpoint** - ✅ WORKING
+   - Projects endpoint returns correct team_leader_id field
+   - Team leader can access projects assigned to them
+   - Found 1 project with correct team_leader_id
+
+4. **3D Images Endpoint** - ✅ WORKING
+   - Endpoint returns proper structure with categories array
+   - All file URLs have correct format (/api/uploads/3d_images/)
+   - All 9 images are accessible and return HTTP 200
+   - Images are properly served through the backend API
+
+5. **Dashboard Differentiation** - ✅ WORKING
+   - Projects have team_leader_id field for filtering
+   - Drawings have all required fields for My Work differentiation:
+     - has_pending_revision
+     - under_review
+     - is_approved
+     - is_issued
+
+6. **3D Image Categories** - ✅ WORKING
+   - Returns 28 preset categories as expected
+   - Supports custom categories (allow_custom: true)
+
+7. **User Projects Endpoint** - ✅ WORKING
+   - Team leaders can access their specific projects
+   - Endpoint properly filters by user ID
+
+### 📊 OVERALL ASSESSMENT:
+- **Backend APIs**: ✅ FULLY WORKING
+- All requested endpoints tested successfully
+- No critical issues found
+- File serving for 3D images working correctly
+- Team leader authentication and project access working as expected
+- My Work vs Dashboard differentiation fields present and functional
