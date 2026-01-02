@@ -291,9 +291,11 @@ export default function ExternalProjectDetail({ user, onLogout }) {
             <h1 className="text-xl sm:text-2xl font-bold text-slate-900 truncate">
               {project.title || project.name}
             </h1>
-            <p className="text-sm text-slate-500 font-mono">
-              {project.project_code || 'No Code'}
-            </p>
+            {project.code && (
+              <p className="text-sm text-slate-500 font-mono">
+                {project.code}
+              </p>
+            )}
           </div>
         </div>
 
@@ -306,7 +308,7 @@ export default function ExternalProjectDetail({ user, onLogout }) {
             </div>
             <Progress value={percentComplete} className="h-2 bg-slate-100" />
             <p className="text-xs text-slate-500 mt-2">
-              {issuedDrawings} of {totalDrawings} drawings issued
+              {issuedDrawings} drawings issued
             </p>
           </CardContent>
         </Card>
