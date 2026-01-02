@@ -1200,6 +1200,286 @@ class BackendTester:
 
         print("✅ Weekly Targets feature testing completed")
 
+    def test_template_notification_system(self):
+        """Test the new template-based notification system with 17 approved WhatsApp templates"""
+        print(f"\n📱 Testing Template-Based Notification System")
+        print("=" * 80)
+        
+        # Step 1: Login as owner with provided credentials
+        try:
+            print("Step 1: Authenticating as owner...")
+            
+            login_credentials = {
+                "email": "deepaksahajwani@gmail.com",
+                "password": "Deepak@2025"
+            }
+            
+            login_response = self.session.post(f"{BACKEND_URL}/auth/login", json=login_credentials)
+            
+            if login_response.status_code != 200:
+                self.log_result("Template System - Owner Authentication", False, 
+                              f"Login failed: {login_response.status_code} - {login_response.text}")
+                return
+            
+            login_data = login_response.json()
+            auth_token = login_data["access_token"]
+            headers = {"Authorization": f"Bearer {auth_token}"}
+            
+            # Verify user is owner
+            user_info = login_data.get("user", {})
+            if not user_info.get("is_owner"):
+                self.log_result("Template System - Owner Authentication", False, 
+                              "User is not marked as owner")
+                return
+            
+            self.log_result("Template System - Owner Authentication", True, 
+                          f"Owner authenticated successfully. Role: {user_info.get('role', 'owner')}")
+                
+        except Exception as e:
+            self.log_result("Template System - Owner Authentication", False, f"Exception: {str(e)}")
+            return
+
+        # Step 2: Test Health Check Endpoint
+        try:
+            print("Step 2: Testing health check endpoint...")
+            
+            response = self.session.get(f"{BACKEND_URL}/health")
+            
+            if response.status_code == 200:
+                data = response.json()
+                if data.get("ok") == True and data.get("status") == "healthy":
+                    self.log_result("Template System - Health Check", True, 
+                                  "Health endpoint working correctly")
+                else:
+                    self.log_result("Template System - Health Check", False, 
+                                  f"Unexpected health response: {data}")
+            else:
+                self.log_result("Template System - Health Check", False, 
+                              f"Health check failed: {response.status_code} - {response.text}")
+                
+        except Exception as e:
+            self.log_result("Template System - Health Check", False, f"Exception: {str(e)}")
+
+        # Step 3: Test System Logs/Ops Status Endpoint
+        try:
+            print("Step 3: Testing system ops status endpoint...")
+            
+            response = self.session.get(f"{BACKEND_URL}/ops/status", headers=headers)
+            
+            if response.status_code == 200:
+                data = response.json()
+                # Check if response contains integration status information
+                if isinstance(data, dict):
+                    self.log_result("Template System - Ops Status", True, 
+                                  f"Ops status endpoint working. Found {len(data)} status items")
+                else:
+                    self.log_result("Template System - Ops Status", True, 
+                                  "Ops status endpoint accessible")
+            elif response.status_code == 404:
+                self.log_result("Template System - Ops Status", True, 
+                              "Ops status endpoint not implemented (expected)")
+            else:
+                self.log_result("Template System - Ops Status", False, 
+                              f"Ops status failed: {response.status_code} - {response.text}")
+                
+        except Exception as e:
+            self.log_result("Template System - Ops Status", False, f"Exception: {str(e)}")
+
+        # Step 4: Test Template Configuration Verification
+        try:
+            print("Step 4: Testing template configuration verification...")
+            
+            # Import and test the whatsapp_templates module
+            import sys
+            import os
+            sys.path.append('/app/backend')
+            
+            try:
+                from whatsapp_templates import TEMPLATES, get_template, get_template_for_event, is_template_approved
+                
+                # Verify all 17 templates are loaded
+                template_count = len(TEMPLATES)
+                if template_count == 17:
+                    self.log_result("Template System - Template Count", True, 
+                                  f"All 17 templates loaded correctly")
+                else:
+                    self.log_result("Template System - Template Count", False, 
+                                  f"Expected 17 templates, found {template_count}")
+                
+                # Verify template SIDs format (HX followed by 32 characters)
+                valid_sids = 0
+                invalid_sids = []
+                
+                for template_key, template in TEMPLATES.items():
+                    if template.sid.startswith("HX") and len(template.sid) == 34:
+                        valid_sids += 1
+                    else:
+                        invalid_sids.append(f"{template_key}: {template.sid}")
+                
+                if valid_sids == 17 and len(invalid_sids) == 0:
+                    self.log_result("Template System - SID Format", True, 
+                                  "All template SIDs have correct format (HX + 32 chars)")
+                else:
+                    self.log_result("Template System - SID Format", False, 
+                                  f"Invalid SIDs found: {invalid_sids}")
+                
+                # Verify all templates are approved
+                approved_count = 0
+                pending_templates = []
+                
+                for template_key, template in TEMPLATES.items():
+                    if is_template_approved(template_key):
+                        approved_count += 1
+                    else:
+                        pending_templates.append(template_key)
+                
+                if approved_count == 17:
+                    self.log_result("Template System - Template Approval", True, 
+                                  "All 17 templates are approved")
+                else:
+                    self.log_result("Template System - Template Approval", False, 
+                                  f"Only {approved_count}/17 approved. Pending: {pending_templates}")
+                
+            except ImportError as e:
+                self.log_result("Template System - Template Import", False, 
+                              f"Failed to import whatsapp_templates: {str(e)}")
+                return
+                
+        except Exception as e:
+            self.log_result("Template System - Template Configuration", False, f"Exception: {str(e)}")
+
+        # Step 5: Test Template Lookup Functions
+        try:
+            print("Step 5: Testing template lookup functions...")
+            
+            # Test get_template() function
+            test_templates = ["user_approved", "drawing_issued", "project_created_client", "task_assigned"]
+            successful_lookups = 0
+            
+            for template_key in test_templates:
+                template = get_template(template_key)
+                if template and template.name and template.sid:
+                    successful_lookups += 1
+                else:
+                    print(f"   Failed to get template: {template_key}")
+            
+            if successful_lookups == len(test_templates):
+                self.log_result("Template System - get_template() Function", True, 
+                              f"Successfully retrieved {successful_lookups}/{len(test_templates)} test templates")
+            else:
+                self.log_result("Template System - get_template() Function", False, 
+                              f"Only {successful_lookups}/{len(test_templates)} templates retrieved")
+            
+            # Test get_template_for_event() function
+            test_events = ["user_approved", "drawing_uploaded", "project_created_client", "new_comment"]
+            successful_event_lookups = 0
+            
+            for event_type in test_events:
+                template = get_template_for_event(event_type)
+                if template and template.name and template.sid:
+                    successful_event_lookups += 1
+                else:
+                    print(f"   Failed to get template for event: {event_type}")
+            
+            if successful_event_lookups == len(test_events):
+                self.log_result("Template System - get_template_for_event() Function", True, 
+                              f"Successfully mapped {successful_event_lookups}/{len(test_events)} events to templates")
+            else:
+                self.log_result("Template System - get_template_for_event() Function", False, 
+                              f"Only {successful_event_lookups}/{len(test_events)} events mapped")
+                
+        except Exception as e:
+            self.log_result("Template System - Template Lookup Functions", False, f"Exception: {str(e)}")
+
+        # Step 6: Test Template Service Import and Initialization
+        try:
+            print("Step 6: Testing template service import and initialization...")
+            
+            try:
+                from template_notification_service import template_notification_service, TemplateNotificationService
+                
+                # Verify service can be imported
+                if template_notification_service:
+                    self.log_result("Template System - Service Import", True, 
+                                  "template_notification_service imported successfully")
+                else:
+                    self.log_result("Template System - Service Import", False, 
+                                  "template_notification_service is None")
+                
+                # Test service initialization (Twilio client may or may not be available)
+                service_initialized = hasattr(template_notification_service, 'app_url')
+                twilio_available = template_notification_service.twilio_client is not None
+                
+                if service_initialized:
+                    self.log_result("Template System - Service Initialization", True, 
+                                  f"Service initialized correctly. Twilio available: {twilio_available}")
+                else:
+                    self.log_result("Template System - Service Initialization", False, 
+                                  "Service not properly initialized")
+                
+                # Test convenience methods exist
+                convenience_methods = [
+                    'notify_user_approved', 'notify_drawing_issued', 'notify_project_created_client',
+                    'notify_task_assigned', 'notify_new_comment', 'send_notification'
+                ]
+                
+                missing_methods = []
+                for method_name in convenience_methods:
+                    if not hasattr(template_notification_service, method_name):
+                        missing_methods.append(method_name)
+                
+                if len(missing_methods) == 0:
+                    self.log_result("Template System - Service Methods", True, 
+                                  f"All {len(convenience_methods)} convenience methods available")
+                else:
+                    self.log_result("Template System - Service Methods", False, 
+                                  f"Missing methods: {missing_methods}")
+                
+            except ImportError as e:
+                self.log_result("Template System - Service Import", False, 
+                              f"Failed to import template_notification_service: {str(e)}")
+                
+        except Exception as e:
+            self.log_result("Template System - Template Service", False, f"Exception: {str(e)}")
+
+        # Step 7: Test WHATSAPP_TEMPLATES Backward Compatibility
+        try:
+            print("Step 7: Testing WHATSAPP_TEMPLATES backward compatibility...")
+            
+            try:
+                from whatsapp_templates import WHATSAPP_TEMPLATES
+                
+                # Verify backward compatibility dict exists
+                if WHATSAPP_TEMPLATES and isinstance(WHATSAPP_TEMPLATES, dict):
+                    template_sid_count = len(WHATSAPP_TEMPLATES)
+                    
+                    # Check that it contains template_key -> SID mappings
+                    sample_keys = ["user_approved", "drawing_issued", "project_created_client"]
+                    valid_mappings = 0
+                    
+                    for key in sample_keys:
+                        if key in WHATSAPP_TEMPLATES and WHATSAPP_TEMPLATES[key].startswith("HX"):
+                            valid_mappings += 1
+                    
+                    if valid_mappings == len(sample_keys):
+                        self.log_result("Template System - Backward Compatibility", True, 
+                                      f"WHATSAPP_TEMPLATES dict working correctly with {template_sid_count} mappings")
+                    else:
+                        self.log_result("Template System - Backward Compatibility", False, 
+                                      f"Invalid SID mappings in WHATSAPP_TEMPLATES")
+                else:
+                    self.log_result("Template System - Backward Compatibility", False, 
+                                  "WHATSAPP_TEMPLATES not found or invalid")
+                
+            except ImportError as e:
+                self.log_result("Template System - Backward Compatibility", False, 
+                              f"Failed to import WHATSAPP_TEMPLATES: {str(e)}")
+                
+        except Exception as e:
+            self.log_result("Template System - Backward Compatibility", False, f"Exception: {str(e)}")
+
+        print("✅ Template-based notification system testing completed")
+
     def test_user_approval_notification_flow(self):
         """Test user approval notification flow and email URL routing as requested in review"""
         print(f"\n📧 Testing User Approval Notification Flow and Email URL Routing")
