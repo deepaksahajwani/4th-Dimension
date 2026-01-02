@@ -1221,6 +1221,7 @@ async def notify_project_comment(
     """
     Notify owner and team leader when a new project comment is posted.
     Typically from clients/contractors/consultants.
+    Uses WhatsApp template for reliable delivery.
     """
     try:
         project = await db.projects.find_one({"id": project_id}, {"_id": 0})
@@ -1228,29 +1229,30 @@ async def notify_project_comment(
             return
         
         project_name = project.get('title', 'Project')
-        deep_link = f"{APP_URL}/projects/{project_id}"
         
-        # Notify owner
+        # Notify owner using template
         owner = await db.users.find_one({"is_owner": True}, {"_id": 0})
         if owner:
-            await notification_service.create_in_app_notification(
-                user_id=owner['id'],
-                title="New Project Comment",
-                message=f"💬 {commenter_name} commented on {project_name}: {comment_preview[:50]}...",
-                notification_type="project_comment",
-                link=f"/projects/{project_id}",
-                project_id=project_id
-            )
-            
-            if owner.get('mobile'):
-                message = f"""💬 *New Comment on Project*
-
-🏗️ *Project:* {project_name}
-👤 *From:* {commenter_name}
-📝 *Message:* {comment_preview[:100]}...
-
-👉 View: {deep_link}"""
-                await notification_service.send_whatsapp(owner['mobile'], message)
+            if template_notification_service and owner.get('mobile'):
+                await template_notification_service.notify_new_comment(
+                    phone_number=owner['mobile'],
+                    recipient_name=owner.get('name', 'Admin'),
+                    commenter_name=commenter_name,
+                    project_name=project_name,
+                    comment_preview=comment_preview[:100],
+                    recipient_id=owner['id'],
+                    project_id=project_id
+                )
+            else:
+                # Fallback to in-app notification
+                await notification_service.create_in_app_notification(
+                    user_id=owner['id'],
+                    title="New Project Comment",
+                    message=f"💬 {commenter_name} commented on {project_name}: {comment_preview[:50]}...",
+                    notification_type="project_comment",
+                    link=f"/projects/{project_id}",
+                    project_id=project_id
+                )
         
         # Notify team leader if different from owner
         if project.get('team_leader_id'):
@@ -1259,14 +1261,25 @@ async def notify_project_comment(
                 {"_id": 0}
             )
             if team_leader and team_leader.get('id') != owner.get('id'):
-                await notification_service.create_in_app_notification(
-                    user_id=team_leader['id'],
-                    title="New Project Comment",
-                    message=f"💬 {commenter_name} commented on {project_name}",
-                    notification_type="project_comment",
-                    link=f"/projects/{project_id}",
-                    project_id=project_id
-                )
+                if template_notification_service and team_leader.get('mobile'):
+                    await template_notification_service.notify_new_comment(
+                        phone_number=team_leader['mobile'],
+                        recipient_name=team_leader.get('name'),
+                        commenter_name=commenter_name,
+                        project_name=project_name,
+                        comment_preview=comment_preview[:100],
+                        recipient_id=team_leader['id'],
+                        project_id=project_id
+                    )
+                else:
+                    await notification_service.create_in_app_notification(
+                        user_id=team_leader['id'],
+                        title="New Project Comment",
+                        message=f"💬 {commenter_name} commented on {project_name}",
+                        notification_type="project_comment",
+                        link=f"/projects/{project_id}",
+                        project_id=project_id
+                    )
         
         logger.info(f"Project comment notification sent for {project_name}")
         
