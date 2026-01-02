@@ -158,7 +158,7 @@ export default function TeamLeaderDashboard({ user, onLogout }) {
               </h3>
               
               <p className="text-slate-600 text-sm leading-relaxed">
-                You don't have any projects assigned yet. Contact the owner to get started.
+                You don&apos;t have any projects assigned yet. Contact the owner to get started.
               </p>
             </div>
           </div>
