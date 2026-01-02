@@ -168,10 +168,18 @@ export default function ExternalDashboard({ user, onLogout }) {
                       <span className="truncate">{formatDate(project.start_date)}</span>
                     </div>
                     
-                    {project.team_leader_name && (
-                      <div className="flex items-center gap-2 text-slate-600">
-                        <User className="w-4 h-4 text-slate-400 shrink-0" />
-                        <span className="truncate">{project.team_leader_name}</span>
+                    {(project.team_leader_name || project.team_leader_id) && (
+                      <div 
+                        className="flex items-center gap-2 text-orange-600 hover:text-orange-700 cursor-pointer"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          if (project.team_leader_id) {
+                            navigate(`/team/${project.team_leader_id}`);
+                          }
+                        }}
+                      >
+                        <User className="w-4 h-4 shrink-0" />
+                        <span className="truncate font-medium">{project.team_leader_name || 'Team Leader'}</span>
                       </div>
                     )}
                   </div>
