@@ -440,6 +440,7 @@ export default function Projects({ user, onLogout }) {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
           {projects.map((project) => {
             const client = clients.find((c) => c.id === project.client_id);
+            const teamLeader = teamMembers.find((m) => m.id === project.team_leader_id);
             return (
               <Card 
                 key={project.id} 
@@ -479,6 +480,20 @@ export default function Projects({ user, onLogout }) {
                   )}
 
                   <div className="space-y-1.5 sm:space-y-2 text-xs sm:text-sm">
+                    {/* Team Leader - Clickable */}
+                    {(teamLeader || project.team_leader_name) && (
+                      <div 
+                        className="flex items-center gap-1.5 sm:gap-2 text-slate-600 hover:text-orange-600 cursor-pointer"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          const leaderId = teamLeader?.id || project.team_leader_id;
+                          if (leaderId) navigate(`/team/${leaderId}`);
+                        }}
+                      >
+                        <User className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
+                        <span className="truncate font-medium">{teamLeader?.name || project.team_leader_name}</span>
+                      </div>
+                    )}
                     {project.start_date && (
                       <div className="flex items-center gap-1.5 sm:gap-2 text-slate-600">
                         <Calendar className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
