@@ -2918,6 +2918,45 @@ async def get_projects(
             )
     return projects
 
+@api_router.get("/users/{user_id}/projects")
+async def get_user_projects(user_id: str, current_user: User = Depends(get_current_user)):
+    """Get projects assigned to a specific team member as team leader"""
+    # Only owner can view other users' projects
+    if not current_user.is_owner and current_user.id != user_id:
+        raise HTTPException(status_code=403, detail="Not authorized to view this user's projects")
+    
+    query = {"team_leader_id": user_id, "deleted_at": None}
+    projects = await db.projects.find(query, {"_id": 0}).to_list(100)
+    
+    for project in projects:
+        # Convert ISO strings to datetime
+        for field in ['created_at', 'updated_at', 'start_date', 'end_date']:
+            if isinstance(project.get(field), str) and project.get(field):
+                try:
+                    project[field] = datetime.fromisoformat(project[field])
+                except ValueError:
+                    project[field] = None
+        
+        # Get drawings count for each project
+        drawings_count = await db.project_drawings.count_documents({
+            "project_id": project['id'], 
+            "deleted_at": None
+        })
+        project['drawings_count'] = drawings_count
+        
+        # Get pending drawings count
+        pending_count = await db.project_drawings.count_documents({
+            "project_id": project['id'],
+            "deleted_at": None,
+            "$or": [
+                {"is_issued": {"$ne": True}},
+                {"has_pending_revision": True}
+            ]
+        })
+        project['pending_drawings_count'] = pending_count
+    
+    return projects
+
 @api_router.get("/projects/{project_id}")
 async def get_project(project_id: str, current_user: User = Depends(get_current_user)):
     """Get project details"""
