@@ -334,3 +334,94 @@ The External Project Detail page (`/project/{id}`) is not properly fetching or d
 - File serving for 3D images working correctly
 - Team leader authentication and project access working as expected
 - My Work vs Dashboard differentiation fields present and functional
+
+---
+
+## Frontend UI Testing Results - My Work & Team Leader Dashboard (2026-01-02)
+
+### Review Request Testing:
+**Comprehensive UI testing performed as requested with test credentials:**
+- Team Leader: balbirgkaur@gmail.com / TeamLeader@123
+- Test URL: https://pm-system.preview.emergentagent.com
+
+### Test Results Summary:
+- **Total UI Tests**: 15
+- **Passed**: 15
+- **Failed**: 0
+- **Success Rate**: 100.0%
+
+### ✅ ALL FRONTEND UI TESTS PASSED:
+
+#### 1. **Team Leader Login Test** - ✅ WORKING
+- Login with balbirgkaur@gmail.com / TeamLeader@123 successful
+- Proper redirect to team leader dashboard (/team-leader)
+- Authentication flow working correctly
+
+#### 2. **My Work Page Test** - ✅ WORKING
+- Navigation to /my-work successful
+- "My Work" title visible and correct
+- "Actionable tasks across all your projects" subtitle displayed
+- "Refresh" button present and visible
+- "Aagam Heritage Bungalow" project appears in the list
+- "All Caught Up!" message displayed (indicating no pending actions)
+- Project card expandable functionality working
+- "Open" button visible after expanding project
+- "Open" button navigation to project detail successful
+
+#### 3. **Team Leader Dashboard Test** - ✅ WORKING
+- "Hi, Balbir 👋" greeting displayed correctly
+- "Team Leader Dashboard • 1 Active Project" subtitle accurate
+- "Aagam Heritage Bungalow" project card visible
+- Progress percentage "20%" displayed correctly
+- "1 drawings issued" status visible
+- Project card click navigation to project detail working
+
+#### 4. **3D Images Display Test** - ✅ WORKING
+- Navigation to Team Leader Project Detail page successful
+- "3D" tab present and clickable
+- "Upload 3D Images" button visible
+- "Kitchen (9)" category displayed with correct count
+- Kitchen category expandable functionality working
+- All 9 images displaying correctly (not broken image icons)
+- Images properly served from backend API
+
+#### 5. **Differentiation Check** - ✅ WORKING
+- My Work page shows actionable content and "All Caught Up" message
+- Dashboard shows project overview with progress information
+- Pages display different content as expected:
+  - My Work: Focuses on actionable tasks (revisions, approvals, ready to issue)
+  - Dashboard: Shows high-level project overview with progress percentages
+- Clear functional separation between the two pages
+
+### 📊 DETAILED TEST VERIFICATION:
+
+**My Work Page Features:**
+- ✅ Actionable task categorization working
+- ✅ Project filtering by team_leader_id functional
+- ✅ "All Caught Up" state properly displayed when no actions pending
+- ✅ Project expansion and navigation working
+- ✅ Refresh functionality available
+
+**Team Leader Dashboard Features:**
+- ✅ Personalized greeting with user's first name
+- ✅ Project count and status summary accurate
+- ✅ Progress tracking with percentages working
+- ✅ Project card navigation functional
+- ✅ Clean, overview-focused design
+
+**3D Images Module:**
+- ✅ Tab-based navigation working
+- ✅ Category-based organization functional
+- ✅ Image display and serving working correctly
+- ✅ Upload functionality accessible to team leaders
+- ✅ Kitchen category with 9 images properly displayed
+
+### 🎯 OVERALL FRONTEND ASSESSMENT:
+- **My Work & Team Leader Dashboard UI**: ✅ FULLY WORKING
+- All requested test scenarios completed successfully
+- No critical UI issues found
+- Proper differentiation between My Work (actionable tasks) and Dashboard (project overview)
+- 3D images displaying correctly with proper backend integration
+- Team leader authentication and role-based access working
+- Mobile-responsive design elements observed
+- All navigation flows functional
