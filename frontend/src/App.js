@@ -223,6 +223,14 @@ function App() {
               }
             />
             <Route
+              path="/project/:projectId"
+              element={
+                <ProtectedRoute>
+                  <ExternalProjectDetail user={user} onLogout={handleLogout} />
+                </ProtectedRoute>
+              }
+            />
+            <Route
               path="/weekly-dashboard"
               element={
                 <ProtectedRoute>
