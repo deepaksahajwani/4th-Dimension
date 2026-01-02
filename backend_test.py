@@ -5912,6 +5912,11 @@ class BackendTester:
         self.test_team_member_invitation_flow()
         self.test_comprehensive_drawing_workflow_e2e()
         
+        # Template-Based Notification System Tests (NEW - as requested in review)
+        print("\n📱 TEMPLATE-BASED NOTIFICATION SYSTEM TESTS")
+        print("-" * 50)
+        self.test_template_notification_system()
+        
         # User Approval Notification Flow (as requested in review)
         print("\n📧 USER APPROVAL NOTIFICATION FLOW TEST")
         print("-" * 40)
