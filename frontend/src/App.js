@@ -45,6 +45,8 @@ import Tasks from './pages/Tasks';
 import Settings from './pages/Settings';
 import Resources from './pages/Resources';
 import SystemLogs from './pages/SystemLogs';
+import TeamLeaderDashboard from './pages/TeamLeaderDashboard';
+import TeamLeaderProjectDetail from './pages/TeamLeaderProjectDetail';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
