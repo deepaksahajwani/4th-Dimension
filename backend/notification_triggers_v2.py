@@ -703,7 +703,7 @@ async def notify_drawing_issued(
     Trigger: Drawing is issued
     Recipients: Selected recipients + Owner (mandatory)
     Channels: WhatsApp (template), In-App
-    Message: Uses approved WhatsApp template
+    Message: Uses approved WhatsApp templates based on recipient type
     """
     try:
         project = await get_project_by_id(project_id)
@@ -712,28 +712,17 @@ async def notify_drawing_issued(
         owner = await db.users.find_one({"is_owner": True}, {"_id": 0})
         
         if not all([project, drawing, issued_by, owner]):
-            logger.error(f"Drawing issued notification failed: Missing data (project={project is not None}, drawing={drawing is not None})")
+            logger.error(f"Drawing issued notification failed: Missing data")
             return
         
         project_name = project.get('title') or project.get('name')
         drawing_name = drawing.get('name')
-        drawing_url = f"{APP_URL}/projects/{project_id}"
-        
-        # Use actual issued date from drawing, or today if not set
-        if drawing.get('issued_at'):
-            if isinstance(drawing['issued_at'], str):
-                issued_date = datetime.fromisoformat(drawing['issued_at'].replace('Z', '+00:00'))
-            else:
-                issued_date = drawing['issued_at']
-            issue_date = issued_date.strftime('%d %b %Y')
-        else:
-            issue_date = datetime.now(timezone.utc).strftime('%d %b %Y')
+        revision = str(drawing.get('current_revision', 0))
+        issue_date = datetime.now(timezone.utc).strftime('%d %b %Y')
         
         # Ensure owner is in recipients
         if owner['id'] not in recipient_ids:
             recipient_ids.append(owner['id'])
-        
-        template_sid = WHATSAPP_TEMPLATES.get("drawing_issued")
         
         for recipient_id in recipient_ids:
             recipient = await get_user_by_id(recipient_id)
@@ -741,29 +730,44 @@ async def notify_drawing_issued(
                 # Try clients collection
                 recipient = await db.clients.find_one({"id": recipient_id}, {"_id": 0})
             if not recipient:
+                # Try contractors collection
+                recipient = await db.contractors.find_one({"id": recipient_id}, {"_id": 0})
+            if not recipient:
                 logger.warning(f"Drawing issued: Recipient not found: {recipient_id}")
                 continue
             
             recipient_name = recipient.get('name', recipient.get('contact_person', 'User'))
             recipient_phone = recipient.get('mobile', recipient.get('phone'))
+            recipient_role = recipient.get('role', recipient.get('contractor_type', ''))
             
-            # Send WhatsApp using TEMPLATE
-            if recipient_phone and template_sid:
-                try:
-                    await notification_service.send_whatsapp_template(
+            # Use template notification service
+            if template_notification_service and recipient_phone:
+                # Check if recipient is a contractor
+                is_contractor = recipient_role in ['contractor'] or recipient.get('contractor_type')
+                
+                if is_contractor:
+                    # Use contractor-specific template
+                    await template_notification_service.notify_drawing_issued_contractor(
                         phone_number=recipient_phone,
-                        content_sid=template_sid,
-                        content_variables={
-                            "1": recipient_name,
-                            "2": project_name,
-                            "3": drawing_name,
-                            "4": issue_date,
-                            "5": drawing_url
-                        }
+                        contractor_name=recipient_name,
+                        project_name=project_name,
+                        drawing_name=drawing_name,
+                        revision=revision,
+                        contractor_type=recipient.get('contractor_type', 'Contractor'),
+                        contractor_id=recipient_id,
+                        project_id=project_id
                     )
-                    logger.info(f"WhatsApp template sent to {recipient_name} for drawing {drawing_name}")
-                except Exception as wa_error:
-                    logger.warning(f"WhatsApp template failed for {recipient_name}: {wa_error}")
+                else:
+                    # Use general drawing issued template
+                    await template_notification_service.notify_drawing_issued(
+                        phone_number=recipient_phone,
+                        recipient_name=recipient_name,
+                        project_name=project_name,
+                        drawing_name=drawing_name,
+                        issue_date=issue_date,
+                        recipient_id=recipient_id,
+                        project_id=project_id
+                    )
             
             # Send in-app notification
             await notification_service.create_in_app_notification(
