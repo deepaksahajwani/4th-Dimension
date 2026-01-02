@@ -141,9 +141,11 @@ export default function ExternalDashboard({ user, onLogout }) {
                       <h3 className="text-lg font-semibold text-slate-900 truncate">
                         {project.title || project.name}
                       </h3>
-                      <p className="text-sm text-slate-500 font-mono">
-                        {project.project_code || 'No Code'}
-                      </p>
+                      {(project.code || project.project_code) && (
+                        <p className="text-sm text-slate-500 font-mono">
+                          {project.code || project.project_code}
+                        </p>
+                      )}
                     </div>
                     <Badge className="bg-orange-100 text-orange-700 border-orange-200 ml-2 shrink-0">
                       {project.percentComplete}% Complete
