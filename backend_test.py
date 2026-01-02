@@ -8024,6 +8024,39 @@ class BackendTester:
         
         return passed == total if total > 0 else False
 
+    def run_template_notification_tests(self):
+        """Run template-based notification system tests only"""
+        print("🚀 Starting Template-Based Notification System Testing")
+        print(f"Backend URL: {BACKEND_URL}")
+        print("=" * 60)
+        
+        print("📱 TEMPLATE-BASED NOTIFICATION SYSTEM TESTS")
+        print("=" * 60)
+        
+        self.test_template_notification_system()
+        
+        # Summary
+        print("=" * 60)
+        print("📊 TEMPLATE NOTIFICATION TEST SUMMARY")
+        print("=" * 60)
+        
+        template_tests = [result for result in self.test_results if "Template System" in result["test"]]
+        passed = sum(1 for result in template_tests if result["success"])
+        total = len(template_tests)
+        
+        print(f"Template System Tests: {total}")
+        print(f"Passed: {passed}")
+        print(f"Failed: {total - passed}")
+        print(f"Success Rate: {(passed/total)*100:.1f}%" if total > 0 else "No tests run")
+        
+        if total - passed > 0:
+            print("\n❌ FAILED TEMPLATE SYSTEM TESTS:")
+            for result in template_tests:
+                if not result["success"]:
+                    print(f"  - {result['test']}: {result['details']}")
+        
+        return passed == total if total > 0 else False
+
 if __name__ == "__main__":
     tester = BackendTester()
     
