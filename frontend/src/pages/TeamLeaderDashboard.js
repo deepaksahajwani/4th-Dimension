@@ -217,17 +217,18 @@ export default function TeamLeaderDashboard({ user, onLogout }) {
                       </span>
                     )}
                     <span className="px-2 py-1 text-xs bg-slate-100 text-slate-600 rounded-full">
-                      {project.issuedDrawings}/{project.totalDrawings} issued
+                      {project.issuedDrawings} drawings issued
                     </span>
                   </div>
 
-                  {/* Footer */}
-                  <div className="flex items-center justify-between text-sm text-slate-500">
-                    <div className="flex items-center gap-1">
-                      <Calendar className="w-4 h-4" />
-                      <span>{formatDate(project.start_date)}</span>
-                    </div>
-                    <TrendingUp className="w-4 h-4 text-orange-500" />
+                  {/* Footer - Only show date if available */}
+                  {project.start_date && (
+                    <div className="flex items-center justify-between text-sm text-slate-500">
+                      <div className="flex items-center gap-1">
+                        <Calendar className="w-4 h-4" />
+                        <span>{formatDate(project.start_date)}</span>
+                      </div>
+                      <TrendingUp className="w-4 h-4 text-orange-500" />
                   </div>
                 </CardContent>
               </Card>
