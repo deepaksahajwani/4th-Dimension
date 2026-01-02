@@ -172,7 +172,11 @@ export default function ProjectDetail({ user, onLogout }) {
       setConsultantTypes(consultantTypesRes.data);
       
       // Find team leader
-      if (projectRes.data.lead_architect_id) {
+      if (projectRes.data.team_leader_id) {
+        const leader = usersRes.data.find(u => u.id === projectRes.data.team_leader_id);
+        setTeamLeader(leader);
+      } else if (projectRes.data.lead_architect_id) {
+        // Legacy fallback
         const leader = usersRes.data.find(u => u.id === projectRes.data.lead_architect_id);
         setTeamLeader(leader);
       }
