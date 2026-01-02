@@ -192,14 +192,17 @@ class BackendTester:
             if images_response.status_code == 200:
                 images_data = images_response.json()
                 
-                # Check if response is structured correctly
-                if isinstance(images_data, dict):
-                    total_images = 0
+                # Check if response is structured correctly (new format with categories array)
+                if isinstance(images_data, dict) and "categories" in images_data:
+                    total_images = images_data.get("total_images", 0)
                     valid_file_urls = 0
+                    accessible_images = 0
                     
-                    for category, images in images_data.items():
-                        if isinstance(images, list):
-                            total_images += len(images)
+                    categories = images_data.get("categories", [])
+                    
+                    for category_data in categories:
+                        if isinstance(category_data, dict) and "images" in category_data:
+                            images = category_data["images"]
                             
                             for image in images:
                                 file_url = image.get("file_url", "")
@@ -213,6 +216,7 @@ class BackendTester:
                                     try:
                                         img_response = self.session.head(full_url, headers=headers, timeout=10)
                                         if img_response.status_code == 200:
+                                            accessible_images += 1
                                             print(f"   ✅ Image accessible: {file_url}")
                                         else:
                                             print(f"   ⚠️ Image not accessible: {file_url} (Status: {img_response.status_code})")
@@ -222,7 +226,7 @@ class BackendTester:
                     if total_images > 0:
                         if valid_file_urls == total_images:
                             self.log_result("3D Images Endpoint", True, 
-                                          f"Found {total_images} images, all have correct file_url format (/api/uploads/3d_images/)")
+                                          f"Found {total_images} images, all have correct file_url format (/api/uploads/3d_images/). {accessible_images} images accessible.")
                         else:
                             self.log_result("3D Images Endpoint", False, 
                                           f"Found {total_images} images, but only {valid_file_urls} have correct file_url format")
