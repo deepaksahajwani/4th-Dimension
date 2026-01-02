@@ -31,6 +31,7 @@ import Projects from './pages/Projects';
 import VerifyEmail from './pages/VerifyEmail';
 import VerifyPhone from './pages/VerifyPhone';
 import ProjectDetail from './pages/ProjectDetail';
+import ExternalProjectDetail from './pages/ExternalProjectDetail';
 import Clients from './pages/Clients';
 import ClientDetail from './pages/ClientDetail';
 import Team from './pages/Team';
