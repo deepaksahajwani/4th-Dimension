@@ -532,7 +532,7 @@ async def notify_drawing_approved(project_id: str, drawing_id: str):
     """
     Trigger: Drawing is approved
     Recipients: Team Leader
-    Channels: WhatsApp
+    Channels: WhatsApp (template), In-App
     """
     try:
         project = await get_project_by_id(project_id)
@@ -546,27 +546,48 @@ async def notify_drawing_approved(project_id: str, drawing_id: str):
             logger.warning(f"No team leader assigned for project {project_id}")
             return
         
-        message = f"""✅ Drawing Approved - Ready to Issue
+        team_leader = await get_user_by_id(team_leader_id)
+        if not team_leader:
+            return
+        
+        project_name = project.get('title') or project.get('name')
+        drawing_name = drawing.get('name')
+        revision = str(drawing.get('current_revision', 0))
+        
+        # Use template notification service if available
+        if template_notification_service and team_leader.get('mobile'):
+            await template_notification_service.notify_drawing_approved(
+                phone_number=team_leader['mobile'],
+                recipient_name=team_leader.get('name'),
+                project_name=project_name,
+                drawing_name=drawing_name,
+                revision=revision,
+                recipient_id=team_leader_id,
+                project_id=project_id
+            )
+        else:
+            # Fallback to freeform message
+            message = f"""✅ Drawing Approved - Ready to Issue
 
-📁 Project: {project.get('title') or project.get('name')}
-📐 Drawing: {drawing.get('name')}
+📁 Project: {project_name}
+📐 Drawing: {drawing_name}
 🎯 Status: Approved
 
 You can now issue this drawing to the client.
 
 View & Issue: {APP_URL}/projects/{project_id}/drawings"""
+            
+            await notification_service.send_notification(
+                user_ids=[team_leader_id],
+                title="Drawing Approved",
+                message=message,
+                notification_type="drawing_approved",
+                channels=['in_app', 'whatsapp'],
+                link=f"/projects/{project_id}/drawings",
+                project_id=project_id
+            )
         
-        await notification_service.send_notification(
-            user_ids=[team_leader_id],
-            title="Drawing Approved",
-            message=message,
-            notification_type="drawing_approved",
-            channels=['in_app', 'whatsapp'],
-            link=f"/projects/{project_id}/drawings",
-            project_id=project_id
-        )
-        
-        logger.info(f"Drawing approval notification sent for {drawing.get('name')}")
+        logger.info(f"Drawing approval notification sent for {drawing_name}")
         
     except Exception as e:
         logger.error(f"Error in notify_drawing_approved: {str(e)}")
