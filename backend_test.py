@@ -8082,10 +8082,12 @@ if __name__ == "__main__":
             success = tester.run_phase_2_tests()
         elif sys.argv[1] == "approval":
             success = tester.run_user_approval_notification_tests()
+        elif sys.argv[1] == "template":
+            success = tester.run_template_notification_tests()
         else:
             success = tester.run_all_tests()
     else:
-        # Default to User Approval Notification tests for this specific review request
-        success = tester.run_user_approval_notification_tests()
+        # Default to Template Notification tests for this specific review request
+        success = tester.run_template_notification_tests()
     
     sys.exit(0 if success else 1)
