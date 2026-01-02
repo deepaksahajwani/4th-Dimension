@@ -200,3 +200,56 @@ The External Project Detail page (`/project/{id}`) is not properly fetching or d
 - All components tested successfully
 - System ready for production use with WhatsApp templates
 - Proper fallback mechanisms in place
+
+---
+
+## My Work vs Dashboard Redesign Testing (2026-01-02)
+
+### Changes Made:
+1. **My Work Page (`/app/frontend/src/pages/MyWork.js`)**:
+   - Fixed incorrect field reference: Changed `lead_architect_id` to `team_leader_id`
+   - Added null check for user.id to prevent errors when user prop is not available
+   - Redesigned as an **actionable task list** showing:
+     - Revisions needed (with upload action)
+     - Pending approvals (with view/approve actions)
+     - Ready to issue (with issue action)
+     - New comments (last 24h)
+   - Projects grouped with expandable sections
+   - Summary cards showing counts by action type
+
+2. **Team Leader Dashboard (`/app/frontend/src/pages/TeamLeaderDashboard.js`)**:
+   - Confirmed as **high-level overview**:
+     - Project list with progress percentages
+     - Quick stats (pending revisions, awaiting approval)
+     - No overlapping task details
+
+3. **3D Images URL Fix**:
+   - Fixed file_url storage to include `/api` prefix
+   - Updated existing database records
+   - Images now display correctly in Team Leader Project Detail
+
+### Test Results:
+
+#### My Work Page (as Team Leader - Balbir Kaur):
+- ✅ Login successful with new password (TeamLeader@123)
+- ✅ Correctly identifies assigned projects using `team_leader_id`
+- ✅ Shows "All Caught Up!" when no pending actions
+- ✅ Project cards expandable with action details
+- ✅ "Open" button navigates to project detail
+
+#### Team Leader Dashboard:
+- ✅ Shows greeting with user's first name
+- ✅ Displays "1 Active Project" subtitle
+- ✅ Project card shows 20% progress
+- ✅ "1 drawings issued" status visible
+- ✅ Clear separation from My Work functionality
+
+#### 3D Images Display:
+- ✅ Kitchen category shows "(9)" count correctly
+- ✅ Images render properly after URL fix
+- ✅ Expandable category sections working
+- ✅ Upload button available for team leaders
+
+### Test Credentials:
+- Owner: deepaksahajwani@gmail.com / Deepak@2025
+- Team Leader: balbirgkaur@gmail.com / TeamLeader@123
