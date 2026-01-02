@@ -83,13 +83,23 @@ export default function ExternalProjectDetail({ user, onLogout }) {
       setDrawings(drawingsRes.data || []);
       setImages3D(images3DRes.data?.categories || []);
       
-      // Get team leader info
-      if (projectRes.data.team_leader_id) {
+      // Get team leader info - try from project response first, then fetch if needed
+      if (projectRes.data.team_leader_name) {
+        // Team leader info already in project response
+        setTeamLeader({
+          id: projectRes.data.team_leader_id,
+          name: projectRes.data.team_leader_name,
+          email: projectRes.data.team_leader_email,
+          mobile: projectRes.data.team_leader_phone,
+          role: projectRes.data.team_leader_role
+        });
+      } else if (projectRes.data.team_leader_id) {
+        // Fetch team leader details
         try {
           const leaderRes = await axios.get(`${API}/users/${projectRes.data.team_leader_id}`, { headers });
           setTeamLeader(leaderRes.data);
         } catch (err) {
-          console.log('Team leader info not available');
+          console.log('Team leader info not available via API, using project data');
         }
       }
     } catch (error) {
