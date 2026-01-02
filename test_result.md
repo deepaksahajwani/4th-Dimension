@@ -1,33 +1,56 @@
-# Test Results - UI Redesign Phase 2 (Team Leader UI)
+# Test Results - UI Redesign Phase 2
 
 ## Test Date: 2026-01-02
 
 ## Changes Made:
-1. Backend: Fixed `get_projects` to recognize all internal team member roles (senior_interior_designer, junior_architect, etc.) not just `team_member` and `team_leader`
-2. Backend: Added new endpoint `/api/users/{user_id}/projects` to get projects assigned to a specific team member as team leader
-3. Frontend: Enhanced `TeamMemberDetail.js` to show assigned projects with pending drawings count
+
+### Backend:
+1. **Fixed `get_projects`** - Now recognizes all internal team member roles (senior_interior_designer, etc.)
+2. **Added `/api/users/{user_id}/projects`** - Get projects where user is team_leader_id
+3. **Added 3D Images Module:**
+   - `GET /api/3d-image-categories` - Returns 28 preset categories + allows custom
+   - `GET /api/projects/{project_id}/3d-images` - Get images grouped by category
+   - `POST /api/projects/{project_id}/3d-images` - Upload images (Owner/Team Leader only)
+   - `DELETE /api/projects/{project_id}/3d-images/{image_id}` - Soft delete
+   - `GET /uploads/3d_images/{project_id}/{filename}` - Serve image files
+
+### Frontend:
+1. **TeamLeaderDashboard.js** - New simplified dashboard for team members
+   - Shows only assigned projects
+   - Quick stats for pending revisions and approvals
+   - Mobile-first design
+2. **TeamLeaderProjectDetail.js** - New project detail for team leaders
+   - Drawings section with status-based grouping (Revisions Required, Pending Approval, Ready to Issue, Not Started, Issued)
+   - 3D Images section with category upload dialog
+   - Client contact info section
+   - Comments section with file/voice note support
+3. **ExternalProjectDetail.js** - Updated for clients/contractors
+   - Now shows 3D Images with expandable categories
+   - View-only access (no upload)
+4. **Login redirect logic** - Team members now redirect to `/team-leader` dashboard
 
 ## Test Cases to Verify:
 
-### Backend Tests:
-1. **GET /api/users/{user_id}/projects** - Should return projects where user is team_leader_id
-   - Test with Balbir Kaur's ID: 354afa65-0337-4859-ba4d-0e66d5dfd5f1
-   - Expected: Returns "Aagam Heritage Bungalow" project with drawings_count and pending_drawings_count
+### Team Leader Dashboard:
+1. Login as owner → redirects to `/dashboard` (owner still goes to main dashboard)
+2. Access `/team-leader` directly → shows assigned projects
+3. Projects show progress percentage, pending revisions, pending approvals
 
-2. **GET /api/projects** - Should return projects based on user role
-   - Owner sees all projects
-   - Team members (any internal role) see projects where they are team_leader_id
+### Team Leader Project Detail:
+1. Click project → shows Drawings, 3D, Client, Comments tabs
+2. Drawings grouped by status with action buttons
+3. 3D Images → Upload button → Category dropdown with 28 options + Custom
+4. Comments → Can post text/file/voice
 
-### Frontend Tests:
-1. **Team Page** - Shows all team members
-2. **TeamMemberDetail Page** - Shows assigned projects for owner view
-   - Click on Balbir Kaur -> Should show 1 active project with 3 pending drawings
+### 3D Images API:
+1. GET /api/3d-image-categories → Returns 28 categories
+2. POST with file → Stores in database and file system
+3. GET images → Returns grouped by category
 
 ## Incorporate User Feedback:
-- Balbir Kaur has role `senior_interior_designer` and is assigned as team_leader for "Aagam Heritage Bungalow"
-- The project visibility issue was due to the backend only checking for `role == "team_member"` or `role == "team_leader"`
-- Fix: Now checks for all internal team member roles
+- User confirmed: Team Leader role should have simplified UI
+- User confirmed: 3D Images should have preset + custom categories
+- User confirmed: Percentage = issued drawings / total drawings
 
 ## Test Credentials:
 - Owner: deepaksahajwani@gmail.com / Deepak@2025
-- Balbir Kaur: balbirgkaur@gmail.com / [unknown password]
