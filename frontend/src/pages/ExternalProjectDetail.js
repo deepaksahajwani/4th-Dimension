@@ -23,6 +23,8 @@ import {
   Square,
   X,
   ChevronRight,
+  ChevronDown,
+  ChevronUp,
   Clock,
   Phone,
   Mail
@@ -39,10 +41,12 @@ export default function ExternalProjectDetail({ user, onLogout }) {
   // State
   const [project, setProject] = useState(null);
   const [drawings, setDrawings] = useState([]);
+  const [images3D, setImages3D] = useState([]);
   const [teamLeader, setTeamLeader] = useState(null);
   const [comments, setComments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeSection, setActiveSection] = useState(null);
+  const [expandedCategories, setExpandedCategories] = useState({});
   
   // Comments state
   const [showComments, setShowComments] = useState(false);
@@ -69,13 +73,15 @@ export default function ExternalProjectDetail({ user, onLogout }) {
       const token = localStorage.getItem('token');
       const headers = { Authorization: `Bearer ${token}` };
 
-      const [projectRes, drawingsRes] = await Promise.all([
+      const [projectRes, drawingsRes, images3DRes] = await Promise.all([
         axios.get(`${API}/projects/${projectId}`, { headers }),
-        axios.get(`${API}/projects/${projectId}/drawings`, { headers })
+        axios.get(`${API}/projects/${projectId}/drawings`, { headers }),
+        axios.get(`${API}/projects/${projectId}/3d-images`, { headers }).catch(() => ({ data: { categories: [] } }))
       ]);
 
       setProject(projectRes.data);
       setDrawings(drawingsRes.data || []);
+      setImages3D(images3DRes.data?.categories || []);
       
       // Get team leader info
       if (projectRes.data.team_leader_id) {
