@@ -1,204 +1,173 @@
 <analysis>**original_problem_statement:**
-The user provided a comprehensive list of updates after deploying and testing the application. The requests are grouped into three phases:
-
-**Phase 1: Performance & Quick Fixes (Completed)**
-1.  **Revise Section:** Add file upload and voice note capabilities to the drawing revision dialog.
-2.  **Un-issue Feature:** Completely remove the feature allowing drawings to be un-issued.
-3.  **Performance:**
-    *   Add a  endpoint to eliminate cold-start issues.
-    *   Implement caching for static data.
-4.  **Branding:** Remove the Made with Emergent watermark from the application.
-
-**Phase 2: Notifications & Workload (Completed)**
-1.  **Drawing Approval Reminders:** Notify the owner immediately when a drawing is uploaded for approval. If not approved within 6 hours, send hourly reminders.
-2.  **Deep Linking:** When a user clicks a notification link for a drawing or comment, it should take them directly to a page showing only that specific drawing.
-3.  **Team Workload:** The Team Workload view should only display workload for the internal office team, excluding contractors.
-
-**Phase 3: Role-Based Access Control & Contractor Progress (Backend Complete, Frontend In Progress)**
-1.  **Role-Based Access Control (RBAC):** Implement strict access controls based on user roles:
-    *   **Client:** Can only view/download/comment on their own project's drawings. Cannot see other projects, all team members, or the main contractors page. Can only see contractors assigned to their project. Connects only with their project leader and the owner.
-    *   **Team Leader:** Can only see their own projects. Can grant temporary project access to other team leaders.
-    *   **Contractor/Consultant:** Can only see projects they are involved in.
-2.  **Contractor Progress Tracking:**
-    *   On the contractor's page, their card should show the number of projects they are handling. Clicking it should reveal project details and a progress report.
-    *   For each issued drawing, contractors should have role-specific buttons to mark task completion (e.g., Electrical: Conduiting done, Wiring Done; HVAC: Copper piping done).
-    *   These tasks appear as a checklist. The owner/client can un-tick an item if unsatisfied, but must provide a comment.
+The user initiated this session to complete the frontend for a large RBAC and contractor progress tracking feature (Phase 3). During the session, the user added several new, high-priority requests:
+1.  **Contractor/Vendor Alignment:** Fix a mismatch between contractor types during registration vs. project assignment, remove Other as a type, and add a comprehensive list of vendors from a provided document.
+2.  **Vendor Management:** Add a full Vendors section to the app, with its own page, navigation link, and an invitation-only registration process (mirroring contractors).
+3.  **Notification & URL Fixes:**
+    *   Fix broken email links caused by a SendGrid tracking domain ().
+    *   Ensure Registration Approved notifications are sent automatically upon approval.
+    *   Fix a bug where drawing upload notifications were not being sent to the owner.
+4.  **UI Logic Fix:** The Issue Drawing dialog was showing all team members instead of only members associated with that specific project.
+5.  **Architectural Refactoring:** A major request to restructure the backend to improve maintainability, including separating the UI layer, creating dedicated integration and data access layers, and adding centralized logging and monitoring.
+6.  **Full UI Redesign (Role-Based):** A comprehensive redesign of the UI to be role-specific and mobile-first, reducing clutter for Clients, Contractors, and Team Leaders. This was broken into phases, with the external user (Client/Contractor) UI being Phase 1.
+7.  **Template-based WhatsApp/SMS:** A request to move all notifications to a template-based system for reliability and to add several new notification events.
 
 **User's preferred language**: English
 
 **what currently exists?**
-The application is a full-stack project with a resource management system, a conversational WhatsApp webhook for message forwarding, and robust notification triggers.
-
-Recent work has completed the backend for a comprehensive Role-Based Access Control (RBAC) system and a contractor progress tracking feature. Performance enhancements like a health check endpoint and watermark removal have been implemented. The drawing management system now includes features like owner notifications, approval reminders, deep linking from notifications, and the ability to add voice notes/files to revisions. The un-issue drawing feature has been completely removed.
+The application is a full-stack project management tool for an architecture firm. Key functionalities include:
+- A completed Role-Based Access Control (RBAC) system for both backend and frontend.
+- Contractor progress tracking on issued drawings.
+- A full vendor management module with an invitation-only workflow.
+- A major architectural refactoring has been implemented, creating dedicated layers for integrations (Twilio, SendGrid), data access, and operations/monitoring.
+- A new System Logs page on the frontend provides visibility into notification delivery and system health.
+- The UI for external users (Clients, Contractors, Consultants) has been completely redesigned into a simplified, mobile-first experience (, ).
+- Several critical notification and URL bugs have been fixed.
 
 **Last working item**:
--   Last item agent was working: The agent was beginning the frontend implementation for the extensive **Phase 3** features (Role-Based Access Control and Contractor Progress Tracking). It had just created the initial file for a new component, , to display the new progress tracking UI.
+-   Last item agent was working: The agent was in the middle of implementing a comprehensive, template-based notification system as requested by the user. It had just created the initial infrastructure file  to define all required message templates (both existing and newly requested). The next step is to build the service that consumes these templates and sends notifications.
 -   Status: **IN PROGRESS**
 -   Agent Testing Done: N
--   Which testing method agent to use? Frontend testing agent, once the UI for Phase 3 is fully implemented.
+-   Which testing method agent to use? The  should be used to test the new notification service by triggering various events (e.g., new comment, drawing upload) and verifying that the correct template is used.
 -   User Testing Done: N
 
 **All Pending/In progress Issue list**:
--   None.
+-   None. All previously mentioned issues have been addressed.
 
 **In progress Task List**:
--   **Task 1: Complete Phase 3 Frontend Implementation (P0)**
+-   **Task 1: Complete Template-Based Notification System (P0)**
 
 Task Detail:
--   **Task 1: Complete Phase 3 Frontend Implementation (P0)**
-    -   **Where to resume**: The backend logic for RBAC and contractor progress is complete. The frontend work has just begun with the creation of . The next step is to build out the UI for all Phase 3 features.
+-   **Task 1: Complete Template-Based Notification System (P0)**
+    -   **Where to resume**: The file  has been created. The agent needs to build a new notification service that reads from this file and uses the new  layer to send messages. It should use the existing, approved Twilio templates for now.
     -   **Next Steps**:
-        1.  **Contractor Progress:**
-            *   Build the UI in  to display checklists and progress buttons based on the data from the new backend endpoints.
-            *   Integrate this component into  and/or a new contractor-specific project view.
-            *   Implement the logic for contractors to tick items and for owners/clients to untick items with a mandatory comment.
-        2.  **Role-Based UI:**
-            *   Update the  list page to correctly display the filtered list of projects sent by the backend based on the user's role.
-            *   Update the  list page to only show contractors assigned to a client's project if the user is a client.
-            *   Conditionally render buttons and UI elements throughout the application (e.g., hide admin-only buttons from clients/contractors).
-        3.  **Team Leader Features:**
-            *   Create a UI for Team Leaders to grant/revoke temporary project access to other team members.
-    -   **What will be achieved with this?**: This will complete the user's extensive feature request, securing the application with granular permissions and providing a detailed progress tracking system for construction tasks.
+        1.  Refactor  to call the new template-based service instead of sending hardcoded messages.
+        2.  The new service should handle SMS fallback if a WhatsApp template fails.
+        3.  Once the user provides the SIDs for the 10 new templates they submitted for approval, update  and the service to use them.
+    -   **What will be achieved with this?**: All user-facing notifications will be managed via pre-approved, reliable templates, improving deliverability and maintainability.
     -   **Status**: IN PROGRESS
-    -   **Should Test frontend/backend/both after fix?**: Frontend
-    -   **Blocked on something**: None
+    -   **Should Test frontend/backend/both after fix?**: Backend
+    -   **Blocked on something**: Waiting for the user to provide the Template SIDs for the 10 new templates. The agent can proceed with the infrastructure using existing templates in the meantime.
 
 **Upcoming and Future Tasks**
+-   **Upcoming Tasks:**
+    -   **(P0) UI Redesign - Phase 2 (Team Leader UI):** Implement the simplified, mobile-first UI for the Team Leader role. This involves a significant redesign of the drawing management interface to reduce button clutter and improve mobile usability.
+    -   **(P1) UI Redesign - Phase 3 (3D Images Module):** Implement the new 3D Images module. This requires backend endpoints to support categorized image uploads (e.g., Living, Kitchen) and a new frontend component to display these grouped images for all relevant roles.
 -   **Future Tasks:**
-    -   **(P1) Weekly Target System:** Implement the comprehensive weekly target, star rewards, and badge system.
-    -   **(P2) Archived Projects:** Create the UI and backend logic for archiving projects.
-    -   **(P2) Drawing List Management:** Build the initial version of the page for managing drawing templates.
-    -   Complete Backend & Frontend Refactoring.
-    -   Social Media Management feature.
-    -   Document Generation Module (invoices, letters).
-    -   Client Dashboard Financials UI.
+    -   Implement the weekly target, star rewards, and badge system.
+    -   Create the UI and backend logic for archiving projects.
+    -   Build the initial version of the page for managing drawing templates.
+    -   Implement the Social Media Management feature.
+    -   Build the Document Generation Module (invoices, letters).
+    -   Create the Client Dashboard Financials UI.
 
 **Completed work in this session**
--   **Phase 1 (Performance & Quick Fixes) Completed:**
-    -   Removed the Made with Emergent watermark from .
-    -   Added a  endpoint in  for cold-start prevention.
-    -   Completely removed the un-issue drawing feature from both frontend (, ) and backend ().
-    -   Added file upload and voice note functionality to the drawing revision dialog in  and created corresponding backend endpoints.
--   **Phase 2 (Notifications & Workload) Completed:**
-    -   Created a background scheduler () for hourly drawing approval reminders to the owner.
-    -   Implemented deep linking by adding  to notification URLs and adding handling logic in  to scroll to the specific drawing.
-    -   Verified that the existing Team Workload backend logic already correctly excludes contractors.
--   **Phase 3 (RBAC & Contractor Progress) - Backend Completed:**
-    -   Created a contractor progress tracking system () with predefined task checklists.
-    -   Added new API endpoints for getting/updating contractor progress.
-    -   Implemented comprehensive RBAC by filtering API responses for projects () and contractors () based on user role.
-    -   Added API endpoints for team leaders to grant/revoke temporary project access.
--   **Resource Management:** Successfully uploaded 14 user-provided documents and implemented a View in Browser feature using a public-facing endpoint and the Microsoft Office Online viewer.
--   **Layout Fix:** Fixed the  page to include the main site navigation sidebar by wrapping it in the  component.
--   **Smart WhatsApp Forwarding:** Implemented a conversational webhook to receive and forward WhatsApp messages from known users to project participants.
--   **Hard Delete Implementation:** Changed all user/client/contractor deletion endpoints to perform a hard delete from the database, preventing recurring issues with re-inviting soft-deleted users. Also implemented a dual WhatsApp/SMS invite system for better reliability.
--   **Drawing Notifications:** Added compulsory WhatsApp notifications to the owner for all key drawing events (upload, issue, comment, revision).
+-   **Phase 3 Frontend:** Completed the full frontend implementation for RBAC and Contractor Progress Tracking.
+-   **Vendor & Contractor Management:**
+    -   Created a new  page and integrated it into the app's navigation and routing.
+    -   Aligned all contractor and vendor types between the frontend and backend, using a list extracted from a user-provided document.
+    -   Removed the manual Add Vendor button, making the workflow invitation-only as requested.
+-   **Critical Bug Fixes:**
+    -   **URL Fix:** Resolved the  SendGrid link issue by disabling click tracking in .
+    -   **Notification Fixes:**
+        -   Ensured the Registration Approved notification is sent automatically upon approval.
+        -   Fixed the missing drawing upload notification for the owner, and enhanced it to be multi-channel (in-app, email, WhatsApp).
+        -   Fixed the Issue Drawing recipient list in  to only show project-specific members.
+-   **Major Architectural Refactoring:**
+    -   **Integration Layer:** Created  to abstract Twilio and SendGrid logic.
+    -   **Data Access Layer (DAL):** Created  to handle database interactions.
+    -   **Logging & Monitoring:** Implemented a new  endpoint and a corresponding  UI to provide visibility into system health and notification status.
+-   **UI Redesign (Phase 1 - External Users):**
+    -   Completely redesigned the experience for Clients, Contractors, and Consultants with new  and  pages.
+    -   Added a new project-level commenting system (backend and frontend) to support the redesigned UI.
 
 **Earlier issues found/mentioned but not fixed**
--   None.
+-   **Issue 1:** The  tool reported pre-existing warnings/errors in . The agent correctly chose not to fix them to avoid scope creep, but they remain in the codebase.
 
 **Known issue recurrence from previous fork**
--   **Issue recurrence in previous fork**: WhatsApp notifications failing for re-invited users.
--   **Recurrence count**: 1 in this session.
--   **Status**: **RESOLVED**. The issue was traced to two causes: 1) WhatsApp (Meta) rate-limiting marketing messages to the recipient (Error 63049), which is an external factor. 2) The application's soft-delete logic preventing clean re-registration. The agent implemented a **hard-delete** policy for all user types and made the invitation system more robust by sending **both SMS and WhatsApp** invites simultaneously.
+-   None.
 
 **Code Architecture**
 
 
 **Key Technical Concepts**
--   **Role-Based Access Control (RBAC):** Implemented on the backend by filtering database queries in API endpoints based on the authenticated user's role ().
--   **Background Tasks:** Used  to run a persistent background job for sending hourly notification reminders.
--   **Deep Linking:** Implemented using URL query parameters () and frontend JavaScript (, ) to navigate users to specific content on a page.
--   **Hard vs. Soft Delete:** Migrated the system from soft-deletes ( timestamp) to hard-deletes () to ensure data integrity and prevent re-registration conflicts.
--   **External API Workaround:** Created a dedicated, unauthenticated public endpoint () to serve files to the Microsoft Office viewer, which cannot handle authenticated URLs.
--   **Conversational Webhook:** Built a stateful webhook handler that guides a user through a multi-step conversation over WhatsApp to forward a message.
+-   **Architectural Refactoring:** The codebase was significantly refactored to introduce a clear separation of concerns with a dedicated **Integration Layer** (for Twilio/SendGrid) and a **Data Access Layer (DAL)**.
+-   **Centralized Logging & Monitoring:** A new system was built to log all outgoing notifications to the database, with a corresponding UI () and API () to monitor the health of third-party services.
+-   **Role-Based UI Redesign:** A major effort to create distinct, simplified user experiences based on user roles, starting with external users (Clients/Contractors) and moving towards a mobile-first design.
+-   **Template-Based Notifications:** The ongoing shift from hardcoded notification messages to a manageable, template-driven system defined in .
 
 **key DB schema**
--   **projects**:  field (dictionary) added to handle temporary project access for team leaders.
--   **drawings**:  field (dictionary) will be used to store the completion status of contractor tasks for an issued drawing.
--   No longer using  for soft-deletes on , , , . Records are now removed permanently.
+-   **notification_logs**: (New Collection) 
+-   **project_comments**: (New Collection) 
 
 **changes in tech stack**
 -   None.
 
 **All files of reference**
--   **/app/backend/server.py**: The central file containing all new RBAC logic, hard-delete implementations, and new API endpoints.
--   **/app/frontend/src/pages/ProjectDetail.js**: The main frontend file that needs significant UI updates for contractor progress and conditional rendering based on user role.
--   **/app/backend/contractor_progress.py**: Defines the new business logic for contractor task checklists.
--   **/app/backend/drawing_approval_reminders.py**: Contains the logic for the new background reminder task.
--   **/app/frontend/src/components/project/DrawingCard.jsx**: The component for displaying individual drawings, modified to remove the Un-issue button.
+-   **/app/backend/server.py**: Main server file, modified for new routes and bug fixes.
+-   **/app/frontend/src/pages/ExternalDashboard.js**: The new, redesigned landing page for clients/contractors.
+-   **/app/frontend/src/pages/ExternalProjectDetail.js**: The new, simplified project view for external users.
+-   **/app/backend/integrations/**: The new directory containing all third-party service logic.
+-   **/app/backend/whatsapp_templates.py**: The new central file for defining notification templates.
+-   **/app/frontend/src/pages/SystemLogs.js**: The new UI for monitoring system health and logs.
+-   **/app/frontend/src/pages/Vendors.js**: The new UI for managing vendors.
+-   **/app/frontend/src/pages/ProjectDetail.js**: The core project page, heavily modified to integrate all Phase 3 features.
 
 **Areas that need refactoring**:
--    is becoming very large. The new RBAC and contractor progress endpoints could be moved to their own route files in  for better organization.
+-   The old notification logic in  and  needs to be completely replaced by the new template-based system that is currently in progress.
 
 **key api endpoints**
--   **NEW (Phase 1 & 2):**
-    -   : Health check endpoint.
-    -   : Uploads a voice note for a drawing revision.
-    -   : Uploads a file attachment for a drawing revision.
-    -   : Gets a Microsoft Office viewer URL for a document.
-    -   : Unauthenticated endpoint to serve files to the viewer.
-    -   : The entry point for the conversational WhatsApp webhook.
--   **NEW (Phase 3 Backend):**
-    -   : Gets progress for a specific contractor.
-    -   : Updates the progress of a contractor's task on a drawing.
-    -   : Grants temporary project access to another team leader.
-    -   : Revokes temporary access.
--   **MODIFIED:**
-    -   , , , : Now perform a hard delete.
-    -   : Now filters projects based on the user's role.
-    -   : Now filters the list for clients.
+-   **NEW:**
+    -   : Adds a new project-level comment.
+    -   : Retrieves all comments for a project.
+    -   : Gets the connection status of third-party integrations (Twilio, SendGrid, MongoDB).
+    -   : Retrieves notification logs for the System Logs UI.
 
 **Critical Info for New Agent**
-1.  **Resume at Phase 3 Frontend:** Your primary task is to build the frontend UI for the completed Phase 3 backend. The backend already enforces all RBAC rules and provides data for contractor progress. Your job is to make the UI reflect this.
-2.  **Focus on Conditional Rendering:** A major part of the task will be conditionally rendering UI elements (buttons, pages, data lists) based on  (e.g., , , ).
-3.  **Implement Contractor Progress UI:** You need to build the UI for the contractor checklists. The data structure is defined in , and the API endpoints are ready. This involves creating buttons for each task and handling the API calls to update the status.
-4.  **Background Scheduler is Running:** The hourly drawing approval reminder system is already implemented and running as a background task initiated on server startup. You don't need to implement this.
-5.  **Hard Deletes are Active:** All delete operations are now permanent. Be aware of this when testing deletion functionality.
+1.  **Resume at Notification System:** Your immediate task is to complete the template-based notification system. The user is waiting for this. Build out the service logic using the existing approved templates first, while waiting for the user to provide the SIDs for the 10 new templates.
+2.  **Follow New Architecture:** All new backend code, especially related to database access or third-party APIs, must use the new **Data Access Layer** () and **Integration Layer** (). Do not add new logic directly to  or other old files.
+3.  **UI Redesign is Next:** After the notification system is complete, the next priority is Phase 2 of the UI redesign: the **Team Leader UI**. This is a major task focused on simplifying the drawing management workflow.
+4.  **Verify Fixes:** The user has not yet confirmed that the SendGrid URL issue and the Registration Approved notification issues are fully resolved on their end. You may need to ask for verification after completing the current task.
 
 **documents and test reports created in this job**
--   
--   
--   
--   
--   
--   
--   
--   
--   
--   
--   
--   
--   
+-   /app/backend/integrations/notification_logger.py
+-   /app/backend/integrations/sendgrid_service.py
+-   /app/backend/integrations/twilio_service.py
+-   /app/backend/data/repositories.py
+-   /app/backend/routes/ops.py
+-   /app/backend/whatsapp_templates.py
+-   /app/frontend/src/pages/SystemLogs.js
+-   /app/frontend/src/pages/Vendors.js
+-   /app/frontend/src/pages/ExternalDashboard.js
+-   /app/frontend/src/pages/ExternalProjectDetail.js
 
 **Last 10 User Messages and any pending HUMAN messages**
-1.  **User:** continue (to start Phase 3 frontend).
-2.  **User:** Provided clarification for Phase 3 requirements. Confirmed the plan to proceed with Phase 1 -> 2 -> 3 in sequence.
-3.  **Agent:** Asked for prioritization and clarification on the large list of new requirements.
-4.  **User:** Provided a very large list of new features and fixes (Phases 1, 2, 3), including RBAC, contractor progress, performance optimization, and UI tweaks.
-5.  **Agent:** Summarized the implementation of drawing notifications.
-6.  **User:** Requested compulsory WhatsApp notifications for the owner on all drawing-related events.
-7.  **Agent:** Confirmed deployment readiness after implementing the WhatsApp forwarding webhook.
-8.  **User:** I am ready to deploy.
-9.  **User:** Reported the recurring invitation issue with a previously deleted user and requested a permanent fix for deletion.
-10. **Agent:** Summarized the completion of the smart WhatsApp forwarding feature.
+1.  **User**: Confirmed they have submitted the 10 new templates to Twilio and instructed the agent to proceed with updating the code using existing templates first. (IN PROGRESS)
+2.  **Agent**: Provided 10 formatted notification templates for the user to create in Twilio and asked for the next step.
+3.  **User**: Provided preferences for the new notification system: use a mix of existing and new templates, with SMS as a fallback.
+4.  **Agent**: Asked for clarification on how to proceed with the large list of required notification templates.
+5.  **User**: Provided a comprehensive, role-aware list of 13 events that require WhatsApp/SMS notifications, all requiring templates.
+6.  **Agent**: Summarized the completion of the Phase 1 UI redesign for external users.
+7.  **User**: Provided preferences for the UI redesign: custom file upload, proceed with Phase 1 first, use floating buttons, and defined how project completion percentage is calculated.
+8.  **Agent**: Analyzed the comprehensive UI redesign brief and asked for clarification on technical constraints, sequencing, and design preferences.
+9.  **User**: Provided a detailed, multi-part brief for a complete, role-aware UI redesign (Clients, Contractors, Team Leaders).
+10. **Agent**: Summarized the implementation of the major architectural refactoring (integration/data layers, logging UI).
 
 **Project Health Check:**
--   **Broken**: The frontend UI does not yet reflect the new backend RBAC rules, so users may see options they no longer have access to. This will be fixed by the Phase 3 frontend task.
+-   **Broken**: None. The application is stable.
 -   **Mocked**: None.
 
 **3rd Party Integrations**
--   **Twilio (Production)** — Uses User API Key. Used for SMS and WhatsApp. Now used for both outbound template messages and the inbound conversational webhook.
--   **SendGrid** — Uses User API Key. Used for email notifications.
+-   **Twilio (Production)**: Uses User API Key for SMS and WhatsApp. Logic is being refactored into .
+-   **SendGrid**: Uses User API Key for email. Logic is being refactored into .
 
 **Testing status**
--   Testing agent used after significant changes: YES. The backend testing agent was used to validate the Resource Management, WhatsApp Webhook, and all Phase 3 (RBAC) backend changes.
+-   Testing agent used after significant changes: **YES**. The frontend testing agent was used to validate the Phase 3 RBAC UI, the new Vendor module, and the Phase 1 UI Redesign. The backend testing agent was used to verify critical notification fixes.
 -   Troubleshoot agent used after agent stuck in loop: NO.
--   Test files created: Test cases were added to  for each major feature.
+-   Test files created: Test cases in  were updated after each major feature validation.
 -   Known regressions: None.
 
 **Credentials to test flow:**
 -   **Owner**:  / 
 
 **What agent forgot to execute**
--   The agent has been systematically following the user's phased plan and has not forgotten any requested items. It is currently in the middle of Phase 3.</analysis>
+-   The agent noted but did not fix pre-existing linting errors in , which was a reasonable decision to avoid scope creep. No other forgotten tasks are apparent.</analysis>
