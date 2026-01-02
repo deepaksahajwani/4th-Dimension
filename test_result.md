@@ -127,3 +127,29 @@ The External Project Detail page (`/project/{id}`) is not properly fetching or d
 - Core functionality working across Projects, Project Detail, External Dashboard, and Team Profile pages
 - Only External Project Detail page has the team leader display issue
 - All clickable navigation to team member profiles working correctly where team leader is displayed
+
+---
+
+## Template-Based Notification System Testing (2026-01-02)
+
+### Backend Testing Requirements:
+1. **Template Service Import** - Verify `template_notification_service` can be imported and initialized
+2. **Template Functions Available** - Verify all notification convenience methods exist:
+   - `notify_drawing_approval_needed`
+   - `notify_drawing_approved`
+   - `notify_drawing_issued`
+   - `notify_drawing_issued_contractor`
+   - `notify_revision_requested`
+   - `notify_new_comment`
+   - `notify_user_approved`
+   - `notify_project_created_client`
+   - `notify_project_created_team`
+   - `notify_3d_images_uploaded`
+3. **API Health Check** - Test `GET /api/health` and `GET /api/ops/status` endpoints
+4. **Notification Triggers Import** - Verify `notification_triggers_v2` module works
+
+### Test Status:
+- **Template Service Import**: ❓ PENDING
+- **Template Functions Available**: ❓ PENDING  
+- **API Health Check**: ❓ PENDING
+- **Notification Triggers Import**: ❓ PENDING
