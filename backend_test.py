@@ -1419,7 +1419,7 @@ class BackendTester:
         except Exception as e:
             self.log_result("Template System - Template Config", False, f"Exception: {str(e)}")
 
-        print("✅ Template-Based Notification System testing completed")d_sids == 17 and len(invalid_sids) == 0:
+        print("✅ Template-Based Notification System testing completed")
                     self.log_result("Template System - SID Format", True, 
                                   "All template SIDs have correct format (HX + 32 chars)")
                 else:
