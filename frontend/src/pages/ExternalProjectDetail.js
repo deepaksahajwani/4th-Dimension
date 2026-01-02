@@ -331,7 +331,9 @@ export default function ExternalProjectDetail({ user, onLogout }) {
                 <Image className="w-6 h-6 text-purple-600" />
               </div>
               <h3 className="font-semibold text-slate-900">3D Images</h3>
-              <p className="text-xs text-slate-500">Coming soon</p>
+              <p className="text-xs text-slate-500">
+                {images3D.reduce((sum, cat) => sum + (cat.images?.length || 0), 0)} images
+              </p>
             </CardContent>
           </Card>
 
