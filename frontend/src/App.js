@@ -430,6 +430,22 @@ function App() {
                 </ProtectedRoute>
               }
             />
+            <Route
+              path="/team-leader"
+              element={
+                <ProtectedRoute>
+                  <TeamLeaderDashboard user={user} onLogout={handleLogout} />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/team-leader/project/:projectId"
+              element={
+                <ProtectedRoute>
+                  <TeamLeaderProjectDetail user={user} onLogout={handleLogout} />
+                </ProtectedRoute>
+              }
+            />
           </Routes>
         )}
       </BrowserRouter>
