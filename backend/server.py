@@ -2967,6 +2967,18 @@ async def get_user_projects(user_id: str, current_user: User = Depends(get_curre
             ]
         })
         project['pending_drawings_count'] = pending_count
+        
+        # Populate team leader info
+        if project.get('team_leader_id'):
+            team_leader = await db.users.find_one(
+                {"id": project['team_leader_id']},
+                {"_id": 0, "id": 1, "name": 1, "email": 1, "mobile": 1, "role": 1}
+            )
+            if team_leader:
+                project['team_leader_name'] = team_leader.get('name')
+                project['team_leader_email'] = team_leader.get('email')
+                project['team_leader_phone'] = team_leader.get('mobile')
+                project['team_leader_role'] = team_leader.get('role')
     
     return projects
 
