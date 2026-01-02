@@ -512,17 +512,24 @@ export default function ExternalProjectDetail({ user, onLogout }) {
             </CardHeader>
             <CardContent>
               {teamLeader || project.team_leader_name ? (
-                <div className="flex items-center gap-4">
+                <div 
+                  className="flex items-center gap-4 cursor-pointer hover:bg-slate-50 p-2 rounded-lg -m-2 transition-colors"
+                  onClick={() => {
+                    const leaderId = teamLeader?.id || project.team_leader_id;
+                    if (leaderId) navigate(`/team/${leaderId}`);
+                  }}
+                >
                   <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center">
                     <User className="w-8 h-8 text-green-600" />
                   </div>
                   <div>
-                    <h3 className="font-semibold text-slate-900">
+                    <h3 className="font-semibold text-slate-900 hover:text-orange-600">
                       {teamLeader?.name || project.team_leader_name}
                     </h3>
                     {teamLeader?.email && (
                       <a 
                         href={`mailto:${teamLeader.email}`}
+                        onClick={(e) => e.stopPropagation()}
                         className="flex items-center gap-1 text-sm text-blue-600 hover:underline"
                       >
                         <Mail className="w-3 h-3" />
@@ -532,12 +539,14 @@ export default function ExternalProjectDetail({ user, onLogout }) {
                     {teamLeader?.mobile && (
                       <a 
                         href={`tel:${teamLeader.mobile}`}
+                        onClick={(e) => e.stopPropagation()}
                         className="flex items-center gap-1 text-sm text-blue-600 hover:underline"
                       >
                         <Phone className="w-3 h-3" />
                         {teamLeader.mobile}
                       </a>
                     )}
+                    <p className="text-xs text-orange-500 mt-1">Tap to view profile</p>
                   </div>
                 </div>
               ) : (
