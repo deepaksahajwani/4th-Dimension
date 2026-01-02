@@ -86,3 +86,44 @@
 - 3D Images module properly integrated with category system
 - Role-based navigation working as expected
 - Mobile-responsive design elements observed
+
+## Team Leader Display Testing Results (2026-01-02):
+
+### ✅ WORKING FEATURES:
+1. **Projects Page (Owner View)** - ✅ WORKING
+   - "Aagam Heritage Bungalow" project card displays "Balbir Kaur" as team leader
+   - Team leader name is clickable with user icon
+   - Successfully navigates to `/team/354afa65-0337-4859-ba4d-0e66d5dfd5f1`
+   - Team member profile shows Balbir Kaur's info and assigned projects
+
+2. **Project Detail Page (Owner View)** - ✅ WORKING
+   - Team Leader badge shows "Balbir Kaur" with "B" avatar
+   - Badge is clickable and navigates to team member profile
+   - Uses `team_leader_id` correctly (not legacy `lead_architect_id`)
+
+3. **External Dashboard (Client/Contractor View)** - ✅ WORKING
+   - Project cards show team leader name "Balbir Kaur"
+   - Team leader name is clickable with orange color and hover effect
+   - Successfully navigates to team member profile
+
+4. **Team Member Profile Page** - ✅ WORKING
+   - Shows Balbir Kaur's complete information
+   - Displays assigned projects section with "Aagam Heritage Bungalow"
+   - Shows contact information (phone, email)
+   - Role displayed as "Senior Interior Designer"
+
+### ❌ ISSUES FOUND:
+1. **External Project Detail Page** - ❌ PARTIAL ISSUE
+   - Team Leader card shows "Not assigned" instead of "Balbir Kaur"
+   - Team Leader section is present but doesn't display the team leader name
+   - "Tap to view profile" hint is missing
+   - Navigation to profile is not working due to missing team leader data
+
+### 🔍 ROOT CAUSE ANALYSIS:
+The External Project Detail page (`/project/{id}`) is not properly fetching or displaying the team leader information. While other pages correctly show "Balbir Kaur" as the team leader, this specific page shows "Not assigned" in the Team Leader card.
+
+### 📊 OVERALL ASSESSMENT:
+- **4 out of 5 test cases PASSING** (80% success rate)
+- Core functionality working across Projects, Project Detail, External Dashboard, and Team Profile pages
+- Only External Project Detail page has the team leader display issue
+- All clickable navigation to team member profiles working correctly where team leader is displayed
