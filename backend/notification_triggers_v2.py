@@ -470,7 +470,7 @@ async def notify_drawing_uploaded(project_id: str, drawing_id: str, uploaded_by_
     """
     Trigger: Drawing is uploaded
     Recipients: Owner
-    Channels: WhatsApp
+    Channels: WhatsApp (template), In-App
     """
     try:
         project = await get_project_by_id(project_id)
@@ -481,28 +481,45 @@ async def notify_drawing_uploaded(project_id: str, drawing_id: str, uploaded_by_
         if not all([project, drawing, uploader, owner]):
             return
         
-        message = f"""📤 Drawing Uploaded for Approval
+        project_name = project.get('title') or project.get('name')
+        drawing_name = drawing.get('name')
+        uploader_name = uploader.get('name')
+        
+        # Use template notification service if available
+        if template_notification_service and owner.get('mobile'):
+            await template_notification_service.notify_drawing_approval_needed(
+                phone_number=owner['mobile'],
+                owner_name=owner.get('name', 'Admin'),
+                project_name=project_name,
+                drawing_name=drawing_name,
+                uploader_name=uploader_name,
+                owner_id=owner['id'],
+                project_id=project_id
+            )
+        else:
+            # Fallback to freeform message
+            message = f"""📤 Drawing Uploaded for Approval
 
-📁 Project: {project.get('title') or project.get('name')}
-📐 Drawing: {drawing.get('name')}
-👤 Uploaded by: {uploader.get('name')}
+📁 Project: {project_name}
+📐 Drawing: {drawing_name}
+👤 Uploaded by: {uploader_name}
 📅 Date: {datetime.now(timezone.utc).strftime('%d %b %Y, %I:%M %p')}
 
 Please review and approve.
 
 View: {APP_URL}/projects/{project_id}/drawings"""
+            
+            await notification_service.send_notification(
+                user_ids=[owner['id']],
+                title="Drawing Approval Needed",
+                message=message,
+                notification_type="drawing_uploaded",
+                channels=['in_app', 'whatsapp'],
+                link=f"/projects/{project_id}/drawings",
+                project_id=project_id
+            )
         
-        await notification_service.send_notification(
-            user_ids=[owner['id']],
-            title="Drawing Approval Needed",
-            message=message,
-            notification_type="drawing_uploaded",
-            channels=['in_app', 'whatsapp'],
-            link=f"/projects/{project_id}/drawings",
-            project_id=project_id
-        )
-        
-        logger.info(f"Drawing upload notification sent for {drawing.get('name')}")
+        logger.info(f"Drawing upload notification sent for {drawing_name}")
         
     except Exception as e:
         logger.error(f"Error in notify_drawing_uploaded: {str(e)}")
