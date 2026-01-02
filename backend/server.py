@@ -2861,42 +2861,42 @@ async def get_projects(
             return filtered_projects
         else:
             return []
-    elif current_user.role == "team_leader" or current_user.designation == "Team Leader":
-        # Team leaders see projects they lead OR have temporary access to
-        team_access_projects = await db.project_team_access.find({
-            "user_id": current_user.id,
-            "$or": [
-                {"expires_at": {"$gt": datetime.now(timezone.utc).isoformat()}},
-                {"expires_at": None}
-            ]
-        }, {"_id": 0, "project_id": 1}).to_list(100)
+    else:
+        # All other roles (team_member, senior_architect, junior_architect, 
+        # senior_interior_designer, junior_interior_designer, landscape_designer,
+        # 3d_visualizer, site_engineer, site_supervisor, intern, etc.)
+        # These are internal team members who can be assigned as team leaders
         
-        access_project_ids = [p["project_id"] for p in team_access_projects]
-        
-        query["$or"] = [
-            {"team_leader_id": current_user.id},
-            {"id": {"$in": access_project_ids}}
+        # Define internal team member roles (not client, contractor, consultant, vendor)
+        internal_roles = [
+            'team_member', 'team_leader', 'owner',
+            'senior_architect', 'junior_architect', 
+            'senior_interior_designer', 'junior_interior_designer',
+            'associate_architect', 'associate_interior_designer',
+            'landscape_designer', '3d_visualizer',
+            'site_engineer', 'site_supervisor', 'intern',
+            'administrator', 'human_resource', 'accountant', 'office_staff'
         ]
-    elif current_user.role == "team_member":
-        # Regular team members see projects they're assigned to as team leader
-        # or have temporary access
-        team_access_projects = await db.project_team_access.find({
-            "user_id": current_user.id,
-            "$or": [
-                {"expires_at": {"$gt": datetime.now(timezone.utc).isoformat()}},
-                {"expires_at": None}
-            ]
-        }, {"_id": 0, "project_id": 1}).to_list(100)
         
-        access_project_ids = [p["project_id"] for p in team_access_projects]
-        
-        if access_project_ids:
-            query["$or"] = [
-                {"team_leader_id": current_user.id},
-                {"id": {"$in": access_project_ids}}
-            ]
-        else:
-            query["team_leader_id"] = current_user.id
+        if current_user.role in internal_roles or current_user.role not in ['client', 'contractor', 'consultant', 'vendor']:
+            # Internal team members see projects they lead OR have temporary access to
+            team_access_projects = await db.project_team_access.find({
+                "user_id": current_user.id,
+                "$or": [
+                    {"expires_at": {"$gt": datetime.now(timezone.utc).isoformat()}},
+                    {"expires_at": None}
+                ]
+            }, {"_id": 0, "project_id": 1}).to_list(100)
+            
+            access_project_ids = [p["project_id"] for p in team_access_projects]
+            
+            if access_project_ids:
+                query["$or"] = [
+                    {"team_leader_id": current_user.id},
+                    {"id": {"$in": access_project_ids}}
+                ]
+            else:
+                query["team_leader_id"] = current_user.id
     
     projects = await db.projects.find(query, {"_id": 0}).to_list(1000)
     for project in projects:
