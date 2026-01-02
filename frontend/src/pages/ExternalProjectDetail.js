@@ -135,7 +135,11 @@ export default function ExternalProjectDetail({ user, onLogout }) {
 
   const handleViewDrawing = (drawing) => {
     if (drawing.file_url) {
-      window.open(drawing.file_url, '_blank');
+      // Ensure full URL with backend
+      const fullUrl = drawing.file_url.startsWith('http') 
+        ? drawing.file_url 
+        : `${BACKEND_URL}${drawing.file_url}`;
+      window.open(fullUrl, '_blank');
     } else {
       toast.error('Drawing file not available');
     }
@@ -143,9 +147,14 @@ export default function ExternalProjectDetail({ user, onLogout }) {
 
   const handleDownloadDrawing = async (drawing) => {
     if (drawing.file_url) {
+      // Ensure full URL with backend
+      const fullUrl = drawing.file_url.startsWith('http') 
+        ? drawing.file_url 
+        : `${BACKEND_URL}${drawing.file_url}`;
       const link = document.createElement('a');
-      link.href = drawing.file_url;
+      link.href = fullUrl;
       link.download = drawing.name || 'drawing';
+      link.target = '_blank';
       link.click();
       toast.success('Download started');
     } else {
