@@ -324,19 +324,27 @@ class BackendTester:
             response = self.session.get(f"{BACKEND_URL}/3d-image-categories", headers=headers)
             
             if response.status_code == 200:
-                categories = response.json()
+                categories_data = response.json()
                 
-                if isinstance(categories, list) and len(categories) > 0:
-                    # Check if we have the expected 28 preset categories
-                    if len(categories) >= 28:
-                        self.log_result("3D Image Categories", True, 
-                                      f"Found {len(categories)} categories (expected 28+ preset categories)")
+                # Check if response has the expected structure
+                if isinstance(categories_data, dict) and "categories" in categories_data:
+                    categories = categories_data["categories"]
+                    allow_custom = categories_data.get("allow_custom", False)
+                    
+                    if isinstance(categories, list) and len(categories) > 0:
+                        # Check if we have the expected 28 preset categories
+                        if len(categories) >= 28:
+                            self.log_result("3D Image Categories", True, 
+                                          f"Found {len(categories)} categories (expected 28+ preset categories). Custom allowed: {allow_custom}")
+                        else:
+                            self.log_result("3D Image Categories", True, 
+                                          f"Found {len(categories)} categories (fewer than expected 28). Custom allowed: {allow_custom}")
                     else:
-                        self.log_result("3D Image Categories", True, 
-                                      f"Found {len(categories)} categories (fewer than expected 28)")
+                        self.log_result("3D Image Categories", False, 
+                                      f"Categories array is empty or invalid: {categories}")
                 else:
                     self.log_result("3D Image Categories", False, 
-                                  f"Unexpected categories format: {type(categories)}")
+                                  f"Unexpected categories format: {type(categories_data)}")
             else:
                 self.log_result("3D Image Categories", False, 
                               f"Failed to fetch categories: {response.status_code}", response.text)
