@@ -134,10 +134,18 @@ function App() {
       } else {
         // Role-based redirection
         const userRole = response.data.user.role;
+        const isInternalTeamMember = ['senior_architect', 'junior_architect', 'senior_interior_designer', 
+          'junior_interior_designer', 'associate_architect', 'associate_interior_designer',
+          'landscape_designer', '3d_visualizer', 'site_engineer', 'site_supervisor', 'intern'].includes(userRole);
+        
         if (userRole === 'client' || userRole === 'contractor' || userRole === 'consultant' || userRole === 'vendor') {
           console.log('Redirecting to external dashboard');
           toast.success('Logged in successfully!');
           window.location.href = '/external-dashboard';
+        } else if (isInternalTeamMember || userRole === 'team_member' || userRole === 'team_leader') {
+          console.log('Redirecting to team leader dashboard');
+          toast.success('Logged in successfully!');
+          window.location.href = '/team-leader';
         } else {
           console.log('Redirecting to dashboard');
           toast.success('Logged in successfully!');
