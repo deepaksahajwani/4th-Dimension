@@ -600,7 +600,7 @@ async def notify_drawing_revised_internal(project_id: str, drawing_id: str, revi
     """
     Trigger: Drawing revised by owner or team leader
     Recipients: Team Leader
-    Channels: WhatsApp
+    Channels: WhatsApp (template), In-App
     """
     try:
         project = await get_project_by_id(project_id)
@@ -614,25 +614,46 @@ async def notify_drawing_revised_internal(project_id: str, drawing_id: str, revi
         if not team_leader_id or team_leader_id == revised_by_id:
             return  # Don't notify if team leader revised it themselves
         
-        message = f"""🔄 Drawing Revision Required
+        team_leader = await get_user_by_id(team_leader_id)
+        if not team_leader:
+            return
+        
+        project_name = project.get('title') or project.get('name')
+        drawing_name = drawing.get('name')
+        
+        # Use template notification service
+        if template_notification_service and team_leader.get('mobile'):
+            await template_notification_service.notify_revision_requested(
+                phone_number=team_leader['mobile'],
+                team_leader_name=team_leader.get('name'),
+                project_name=project_name,
+                drawing_name=drawing_name,
+                requester_name=revised_by.get('name'),
+                reason="Please review and update",
+                team_leader_id=team_leader_id,
+                project_id=project_id
+            )
+        else:
+            # Fallback to freeform message
+            message = f"""🔄 Drawing Revision Required
 
-📁 Project: {project.get('title') or project.get('name')}
-📐 Drawing: {drawing.get('name')}
+📁 Project: {project_name}
+📐 Drawing: {drawing_name}
 👤 Revised by: {revised_by.get('name')}
 
 Please review the revision comments and update the drawing.
 
 View Revision: {APP_URL}/projects/{project_id}/drawings/{drawing_id}"""
-        
-        await notification_service.send_notification(
-            user_ids=[team_leader_id],
-            title="Drawing Revision Request",
-            message=message,
-            notification_type="drawing_revised_internal",
-            channels=['in_app', 'whatsapp'],
-            link=f"/projects/{project_id}/drawings/{drawing_id}",
-            project_id=project_id
-        )
+            
+            await notification_service.send_notification(
+                user_ids=[team_leader_id],
+                title="Drawing Revision Request",
+                message=message,
+                notification_type="drawing_revised_internal",
+                channels=['in_app', 'whatsapp'],
+                link=f"/projects/{project_id}/drawings/{drawing_id}",
+                project_id=project_id
+            )
         
         logger.info(f"Internal drawing revision notification sent")
         
