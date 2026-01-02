@@ -1161,6 +1161,72 @@ View project details: {APP_URL}
 
 
 # ============================================
+# PROJECT COMMENT NOTIFICATIONS
+# ============================================
+
+async def notify_project_comment(
+    project_id: str,
+    comment_id: str,
+    commenter_name: str,
+    comment_preview: str
+):
+    """
+    Notify owner and team leader when a new project comment is posted.
+    Typically from clients/contractors/consultants.
+    """
+    try:
+        project = await db.projects.find_one({"id": project_id}, {"_id": 0})
+        if not project:
+            return
+        
+        project_name = project.get('title', 'Project')
+        deep_link = f"{APP_URL}/projects/{project_id}"
+        
+        # Notify owner
+        owner = await db.users.find_one({"is_owner": True}, {"_id": 0})
+        if owner:
+            await notification_service.create_in_app_notification(
+                user_id=owner['id'],
+                title="New Project Comment",
+                message=f"💬 {commenter_name} commented on {project_name}: {comment_preview[:50]}...",
+                notification_type="project_comment",
+                link=f"/projects/{project_id}",
+                project_id=project_id
+            )
+            
+            if owner.get('mobile'):
+                message = f"""💬 *New Comment on Project*
+
+🏗️ *Project:* {project_name}
+👤 *From:* {commenter_name}
+📝 *Message:* {comment_preview[:100]}...
+
+👉 View: {deep_link}"""
+                await notification_service.send_whatsapp(owner['mobile'], message)
+        
+        # Notify team leader if different from owner
+        if project.get('team_leader_id'):
+            team_leader = await db.users.find_one(
+                {"id": project['team_leader_id']},
+                {"_id": 0}
+            )
+            if team_leader and team_leader.get('id') != owner.get('id'):
+                await notification_service.create_in_app_notification(
+                    user_id=team_leader['id'],
+                    title="New Project Comment",
+                    message=f"💬 {commenter_name} commented on {project_name}",
+                    notification_type="project_comment",
+                    link=f"/projects/{project_id}",
+                    project_id=project_id
+                )
+        
+        logger.info(f"Project comment notification sent for {project_name}")
+        
+    except Exception as e:
+        logger.error(f"Error in notify_project_comment: {str(e)}")
+
+
+# ============================================
 # DRAWING NOTIFICATIONS - Owner WhatsApp Alerts
 # ============================================
 
