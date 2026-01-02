@@ -1,7 +1,7 @@
 """
-Complete Notification Triggers - All 12 notification types
-Implements the notification system as per the specification
-Uses WhatsApp templates for business-initiated messages
+Complete Notification Triggers - All notification types
+Implements the notification system using WhatsApp templates
+Uses template_notification_service for consistent template-based messaging
 """
 
 import os
@@ -12,6 +12,12 @@ from motor.motor_asyncio import AsyncIOMotorClient
 from notification_service import notification_service, message_templates, APP_URL
 from email_templates import get_welcome_email_content
 from whatsapp_templates import WHATSAPP_TEMPLATES
+
+# Import template notification service
+try:
+    from template_notification_service import template_notification_service
+except ImportError:
+    template_notification_service = None
 
 logger = logging.getLogger(__name__)
 
