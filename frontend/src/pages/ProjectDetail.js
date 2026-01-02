@@ -1500,7 +1500,10 @@ export default function ProjectDetail({ user, onLogout }) {
                 
                 {/* Team Leader */}
                 {teamLeader && (
-                  <div className="mt-2 sm:mt-3 flex items-center gap-2 px-3 py-2 bg-orange-50 rounded-lg border border-orange-200 w-fit">
+                  <div 
+                    className="mt-2 sm:mt-3 flex items-center gap-2 px-3 py-2 bg-orange-50 rounded-lg border border-orange-200 w-fit cursor-pointer hover:bg-orange-100 hover:border-orange-300 transition-colors"
+                    onClick={() => navigate(`/team/${teamLeader.id}`)}
+                  >
                     <div className="w-6 h-6 sm:w-8 sm:h-8 bg-orange-500 rounded-full flex items-center justify-center text-white font-bold text-xs sm:text-sm">
                       {teamLeader.name?.charAt(0)}
                     </div>
