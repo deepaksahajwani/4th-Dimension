@@ -214,7 +214,7 @@ class BackendTester:
                                     # Test if the image is accessible
                                     full_url = f"https://pm-system.preview.emergentagent.com{file_url}"
                                     try:
-                                        img_response = self.session.head(full_url, headers=headers, timeout=10)
+                                        img_response = self.session.get(full_url, headers=headers, timeout=10, stream=True)
                                         if img_response.status_code == 200:
                                             accessible_images += 1
                                             print(f"   ✅ Image accessible: {file_url}")
