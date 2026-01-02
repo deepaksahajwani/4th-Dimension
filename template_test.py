@@ -11,7 +11,7 @@ from datetime import datetime
 import uuid
 
 # Get backend URL from frontend .env
-BACKEND_URL = "https://arch-manager-1.preview.emergentagent.com/api"
+BACKEND_URL = "https://pm-system.preview.emergentagent.com/api"
 
 class TemplateNotificationTester:
     def __init__(self):

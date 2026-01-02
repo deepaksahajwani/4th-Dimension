@@ -38,7 +38,7 @@ client = AsyncIOMotorClient(mongo_url)
 db = client[db_name]
 
 # App URL
-APP_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://arch-manager-1.preview.emergentagent.com')
+APP_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://pm-system.preview.emergentagent.com')
 
 # Twilio Configuration
 TWILIO_ACCOUNT_SID = os.environ.get('TWILIO_ACCOUNT_SID')
