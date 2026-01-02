@@ -8160,7 +8160,7 @@ async def upload_3d_images(
             "title": title or file.filename,
             "original_filename": file.filename,
             "file_path": str(file_path),
-            "file_url": f"/uploads/3d_images/{project_id}/{unique_filename}",
+            "file_url": f"/api/uploads/3d_images/{project_id}/{unique_filename}",
             "file_size": len(content),
             "mime_type": file.content_type,
             "uploaded_by_id": current_user.id,
