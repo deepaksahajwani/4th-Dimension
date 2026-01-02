@@ -378,8 +378,16 @@ export default function ExternalProjectDetail({ user, onLogout }) {
 
           {/* Comments Card */}
           <Card 
-            className="cursor-pointer transition-all hover:shadow-md active:scale-[0.98] relative"
-            onClick={openCommentsPanel}
+            className={`cursor-pointer transition-all hover:shadow-md active:scale-[0.98] relative ${
+              activeSection === 'comments' ? 'ring-2 ring-orange-500' : ''
+            }`}
+            onClick={() => {
+              setActiveSection(activeSection === 'comments' ? null : 'comments');
+              if (activeSection !== 'comments') {
+                localStorage.setItem(`comments_viewed_${projectId}`, new Date().toISOString());
+                setUnreadComments(0);
+              }
+            }}
           >
             <CardContent className="p-4 text-center">
               <div className="w-12 h-12 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-2 relative">
