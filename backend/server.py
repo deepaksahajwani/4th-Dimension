@@ -7973,6 +7973,248 @@ async def remove_co_client(
         logger.error(f"Get historical progress error: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
+
+# ==================== 3D IMAGES MODULE ====================
+
+# Preset categories for 3D images (expandable with custom)
+PROJECT_3D_IMAGE_CATEGORIES = [
+    "Living Room",
+    "Kitchen",
+    "Master Bedroom",
+    "Bedroom 2",
+    "Bedroom 3",
+    "Bedroom 4",
+    "Bathroom 1",
+    "Bathroom 2",
+    "Bathroom 3",
+    "Dining Room",
+    "Study Room",
+    "Home Office",
+    "Balcony",
+    "Terrace",
+    "Entrance",
+    "Foyer",
+    "Staircase",
+    "Puja Room",
+    "Store Room",
+    "Garage",
+    "Garden",
+    "Pool Area",
+    "Exterior Front",
+    "Exterior Back",
+    "Exterior Side",
+    "Night View",
+    "Bird Eye View",
+    "Other"
+]
+
+
+class Image3DCreate(BaseModel):
+    """Model for creating a 3D image entry"""
+    category: str
+    title: Optional[str] = None
+    description: Optional[str] = None
+
+
+@api_router.get("/3d-image-categories")
+async def get_3d_image_categories():
+    """Get preset 3D image categories"""
+    return {
+        "categories": PROJECT_3D_IMAGE_CATEGORIES,
+        "allow_custom": True
+    }
+
+
+@api_router.get("/projects/{project_id}/3d-images")
+async def get_project_3d_images(
+    project_id: str,
+    current_user: User = Depends(get_current_user)
+):
+    """Get all 3D images for a project, grouped by category"""
+    # Verify project exists
+    project = await db.projects.find_one({"id": project_id, "deleted_at": None}, {"_id": 0})
+    if not project:
+        raise HTTPException(status_code=404, detail="Project not found")
+    
+    # Get all images for this project
+    images = await db.project_3d_images.find(
+        {"project_id": project_id, "deleted_at": None},
+        {"_id": 0}
+    ).sort("created_at", -1).to_list(500)
+    
+    # Group by category
+    grouped = {}
+    for img in images:
+        category = img.get("category", "Other")
+        if category not in grouped:
+            grouped[category] = []
+        grouped[category].append(img)
+    
+    # Sort categories - preset first, then custom, then Other
+    sorted_categories = []
+    for cat in PROJECT_3D_IMAGE_CATEGORIES:
+        if cat in grouped:
+            sorted_categories.append({"category": cat, "images": grouped[cat]})
+    
+    # Add any custom categories
+    for cat in grouped:
+        if cat not in PROJECT_3D_IMAGE_CATEGORIES:
+            sorted_categories.append({"category": cat, "images": grouped[cat]})
+    
+    return {
+        "project_id": project_id,
+        "total_images": len(images),
+        "categories": sorted_categories,
+        "preset_categories": PROJECT_3D_IMAGE_CATEGORIES
+    }
+
+
+@api_router.post("/projects/{project_id}/3d-images")
+async def upload_3d_images(
+    project_id: str,
+    category: str = Form(...),
+    title: Optional[str] = Form(None),
+    files: List[UploadFile] = File(...),
+    current_user: User = Depends(get_current_user)
+):
+    """Upload 3D images for a project - Owner or Team Leader only"""
+    # Verify project exists
+    project = await db.projects.find_one({"id": project_id, "deleted_at": None}, {"_id": 0})
+    if not project:
+        raise HTTPException(status_code=404, detail="Project not found")
+    
+    # Permission check - only owner or team leader can upload
+    is_team_leader = project.get("team_leader_id") == current_user.id
+    if not current_user.is_owner and not is_team_leader:
+        raise HTTPException(
+            status_code=403, 
+            detail="Only owner or team leader can upload 3D images"
+        )
+    
+    # Create upload directory
+    images_dir = UPLOAD_DIR / "3d_images" / project_id
+    images_dir.mkdir(parents=True, exist_ok=True)
+    
+    uploaded_images = []
+    
+    for file in files:
+        # Validate file type
+        if not file.content_type or not file.content_type.startswith("image/"):
+            continue  # Skip non-image files
+        
+        # Generate unique filename
+        file_ext = Path(file.filename).suffix.lower() if file.filename else ".jpg"
+        if file_ext not in [".jpg", ".jpeg", ".png", ".webp", ".gif"]:
+            file_ext = ".jpg"
+        
+        unique_filename = f"{uuid.uuid4()}{file_ext}"
+        file_path = images_dir / unique_filename
+        
+        # Save file
+        content = await file.read()
+        with open(file_path, "wb") as f:
+            f.write(content)
+        
+        # Create database record
+        image_record = {
+            "id": str(uuid.uuid4()),
+            "project_id": project_id,
+            "category": category,
+            "title": title or file.filename,
+            "original_filename": file.filename,
+            "file_path": str(file_path),
+            "file_url": f"/uploads/3d_images/{project_id}/{unique_filename}",
+            "file_size": len(content),
+            "mime_type": file.content_type,
+            "uploaded_by_id": current_user.id,
+            "uploaded_by_name": current_user.name,
+            "created_at": datetime.now(timezone.utc).isoformat(),
+            "deleted_at": None
+        }
+        
+        await db.project_3d_images.insert_one(image_record)
+        uploaded_images.append({k: v for k, v in image_record.items() if k != "file_path"})
+    
+    # Send notification to client about new images
+    if uploaded_images:
+        try:
+            from template_notification_service import template_notification_service
+            
+            # Get client info
+            if project.get("client_id"):
+                client = await db.clients.find_one({"id": project["client_id"]}, {"_id": 0})
+                if client and client.get("phone"):
+                    await template_notification_service.notify_3d_images_uploaded(
+                        phone_number=client["phone"],
+                        client_name=client.get("name", "Client"),
+                        project_name=project.get("title", "Your Project"),
+                        category=category,
+                        count=len(uploaded_images),
+                        client_id=client.get("user_id"),
+                        project_id=project_id
+                    )
+        except Exception as e:
+            logger.warning(f"Failed to send 3D images notification: {str(e)}")
+    
+    return {
+        "success": True,
+        "uploaded_count": len(uploaded_images),
+        "images": uploaded_images
+    }
+
+
+@api_router.delete("/projects/{project_id}/3d-images/{image_id}")
+async def delete_3d_image(
+    project_id: str,
+    image_id: str,
+    current_user: User = Depends(get_current_user)
+):
+    """Delete a 3D image - Owner or Team Leader only"""
+    # Verify project exists
+    project = await db.projects.find_one({"id": project_id, "deleted_at": None}, {"_id": 0})
+    if not project:
+        raise HTTPException(status_code=404, detail="Project not found")
+    
+    # Get the image
+    image = await db.project_3d_images.find_one({
+        "id": image_id, 
+        "project_id": project_id,
+        "deleted_at": None
+    }, {"_id": 0})
+    
+    if not image:
+        raise HTTPException(status_code=404, detail="Image not found")
+    
+    # Permission check - only owner or team leader can delete
+    is_team_leader = project.get("team_leader_id") == current_user.id
+    if not current_user.is_owner and not is_team_leader:
+        raise HTTPException(
+            status_code=403, 
+            detail="Only owner or team leader can delete 3D images"
+        )
+    
+    # Soft delete
+    await db.project_3d_images.update_one(
+        {"id": image_id},
+        {"$set": {
+            "deleted_at": datetime.now(timezone.utc).isoformat(),
+            "deleted_by_id": current_user.id
+        }}
+    )
+    
+    return {"success": True, "message": "Image deleted successfully"}
+
+
+@api_router.get("/uploads/3d_images/{project_id}/{filename}")
+async def serve_3d_image(project_id: str, filename: str):
+    """Serve 3D image files"""
+    file_path = UPLOAD_DIR / "3d_images" / project_id / filename
+    if not file_path.exists():
+        raise HTTPException(status_code=404, detail="Image not found")
+    
+    return FileResponse(file_path)
+
+
 # Include modular routers
 from routes import auth, dashboard, notifications as notif_routes, projects, drawings
 from routes import resources as resources_routes
