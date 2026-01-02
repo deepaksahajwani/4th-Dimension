@@ -157,18 +157,20 @@ export default function ExternalDashboard({ user, onLogout }) {
                       className="h-2 bg-slate-100"
                     />
                     <p className="text-xs text-slate-500 mt-1">
-                      {project.issuedDrawings} of {project.totalDrawings} drawings issued
+                      {project.issuedDrawings} drawings issued
                     </p>
                   </div>
 
                   {/* Project Details - Grid for mobile */}
                   <div className="grid grid-cols-2 gap-3 text-sm">
-                    <div className="flex items-center gap-2 text-slate-600">
-                      <Calendar className="w-4 h-4 text-slate-400 shrink-0" />
-                      <span className="truncate">{formatDate(project.start_date)}</span>
-                    </div>
+                    {project.start_date && (
+                      <div className="flex items-center gap-2 text-slate-600">
+                        <Calendar className="w-4 h-4 text-slate-400 shrink-0" />
+                        <span className="truncate">{formatDate(project.start_date)}</span>
+                      </div>
+                    )}
                     
-                    {(project.team_leader_name || project.team_leader_id) && (
+                    {project.team_leader_name && (
                       <div 
                         className="flex items-center gap-2 text-orange-600 hover:text-orange-700 cursor-pointer"
                         onClick={(e) => {
@@ -179,7 +181,7 @@ export default function ExternalDashboard({ user, onLogout }) {
                         }}
                       >
                         <User className="w-4 h-4 shrink-0" />
-                        <span className="truncate font-medium">{project.team_leader_name || 'Team Leader'}</span>
+                        <span className="truncate font-medium">{project.team_leader_name}</span>
                       </div>
                     )}
                   </div>
