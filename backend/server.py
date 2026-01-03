@@ -8315,6 +8315,22 @@ async def startup_event():
         logger.info("Drawing approval reminder scheduler started")
     except Exception as e:
         logger.error(f"Failed to start reminder scheduler: {str(e)}")
+    
+    # Start async notification worker
+    try:
+        from async_notifications import async_notification_service
+        await async_notification_service.start_worker()
+        logger.info("Async notification worker started")
+    except Exception as e:
+        logger.error(f"Failed to start async notification worker: {str(e)}")
+    
+    # Start cache cleanup
+    try:
+        from cache_service import cache
+        await cache.start_cleanup()
+        logger.info("Cache cleanup task started")
+    except Exception as e:
+        logger.error(f"Failed to start cache cleanup: {str(e)}")
 
 @app.on_event("shutdown")
 async def shutdown_db_client():
