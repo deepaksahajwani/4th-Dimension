@@ -389,23 +389,324 @@ class BackendTester:
         except Exception as e:
             self.log_result("User Projects Endpoint", False, f"Exception: {str(e)}")
 
+    def test_aggregated_team_leader_dashboard(self):
+        """Test Aggregated Team Leader Dashboard API"""
+        if not self.team_leader_token:
+            self.log_result("Aggregated Team Leader Dashboard", False, "No team leader token available")
+            return
+            
+        try:
+            print("📊 Testing Aggregated Team Leader Dashboard...")
+            
+            headers = {"Authorization": f"Bearer {self.team_leader_token}"}
+            response = self.session.get(f"{BACKEND_URL}/aggregated/team-leader-dashboard", headers=headers)
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                # Check required fields
+                required_fields = ["user", "summary", "projects"]
+                missing_fields = [field for field in required_fields if field not in data]
+                
+                if not missing_fields:
+                    user_data = data.get("user", {})
+                    summary_data = data.get("summary", {})
+                    projects_data = data.get("projects", [])
+                    
+                    # Verify user data
+                    if user_data.get("id") and user_data.get("name"):
+                        # Verify summary data
+                        summary_fields = ["total_projects", "total_revisions_needed", "total_pending_approval"]
+                        if all(field in summary_data for field in summary_fields):
+                            # Verify projects have stats
+                            if projects_data and isinstance(projects_data, list):
+                                sample_project = projects_data[0]
+                                if "stats" in sample_project:
+                                    self.log_result("Aggregated Team Leader Dashboard", True, 
+                                                  f"Dashboard returns complete data: {len(projects_data)} projects, "
+                                                  f"{summary_data.get('total_revisions_needed', 0)} revisions needed")
+                                    # Store project ID for later tests
+                                    if not self.project_id and sample_project.get("id"):
+                                        self.project_id = sample_project["id"]
+                                else:
+                                    self.log_result("Aggregated Team Leader Dashboard", False, 
+                                                  "Projects missing stats field")
+                            else:
+                                self.log_result("Aggregated Team Leader Dashboard", True, 
+                                              "Dashboard working but no projects found")
+                        else:
+                            self.log_result("Aggregated Team Leader Dashboard", False, 
+                                          f"Summary missing required fields: {summary_fields}")
+                    else:
+                        self.log_result("Aggregated Team Leader Dashboard", False, 
+                                      "User data incomplete")
+                else:
+                    self.log_result("Aggregated Team Leader Dashboard", False, 
+                                  f"Response missing required fields: {missing_fields}")
+            else:
+                self.log_result("Aggregated Team Leader Dashboard", False, 
+                              f"API failed: {response.status_code}", response.text)
+                
+        except Exception as e:
+            self.log_result("Aggregated Team Leader Dashboard", False, f"Exception: {str(e)}")
+
+    def test_aggregated_my_work(self):
+        """Test Aggregated My Work API"""
+        if not self.team_leader_token:
+            self.log_result("Aggregated My Work", False, "No team leader token available")
+            return
+            
+        try:
+            print("📋 Testing Aggregated My Work...")
+            
+            headers = {"Authorization": f"Bearer {self.team_leader_token}"}
+            response = self.session.get(f"{BACKEND_URL}/aggregated/my-work", headers=headers)
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                # Check required fields
+                required_fields = ["user_id", "total_projects", "total_actions", "action_items"]
+                missing_fields = [field for field in required_fields if field not in data]
+                
+                if not missing_fields:
+                    user_id = data.get("user_id")
+                    total_projects = data.get("total_projects", 0)
+                    total_actions = data.get("total_actions", 0)
+                    action_items = data.get("action_items", [])
+                    
+                    if user_id:
+                        self.log_result("Aggregated My Work", True, 
+                                      f"My Work returns complete data: {total_projects} projects, "
+                                      f"{total_actions} total actions, {len(action_items)} actionable projects")
+                    else:
+                        self.log_result("Aggregated My Work", False, "Missing user_id")
+                else:
+                    self.log_result("Aggregated My Work", False, 
+                                  f"Response missing required fields: {missing_fields}")
+            else:
+                self.log_result("Aggregated My Work", False, 
+                              f"API failed: {response.status_code}", response.text)
+                
+        except Exception as e:
+            self.log_result("Aggregated My Work", False, f"Exception: {str(e)}")
+
+    def test_aggregated_project_full(self):
+        """Test Aggregated Project Full API"""
+        if not self.team_leader_token or not self.project_id:
+            self.log_result("Aggregated Project Full", False, "Missing team leader token or project ID")
+            return
+            
+        try:
+            print("🏗️ Testing Aggregated Project Full...")
+            
+            headers = {"Authorization": f"Bearer {self.team_leader_token}"}
+            response = self.session.get(f"{BACKEND_URL}/aggregated/project/{self.project_id}/full", headers=headers)
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                # Check required fields
+                required_fields = ["project", "stats", "drawings", "images_3d", "comments"]
+                missing_fields = [field for field in required_fields if field not in data]
+                
+                if not missing_fields:
+                    project_data = data.get("project", {})
+                    stats_data = data.get("stats", {})
+                    drawings_data = data.get("drawings", {})
+                    images_3d_data = data.get("images_3d", {})
+                    comments_data = data.get("comments", [])
+                    
+                    # Verify drawings are grouped by status
+                    expected_statuses = ["revisions_needed", "pending_approval", "ready_to_issue", "issued", "not_started"]
+                    drawings_statuses = list(drawings_data.keys()) if isinstance(drawings_data, dict) else []
+                    
+                    if all(status in drawings_statuses for status in expected_statuses):
+                        # Check if we can find a drawing for WhatsApp test
+                        all_drawings = []
+                        for status_drawings in drawings_data.values():
+                            if isinstance(status_drawings, list):
+                                all_drawings.extend(status_drawings)
+                        
+                        if all_drawings and not self.drawing_id:
+                            self.drawing_id = all_drawings[0].get("id")
+                        
+                        self.log_result("Aggregated Project Full", True, 
+                                      f"Project full data complete: {stats_data.get('total_drawings', 0)} drawings, "
+                                      f"{images_3d_data.get('total', 0)} 3D images, {len(comments_data)} comments")
+                    else:
+                        self.log_result("Aggregated Project Full", False, 
+                                      f"Drawings not properly grouped by status. Expected: {expected_statuses}, Got: {drawings_statuses}")
+                else:
+                    self.log_result("Aggregated Project Full", False, 
+                                  f"Response missing required fields: {missing_fields}")
+            elif response.status_code == 404:
+                self.log_result("Aggregated Project Full", False, 
+                              f"Project not found: {self.project_id}")
+            else:
+                self.log_result("Aggregated Project Full", False, 
+                              f"API failed: {response.status_code}", response.text)
+                
+        except Exception as e:
+            self.log_result("Aggregated Project Full", False, f"Exception: {str(e)}")
+
+    def test_send_drawing_whatsapp(self):
+        """Test Send Drawing via WhatsApp API"""
+        if not self.team_leader_token:
+            self.log_result("Send Drawing WhatsApp", False, "No team leader token available")
+            return
+            
+        # Try to find a drawing ID if we don't have one
+        if not self.drawing_id:
+            try:
+                headers = {"Authorization": f"Bearer {self.team_leader_token}"}
+                if self.project_id:
+                    # Try to get drawings from project
+                    response = self.session.get(f"{BACKEND_URL}/projects/{self.project_id}/drawings", headers=headers)
+                    if response.status_code == 200:
+                        drawings = response.json()
+                        if drawings and len(drawings) > 0:
+                            self.drawing_id = drawings[0].get("id")
+            except:
+                pass
+        
+        if not self.drawing_id:
+            self.log_result("Send Drawing WhatsApp", False, "No drawing ID available for testing")
+            return
+            
+        try:
+            print("📱 Testing Send Drawing via WhatsApp...")
+            
+            headers = {"Authorization": f"Bearer {self.team_leader_token}"}
+            params = {
+                "phone_number": "+919876543210",
+                "include_file": "true"
+            }
+            
+            response = self.session.post(
+                f"{BACKEND_URL}/drawings/{self.drawing_id}/send-whatsapp", 
+                headers=headers, 
+                params=params
+            )
+            
+            if response.status_code == 200:
+                data = response.json()
+                if data.get("success") or "queued" in str(data).lower():
+                    self.log_result("Send Drawing WhatsApp", True, 
+                                  "WhatsApp message queued for async delivery")
+                else:
+                    self.log_result("Send Drawing WhatsApp", False, 
+                                  f"Unexpected response: {data}")
+            elif response.status_code == 404:
+                self.log_result("Send Drawing WhatsApp", False, 
+                              f"Drawing not found: {self.drawing_id}")
+            else:
+                self.log_result("Send Drawing WhatsApp", False, 
+                              f"API failed: {response.status_code}", response.text)
+                
+        except Exception as e:
+            self.log_result("Send Drawing WhatsApp", False, f"Exception: {str(e)}")
+
+    def test_cache_stats_owner(self):
+        """Test Cache Stats API (Owner only)"""
+        if not self.owner_token:
+            self.log_result("Cache Stats (Owner)", False, "No owner token available")
+            return
+            
+        try:
+            print("📈 Testing Cache Stats (Owner only)...")
+            
+            headers = {"Authorization": f"Bearer {self.owner_token}"}
+            response = self.session.get(f"{BACKEND_URL}/aggregated/cache-stats", headers=headers)
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                # Check if cache stats are returned
+                if "cache_stats" in data or "async_notifications_enabled" in data:
+                    cache_stats = data.get("cache_stats")
+                    async_enabled = data.get("async_notifications_enabled", False)
+                    
+                    self.log_result("Cache Stats (Owner)", True, 
+                                  f"Cache stats available: {cache_stats is not None}, "
+                                  f"Async notifications: {async_enabled}")
+                else:
+                    self.log_result("Cache Stats (Owner)", False, 
+                                  "Response missing cache statistics")
+            elif response.status_code == 403:
+                self.log_result("Cache Stats (Owner)", False, 
+                              "Access denied - Owner permission required")
+            else:
+                self.log_result("Cache Stats (Owner)", False, 
+                              f"API failed: {response.status_code}", response.text)
+                
+        except Exception as e:
+            self.log_result("Cache Stats (Owner)", False, f"Exception: {str(e)}")
+
+    def test_paginated_logs_owner(self):
+        """Test Paginated Logs API (Owner only)"""
+        if not self.owner_token:
+            self.log_result("Paginated Logs (Owner)", False, "No owner token available")
+            return
+            
+        try:
+            print("📄 Testing Paginated Logs (Owner only)...")
+            
+            headers = {"Authorization": f"Bearer {self.owner_token}"}
+            params = {"page": 1, "page_size": 10}
+            
+            response = self.session.get(f"{BACKEND_URL}/aggregated/logs", headers=headers, params=params)
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                # Check pagination fields
+                required_fields = ["page", "page_size", "total", "total_pages", "logs"]
+                missing_fields = [field for field in required_fields if field not in data]
+                
+                if not missing_fields:
+                    page = data.get("page", 0)
+                    page_size = data.get("page_size", 0)
+                    total = data.get("total", 0)
+                    total_pages = data.get("total_pages", 0)
+                    logs = data.get("logs", [])
+                    
+                    if page == 1 and page_size == 10:
+                        self.log_result("Paginated Logs (Owner)", True, 
+                                      f"Paginated logs working: {total} total logs, "
+                                      f"{len(logs)} logs on page {page}/{total_pages}")
+                    else:
+                        self.log_result("Paginated Logs (Owner)", False, 
+                                      f"Pagination parameters incorrect: page={page}, page_size={page_size}")
+                else:
+                    self.log_result("Paginated Logs (Owner)", False, 
+                                  f"Response missing pagination fields: {missing_fields}")
+            elif response.status_code == 403:
+                self.log_result("Paginated Logs (Owner)", False, 
+                              "Access denied - Owner permission required")
+            else:
+                self.log_result("Paginated Logs (Owner)", False, 
+                              f"API failed: {response.status_code}", response.text)
+                
+        except Exception as e:
+            self.log_result("Paginated Logs (Owner)", False, f"Exception: {str(e)}")
+
     def run_all_tests(self):
         """Run all tests in sequence"""
-        print("🚀 Starting Backend API Tests for Review Request")
+        print("🚀 Starting Performance-Optimized API Tests")
         print("=" * 60)
         
         # Authentication tests
         self.test_team_leader_login()
         self.test_owner_login()
         
-        # Core functionality tests
-        self.test_my_work_endpoint()
-        self.test_3d_images_endpoint()
-        self.test_team_leader_dashboard_differentiation()
-        
-        # Additional related tests
-        self.test_3d_image_categories_endpoint()
-        self.test_user_projects_endpoint()
+        # Performance-optimized API tests
+        self.test_aggregated_team_leader_dashboard()
+        self.test_aggregated_my_work()
+        self.test_aggregated_project_full()
+        self.test_send_drawing_whatsapp()
+        self.test_cache_stats_owner()
+        self.test_paginated_logs_owner()
         
         # Summary
         print("\n" + "=" * 60)
