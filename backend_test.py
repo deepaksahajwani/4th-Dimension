@@ -598,8 +598,9 @@ class BackendTester:
                     self.log_result("Send Drawing WhatsApp", False, 
                                   f"Unexpected response: {data}")
             elif response.status_code == 404:
+                # Known issue: Route not accessible despite being defined in code
                 self.log_result("Send Drawing WhatsApp", False, 
-                              f"Drawing not found: {self.drawing_id}")
+                              f"Route not accessible (404) - endpoint may not be properly registered. Drawing ID: {self.drawing_id}")
             else:
                 self.log_result("Send Drawing WhatsApp", False, 
                               f"API failed: {response.status_code}", response.text)
