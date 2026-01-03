@@ -7,8 +7,9 @@ import os
 import logging
 from typing import Optional, List, Dict, Any
 from datetime import datetime, timezone, timedelta
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, Header
 from motor.motor_asyncio import AsyncIOMotorClient
+import jwt
 
 logger = logging.getLogger(__name__)
 
@@ -21,25 +22,45 @@ db_name = os.environ.get('DB_NAME', 'architecture_firm')
 client = AsyncIOMotorClient(mongo_url)
 db = client[db_name]
 
-
-# Auth dependency - will be injected
-_get_current_user = None
-
-def set_auth_dependency(auth_func):
-    """Set the auth dependency from server.py"""
-    global _get_current_user
-    _get_current_user = auth_func
+SECRET_KEY = os.environ.get("SECRET_KEY", "your-secret-key-here-change-in-production")
 
 
-async def get_user():
-    """Get current user using injected dependency"""
-    if _get_current_user is None:
-        raise HTTPException(status_code=500, detail="Auth not configured")
-    return await _get_current_user()
+async def get_current_user_from_token(authorization: str = Header(None)):
+    """Extract and verify user from JWT token"""
+    if not authorization:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    
+    try:
+        # Extract token from "Bearer <token>"
+        scheme, token = authorization.split()
+        if scheme.lower() != "bearer":
+            raise HTTPException(status_code=401, detail="Invalid auth scheme")
+        
+        # Decode JWT
+        payload = jwt.decode(token, SECRET_KEY, algorithms=["HS256"])
+        user_id = payload.get("sub") or payload.get("user_id")
+        
+        if not user_id:
+            raise HTTPException(status_code=401, detail="Invalid token")
+        
+        # Get user from database
+        user = await db.users.find_one({"id": user_id}, {"_id": 0})
+        if not user:
+            raise HTTPException(status_code=401, detail="User not found")
+        
+        return user
+        
+    except jwt.ExpiredSignatureError:
+        raise HTTPException(status_code=401, detail="Token expired")
+    except jwt.InvalidTokenError:
+        raise HTTPException(status_code=401, detail="Invalid token")
+    except Exception as e:
+        logger.error(f"Auth error: {e}")
+        raise HTTPException(status_code=401, detail="Authentication failed")
 
 
 @aggregated_router.get("/team-leader-dashboard")
-async def get_team_leader_dashboard():
+async def get_team_leader_dashboard(user: dict = Depends(get_current_user_from_token)):
     """
     Aggregated API for Team Leader Dashboard.
     Returns all data needed in a single call:
@@ -48,10 +69,9 @@ async def get_team_leader_dashboard():
     - Recent comments
     - Pending actions summary
     """
-    user = await get_user()
-    user_id = user.id if hasattr(user, 'id') else user.get('id')
-    user_name = user.name if hasattr(user, 'name') else user.get('name')
-    user_role = user.role if hasattr(user, 'role') else user.get('role')
+    user_id = user.get('id')
+    user_name = user.get('name')
+    user_role = user.get('role')
     
     # Get projects where user is team leader
     projects = await db.projects.find(
@@ -136,7 +156,7 @@ async def get_team_leader_dashboard():
 
 
 @aggregated_router.get("/project/{project_id}/full")
-async def get_project_full(project_id: str):
+async def get_project_full(project_id: str, user: dict = Depends(get_current_user_from_token)):
     """
     Aggregated API for Project Detail View.
     Returns all project data in a single call:
@@ -147,8 +167,6 @@ async def get_project_full(project_id: str):
     - Client info
     - Team leader info
     """
-    user = await get_user()
-    
     # Get project
     project = await db.projects.find_one(
         {"id": project_id, "deleted_at": None},
@@ -247,13 +265,12 @@ async def get_project_full(project_id: str):
 
 
 @aggregated_router.get("/my-work")
-async def get_my_work():
+async def get_my_work(user: dict = Depends(get_current_user_from_token)):
     """
     Aggregated API for My Work page.
     Returns all actionable items across projects.
     """
-    user = await get_user()
-    user_id = user.id if hasattr(user, 'id') else user.get('id')
+    user_id = user.get('id')
     
     # Get projects where user is team leader
     projects = await db.projects.find(
@@ -315,13 +332,13 @@ async def get_paginated_logs(
     page: int = Query(1, ge=1),
     page_size: int = Query(50, ge=10, le=200),
     log_type: Optional[str] = None,
-    status: Optional[str] = None
+    status: Optional[str] = None,
+    user: dict = Depends(get_current_user_from_token)
 ):
     """
     Paginated logs API for better performance.
     """
-    user = await get_user()
-    is_owner = user.is_owner if hasattr(user, 'is_owner') else user.get('is_owner', False)
+    is_owner = user.get('is_owner', False)
     
     if not is_owner:
         raise HTTPException(status_code=403, detail="Owner access required")
@@ -350,3 +367,28 @@ async def get_paginated_logs(
         "total_pages": (total + page_size - 1) // page_size,
         "logs": logs
     }
+
+
+@aggregated_router.get("/cache-stats")
+async def get_cache_stats(user: dict = Depends(get_current_user_from_token)):
+    """Get cache statistics (Owner only)"""
+    if not user.get('is_owner', False):
+        raise HTTPException(status_code=403, detail="Owner access required")
+    
+    try:
+        from cache_service import cache
+        return {
+            "cache_stats": cache.stats(),
+            "async_notifications_enabled": True
+        }
+    except ImportError:
+        return {
+            "cache_stats": None,
+            "async_notifications_enabled": False
+        }
+
+
+# Dummy function for compatibility
+def set_auth_dependency(auth_func):
+    """Legacy function - no longer needed with Header-based auth"""
+    pass
