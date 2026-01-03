@@ -1,10 +1,13 @@
 #!/usr/bin/env python3
 """
 Backend API Testing Script for Architecture Firm Management System
-Testing specific endpoints as requested in review:
-1. My Work Endpoint Test
-2. 3D Images Endpoint Test  
-3. Team Leader Dashboard vs My Work Differentiation
+Testing Performance-Optimized APIs as requested in review:
+1. Aggregated Team Leader Dashboard
+2. Aggregated My Work
+3. Aggregated Project Full
+4. Send Drawing via WhatsApp
+5. Cache Stats (Owner only)
+6. Paginated Logs (Owner only)
 """
 
 import requests
