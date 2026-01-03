@@ -31,11 +31,12 @@ def set_auth_dependency(auth_func):
     _get_current_user = auth_func
 
 
-def get_auth():
-    """Get the current auth dependency"""
+async def get_current_user_wrapper():
+    """Wrapper to call the injected auth dependency"""
     if _get_current_user is None:
         raise HTTPException(status_code=500, detail="Auth not configured")
-    return _get_current_user
+    # Call the actual auth function
+    return await _get_current_user()
 
 
 @router.post("/drawings/{drawing_id}/send-whatsapp")
@@ -43,7 +44,7 @@ async def send_drawing_via_whatsapp(
     drawing_id: str,
     phone_number: str = Query(..., description="Recipient phone number"),
     include_file: bool = Query(True, description="Include drawing file as attachment"),
-    current_user: dict = Depends(get_auth)
+    current_user: dict = Depends(get_current_user_wrapper)
 ):
     """
     Send drawing approval request via WhatsApp with optional file attachment.
