@@ -8341,6 +8341,21 @@ async def shutdown_db_client():
             await _reminder_task
         except asyncio.CancelledError:
             pass
+    
+    # Stop async notification worker
+    try:
+        from async_notifications import async_notification_service
+        await async_notification_service.stop_worker()
+    except Exception:
+        pass
+    
+    # Stop cache cleanup
+    try:
+        from cache_service import cache
+        await cache.stop_cleanup()
+    except Exception:
+        pass
+    
     client.close()
 
 # ==================== WHATSAPP NOTIFICATION ENDPOINTS ====================
