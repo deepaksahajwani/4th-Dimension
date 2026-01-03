@@ -26,6 +26,7 @@ class BackendTester:
         self.team_leader_token = None
         self.owner_token = None
         self.project_id = None
+        self.drawing_id = None
         
     def log_result(self, test_name, success, details="", response_data=None):
         """Log test result"""
