@@ -8280,6 +8280,15 @@ app.include_router(api_router)
 from api_notifications_payments import notifications_payments_router
 app.include_router(notifications_payments_router, prefix="/api")
 
+# Include aggregated APIs for performance
+try:
+    from aggregated_apis import aggregated_router, set_auth_dependency
+    set_auth_dependency(get_current_user)
+    app.include_router(aggregated_router)
+    logger.info("Aggregated APIs router included")
+except Exception as e:
+    logger.warning(f"Failed to include aggregated APIs: {e}")
+
 # Mount uploads directory for serving static files
 # Using /api/uploads prefix to ensure Kubernetes ingress routes to backend
 from pathlib import Path
