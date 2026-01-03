@@ -22,7 +22,7 @@ db_name = os.environ.get('DB_NAME', 'architecture_firm')
 client = AsyncIOMotorClient(mongo_url)
 db = client[db_name]
 
-SECRET_KEY = os.environ.get("SECRET_KEY", "your-secret-key-here-change-in-production")
+SECRET_KEY = os.environ.get("JWT_SECRET_KEY", "your-secret-key")
 
 
 async def get_current_user_from_token(authorization: str = Header(None)):
