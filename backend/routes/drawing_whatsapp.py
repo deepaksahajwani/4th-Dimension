@@ -217,7 +217,7 @@ async def send_drawing_via_whatsapp(
 async def request_drawing_approval(
     drawing_id: str,
     send_file: bool = Query(True, description="Send drawing file on WhatsApp"),
-    current_user: dict = Depends(get_auth)
+    current_user: dict = Depends(get_current_user_wrapper)
 ):
     """
     Request approval for a drawing - sends notification to owner with optional file attachment.
