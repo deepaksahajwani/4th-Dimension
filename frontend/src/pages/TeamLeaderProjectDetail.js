@@ -652,10 +652,11 @@ export default function TeamLeaderProjectDetail({ user, onLogout }) {
                       <div className="grid grid-cols-2 gap-2">
                         {images.map(img => (
                           <div key={img.id} className="relative aspect-video bg-slate-100 rounded-lg overflow-hidden">
-                            <img
+                            <LazyImage
                               src={`${BACKEND_URL}${img.file_url}`}
                               alt={img.title || category}
                               className="w-full h-full object-cover"
+                              placeholderClassName="aspect-video"
                             />
                           </div>
                         ))}
