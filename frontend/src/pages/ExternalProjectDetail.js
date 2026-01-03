@@ -511,11 +511,11 @@ export default function ExternalProjectDetail({ user, onLogout }) {
                               className="relative aspect-video bg-slate-100 rounded-lg overflow-hidden cursor-pointer hover:opacity-90 transition-opacity"
                               onClick={() => window.open(`${BACKEND_URL}${img.file_url}`, '_blank')}
                             >
-                              <img
+                              <LazyImage
                                 src={`${BACKEND_URL}${img.file_url}`}
                                 alt={img.title || category}
                                 className="w-full h-full object-cover"
-                                loading="lazy"
+                                placeholderClassName="aspect-video"
                               />
                               <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-2">
                                 <p className="text-white text-xs truncate">{img.title || 'View Image'}</p>
