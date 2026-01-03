@@ -2,10 +2,12 @@
 Complete Notification Triggers - All notification types
 Implements the notification system using WhatsApp templates
 Uses template_notification_service for consistent template-based messaging
+All notifications are now non-blocking using async queue
 """
 
 import os
 import logging
+import asyncio
 from typing import List, Optional, Dict
 from datetime import datetime, timezone
 from motor.motor_asyncio import AsyncIOMotorClient
@@ -19,6 +21,14 @@ try:
 except ImportError:
     template_notification_service = None
 
+# Import async notification service for non-blocking delivery
+try:
+    from async_notifications import async_notification_service
+    USE_ASYNC_NOTIFICATIONS = True
+except ImportError:
+    async_notification_service = None
+    USE_ASYNC_NOTIFICATIONS = False
+
 logger = logging.getLogger(__name__)
 
 # Database connection
@@ -26,6 +36,61 @@ mongo_url = os.environ.get('MONGO_URL')
 db_name = os.environ.get('DB_NAME', 'architecture_firm')
 client = AsyncIOMotorClient(mongo_url)
 db = client[db_name]
+
+
+def queue_whatsapp_async(phone: str, message: str = None, content_sid: str = None, variables: dict = None):
+    """Queue WhatsApp notification for async delivery (non-blocking)"""
+    if USE_ASYNC_NOTIFICATIONS and async_notification_service:
+        if content_sid:
+            async_notification_service.queue_whatsapp_template(
+                phone=phone,
+                content_sid=content_sid,
+                variables=variables or {}
+            )
+        elif message:
+            async_notification_service.queue_whatsapp(phone=phone, message=message)
+        logger.debug(f"Queued WhatsApp notification to {phone}")
+    else:
+        # Fallback to sync - create task to avoid blocking
+        asyncio.create_task(_send_whatsapp_background(phone, message, content_sid, variables))
+
+
+async def _send_whatsapp_background(phone: str, message: str = None, content_sid: str = None, variables: dict = None):
+    """Background task for WhatsApp when async service not available"""
+    try:
+        if content_sid and template_notification_service:
+            await template_notification_service.send_notification(
+                template_key=None,
+                phone=phone,
+                content_sid=content_sid,
+                variables=variables or {}
+            )
+        elif message:
+            await notification_service.send_whatsapp(phone, message)
+    except Exception as e:
+        logger.error(f"Background WhatsApp send failed: {e}")
+
+
+def queue_email_async(to_email: str, subject: str, html_content: str):
+    """Queue email notification for async delivery (non-blocking)"""
+    if USE_ASYNC_NOTIFICATIONS and async_notification_service:
+        async_notification_service.queue_email(
+            to_email=to_email,
+            subject=subject,
+            html_content=html_content
+        )
+        logger.debug(f"Queued email notification to {to_email}")
+    else:
+        # Fallback to sync - create task to avoid blocking
+        asyncio.create_task(_send_email_background(to_email, subject, html_content))
+
+
+async def _send_email_background(to_email: str, subject: str, html_content: str):
+    """Background task for email when async service not available"""
+    try:
+        await notification_service.send_email(to_email, subject, html_content)
+    except Exception as e:
+        logger.error(f"Background email send failed: {e}")
 
 
 async def get_user_by_id(user_id: str) -> Optional[Dict]:
