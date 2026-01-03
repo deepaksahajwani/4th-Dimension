@@ -6,15 +6,9 @@ Reduces multiple API calls to single aggregated endpoints
 import os
 import logging
 from typing import Optional, List, Dict, Any
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from fastapi import APIRouter, Depends, HTTPException, Query
 from motor.motor_asyncio import AsyncIOMotorClient
-
-from cache_service import (
-    cache, cached, 
-    get_cached_projects, set_cached_projects, invalidate_projects_cache,
-    get_cached_drawings, set_cached_drawings
-)
 
 logger = logging.getLogger(__name__)
 
@@ -28,17 +22,24 @@ client = AsyncIOMotorClient(mongo_url)
 db = client[db_name]
 
 
-# Import auth dependency (will be set by server.py)
-get_current_user = None
+# Auth dependency - will be injected
+_get_current_user = None
 
 def set_auth_dependency(auth_func):
     """Set the auth dependency from server.py"""
-    global get_current_user
-    get_current_user = auth_func
+    global _get_current_user
+    _get_current_user = auth_func
+
+
+async def get_user():
+    """Get current user using injected dependency"""
+    if _get_current_user is None:
+        raise HTTPException(status_code=500, detail="Auth not configured")
+    return await _get_current_user()
 
 
 @aggregated_router.get("/team-leader-dashboard")
-async def get_team_leader_dashboard(current_user = Depends(lambda: get_current_user)):
+async def get_team_leader_dashboard():
     """
     Aggregated API for Team Leader Dashboard.
     Returns all data needed in a single call:
@@ -47,11 +48,10 @@ async def get_team_leader_dashboard(current_user = Depends(lambda: get_current_u
     - Recent comments
     - Pending actions summary
     """
-    if get_current_user is None:
-        raise HTTPException(status_code=500, detail="Auth not configured")
-    
-    user = await get_current_user()
-    user_id = user.id
+    user = await get_user()
+    user_id = user.id if hasattr(user, 'id') else user.get('id')
+    user_name = user.name if hasattr(user, 'name') else user.get('name')
+    user_role = user.role if hasattr(user, 'role') else user.get('role')
     
     # Get projects where user is team leader
     projects = await db.projects.find(
@@ -81,7 +81,6 @@ async def get_team_leader_dashboard(current_user = Depends(lambda: get_current_u
         ready_to_issue = len([d for d in drawings if d.get('is_approved') and not d.get('is_issued')])
         
         # Get recent comments (last 24h)
-        from datetime import timedelta
         yesterday = datetime.now(timezone.utc) - timedelta(hours=24)
         recent_comments = await db.comments.count_documents({
             "project_id": project['id'],
@@ -122,8 +121,8 @@ async def get_team_leader_dashboard(current_user = Depends(lambda: get_current_u
     return {
         "user": {
             "id": user_id,
-            "name": user.name,
-            "role": user.role
+            "name": user_name,
+            "role": user_role
         },
         "summary": {
             "total_projects": len(projects),
@@ -137,7 +136,7 @@ async def get_team_leader_dashboard(current_user = Depends(lambda: get_current_u
 
 
 @aggregated_router.get("/project/{project_id}/full")
-async def get_project_full(project_id: str, current_user = Depends(lambda: get_current_user)):
+async def get_project_full(project_id: str):
     """
     Aggregated API for Project Detail View.
     Returns all project data in a single call:
@@ -148,10 +147,7 @@ async def get_project_full(project_id: str, current_user = Depends(lambda: get_c
     - Client info
     - Team leader info
     """
-    if get_current_user is None:
-        raise HTTPException(status_code=500, detail="Auth not configured")
-    
-    user = await get_current_user()
+    user = await get_user()
     
     # Get project
     project = await db.projects.find_one(
@@ -202,14 +198,14 @@ async def get_project_full(project_id: str, current_user = Depends(lambda: get_c
     ).sort("created_at", -1).limit(50).to_list(50)
     
     # Get client info
-    client = None
+    client_info = None
     if project.get('client_id'):
-        client = await db.clients.find_one(
+        client_info = await db.clients.find_one(
             {"id": project['client_id']},
             {"_id": 0, "name": 1, "email": 1, "phone": 1, "mobile": 1}
         )
-        if not client:
-            client = await db.users.find_one(
+        if not client_info:
+            client_info = await db.users.find_one(
                 {"id": project['client_id']},
                 {"_id": 0, "name": 1, "email": 1, "phone": 1, "mobile": 1}
             )
@@ -230,7 +226,7 @@ async def get_project_full(project_id: str, current_user = Depends(lambda: get_c
         "project": {
             **project,
             "team_leader": team_leader,
-            "client": client
+            "client": client_info
         },
         "stats": {
             "total_drawings": total_drawings,
@@ -251,16 +247,13 @@ async def get_project_full(project_id: str, current_user = Depends(lambda: get_c
 
 
 @aggregated_router.get("/my-work")
-async def get_my_work(current_user = Depends(lambda: get_current_user)):
+async def get_my_work():
     """
     Aggregated API for My Work page.
     Returns all actionable items across projects.
     """
-    if get_current_user is None:
-        raise HTTPException(status_code=500, detail="Auth not configured")
-    
-    user = await get_current_user()
-    user_id = user.id
+    user = await get_user()
+    user_id = user.id if hasattr(user, 'id') else user.get('id')
     
     # Get projects where user is team leader
     projects = await db.projects.find(
@@ -282,7 +275,6 @@ async def get_my_work(current_user = Depends(lambda: get_current_user)):
         ready_to_issue = [d for d in drawings if d.get('is_approved') and not d.get('is_issued')]
         
         # Get recent comments
-        from datetime import timedelta
         yesterday = datetime.now(timezone.utc) - timedelta(hours=24)
         recent_comments = await db.comments.find(
             {
@@ -323,17 +315,15 @@ async def get_paginated_logs(
     page: int = Query(1, ge=1),
     page_size: int = Query(50, ge=10, le=200),
     log_type: Optional[str] = None,
-    status: Optional[str] = None,
-    current_user = Depends(lambda: get_current_user)
+    status: Optional[str] = None
 ):
     """
     Paginated logs API for better performance.
     """
-    if get_current_user is None:
-        raise HTTPException(status_code=500, detail="Auth not configured")
+    user = await get_user()
+    is_owner = user.is_owner if hasattr(user, 'is_owner') else user.get('is_owner', False)
     
-    user = await get_current_user()
-    if not user.is_owner:
+    if not is_owner:
         raise HTTPException(status_code=403, detail="Owner access required")
     
     # Build query
