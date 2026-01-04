@@ -22,7 +22,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { formatErrorMessage } from '@/utils/errorHandler';
-import { DrawingCard, DeleteProjectDialog, ArchiveProjectDialog } from '@/components/project';
+import { DrawingCard, DeleteProjectDialog, ArchiveProjectDialog, ChatView } from '@/components/project';
 import TeamLeaderAccess from '@/components/TeamLeaderAccess';
 import { usePermissions } from '@/hooks/usePermissions';
 
