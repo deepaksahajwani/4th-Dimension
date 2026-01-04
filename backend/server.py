@@ -6445,6 +6445,7 @@ from routes import comments as comments_routes
 from routes import external_parties as external_parties_routes
 from routes import api_v2
 from routes import metrics as metrics_routes
+from routes import magic_link as magic_link_routes
 
 # Include the new modular routers under /api
 api_router.include_router(auth.router)
