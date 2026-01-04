@@ -9,3 +9,7 @@ export { default as FileUploadDialog } from './FileUploadDialog';
 export { default as CommentsDialog } from './CommentsDialog';
 export { default as ProjectHeader } from './ProjectHeader';
 export { default as ProgressStats } from './ProgressStats';
+
+// Phase 2 Performance Components
+export { default as LazyComments } from './LazyComments';
+export { default as PaginatedDrawings } from './PaginatedDrawings';
