@@ -36,6 +36,60 @@ const getRelativeTime = (dateString) => {
   return date.toLocaleDateString();
 };
 
+// Get day label for grouping
+const getDayLabel = (dateString) => {
+  const date = new Date(dateString);
+  const today = new Date();
+  const yesterday = new Date(today);
+  yesterday.setDate(yesterday.getDate() - 1);
+  
+  const dateOnly = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+  const todayOnly = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+  const yesterdayOnly = new Date(yesterday.getFullYear(), yesterday.getMonth(), yesterday.getDate());
+  
+  if (dateOnly.getTime() === todayOnly.getTime()) {
+    return 'Today';
+  } else if (dateOnly.getTime() === yesterdayOnly.getTime()) {
+    return 'Yesterday';
+  } else {
+    return date.toLocaleDateString([], { weekday: 'long', month: 'short', day: 'numeric' });
+  }
+};
+
+// Get time only (e.g., "10:30 AM")
+const formatTime = (dateString) => {
+  const date = new Date(dateString);
+  return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+};
+
+// Group messages by day
+const groupMessagesByDay = (messages) => {
+  if (!messages || messages.length === 0) return [];
+  
+  const groups = [];
+  let currentDay = null;
+  let currentGroup = null;
+  
+  // Sort by created_at ascending (oldest first for display)
+  const sortedMessages = [...messages].sort((a, b) => 
+    new Date(a.created_at) - new Date(b.created_at)
+  );
+  
+  sortedMessages.forEach(message => {
+    const dayLabel = getDayLabel(message.created_at);
+    
+    if (dayLabel !== currentDay) {
+      currentDay = dayLabel;
+      currentGroup = { day: dayLabel, messages: [] };
+      groups.push(currentGroup);
+    }
+    
+    currentGroup.messages.push(message);
+  });
+  
+  return groups;
+};
+
 export default function CommentsDialog({
   open,
   onOpenChange,
