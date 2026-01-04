@@ -1447,6 +1447,7 @@ async def notify_owner_drawing_issued(
 ):
     """
     Notify owner when a drawing is issued
+    Uses template-based WhatsApp for reliable delivery
     """
     try:
         owner = await get_owner_info()
@@ -1462,25 +1463,36 @@ async def notify_owner_drawing_issued(
         # Deep link to the specific drawing
         deep_link = f"{APP_URL}/projects/{project_id}?drawing={drawing_id}"
         
-        message = f"""✅ *Drawing Issued*
+        # Use template-based notification
+        try:
+            from template_notification_service import template_notification_service
+            
+            result = await template_notification_service.notify_drawing_issued(
+                phone_number=owner['mobile'],
+                recipient_name=owner.get('name', 'Sir/Madam'),
+                project_name=project_name,
+                drawing_name=f"{drawing_name}{revision_text}",
+                issue_date=datetime.now(timezone.utc).strftime('%d %b %Y'),
+                portal_url=deep_link
+            )
+            
+            if result.get('success'):
+                logger.info(f"Owner notified of drawing issue (template): {drawing_name}")
+            else:
+                # Fallback to SMS
+                sms_msg = f"Drawing '{drawing_name}{revision_text}' has been issued for '{project_name}'. View: {deep_link}"
+                await notification_service.send_sms(owner['mobile'], sms_msg)
+                
+        except ImportError:
+            # Fallback to freeform
+            message = f"""✅ *Drawing Issued*
 
 📁 *Drawing:* {drawing_name}{revision_text}
 🏗️ *Project:* {project_name}
 👤 *Issued by:* {issued_by_name}
-📅 *Time:* {datetime.now(timezone.utc).strftime('%d %b %Y, %I:%M %p')}
 
-The drawing has been issued to relevant parties.
-
-👉 *View drawing:*
-{deep_link}"""
-
-        # Send WhatsApp
-        result = await notification_service.send_whatsapp(owner['mobile'], message)
-        if result.get('success'):
-            logger.info(f"Owner notified of drawing issue: {drawing_name}")
-        else:
-            # Fallback to SMS
-            await notification_service.send_sms(owner['mobile'], message)
+View: {deep_link}"""
+            await notification_service.send_whatsapp(owner['mobile'], message)
             
     except Exception as e:
         logger.error(f"Error notifying owner of drawing issue: {str(e)}")
