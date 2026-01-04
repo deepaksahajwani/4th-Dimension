@@ -773,9 +773,18 @@ class TemplateNotificationService:
         category: str,
         count: int,
         client_id: Optional[str] = None,
-        project_id: Optional[str] = None
+        project_id: Optional[str] = None,
+        image_id: Optional[str] = None
     ) -> Dict[str, Any]:
         """Notify client about new 3D images."""
+        # Build deep-link URL for single-item review page if a specific image is provided
+        if image_id and project_id:
+            in_app_link = f"/projects/{project_id}/3d-image/{image_id}"
+        elif project_id:
+            in_app_link = f"/projects/{project_id}"
+        else:
+            in_app_link = "/projects"
+        
         return await self.send_notification(
             template_key="3d_images_uploaded",
             recipient_phone=phone_number,
@@ -789,7 +798,7 @@ class TemplateNotificationService:
             recipient_id=client_id,
             in_app_title=f"New 3D Images: {category}",
             in_app_message=f"{count} new 3D images uploaded for '{project_name}'",
-            in_app_link=f"/projects/{project_id}" if project_id else "/projects",
+            in_app_link=in_app_link,
             project_id=project_id
         )
     
