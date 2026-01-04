@@ -42,10 +42,12 @@ export default function ExternalDashboard({ user, onLogout }) {
               headers: { Authorization: `Bearer ${token}` }
             });
             const drawings = drawingsRes.data || [];
-            const totalDrawings = drawings.length;
-            const issuedDrawings = drawings.filter(d => d.is_issued).length;
+            // Progress: issued / (total - N/A)
+            const naDrawings = drawings.filter(d => d.is_not_applicable).length;
+            const totalDrawings = drawings.length - naDrawings;
+            const issuedDrawings = drawings.filter(d => d.is_issued && !d.is_not_applicable).length;
             const percentComplete = totalDrawings > 0 
-              ? Math.round((issuedDrawings / totalDrawings) * 100) 
+              ? parseFloat(((issuedDrawings / totalDrawings) * 100).toFixed(1))
               : 0;
             
             return {
