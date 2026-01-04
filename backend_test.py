@@ -214,274 +214,232 @@ class BackendTester:
         except Exception as e:
             self.log_result("Get Project and Drawing", False, f"Exception: {str(e)}")
 
-    def test_health_check(self):
-        """Test general health check endpoint"""
-        try:
-            print("🏥 Testing Health Check...")
-            
-            response = self.session.get(f"{BACKEND_URL}/health")
-            
-            if response.status_code == 200:
-                data = response.json()
-                if data.get("ok") and data.get("status") == "healthy":
-                    self.log_result("Health Check", True, "Backend health check passed")
-                else:
-                    self.log_result("Health Check", False, f"Unexpected health response: {data}")
-            else:
-                self.log_result("Health Check", False, f"Health check failed: {response.status_code}")
-                
-        except Exception as e:
-            self.log_result("Health Check", False, f"Exception: {str(e)}")
-
-    def test_async_notifications_health(self):
-        """Test if async notification worker is running via health check"""
-        try:
-            print("🔔 Testing Async Notifications Health...")
-            
-            response = self.session.get(f"{BACKEND_URL}/health")
-            
-            if response.status_code == 200:
-                data = response.json()
-                if data.get("ok") and data.get("status") == "healthy":
-                    self.log_result("Async Notifications Health", True, 
-                                  "Backend health check passed - async worker should be running")
-                else:
-                    self.log_result("Async Notifications Health", False, 
-                                  f"Unexpected health response: {data}")
-            else:
-                self.log_result("Async Notifications Health", False, 
-                              f"Health check failed: {response.status_code}")
-                
-        except Exception as e:
-            self.log_result("Async Notifications Health", False, f"Exception: {str(e)}")
-
-    def test_slim_api_v2_projects(self):
-        """Test Slim API V2 - Projects endpoint"""
+    def test_system_health_metrics(self):
+        """Test System Health Metrics API (Owner only)"""
         if not self.owner_token:
-            self.log_result("Slim API V2 Projects", False, "No owner token available")
-            return False
-            
-        try:
-            print("📱 Testing Slim API V2 - Projects...")
-            
-            headers = {"Authorization": f"Bearer {self.owner_token}"}
-            
-            # Test GET /api/v2/projects - Should return slim project list
-            response = self.session.get(f"{BACKEND_URL}/v2/projects", headers=headers)
-            
-            if response.status_code == 200:
-                data = response.json()
-                projects = data.get("projects", [])
-                self.log_result("GET /api/v2/projects", True, 
-                              f"Retrieved {len(projects)} slim projects")
-                
-                # Store first project ID for further testing
-                if projects:
-                    self.project_id = projects[0].get("id")
-                    return True
-                else:
-                    self.log_result("GET /api/v2/projects", False, "No projects found")
-                    return False
-            else:
-                self.log_result("GET /api/v2/projects", False, 
-                              f"Failed: {response.status_code} - {response.text}")
-                return False
-                
-        except Exception as e:
-            self.log_result("Slim API V2 Projects", False, f"Exception: {str(e)}")
-            return False
-
-    def test_slim_api_v2_project_detail(self):
-        """Test Slim API V2 - Project Detail endpoint"""
-        if not self.owner_token or not self.project_id:
-            self.log_result("Slim API V2 Project Detail", False, "Missing token or project ID")
+            self.log_result("System Health Metrics", False, "No owner token available")
             return
             
         try:
-            print("📱 Testing Slim API V2 - Project Detail...")
+            print("📊 Testing System Health Metrics API...")
             
             headers = {"Authorization": f"Bearer {self.owner_token}"}
             
-            # Test GET /api/v2/projects/{project_id} - Should return minimal project data
-            response = self.session.get(f"{BACKEND_URL}/v2/projects/{self.project_id}", headers=headers)
-            
-            if response.status_code == 200:
-                project = response.json()
-                # Check that it's minimal data (should not include full drawings)
-                has_full_drawings = "drawings" in project and isinstance(project["drawings"], list)
-                
-                if not has_full_drawings:
-                    self.log_result("GET /api/v2/projects/{id}", True, 
-                                  "Retrieved minimal project data without full drawings")
-                else:
-                    self.log_result("GET /api/v2/projects/{id}", False, 
-                                  "Project data includes full drawings (not minimal)")
-            else:
-                self.log_result("GET /api/v2/projects/{id}", False, 
-                              f"Failed: {response.status_code} - {response.text}")
-                
-        except Exception as e:
-            self.log_result("Slim API V2 Project Detail", False, f"Exception: {str(e)}")
-
-    def test_slim_api_v2_drawings_pagination(self):
-        """Test Slim API V2 - Drawings Pagination endpoint"""
-        if not self.owner_token or not self.project_id:
-            self.log_result("Slim API V2 Drawings Pagination", False, "Missing token or project ID")
-            return
-            
-        try:
-            print("📱 Testing Slim API V2 - Drawings Pagination...")
-            
-            headers = {"Authorization": f"Bearer {self.owner_token}"}
-            
-            # Test GET /api/v2/projects/{project_id}/drawings?limit=10&skip=0
-            response = self.session.get(
-                f"{BACKEND_URL}/v2/projects/{self.project_id}/drawings?limit=10&skip=0", 
-                headers=headers
-            )
+            # Test GET /api/metrics/system-health
+            response = self.session.get(f"{BACKEND_URL}/metrics/system-health", headers=headers)
             
             if response.status_code == 200:
                 data = response.json()
-                # Check if it has pagination structure
-                if isinstance(data, dict) and ("drawings" in data or "items" in data):
-                    self.log_result("GET /api/v2/projects/{id}/drawings", True, 
-                                  "Drawings pagination endpoint working")
-                elif isinstance(data, list):
-                    self.log_result("GET /api/v2/projects/{id}/drawings", True, 
-                                  f"Retrieved {len(data)} drawings with pagination")
+                
+                # Check required fields
+                required_fields = ["status", "users", "projects", "drawings"]
+                has_all_fields = all(field in data for field in required_fields)
+                
+                if has_all_fields:
+                    users = data.get("users", {})
+                    projects = data.get("projects", {})
+                    drawings = data.get("drawings", {})
+                    
+                    details = f"Status: {data.get('status')}, Users: {users.get('total', 0)}, Projects: {projects.get('total', 0)}, Drawings: {drawings.get('total', 0)} (completion: {drawings.get('completion_rate', 0)}%)"
+                    self.log_result("System Health Metrics", True, details)
                 else:
-                    self.log_result("GET /api/v2/projects/{id}/drawings", False, 
-                                  f"Unexpected response format: {type(data)}")
+                    missing = [f for f in required_fields if f not in data]
+                    self.log_result("System Health Metrics", False, f"Missing fields: {missing}")
             else:
-                self.log_result("GET /api/v2/projects/{id}/drawings", False, 
+                self.log_result("System Health Metrics", False, 
                               f"Failed: {response.status_code} - {response.text}")
                 
         except Exception as e:
-            self.log_result("Slim API V2 Drawings Pagination", False, f"Exception: {str(e)}")
+            self.log_result("System Health Metrics", False, f"Exception: {str(e)}")
 
-    def test_permissions_api_owner(self):
-        """Test Permissions API as Owner"""
+    def test_notification_metrics(self):
+        """Test Notification Metrics API (Owner only)"""
         if not self.owner_token:
-            self.log_result("Permissions API Owner", False, "No owner token available")
+            self.log_result("Notification Metrics", False, "No owner token available")
             return
             
         try:
-            print("🔐 Testing Permissions API - Owner...")
+            print("📧 Testing Notification Metrics API...")
             
             headers = {"Authorization": f"Bearer {self.owner_token}"}
             
-            # Test GET /api/v2/me/permissions
-            response = self.session.get(f"{BACKEND_URL}/v2/me/permissions", headers=headers)
+            # Test GET /api/metrics/notifications?days=30
+            response = self.session.get(f"{BACKEND_URL}/metrics/notifications?days=30", headers=headers)
             
             if response.status_code == 200:
                 data = response.json()
-                permissions = data.get("permissions", {})
                 
-                # Check for owner permissions
-                expected_owner_permissions = [
-                    "can_delete_project", 
-                    "can_archive_project",
-                    "can_edit_project",
-                    "can_upload_drawing"
-                ]
+                # Check required fields
+                required_fields = ["period_days", "summary", "failure_reasons", "daily_breakdown"]
+                has_all_fields = all(field in data for field in required_fields)
                 
-                has_all_permissions = all(
-                    permissions.get(perm, False) for perm in expected_owner_permissions
-                )
-                
-                if has_all_permissions:
-                    self.log_result("Owner Permissions", True, 
-                                  f"Owner has all expected permissions: {expected_owner_permissions}")
+                if has_all_fields:
+                    summary = data.get("summary", {})
+                    total = summary.get("total", 0)
+                    success_rate = summary.get("success_rate", 0)
+                    
+                    details = f"Period: {data.get('period_days')} days, Total: {total}, Success Rate: {success_rate}%"
+                    self.log_result("Notification Metrics", True, details)
                 else:
-                    missing = [p for p in expected_owner_permissions if not permissions.get(p, False)]
-                    self.log_result("Owner Permissions", False, 
-                                  f"Missing permissions: {missing}")
+                    missing = [f for f in required_fields if f not in data]
+                    self.log_result("Notification Metrics", False, f"Missing fields: {missing}")
             else:
-                self.log_result("Owner Permissions", False, 
+                self.log_result("Notification Metrics", False, 
                               f"Failed: {response.status_code} - {response.text}")
                 
         except Exception as e:
-            self.log_result("Permissions API Owner", False, f"Exception: {str(e)}")
+            self.log_result("Notification Metrics", False, f"Exception: {str(e)}")
 
-    def test_permissions_api_team_leader(self):
-        """Test Permissions API as Team Leader"""
+    def test_storage_metrics(self):
+        """Test Storage Metrics API (Owner only)"""
+        if not self.owner_token:
+            self.log_result("Storage Metrics", False, "No owner token available")
+            return
+            
+        try:
+            print("💾 Testing Storage Metrics API...")
+            
+            headers = {"Authorization": f"Bearer {self.owner_token}"}
+            
+            # Test GET /api/metrics/storage
+            response = self.session.get(f"{BACKEND_URL}/metrics/storage", headers=headers)
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                # Check required fields
+                required_fields = ["total", "breakdown"]
+                has_all_fields = all(field in data for field in required_fields)
+                
+                if has_all_fields:
+                    total = data.get("total", {})
+                    breakdown = data.get("breakdown", {})
+                    
+                    # Check breakdown categories
+                    expected_categories = ["drawings", "3d_images", "voice_notes", "comments", "thumbnails"]
+                    has_categories = all(cat in breakdown for cat in expected_categories)
+                    
+                    if has_categories:
+                        total_size = total.get("formatted", "0 B")
+                        file_count = total.get("file_count", 0)
+                        
+                        details = f"Total: {total_size}, Files: {file_count}, Categories: {len(breakdown)}"
+                        self.log_result("Storage Metrics", True, details)
+                    else:
+                        missing_cats = [cat for cat in expected_categories if cat not in breakdown]
+                        self.log_result("Storage Metrics", False, f"Missing categories: {missing_cats}")
+                else:
+                    missing = [f for f in required_fields if f not in data]
+                    self.log_result("Storage Metrics", False, f"Missing fields: {missing}")
+            else:
+                self.log_result("Storage Metrics", False, 
+                              f"Failed: {response.status_code} - {response.text}")
+                
+        except Exception as e:
+            self.log_result("Storage Metrics", False, f"Exception: {str(e)}")
+
+    def test_api_usage_metrics(self):
+        """Test API Usage Metrics API (Owner only)"""
+        if not self.owner_token:
+            self.log_result("API Usage Metrics", False, "No owner token available")
+            return
+            
+        try:
+            print("📈 Testing API Usage Metrics API...")
+            
+            headers = {"Authorization": f"Bearer {self.owner_token}"}
+            
+            # Test GET /api/metrics/api-usage?days=7
+            response = self.session.get(f"{BACKEND_URL}/metrics/api-usage?days=7", headers=headers)
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                # Check required fields
+                required_fields = ["period_days", "users", "activity"]
+                has_all_fields = all(field in data for field in required_fields)
+                
+                if has_all_fields:
+                    users = data.get("users", {})
+                    activity = data.get("activity", {})
+                    
+                    active_users = users.get("active", 0)
+                    projects_created = activity.get("projects_created", 0)
+                    drawings_uploaded = activity.get("drawings_uploaded", 0)
+                    comments_created = activity.get("comments_created", 0)
+                    
+                    details = f"Period: {data.get('period_days')} days, Active Users: {active_users}, Projects: {projects_created}, Drawings: {drawings_uploaded}, Comments: {comments_created}"
+                    self.log_result("API Usage Metrics", True, details)
+                else:
+                    missing = [f for f in required_fields if f not in data]
+                    self.log_result("API Usage Metrics", False, f"Missing fields: {missing}")
+            else:
+                self.log_result("API Usage Metrics", False, 
+                              f"Failed: {response.status_code} - {response.text}")
+                
+        except Exception as e:
+            self.log_result("API Usage Metrics", False, f"Exception: {str(e)}")
+
+    def test_metrics_overview(self):
+        """Test Metrics Overview API (Owner only)"""
+        if not self.owner_token:
+            self.log_result("Metrics Overview", False, "No owner token available")
+            return
+            
+        try:
+            print("🔍 Testing Metrics Overview API...")
+            
+            headers = {"Authorization": f"Bearer {self.owner_token}"}
+            
+            # Test GET /api/metrics/overview
+            response = self.session.get(f"{BACKEND_URL}/metrics/overview", headers=headers)
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                # Check required fields (should contain all metrics combined)
+                required_fields = ["timestamp", "system_health", "notifications", "storage", "api_usage"]
+                has_all_fields = all(field in data for field in required_fields)
+                
+                if has_all_fields:
+                    details = f"Combined metrics response with {len(data)} sections"
+                    self.log_result("Metrics Overview", True, details)
+                else:
+                    missing = [f for f in required_fields if f not in data]
+                    self.log_result("Metrics Overview", False, f"Missing sections: {missing}")
+            else:
+                self.log_result("Metrics Overview", False, 
+                              f"Failed: {response.status_code} - {response.text}")
+                
+        except Exception as e:
+            self.log_result("Metrics Overview", False, f"Exception: {str(e)}")
+
+    def test_metrics_permission_check(self):
+        """Test that team leader cannot access metrics (403 Forbidden)"""
         if not self.team_leader_token:
-            self.log_result("Permissions API Team Leader", False, "No team leader token available")
+            self.log_result("Metrics Permission Check", False, "No team leader token available")
             return
             
         try:
-            print("🔐 Testing Permissions API - Team Leader...")
+            print("🔒 Testing Metrics Permission Check (Team Leader)...")
             
             headers = {"Authorization": f"Bearer {self.team_leader_token}"}
             
-            # Test GET /api/v2/me/permissions
-            response = self.session.get(f"{BACKEND_URL}/v2/me/permissions", headers=headers)
+            # Test GET /api/metrics/system-health - should return 403 Forbidden
+            response = self.session.get(f"{BACKEND_URL}/metrics/system-health", headers=headers)
             
-            if response.status_code == 200:
-                data = response.json()
-                permissions = data.get("permissions", {})
-                
-                # Check for team leader permissions (should have limited permissions)
-                expected_team_permissions = ["can_edit_project", "can_upload_drawing"]
-                restricted_permissions = ["can_delete_project", "can_archive_project"]
-                
-                has_expected = all(permissions.get(perm, False) for perm in expected_team_permissions)
-                lacks_restricted = all(not permissions.get(perm, True) for perm in restricted_permissions)
-                
-                if has_expected and lacks_restricted:
-                    self.log_result("Team Leader Permissions", True, 
-                                  f"Team leader has correct limited permissions")
-                else:
-                    issues = []
-                    if not has_expected:
-                        missing = [p for p in expected_team_permissions if not permissions.get(p, False)]
-                        issues.append(f"Missing expected: {missing}")
-                    if not lacks_restricted:
-                        unexpected = [p for p in restricted_permissions if permissions.get(p, False)]
-                        issues.append(f"Has restricted: {unexpected}")
-                    
-                    self.log_result("Team Leader Permissions", False, "; ".join(issues))
+            if response.status_code == 403:
+                self.log_result("Metrics Permission Check", True, 
+                              "Team leader correctly denied access (403 Forbidden)")
+            elif response.status_code == 200:
+                self.log_result("Metrics Permission Check", False, 
+                              "Team leader incorrectly granted access - security issue!")
             else:
-                self.log_result("Team Leader Permissions", False, 
-                              f"Failed: {response.status_code} - {response.text}")
+                self.log_result("Metrics Permission Check", False, 
+                              f"Unexpected response: {response.status_code} - {response.text}")
                 
         except Exception as e:
-            self.log_result("Permissions API Team Leader", False, f"Exception: {str(e)}")
-
-    def test_general_health_endpoints(self):
-        """Test general health endpoints"""
-        try:
-            print("🏥 Testing General Health Endpoints...")
-            
-            # Test 1: Health check
-            response = self.session.get(f"{BACKEND_URL}/health")
-            if response.status_code == 200:
-                self.log_result("GET /api/health", True, "Health check passed")
-            else:
-                self.log_result("GET /api/health", False, f"Failed: {response.status_code}")
-            
-            # Test 2: Projects (as owner)
-            if self.owner_token:
-                headers = {"Authorization": f"Bearer {self.owner_token}"}
-                response = self.session.get(f"{BACKEND_URL}/projects", headers=headers)
-                if response.status_code == 200:
-                    projects = response.json()
-                    self.log_result("GET /api/projects (owner)", True, f"Retrieved {len(projects)} projects")
-                else:
-                    self.log_result("GET /api/projects (owner)", False, f"Failed: {response.status_code}")
-            
-            # Test 3: Contractors
-            if self.owner_token:
-                headers = {"Authorization": f"Bearer {self.owner_token}"}
-                response = self.session.get(f"{BACKEND_URL}/contractors", headers=headers)
-                if response.status_code == 200:
-                    contractors = response.json()
-                    self.log_result("GET /api/contractors", True, f"Retrieved {len(contractors)} contractors")
-                else:
-                    self.log_result("GET /api/contractors", False, f"Failed: {response.status_code}")
-                
-        except Exception as e:
-            self.log_result("General Health Endpoints", False, f"Exception: {str(e)}")
+            self.log_result("Metrics Permission Check", False, f"Exception: {str(e)}")
 
     def run_phase_1_3_tests(self):
         """Run Phase 1-3 implementation tests"""
