@@ -1,18 +1,17 @@
 #!/usr/bin/env python3
 """
 Backend API Testing Script for Architecture Firm Management System
-Testing Performance-Optimized APIs as requested in review:
-1. Aggregated Team Leader Dashboard
-2. Aggregated My Work
-3. Aggregated Project Full
-4. Send Drawing via WhatsApp
-5. Cache Stats (Owner only)
-6. Paginated Logs (Owner only)
+Testing Drawing Notification System as requested in review:
+1. Test Drawing Upload Notification (under_review: true)
+2. Test Issued Drawing Notification (is_issued: true)
+3. Verify WhatsApp Templates Used
+4. Check backend logs for notification messages
 """
 
 import requests
 import json
 import sys
+import time
 from datetime import datetime
 import uuid
 
