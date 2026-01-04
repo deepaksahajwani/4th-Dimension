@@ -903,57 +903,6 @@ export default function TeamLeaderProjectDetail({ user, onLogout }) {
             </DialogFooter>
           </DialogContent>
         </Dialog>
-
-        {/* New Comment Dialog */}
-        <Dialog open={showNewComment} onOpenChange={setShowNewComment}>
-          <DialogContent className="max-w-md">
-            <DialogHeader>
-              <DialogTitle>New Comment</DialogTitle>
-            </DialogHeader>
-            <div className="space-y-4">
-              <textarea
-                value={commentText}
-                onChange={(e) => setCommentText(e.target.value)}
-                placeholder="Write your comment..."
-                className="w-full min-h-[100px] p-3 border rounded-lg resize-none"
-              />
-              <div>
-                <input
-                  type="file"
-                  ref={fileInputRef}
-                  onChange={(e) => setCommentFile(e.target.files?.[0])}
-                  className="hidden"
-                />
-                <Button variant="outline" onClick={() => fileInputRef.current?.click()} className="w-full justify-start">
-                  <Paperclip className="w-4 h-4 mr-2" />
-                  {commentFile ? commentFile.name : 'Attach File'}
-                </Button>
-              </div>
-              <div>
-                {!audioBlob ? (
-                  <Button
-                    variant="outline"
-                    onClick={isRecording ? stopRecording : startRecording}
-                    className={`w-full justify-start ${isRecording ? 'bg-red-50 border-red-300 text-red-700' : ''}`}
-                  >
-                    {isRecording ? <><Square className="w-4 h-4 mr-2" />Stop Recording</> : <><Mic className="w-4 h-4 mr-2" />Record Voice</>}
-                  </Button>
-                ) : (
-                  <div className="flex items-center gap-2">
-                    <audio controls src={URL.createObjectURL(audioBlob)} className="flex-1 h-10" />
-                    <Button variant="ghost" size="sm" onClick={() => setAudioBlob(null)}><X className="w-4 h-4" /></Button>
-                  </div>
-                )}
-              </div>
-            </div>
-            <DialogFooter>
-              <Button variant="outline" onClick={() => setShowNewComment(false)}>Cancel</Button>
-              <Button onClick={handleSubmitComment} disabled={submitting} className="bg-orange-500 hover:bg-orange-600">
-                {submitting ? 'Posting...' : 'Post'}
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
       </div>
     </Layout>
   );
