@@ -16,9 +16,22 @@ export default function PaginatedDrawings({
   projectId,
   category = null,
   status = null,
-  onDrawingAction,
   permissions = {},
-  currentUser
+  currentUser,
+  projectContractors = [],
+  // Drawing action handlers
+  onToggleIssued,
+  onResolveRevision,
+  onOpenRevisionDialog,
+  onApproveDrawing,
+  onOpenIssueDialog,
+  onViewPDF,
+  onDownloadPDF,
+  onOpenComments,
+  onMarkAsNotApplicable,
+  onProgressUpdate,
+  // Refresh trigger
+  refreshKey = 0
 }) {
   const [drawings, setDrawings] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -71,18 +84,15 @@ export default function PaginatedDrawings({
     }
   }, [projectId, category, status]);
 
+  // Initial load and refresh when refreshKey changes
   useEffect(() => {
     fetchDrawings(1, false);
-  }, [fetchDrawings]);
+  }, [fetchDrawings, refreshKey]);
 
   const loadMore = () => {
     if (!loadingMore && hasMore) {
       fetchDrawings(page + 1, true);
     }
-  };
-
-  const refresh = () => {
-    fetchDrawings(1, false);
   };
 
   if (loading) {
@@ -112,19 +122,25 @@ export default function PaginatedDrawings({
         <span>Showing {drawings.length} of {total} drawings</span>
       </div>
 
-      {/* Drawings grid */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+      {/* Drawings list */}
+      <div className="space-y-3">
         {drawings.map((drawing) => (
           <DrawingCard
             key={drawing.id}
             drawing={drawing}
-            onAction={(action) => {
-              onDrawingAction?.(action, drawing);
-              // Refresh after action
-              setTimeout(refresh, 500);
-            }}
+            user={currentUser}
             permissions={permissions}
-            currentUser={currentUser}
+            projectContractors={projectContractors}
+            onToggleIssued={onToggleIssued}
+            onResolveRevision={onResolveRevision}
+            onOpenRevisionDialog={onOpenRevisionDialog}
+            onApproveDrawing={onApproveDrawing}
+            onOpenIssueDialog={onOpenIssueDialog}
+            onViewPDF={onViewPDF}
+            onDownloadPDF={onDownloadPDF}
+            onOpenComments={onOpenComments}
+            onMarkAsNotApplicable={onMarkAsNotApplicable}
+            onProgressUpdate={onProgressUpdate}
           />
         ))}
       </div>
