@@ -559,7 +559,8 @@ async def notify_drawing_uploaded(project_id: str, drawing_id: str, uploaded_by_
                 drawing_name=drawing_name,
                 uploader_name=uploader_name,
                 owner_id=owner['id'],
-                project_id=project_id
+                project_id=project_id,
+                drawing_id=drawing_id
             )
         else:
             # Fallback to freeform message
@@ -628,7 +629,8 @@ async def notify_drawing_approved(project_id: str, drawing_id: str):
                 drawing_name=drawing_name,
                 revision=revision,
                 recipient_id=team_leader_id,
-                project_id=project_id
+                project_id=project_id,
+                drawing_id=drawing_id
             )
         else:
             # Fallback to freeform message
