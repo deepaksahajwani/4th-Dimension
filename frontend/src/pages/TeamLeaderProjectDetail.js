@@ -359,6 +359,28 @@ export default function TeamLeaderProjectDetail({ user, onLogout }) {
     }
   };
 
+  // Handler for ChatView component
+  const handleSendComment = async ({ text, file, voiceNote }) => {
+    const token = localStorage.getItem('token');
+    const formData = new FormData();
+    formData.append('text', text || '');
+    
+    if (file) formData.append('file', file);
+    if (voiceNote) formData.append('voice_note', voiceNote, 'voice_note.webm');
+
+    await axios.post(`${API}/projects/${projectId}/comments`, formData, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'multipart/form-data'
+      }
+    });
+
+    // Mark as viewed and refresh
+    localStorage.setItem(`comments_viewed_${projectId}`, new Date().toISOString());
+    setUnreadComments(0);
+    fetchProjectData();
+  };
+
   const openCommentsPanel = () => {
     setShowComments(true);
     localStorage.setItem(`comments_viewed_${projectId}`, new Date().toISOString());
