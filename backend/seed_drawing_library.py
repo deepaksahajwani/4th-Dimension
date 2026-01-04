@@ -6,7 +6,6 @@ Run this to initialize default drawing categories, types, and checklist presets
 from motor.motor_asyncio import AsyncIOMotorClient
 import os
 import asyncio
-from datetime import datetime, timezone
 import uuid
 
 # Database connection

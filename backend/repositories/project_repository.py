@@ -3,7 +3,6 @@ Project Repository - Project data access
 """
 
 from typing import Dict, List, Optional
-from datetime import datetime, timezone
 import logging
 
 from .base import BaseRepository

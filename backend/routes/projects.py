@@ -4,7 +4,6 @@ Handles project CRUD operations, drawings association, and co-clients
 """
 from fastapi import APIRouter, Depends, HTTPException
 from datetime import datetime, timezone, timedelta
-from typing import List
 import logging
 from uuid import uuid4
 

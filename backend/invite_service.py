@@ -8,13 +8,12 @@ Strategy:
 
 import os
 import logging
-from typing import Optional
 from notification_service import notification_service
 from whatsapp_templates import WHATSAPP_TEMPLATES
 
 logger = logging.getLogger(__name__)
 
-APP_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://review-page.preview.emergentagent.com')
+APP_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://slim-api.preview.emergentagent.com')
 
 # WhatsApp Business Number (Production)
 WHATSAPP_NUMBER = "+917016779016"
@@ -128,7 +127,7 @@ Welcome aboard!
         else:
             return {
                 "success": False,
-                "message": f"Failed to send invite via both WhatsApp and SMS",
+                "message": "Failed to send invite via both WhatsApp and SMS",
                 "channels": results
             }
             

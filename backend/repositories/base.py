@@ -2,7 +2,7 @@
 Base Repository - Common database operations
 """
 
-from typing import Any, Dict, List, Optional, TypeVar, Generic
+from typing import Dict, List, Optional, TypeVar, Generic
 from datetime import datetime, timezone
 import logging
 

@@ -66,5 +66,5 @@ async def download_file(file_key: str, current_user = Depends(get_current_user))
         
         from fastapi.responses import FileResponse
         return FileResponse(file_path)
-    except Exception as e:
+    except Exception:
         raise HTTPException(status_code=404, detail="File not found")

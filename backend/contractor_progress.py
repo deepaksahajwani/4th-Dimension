@@ -4,7 +4,6 @@ Defines standard task checklists for each contractor type based on industry stan
 """
 
 from typing import Dict, List
-from enum import Enum
 
 # Predefined task checklists for each contractor type
 # These are based on standard construction/interior industry workflows

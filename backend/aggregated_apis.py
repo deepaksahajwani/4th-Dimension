@@ -5,7 +5,7 @@ Reduces multiple API calls to single aggregated endpoints
 
 import os
 import logging
-from typing import Optional, List, Dict, Any
+from typing import Optional
 from datetime import datetime, timezone, timedelta
 from fastapi import APIRouter, Depends, HTTPException, Query, Header
 from motor.motor_asyncio import AsyncIOMotorClient

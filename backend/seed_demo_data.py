@@ -122,7 +122,7 @@ async def seed_demo_data():
     
     print(f"✅ Created {len(drawings_created)} drawings for AR-001")
     print(f"   - {', '.join(drawings_created)}")
-    print(f"   - First drawing is OVERDUE to demonstrate reminders")
+    print("   - First drawing is OVERDUE to demonstrate reminders")
     
     # 6. Create demo Interior project
     int_project = {
@@ -182,11 +182,11 @@ async def seed_demo_data():
     
     print("✨ Demo data seeded successfully!")
     print("\n📊 Summary:")
-    print(f"   - 1 Client")
-    print(f"   - 1 Consultant (Structural)")
-    print(f"   - 2 Projects (AR-001, IN-001)")
+    print("   - 1 Client")
+    print("   - 1 Consultant (Structural)")
+    print("   - 2 Projects (AR-001, IN-001)")
     print(f"   - {len(drawings_created) + len(int_drawings)} Project Drawings")
-    print(f"   - 1 Overdue drawing (for reminder demo)")
+    print("   - 1 Overdue drawing (for reminder demo)")
     
     client.close()
 

@@ -5,15 +5,11 @@ Handles user registration, login, OTP verification, and password management
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, EmailStr
 from typing import Optional
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timezone
 from uuid import uuid4
-import httpx
-import random
-import string
 
 from utils.auth import (
-    User, get_current_user, require_owner, require_admin,
-    create_access_token, verify_password, get_password_hash
+    User, get_current_user, create_access_token, verify_password, get_password_hash
 )
 from utils.database import get_database
 

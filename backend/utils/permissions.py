@@ -3,7 +3,7 @@ Role-Based Permissions
 Defines what each role can and cannot do
 """
 
-from typing import Dict, List, Set
+from typing import Dict, Set
 from enum import Enum
 from functools import wraps
 from fastapi import HTTPException

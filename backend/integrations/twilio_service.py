@@ -98,7 +98,7 @@ class TwilioService:
         
         if not self.is_configured:
             result["error_message"] = "Twilio not configured"
-            logger.warning(f"WhatsApp send failed: Twilio not configured")
+            logger.warning("WhatsApp send failed: Twilio not configured")
             return result
         
         try:

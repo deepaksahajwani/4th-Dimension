@@ -4,7 +4,6 @@ Notification Routes
 from fastapi import APIRouter, Depends
 from utils.auth import get_current_user, User
 from utils.database import get_database
-from typing import List
 
 db = get_database()
 router = APIRouter(prefix="/notifications", tags=["notifications"])

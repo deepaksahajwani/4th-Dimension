@@ -6,7 +6,6 @@ Refactored from server.py for better code organization
 from fastapi import APIRouter, Depends, HTTPException, Form, File, UploadFile
 from fastapi.responses import FileResponse
 from datetime import datetime, timezone
-from typing import Optional
 from pathlib import Path
 import logging
 import uuid

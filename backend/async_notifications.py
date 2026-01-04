@@ -6,11 +6,9 @@ Non-blocking notification delivery for WhatsApp, Email, and SMS
 import asyncio
 import logging
 import os
-from typing import Dict, Any, Optional, List
+from typing import Dict, Any
 from datetime import datetime, timezone
 from motor.motor_asyncio import AsyncIOMotorClient
-import aiofiles
-from pathlib import Path
 
 logger = logging.getLogger(__name__)
 

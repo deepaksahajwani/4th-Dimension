@@ -1,4 +1,4 @@
-from fastapi import FastAPI, APIRouter, Depends, HTTPException, status, UploadFile, File, Form, Query, Body, Request
+from fastapi import FastAPI, APIRouter, Depends, HTTPException, UploadFile, File, Form, Query, Body
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
@@ -22,27 +22,22 @@ import string
 
 # Import new project models
 from models_projects import (
-    ProjectType, ProjectStatus, DrawingStatus, TaskCategory, TaskStatus, 
-    Priority, IssueStatus, ConsultantType, NotificationChannel,
-    Consultant, ConsultantCreate, ProjectDrawing, ProjectDrawingCreate,
-    DrawingRevision, Task, TaskCreate, SiteVisit, SiteVisitCreate,
-    SiteIssue, SiteIssueCreate, Notification, NotificationCreate,
-    ChecklistPreset, DrawingType, ClientUpdate,
+    DrawingStatus, ConsultantType, Consultant, ConsultantCreate, ProjectDrawing, Task, TaskCreate, SiteVisit, SiteVisitCreate,
+    SiteIssue, SiteIssueCreate, ChecklistPreset, DrawingType, ClientUpdate,
     Client as NewClient, ClientCreate as NewClientCreate,
     Project as NewProject, ProjectCreate as NewProjectCreate, ProjectUpdate as NewProjectUpdate,
-    ContactInfo, BrandCategory, BrandCategoryMaster, BrandCategoryMasterCreate, BrandCategoryMasterUpdate,
+    BrandCategoryMaster, BrandCategoryMasterCreate, BrandCategoryMasterUpdate,
     ContactTypeMaster, ContactTypeMasterCreate, ContactTypeMasterUpdate,
     ProjectDrawingCreate, ProjectDrawingUpdate,
-    WeeklyTarget, DailyTask, WeeklyRating, WeeklyTargetCreate, DailyTaskCreate, DailyTaskUpdate,
+    WeeklyTarget, DailyTask, WeeklyRating, WeeklyTargetCreate, DailyTaskUpdate,
     DrawingComment, DrawingCommentCreate, DrawingCommentUpdate,
     TeamMemberVerification, VerifyEmailRequest, VerifyPhoneRequest, ResendOTPRequest,
     Contractor, ContractorCreate, ContractorType,
     Vendor, VendorCreate, VendorUpdate, VendorType
 )
-from models_coclients import CoClient, CoClientCreate
+from models_coclients import CoClientCreate
 from drawing_templates import get_template_drawings
 from email_templates import get_welcome_email_content
-from email_translations import TRANSLATIONS
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
@@ -898,7 +893,7 @@ async def verify_registration_otp(otp_data: VerifyRegistrationOTP):
             raise HTTPException(status_code=400, detail="Invalid phone OTP")
         
         phone_verified = True
-        print(f"✅ Phone OTP verified successfully")
+        print("✅ Phone OTP verified successfully")
         
         # Mark as verified
         await db.pending_registrations.update_one(
@@ -1614,7 +1609,6 @@ async def get_email_preview(user_id: str = Query(None), role: str = Query(...), 
     """
     try:
         from email_templates import get_translated_email_content
-        from email_translations import TRANSLATIONS
         
         # Create mock user data for preview
         mock_user = {
@@ -1626,7 +1620,7 @@ async def get_email_preview(user_id: str = Query(None), role: str = Query(...), 
             'preferred_language': lang
         }
         
-        login_url = os.getenv('REACT_APP_BACKEND_URL', 'https://review-page.preview.emergentagent.com')
+        login_url = os.getenv('REACT_APP_BACKEND_URL', 'https://slim-api.preview.emergentagent.com')
         
         subject, html_content = get_translated_email_content(mock_user, login_url, lang)
         
@@ -2915,7 +2909,6 @@ async def request_project_deletion_otp(
         await db.otp_verifications.insert_one(otp_record)
         
         # Send OTP via email
-        from verification_service import send_verification_email
         
         html_content = f"""
         <html>
@@ -3257,7 +3250,6 @@ async def update_drawing(
     # Send owner notifications for drawing events (non-blocking)
     try:
         from notification_triggers_v2 import (
-            notify_owner_drawing_uploaded,
             notify_owner_drawing_issued,
             notify_owner_drawing_revision_posted
         )
@@ -3557,7 +3549,6 @@ async def create_drawing_comment(
     current_user: User = Depends(get_current_user)
 ):
     """Create a comment on a drawing"""
-    from models_projects import DrawingComment
     
     # Verify drawing exists
     drawing = await db.project_drawings.find_one({"id": drawing_id}, {"_id": 0})
@@ -3683,7 +3674,6 @@ async def update_drawing_comment(
     current_user: User = Depends(get_current_user)
 ):
     """Update a comment (only by comment author)"""
-    from models_projects import DrawingCommentUpdate
     
     # Find comment
     comment = await db.drawing_comments.find_one({"id": comment_id, "deleted_at": None}, {"_id": 0})
@@ -5596,7 +5586,7 @@ async def upload_drawing(
         file.file.seek(0)
         
         if file_size > MAX_FILE_SIZE:
-            raise HTTPException(status_code=413, detail=f"File size exceeds maximum allowed size")
+            raise HTTPException(status_code=413, detail="File size exceeds maximum allowed size")
         
         # Save to local storage
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -6097,7 +6087,7 @@ async def download_file(file_key: str, current_user: User = Depends(get_current_
         
         from fastapi.responses import FileResponse
         return FileResponse(file_path)
-    except Exception as e:
+    except Exception:
         raise HTTPException(status_code=404, detail="File not found")
 
 

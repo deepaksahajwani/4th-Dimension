@@ -5,7 +5,6 @@ Handles sending messages via Meta's WhatsApp Business Platform
 import os
 import httpx
 import logging
-from typing import Optional
 
 logger = logging.getLogger(__name__)
 

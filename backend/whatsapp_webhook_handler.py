@@ -13,7 +13,7 @@ Flow:
 
 import os
 import logging
-from typing import List, Optional, Dict, Any
+from typing import List, Optional, Dict
 from datetime import datetime, timezone, timedelta
 from motor.motor_asyncio import AsyncIOMotorClient
 from notification_service import notification_service
@@ -28,7 +28,7 @@ client = AsyncIOMotorClient(mongo_url)
 db = client[db_name]
 
 # App URL
-APP_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://review-page.preview.emergentagent.com')
+APP_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://slim-api.preview.emergentagent.com')
 
 # Conversation states
 CONVERSATION_STATES = {}  # In-memory state (consider Redis for production)

@@ -11,7 +11,7 @@ from datetime import datetime, timedelta
 import uuid
 
 # Get backend URL from frontend .env
-BACKEND_URL = "https://review-page.preview.emergentagent.com/api"
+BACKEND_URL = "https://slim-api.preview.emergentagent.com/api"
 
 class WeeklyTargetsTester:
     def __init__(self):

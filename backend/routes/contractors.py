@@ -1,5 +1,4 @@
 from fastapi import APIRouter, Depends, HTTPException
-from typing import List
 from datetime import datetime, timezone
 from pathlib import Path
 import sys

@@ -4,12 +4,12 @@ All responses are slim by default with minimal payload sizes
 """
 
 from fastapi import APIRouter, Depends, HTTPException, Query
-from typing import Optional, List
+from typing import Optional
 from datetime import datetime, timezone
 import logging
 
 from utils.auth import get_current_user, User
-from utils.permissions import get_frontend_permissions, Permission, has_permission
+from utils.permissions import get_frontend_permissions
 from repositories import (
     get_project_repository,
     get_drawing_repository,

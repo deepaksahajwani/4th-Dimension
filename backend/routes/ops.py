@@ -11,10 +11,9 @@ import os
 import logging
 from datetime import datetime, timezone
 from typing import Optional
-from fastapi import APIRouter, Depends, Query, HTTPException
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from fastapi import APIRouter, Query, HTTPException
+from fastapi.security import HTTPBearer
 
-from integrations import TwilioService, SendGridService, NotificationLogger
 from integrations.twilio_service import twilio_service
 from integrations.sendgrid_service import sendgrid_service
 from integrations.notification_logger import notification_logger

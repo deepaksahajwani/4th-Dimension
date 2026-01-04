@@ -5,7 +5,7 @@ from pathlib import Path
 import sys
 
 sys.path.append(str(Path(__file__).parent.parent))
-from models_projects import Consultant, ConsultantCreate, ChecklistPreset, DrawingType
+from models_projects import Consultant, ConsultantCreate
 
 router = APIRouter(prefix="/consultants", tags=["consultants"])
 
