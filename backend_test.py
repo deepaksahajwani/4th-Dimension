@@ -1,11 +1,21 @@
 #!/usr/bin/env python3
 """
 Backend API Testing Script for Architecture Firm Management System
-Testing Drawing Notification System as requested in review:
-1. Test Drawing Upload Notification (under_review: true)
-2. Test Issued Drawing Notification (is_issued: true)
-3. Verify WhatsApp Templates Used
-4. Check backend logs for notification messages
+Testing Refactored Backend API Endpoints after modular router migration:
+
+**Context:**
+Major backend refactoring where ~860 lines were removed from server.py.
+Routes migrated to modular routers:
+1. Comments routes → /app/backend/routes/comments.py
+2. External parties (contractors, vendors, consultants) → /app/backend/routes/external_parties.py
+
+**Tests to perform:**
+1. Authentication Tests (Owner & Team Leader)
+2. Comments API Tests (Project & Drawing comments)
+3. Contractors API Tests
+4. Vendors API Tests  
+5. Consultants API Tests
+6. General Health Check
 """
 
 import requests
