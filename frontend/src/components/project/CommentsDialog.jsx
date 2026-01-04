@@ -358,7 +358,7 @@ export default function CommentsDialog({
                         <p className={`text-[10px] mt-1 ${
                           isOwnMessage(comment) ? 'text-purple-200' : 'text-slate-400'
                         }`}>
-                          {formatTime(comment.created_at)}
+                          {formatMessageTime(comment.created_at)}
                         </p>
                       </div>
                     </div>
