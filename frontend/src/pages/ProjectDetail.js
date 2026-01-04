@@ -1796,6 +1796,7 @@ export default function ProjectDetail({ user, onLogout }) {
                           key={drawing.id} 
                           drawing={drawing}
                           user={user}
+                          permissions={permissions}
                           projectContractors={projectTeam.contractors || []}
                           onToggleIssued={handleToggleIssued}
                           onResolveRevision={handleResolveRevision}
@@ -1818,6 +1819,7 @@ export default function ProjectDetail({ user, onLogout }) {
                     <Card>
                       <CardContent className="p-8 text-center">
                         <p className="text-slate-500">No {category.toLowerCase()} drawings yet</p>
+                        {permissions.can_create_drawing && (
                         <Button
                           variant="outline"
                           onClick={() => {
