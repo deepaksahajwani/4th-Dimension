@@ -141,6 +141,16 @@ export default function OwnerDashboard({ user, onLogout }) {
       );
       setTeamMembers(approvedMembers);
       
+      // Fetch system metrics (Phase 5)
+      try {
+        const metricsRes = await axios.get(`${API}/api/metrics/overview`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        setSystemMetrics(metricsRes.data);
+      } catch (metricsError) {
+        console.warn('Could not fetch system metrics:', metricsError);
+      }
+      
       setLoading(false);
     } catch (error) {
       console.error('Error fetching data:', error);
