@@ -9,6 +9,7 @@ export { default as FileUploadDialog } from './FileUploadDialog';
 export { default as CommentsDialog } from './CommentsDialog';
 export { default as ProjectHeader } from './ProjectHeader';
 export { default as ProgressStats } from './ProgressStats';
+export { default as ChatView } from './ChatView';
 
 // Phase 2 Performance Components
 export { default as LazyComments } from './LazyComments';
