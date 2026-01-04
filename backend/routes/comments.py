@@ -23,9 +23,15 @@ UPLOAD_DIR = Path("/app/uploads")
 UPLOAD_DIR.mkdir(exist_ok=True)
 
 
+from typing import List
+
 class DrawingCommentCreate(BaseModel):
     comment_text: str
     requires_revision: bool = False
+
+
+class DrawingCommentUpdate(BaseModel):
+    comment_text: str
 
 
 # ==================== PROJECT COMMENTS ====================
