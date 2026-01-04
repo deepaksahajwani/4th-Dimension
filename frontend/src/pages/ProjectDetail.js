@@ -1831,6 +1831,7 @@ export default function ProjectDetail({ user, onLogout }) {
                           <Plus className="w-4 h-4 mr-2" />
                           Add {category} Drawing
                         </Button>
+                        )}
                       </CardContent>
                     </Card>
                   )}
