@@ -130,7 +130,9 @@ async def create_project_comment(
         except Exception as e:
             logger.warning(f"Failed to send comment notification: {e}")
         
-        return {"message": "Comment added successfully", "comment": comment}
+        # Return comment without _id
+        return_comment = {k: v for k, v in comment.items() if k != "_id"}
+        return {"message": "Comment added successfully", "comment": return_comment}
         
     except HTTPException:
         raise
