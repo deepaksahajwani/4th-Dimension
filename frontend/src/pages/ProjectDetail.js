@@ -1542,6 +1542,8 @@ export default function ProjectDetail({ user, onLogout }) {
               </div>
 
               <div className="flex flex-col sm:flex-row gap-2">
+                {/* Edit button - Only for owner/team leader */}
+                {permissions.can_edit_project && (
                 <Button
                   variant="outline"
                   onClick={handleEditProject}
@@ -1551,8 +1553,10 @@ export default function ProjectDetail({ user, onLogout }) {
                   <Edit className="w-4 h-4 mr-2" />
                   Edit
                 </Button>
+                )}
                 
-                {!project.archived && user?.is_owner && (
+                {/* Archive button - Owner only */}
+                {!project.archived && permissions.can_archive_project && (
                   <Button
                     variant="outline"
                     onClick={() => setArchiveDialogOpen(true)}
@@ -1564,7 +1568,8 @@ export default function ProjectDetail({ user, onLogout }) {
                   </Button>
                 )}
                 
-                {user?.is_owner && (
+                {/* Delete button - Owner only */}
+                {permissions.can_delete_project && (
                   <Button
                     variant="outline"
                     onClick={() => setDeleteDialogOpen(true)}
