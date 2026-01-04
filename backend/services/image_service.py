@@ -30,7 +30,8 @@ MAX_PROCESS_SIZE = 10 * 1024 * 1024
 async def generate_thumbnail(
     source_path: str,
     size: str = "medium",
-    quality: int = 85
+    quality: int = 85,
+    output_dir: str = None
 ) -> Optional[str]:
     """
     Generate a thumbnail for an image file
@@ -50,9 +51,17 @@ async def generate_thumbnail(
         # Get thumbnail dimensions
         dimensions = THUMBNAIL_SIZES.get(size, THUMBNAIL_SIZES["medium"])
         
+        # Determine output directory
+        if output_dir:
+            thumb_dir = Path(output_dir)
+        else:
+            thumb_dir = THUMBNAIL_DIR
+        
+        thumb_dir.mkdir(parents=True, exist_ok=True)
+        
         # Generate thumbnail filename
         thumb_name = f"{source.stem}_{size}{source.suffix}"
-        thumb_path = THUMBNAIL_DIR / thumb_name
+        thumb_path = thumb_dir / thumb_name
         
         # Process in thread pool to avoid blocking
         loop = asyncio.get_event_loop()
@@ -66,7 +75,7 @@ async def generate_thumbnail(
         )
         
         if thumb_path.exists():
-            return f"/api/uploads/thumbnails/{thumb_name}"
+            return str(thumb_path)
         
         return None
         
