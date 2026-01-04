@@ -123,11 +123,9 @@ async def create_project_comment(
             from notification_triggers_v2 import notify_project_comment
             await notify_project_comment(
                 project_id=project_id,
-                project_name=project.get('title', 'Project'),
-                commenter_id=current_user.id,
+                comment_id=comment_id,
                 commenter_name=current_user.name,
-                commenter_role=current_user.role,
-                comment_text=text[:100] if text else "Voice/File message"
+                comment_preview=text[:100] if text else "Voice/File message"
             )
         except Exception as e:
             logger.warning(f"Failed to send comment notification: {e}")
