@@ -55,7 +55,6 @@ export const DrawingCard = ({
   onDownloadPDF,
   onOpenComments,
   onMarkAsNotApplicable,
-  onDeleteDrawing,
   onProgressUpdate
 }) => {
   const [showProgress, setShowProgress] = useState(false);
