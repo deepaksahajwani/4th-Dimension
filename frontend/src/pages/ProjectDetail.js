@@ -719,18 +719,6 @@ export default function ProjectDetail({ user, onLogout }) {
     }
   };
 
-  const handleDeleteDrawing = async (drawingId) => {
-    if (!window.confirm('Are you sure you want to delete this drawing?')) return;
-    
-    try {
-      await axios.delete(`${API}/drawings/${drawingId}`);
-      toast.success('Drawing deleted successfully');
-      fetchProjectData();
-    } catch (error) {
-      toast.error(formatErrorMessage(error, 'Failed to delete drawing'));
-    }
-  };
-
   // Comment handlers
   const handleOpenComments = async (drawing) => {
     setSelectedCommentDrawing(drawing);
