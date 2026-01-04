@@ -6295,6 +6295,10 @@ async def upload_3d_images(
     images_dir = UPLOAD_DIR / "3d_images" / project_id
     images_dir.mkdir(parents=True, exist_ok=True)
     
+    # Create thumbnails directory
+    thumbs_dir = UPLOAD_DIR / "thumbnails" / "3d_images" / project_id
+    thumbs_dir.mkdir(parents=True, exist_ok=True)
+    
     uploaded_images = []
     
     for file in files:
@@ -6315,6 +6319,16 @@ async def upload_3d_images(
         with open(file_path, "wb") as f:
             f.write(content)
         
+        # Generate thumbnail
+        thumbnail_url = None
+        try:
+            from services.image_service import generate_thumbnail
+            thumb_path = await generate_thumbnail(str(file_path), size="medium")
+            if thumb_path:
+                thumbnail_url = f"/api/uploads/thumbnails/3d_images/{project_id}/{Path(thumb_path).name}"
+        except Exception as e:
+            logger.warning(f"Failed to generate thumbnail: {e}")
+        
         # Create database record
         image_record = {
             "id": str(uuid.uuid4()),
@@ -6324,6 +6338,7 @@ async def upload_3d_images(
             "original_filename": file.filename,
             "file_path": str(file_path),
             "file_url": f"/api/uploads/3d_images/{project_id}/{unique_filename}",
+            "thumbnail_url": thumbnail_url,
             "file_size": len(content),
             "mime_type": file.content_type,
             "uploaded_by_id": current_user.id,
