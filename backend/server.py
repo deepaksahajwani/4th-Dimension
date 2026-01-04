@@ -8261,6 +8261,8 @@ from routes import resources as resources_routes
 from routes import whatsapp_webhook
 from routes import ops as ops_routes
 from routes import drawing_whatsapp
+from routes import users as users_routes
+from routes import accounting as accounting_routes
 
 # Include the new modular routers under /api
 api_router.include_router(auth.router)
@@ -8268,6 +8270,8 @@ api_router.include_router(dashboard.router)
 api_router.include_router(notif_routes.router)
 api_router.include_router(projects.router)
 api_router.include_router(drawings.router)
+api_router.include_router(users_routes.router)
+api_router.include_router(accounting_routes.router)
 
 # Include drawing WhatsApp routes
 drawing_whatsapp.set_auth_dependency(get_current_user)
