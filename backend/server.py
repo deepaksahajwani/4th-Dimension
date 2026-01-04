@@ -6457,6 +6457,7 @@ api_router.include_router(accounting_routes.router)
 api_router.include_router(comments_routes.router)
 api_router.include_router(external_parties_routes.router)
 api_router.include_router(api_v2.router)  # v2 endpoints for mobile
+api_router.include_router(metrics_routes.router)  # Phase 5 monitoring metrics
 
 # Include drawing WhatsApp routes
 drawing_whatsapp.set_auth_dependency(get_current_user)
