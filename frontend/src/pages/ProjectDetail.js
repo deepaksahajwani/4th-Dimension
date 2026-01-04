@@ -1772,6 +1772,8 @@ export default function ProjectDetail({ user, onLogout }) {
                   {drawings.filter(d => !d.is_not_applicable).length} total • {drawings.filter(d => d.is_issued && !d.is_not_applicable).length} issued • {drawings.filter(d => d.has_pending_revision && !d.is_not_applicable).length} revisions
                 </p>
               </div>
+              {/* Add Drawing button - Only for owner/team leader */}
+              {permissions.can_create_drawing && (
               <Button 
                 onClick={() => setDrawingDialogOpen(true)}
                 className="bg-orange-500 hover:bg-orange-600 w-full sm:w-auto"
@@ -1780,6 +1782,7 @@ export default function ProjectDetail({ user, onLogout }) {
                 <Plus className="w-4 h-4 mr-2" />
                 Add Drawing
               </Button>
+              )}
             </div>
 
             {/* Drawings by Category */}
