@@ -679,9 +679,18 @@ class TemplateNotificationService:
         requester_name: str,
         reason: str = "See comments",
         team_leader_id: Optional[str] = None,
-        project_id: Optional[str] = None
+        project_id: Optional[str] = None,
+        drawing_id: Optional[str] = None
     ) -> Dict[str, Any]:
         """Notify team leader that a revision was requested."""
+        # Build deep-link URL for single-item review page
+        if drawing_id and project_id:
+            in_app_link = f"/projects/{project_id}/drawing/{drawing_id}"
+        elif project_id:
+            in_app_link = f"/projects/{project_id}"
+        else:
+            in_app_link = "/projects"
+        
         return await self.send_notification(
             template_key="revision_requested",
             recipient_phone=phone_number,
@@ -696,7 +705,7 @@ class TemplateNotificationService:
             recipient_id=team_leader_id,
             in_app_title=f"Revision Requested: {drawing_name}",
             in_app_message=f"{requester_name} requested revision for '{drawing_name}'",
-            in_app_link=f"/projects/{project_id}" if project_id else "/projects",
+            in_app_link=in_app_link,
             project_id=project_id
         )
     
