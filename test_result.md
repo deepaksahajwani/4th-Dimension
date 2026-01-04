@@ -1,3 +1,41 @@
+# Test Results - Comments Flow Simplification (WhatsApp-style)
+
+## Test Date: 2026-01-04
+
+## Changes Made:
+
+### Frontend:
+1. **ChatView.jsx** - New reusable WhatsApp-style chat component:
+   - Messages aligned left/right based on sender
+   - Day separators ("Today", "Yesterday", date)
+   - Sticky input bar at bottom with paperclip and mic buttons
+   - Voice recording with timer
+   - File attachment preview
+   - Auto-scroll to latest message
+
+2. **TeamLeaderProjectDetail.js** - Updated Comments section:
+   - Replaced card-based comments with inline ChatView component
+   - Removed separate "New Comment Dialog" - now inline
+   - Purple gradient header showing "Project Discussion" and message count
+
+3. **CommentsDialog.jsx** (Drawing Comments) - Enhanced:
+   - Added day grouping with separators
+   - Changed timestamps from relative ("5m ago") to time only ("10:30 AM")
+   - Improved spacing and bubble styling
+
+### Backend:
+1. **routes/comments.py** - Fixed ObjectId serialization:
+   - Ensured comment return doesn't include MongoDB _id
+
+## Test Results Summary:
+- **WhatsApp-style Project Comments**: ✅ WORKING
+- **Message sending**: ✅ WORKING
+- **Day separators**: ✅ WORKING
+- **Input bar with attachment/voice**: ✅ WORKING
+- **Real-time message count update**: ✅ WORKING
+
+---
+
 # Test Results - UI Redesign Phase 2
 
 ## Test Date: 2026-01-02
