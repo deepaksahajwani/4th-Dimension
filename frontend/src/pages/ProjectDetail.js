@@ -35,6 +35,9 @@ export default function ProjectDetail({ user, onLogout }) {
   const navigate = useNavigate();
   const location = window.location;
   
+  // Role-based permissions hook
+  const { permissions, isOwner, role, loading: permissionsLoading } = usePermissions();
+  
   const [project, setProject] = useState(null);
   const [client, setClient] = useState(null);
   const [drawings, setDrawings] = useState([]);
