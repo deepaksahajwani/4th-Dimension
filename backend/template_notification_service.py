@@ -529,8 +529,11 @@ class TemplateNotificationService:
         drawing_name: str,
         revision: str,
         updater_name: str,
+        portal_url: Optional[str] = None,
         recipient_id: Optional[str] = None,
-        project_id: Optional[str] = None
+        project_id: Optional[str] = None,
+        revision_number: int = 0,
+        revised_by: str = ""
     ) -> Dict[str, Any]:
         """Notify about a drawing revision."""
         return await self.send_notification(
@@ -540,13 +543,13 @@ class TemplateNotificationService:
                 "recipient_name": recipient_name,
                 "project_name": project_name,
                 "drawing_name": drawing_name,
-                "revision": revision,
-                "updater_name": updater_name,
-                "portal_url": self.app_url
+                "revision": revision or str(revision_number),
+                "updater_name": updater_name or revised_by,
+                "portal_url": portal_url or self.app_url
             },
             recipient_id=recipient_id,
             in_app_title=f"Drawing Revised: {drawing_name}",
-            in_app_message=f"Drawing '{drawing_name}' updated to Rev {revision}",
+            in_app_message=f"Drawing '{drawing_name}' updated to Rev {revision or revision_number}",
             in_app_link=f"/projects/{project_id}" if project_id else "/projects",
             project_id=project_id
         )
@@ -558,6 +561,7 @@ class TemplateNotificationService:
         project_name: str,
         drawing_name: str,
         issue_date: Optional[str] = None,
+        portal_url: Optional[str] = None,
         recipient_id: Optional[str] = None,
         project_id: Optional[str] = None
     ) -> Dict[str, Any]:
@@ -573,7 +577,7 @@ class TemplateNotificationService:
                 "project_name": project_name,
                 "drawing_name": drawing_name,
                 "issue_date": issue_date,
-                "portal_url": self.app_url
+                "portal_url": portal_url or self.app_url
             },
             recipient_id=recipient_id,
             in_app_title=f"Drawing Issued: {drawing_name}",
