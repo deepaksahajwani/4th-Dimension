@@ -16,7 +16,6 @@ import {
   Eye,
   Download,
   MessageSquare,
-  Trash2,
   HardHat
 } from 'lucide-react';
 import { ContractorProgressTracker } from '../ContractorProgress';
