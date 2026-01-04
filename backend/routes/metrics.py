@@ -5,7 +5,6 @@ Provides system health, notification stats, API performance, and usage metrics
 
 from fastapi import APIRouter, Depends, HTTPException
 from datetime import datetime, timezone, timedelta
-from typing import Dict, List, Optional
 import logging
 
 from utils.auth import get_current_user, User
@@ -152,7 +151,6 @@ async def get_storage_metrics(current_user: User = Depends(get_current_user)):
         raise HTTPException(status_code=403, detail="Owner access required")
     
     try:
-        import os
         from pathlib import Path
         
         upload_dir = Path("/app/uploads")

@@ -479,7 +479,7 @@ The External Project Detail page (`/project/{id}`) is not properly fetching or d
 ### Review Request Testing:
 **Comprehensive UI testing performed as requested with test credentials:**
 - Team Leader: balbirgkaur@gmail.com / TeamLeader@123
-- Test URL: https://slim-api.preview.emergentagent.com
+- Test URL: https://magic-auth.preview.emergentagent.com
 
 ### Test Results Summary:
 - **Total UI Tests**: 15
@@ -776,7 +776,7 @@ Major backend refactoring where ~860 lines were removed from `/app/backend/serve
 - Owner: deepaksahajwani@gmail.com / Deepak@2025
 - Team Leader: balbirgkaur@gmail.com / TeamLeader@123
 
-**API URL:** https://slim-api.preview.emergentagent.com/api
+**API URL:** https://magic-auth.preview.emergentagent.com/api
 
 ### Test Results Summary:
 - **Total Tests**: 13
@@ -922,7 +922,7 @@ Major backend refactoring where ~860 lines were removed from `/app/backend/serve
 - Owner: deepaksahajwani@gmail.com / Deepak@2025
 - Team Leader: balbirgkaur@gmail.com / TeamLeader@123
 
-**API URL:** https://slim-api.preview.emergentagent.com/api
+**API URL:** https://magic-auth.preview.emergentagent.com/api
 
 ### Test Results Summary:
 - **Total Tests**: 11
@@ -1001,7 +1001,7 @@ Major backend refactoring where ~860 lines were removed from `/app/backend/serve
 - Owner: deepaksahajwani@gmail.com / Deepak@2025
 - Team Leader: balbirgkaur@gmail.com / TeamLeader@123
 
-**Test URL:** https://slim-api.preview.emergentagent.com
+**Test URL:** https://magic-auth.preview.emergentagent.com
 
 ### Test Results Summary:
 - **Total Tests**: 8
@@ -1111,7 +1111,7 @@ Major backend refactoring where ~860 lines were removed from `/app/backend/serve
 - Owner: deepaksahajwani@gmail.com / Deepak@2025
 - Team Leader: balbirgkaur@gmail.com / TeamLeader@123
 
-**API URL:** https://slim-api.preview.emergentagent.com/api
+**API URL:** https://magic-auth.preview.emergentagent.com/api
 
 ### Test Results Summary:
 - **Total Tests**: 8

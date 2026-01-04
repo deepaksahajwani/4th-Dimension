@@ -92,7 +92,7 @@ async def send_drawing_via_whatsapp(
         if not is_owner and not is_team_leader:
             raise HTTPException(status_code=403, detail="Not authorized to send this drawing")
         
-        app_url = os.environ.get('REACT_APP_BACKEND_URL', 'https://slim-api.preview.emergentagent.com')
+        app_url = os.environ.get('REACT_APP_BACKEND_URL', 'https://magic-auth.preview.emergentagent.com')
         drawing_link = f"{app_url}/projects/{project['id']}?drawing={drawing_id}"
         
         message = (
@@ -209,7 +209,7 @@ async def request_drawing_approval(
             }}
         )
         
-        app_url = os.environ.get('REACT_APP_BACKEND_URL', 'https://slim-api.preview.emergentagent.com')
+        app_url = os.environ.get('REACT_APP_BACKEND_URL', 'https://magic-auth.preview.emergentagent.com')
         drawing_link = f"{app_url}/projects/{project['id']}?drawing={drawing_id}"
         
         message = (

@@ -12,7 +12,7 @@ import uuid
 import io
 
 # Get backend URL from frontend .env
-BACKEND_URL = "https://slim-api.preview.emergentagent.com/api"
+BACKEND_URL = "https://magic-auth.preview.emergentagent.com/api"
 
 class ContractorProjectTester:
     def __init__(self):

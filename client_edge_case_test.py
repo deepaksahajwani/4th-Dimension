@@ -7,7 +7,7 @@ import requests
 import json
 import uuid
 
-BACKEND_URL = "https://slim-api.preview.emergentagent.com/api"
+BACKEND_URL = "https://magic-auth.preview.emergentagent.com/api"
 
 def test_edge_cases():
     """Test edge cases for project_types field"""

@@ -3,7 +3,6 @@ Magic Link Helper for Notifications
 Provides easy-to-use functions for generating magic links in notification triggers.
 """
 
-import os
 import logging
 from typing import Optional, Dict, Any
 

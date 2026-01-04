@@ -22,7 +22,7 @@ import string
 
 # Import new project models
 from models_projects import (
-    DrawingStatus, ConsultantType, Consultant, ConsultantCreate, ProjectDrawing, Task, TaskCreate, SiteVisit, SiteVisitCreate,
+    DrawingStatus, ProjectDrawing, Task, TaskCreate, SiteVisit, SiteVisitCreate,
     SiteIssue, SiteIssueCreate, ChecklistPreset, DrawingType, ClientUpdate,
     Client as NewClient, ClientCreate as NewClientCreate,
     Project as NewProject, ProjectCreate as NewProjectCreate, ProjectUpdate as NewProjectUpdate,
@@ -30,10 +30,7 @@ from models_projects import (
     ContactTypeMaster, ContactTypeMasterCreate, ContactTypeMasterUpdate,
     ProjectDrawingCreate, ProjectDrawingUpdate,
     WeeklyTarget, DailyTask, WeeklyRating, WeeklyTargetCreate, DailyTaskUpdate,
-    DrawingComment, DrawingCommentCreate, DrawingCommentUpdate,
-    TeamMemberVerification, VerifyEmailRequest, VerifyPhoneRequest, ResendOTPRequest,
-    Contractor, ContractorCreate, ContractorType,
-    Vendor, VendorCreate, VendorUpdate, VendorType
+    TeamMemberVerification, VerifyEmailRequest, VerifyPhoneRequest, ResendOTPRequest
 )
 from models_coclients import CoClientCreate
 from drawing_templates import get_template_drawings
@@ -1620,7 +1617,7 @@ async def get_email_preview(user_id: str = Query(None), role: str = Query(...), 
             'preferred_language': lang
         }
         
-        login_url = os.getenv('REACT_APP_BACKEND_URL', 'https://slim-api.preview.emergentagent.com')
+        login_url = os.getenv('REACT_APP_BACKEND_URL', 'https://magic-auth.preview.emergentagent.com')
         
         subject, html_content = get_translated_email_content(mock_user, login_url, lang)
         
