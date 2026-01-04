@@ -1508,6 +1508,7 @@ async def notify_owner_drawing_comment(
 ):
     """
     Notify owner when a comment is added on a drawing
+    Uses template-based WhatsApp for reliable delivery
     """
     try:
         owner = await get_owner_info()
@@ -1522,33 +1523,59 @@ async def notify_owner_drawing_comment(
         project = await get_project_by_id(project_id)
         project_name = project.get('title', 'Unknown Project') if project else 'Unknown Project'
         
-        revision_alert = "\n⚠️ *REVISION REQUESTED*" if requires_revision else ""
-        
         # Truncate comment if too long
         comment_preview = comment_text[:100] + "..." if len(comment_text) > 100 else comment_text
         
         # Deep link to the specific drawing
         deep_link = f"{APP_URL}/projects/{project_id}?drawing={drawing_id}"
         
-        message = f"""💬 *New Comment on Drawing*{revision_alert}
+        # Use template-based notification
+        try:
+            from template_notification_service import template_notification_service
+            
+            if requires_revision:
+                # Use revision_requested template
+                result = await template_notification_service.notify_revision_requested(
+                    phone_number=owner['mobile'],
+                    team_member_name=owner.get('name', 'Sir/Madam'),
+                    project_name=project_name,
+                    drawing_name=drawing_name,
+                    requested_by=commenter_name,
+                    reason=comment_preview,
+                    portal_url=deep_link
+                )
+            else:
+                # Use new_comment template
+                result = await template_notification_service.notify_new_comment(
+                    phone_number=owner['mobile'],
+                    recipient_name=owner.get('name', 'Sir/Madam'),
+                    project_name=project_name,
+                    drawing_name=drawing_name,
+                    commenter_name=commenter_name,
+                    comment_preview=comment_preview,
+                    portal_url=deep_link
+                )
+            
+            if result.get('success'):
+                logger.info(f"Owner notified of drawing comment (template): {drawing_name}")
+            else:
+                # Fallback to SMS
+                sms_msg = f"New comment on '{drawing_name}' from {commenter_name}: {comment_preview[:50]}... View: {deep_link}"
+                await notification_service.send_sms(owner['mobile'], sms_msg)
+                
+        except ImportError:
+            # Fallback to freeform
+            revision_alert = "\n⚠️ *REVISION REQUESTED*" if requires_revision else ""
+            message = f"""💬 *New Comment on Drawing*{revision_alert}
 
 📁 *Drawing:* {drawing_name}
 🏗️ *Project:* {project_name}
 👤 *From:* {commenter_name}
 
-📝 *Comment:*
-"{comment_preview}"
+📝 "{comment_preview}"
 
-👉 *View & respond:*
-{deep_link}"""
-
-        # Send WhatsApp
-        result = await notification_service.send_whatsapp(owner['mobile'], message)
-        if result.get('success'):
-            logger.info(f"Owner notified of drawing comment: {drawing_name}")
-        else:
-            # Fallback to SMS
-            await notification_service.send_sms(owner['mobile'], message)
+View & respond: {deep_link}"""
+            await notification_service.send_whatsapp(owner['mobile'], message)
             
     except Exception as e:
         logger.error(f"Error notifying owner of drawing comment: {str(e)}")
