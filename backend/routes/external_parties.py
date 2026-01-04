@@ -5,33 +5,20 @@ Refactored from server.py for better code organization
 
 from fastapi import APIRouter, Depends, HTTPException
 from datetime import datetime, timezone
+from typing import List
 import logging
 
+from utils.auth import get_current_user, User
+from utils.database import get_database
 from models_projects import (
     Contractor, ContractorCreate, ContractorType,
     Vendor, VendorCreate, VendorUpdate, VendorType,
     Consultant, ConsultantCreate, ConsultantType
 )
-from typing import List
 
-logger = logging.getLogger(__name__)
-
+db = get_database()
 router = APIRouter(tags=["External Parties"])
-
-# Database and auth dependencies will be injected
-db = None
-get_current_user = None
-require_owner = None
-User = None
-
-
-def init_router(database, current_user_dep, owner_dep, user_model):
-    """Initialize router with dependencies from main app"""
-    global db, get_current_user, require_owner, User
-    db = database
-    get_current_user = current_user_dep
-    require_owner = owner_dep
-    User = user_model
+logger = logging.getLogger(__name__)
 
 
 # ==================== CONTRACTOR ROUTES ====================
@@ -39,7 +26,7 @@ def init_router(database, current_user_dep, owner_dep, user_model):
 @router.post("/contractors")
 async def create_contractor(
     contractor_data: ContractorCreate,
-    current_user = Depends(lambda: get_current_user)
+    current_user: User = Depends(get_current_user)
 ):
     """Create a new contractor (Owner only)"""
     if not current_user.is_owner:
@@ -48,7 +35,6 @@ async def create_contractor(
     contractor = Contractor(**contractor_data.model_dump())
     contractor_dict = contractor.model_dump()
     
-    # Convert datetimes to ISO strings
     for field in ['created_at', 'updated_at']:
         if contractor_dict.get(field):
             contractor_dict[field] = contractor_dict[field].isoformat()
@@ -58,7 +44,7 @@ async def create_contractor(
 
 
 @router.get("/contractors")
-async def get_contractors(current_user = Depends(lambda: get_current_user)):
+async def get_contractors(current_user: User = Depends(get_current_user)):
     """
     Get contractors based on user role:
     - Owner/Team Members: See all approved contractors
@@ -66,7 +52,6 @@ async def get_contractors(current_user = Depends(lambda: get_current_user)):
     - Contractors: See only themselves
     """
     
-    # If client, filter to only contractors on their projects
     if current_user.role == "client":
         client = await db.clients.find_one({"email": current_user.email}, {"_id": 0, "id": 1})
         if client:
@@ -96,7 +81,6 @@ async def get_contractors(current_user = Depends(lambda: get_current_user)):
         
         return contractors
     
-    # If contractor, only return self
     if current_user.role == "contractor":
         contractor = await db.contractors.find_one(
             {"email": current_user.email, "deleted_at": None},
@@ -104,13 +88,11 @@ async def get_contractors(current_user = Depends(lambda: get_current_user)):
         )
         return [contractor] if contractor else []
     
-    # Owner and team members see all
     contractors = await db.contractors.find(
         {"deleted_at": None},
         {"_id": 0}
     ).to_list(1000)
     
-    # Filter out contractors whose user accounts are not approved
     approved_contractors = []
     for contractor in contractors:
         if contractor.get('user_id'):
@@ -129,7 +111,7 @@ async def get_contractors(current_user = Depends(lambda: get_current_user)):
 @router.get("/contractors/{contractor_id}")
 async def get_contractor(
     contractor_id: str,
-    current_user = Depends(lambda: get_current_user)
+    current_user: User = Depends(get_current_user)
 ):
     """Get a specific contractor"""
     contractor = await db.contractors.find_one(
@@ -145,7 +127,7 @@ async def get_contractor(
 async def update_contractor(
     contractor_id: str,
     contractor_data: ContractorCreate,
-    current_user = Depends(lambda: get_current_user)
+    current_user: User = Depends(get_current_user)
 ):
     """Update a contractor (Owner only)"""
     if not current_user.is_owner:
@@ -168,7 +150,7 @@ async def update_contractor(
 @router.delete("/contractors/{contractor_id}")
 async def delete_contractor(
     contractor_id: str,
-    current_user = Depends(lambda: get_current_user)
+    current_user: User = Depends(get_current_user)
 ):
     """HARD DELETE a contractor (Owner only) - Only if no active projects exist"""
     if not current_user.is_owner:
@@ -178,7 +160,6 @@ async def delete_contractor(
     if not contractor:
         raise HTTPException(status_code=404, detail="Contractor not found")
     
-    # Check for active projects
     active_projects = await db.projects.find({
         "contractors": contractor_id,
         "$or": [
@@ -198,16 +179,13 @@ async def delete_contractor(
     contractor_phone = contractor.get('phone')
     contractor_user_id = contractor.get('user_id')
     
-    # HARD DELETE from contractors collection
     await db.contractors.delete_one({"id": contractor_id})
     logger.info(f"Hard deleted contractor: {contractor.get('name')}")
     
-    # Delete associated user account
     if contractor_user_id:
         await db.users.delete_one({"id": contractor_user_id})
         logger.info(f"Hard deleted user account for contractor: {contractor.get('name')}")
     
-    # Clean up related records
     if contractor_email:
         await db.pending_registrations.delete_many({"email": contractor_email})
         await db.invitations.delete_many({"email": contractor_email})
@@ -232,7 +210,7 @@ async def get_contractor_types():
 @router.post("/vendors")
 async def create_vendor(
     vendor_data: VendorCreate,
-    current_user = Depends(lambda: get_current_user)
+    current_user: User = Depends(get_current_user)
 ):
     """Create a new vendor (Owner only)"""
     if not current_user.is_owner:
@@ -250,7 +228,7 @@ async def create_vendor(
 
 
 @router.get("/vendors")
-async def get_vendors(current_user = Depends(lambda: get_current_user)):
+async def get_vendors(current_user: User = Depends(get_current_user)):
     """Get all vendors"""
     vendors = await db.vendors.find(
         {"deleted_at": None},
@@ -262,7 +240,7 @@ async def get_vendors(current_user = Depends(lambda: get_current_user)):
 @router.get("/vendors/{vendor_id}")
 async def get_vendor(
     vendor_id: str,
-    current_user = Depends(lambda: get_current_user)
+    current_user: User = Depends(get_current_user)
 ):
     """Get a specific vendor"""
     vendor = await db.vendors.find_one(
@@ -278,7 +256,7 @@ async def get_vendor(
 async def update_vendor(
     vendor_id: str,
     vendor_data: VendorUpdate,
-    current_user = Depends(lambda: get_current_user)
+    current_user: User = Depends(get_current_user)
 ):
     """Update a vendor (Owner only)"""
     if not current_user.is_owner:
@@ -301,7 +279,7 @@ async def update_vendor(
 @router.delete("/vendors/{vendor_id}")
 async def delete_vendor(
     vendor_id: str,
-    current_user = Depends(lambda: get_current_user)
+    current_user: User = Depends(get_current_user)
 ):
     """Soft delete a vendor (Owner only)"""
     if not current_user.is_owner:
@@ -335,7 +313,7 @@ async def get_consultant_types():
 @router.post("/consultants", response_model=Consultant)
 async def create_consultant(
     consultant_data: ConsultantCreate,
-    current_user = Depends(lambda: get_current_user)
+    current_user: User = Depends(get_current_user)
 ):
     """Create a new consultant"""
     consultant = Consultant(**consultant_data.model_dump())
@@ -347,7 +325,7 @@ async def create_consultant(
 
 
 @router.get("/consultants", response_model=List[Consultant])
-async def get_consultants(current_user = Depends(lambda: get_current_user)):
+async def get_consultants(current_user: User = Depends(get_current_user)):
     """Get all consultants (filtered by approval status)"""
     consultants = await db.consultants.find({"deleted_at": None}, {"_id": 0}).to_list(1000)
     
@@ -361,13 +339,11 @@ async def get_consultants(current_user = Depends(lambda: get_current_user)):
             if not (user and user.get('approval_status') == 'approved'):
                 continue
         
-        # Process dates
         if isinstance(c.get('created_at'), str):
             c['created_at'] = datetime.fromisoformat(c['created_at'])
         if isinstance(c.get('updated_at'), str):
             c['updated_at'] = datetime.fromisoformat(c['updated_at'])
         
-        # Auto-fix legacy "Structural" type to "Structure"
         if c.get('type') == 'Structural':
             c['type'] = 'Structure'
             await db.consultants.update_one(
@@ -384,7 +360,7 @@ async def get_consultants(current_user = Depends(lambda: get_current_user)):
 async def update_consultant(
     consultant_id: str,
     consultant_data: ConsultantCreate,
-    current_user = Depends(lambda: get_current_user)
+    current_user: User = Depends(get_current_user)
 ):
     """Update consultant"""
     existing = await db.consultants.find_one({"id": consultant_id}, {"_id": 0})
@@ -411,14 +387,13 @@ async def update_consultant(
 @router.delete("/consultants/{consultant_id}")
 async def delete_consultant(
     consultant_id: str,
-    current_user = Depends(lambda: get_current_user)
+    current_user: User = Depends(get_current_user)
 ):
     """HARD DELETE consultant - Only if no active projects exist"""
     existing = await db.consultants.find_one({"id": consultant_id}, {"_id": 0})
     if not existing:
         raise HTTPException(status_code=404, detail="Consultant not found")
     
-    # Check for active projects
     active_projects = await db.projects.find({
         "consultants": consultant_id,
         "$or": [
@@ -438,7 +413,6 @@ async def delete_consultant(
     consultant_phone = existing.get('phone')
     consultant_user_id = existing.get('user_id')
     
-    # HARD DELETE
     await db.consultants.delete_one({"id": consultant_id})
     logger.info(f"Hard deleted consultant: {existing.get('name')}")
     
@@ -446,7 +420,6 @@ async def delete_consultant(
         await db.users.delete_one({"id": consultant_user_id})
         logger.info(f"Hard deleted user account for consultant")
     
-    # Cleanup
     if consultant_email:
         await db.pending_registrations.delete_many({"email": consultant_email})
         await db.invitations.delete_many({"email": consultant_email})
