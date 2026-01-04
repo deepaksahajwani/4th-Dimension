@@ -4,6 +4,7 @@ Refactored from server.py for better code organization
 """
 
 from fastapi import APIRouter, Depends, HTTPException
+from pydantic import BaseModel, Field, ConfigDict
 from datetime import datetime, timezone
 from typing import Optional, List
 import logging
@@ -11,11 +12,37 @@ import uuid
 
 from utils.auth import get_current_user, require_owner, User
 from utils.database import get_database
-from models_projects import Accounting, AccountingCreate
 
 db = get_database()
 router = APIRouter(prefix="/accounting", tags=["Accounting"])
 logger = logging.getLogger(__name__)
+
+
+# ==================== MODELS ====================
+
+class Accounting(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    transaction_type: str  # receivable, payment, salary, expense
+    amount: float
+    project_id: Optional[str] = None
+    user_id: Optional[str] = None  # For salaries
+    description: str
+    category: Optional[str] = None
+    date: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    created_by: str
+
+
+class AccountingCreate(BaseModel):
+    transaction_type: str
+    amount: float
+    project_id: Optional[str] = None
+    user_id: Optional[str] = None
+    description: str
+    category: Optional[str] = None
+
+
+# ==================== ROUTES ====================
 
 
 # ==================== BASIC ACCOUNTING ====================
