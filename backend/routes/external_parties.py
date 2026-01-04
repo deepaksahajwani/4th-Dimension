@@ -418,7 +418,7 @@ async def delete_consultant(
     
     if consultant_user_id:
         await db.users.delete_one({"id": consultant_user_id})
-        logger.info(f"Hard deleted user account for consultant")
+        logger.info("Hard deleted user account for consultant")
     
     if consultant_email:
         await db.pending_registrations.delete_many({"email": consultant_email})
