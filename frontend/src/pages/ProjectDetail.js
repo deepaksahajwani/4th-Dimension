@@ -200,6 +200,15 @@ export default function ProjectDetail({ user, onLogout }) {
       const coClientsRes = await axios.get(`${API}/projects/${projectId}/co-clients?t=${timestamp}`);
       setCoClients(coClientsRes.data);
       
+      // Fetch project-level comments
+      try {
+        const commentsRes = await axios.get(`${API}/projects/${projectId}/comments?t=${timestamp}`);
+        setProjectComments(commentsRes.data || []);
+      } catch (err) {
+        console.log('Project comments not available');
+        setProjectComments([]);
+      }
+      
       // Handle deep link - check if there's a drawing query parameter
       const urlParams = new URLSearchParams(window.location.search);
       const drawingId = urlParams.get('drawing');
