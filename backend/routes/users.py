@@ -4,19 +4,67 @@ Refactored from server.py for better code organization
 """
 
 from fastapi import APIRouter, Depends, HTTPException
+from pydantic import BaseModel, Field, ConfigDict
 from datetime import datetime, timezone, timedelta
-from typing import List, Optional
+from typing import Optional
 import logging
 import random
 import string
+import uuid
 
 from utils.auth import get_current_user, require_admin, require_owner, User
 from utils.database import get_database
-from models_projects import OTP, OTPRequest, OTPVerify, UpdateTeamMember
 
 db = get_database()
 router = APIRouter(tags=["Users"])
 logger = logging.getLogger(__name__)
+
+
+# ==================== MODELS ====================
+
+class UpdateTeamMember(BaseModel):
+    full_name: str
+    address_line_1: str
+    address_line_2: str
+    landmark: Optional[str] = None
+    city: str
+    state: str
+    pin_code: str
+    mobile: str
+    date_of_birth: str
+    date_of_joining: str
+    gender: str
+    marital_status: str
+    role: str
+    salary: Optional[float] = None
+    writeup: Optional[str] = None
+    passions: Optional[str] = None
+    contribution: Optional[str] = None
+
+
+class OTP(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    user_id: str
+    otp_code: str
+    action: str
+    expires_at: datetime
+    used: bool = False
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+
+class OTPRequest(BaseModel):
+    action: str
+    target_user_id: Optional[str] = None
+
+
+class OTPVerify(BaseModel):
+    otp_code: str
+    action: str
+    target_user_id: Optional[str] = None
+
+
+# ==================== ROUTES ====================
 
 
 @router.get("/users")
