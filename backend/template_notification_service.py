@@ -519,9 +519,18 @@ class TemplateNotificationService:
         drawing_name: str,
         revision: str = "0",
         recipient_id: Optional[str] = None,
-        project_id: Optional[str] = None
+        project_id: Optional[str] = None,
+        drawing_id: Optional[str] = None
     ) -> Dict[str, Any]:
         """Notify that a drawing was approved."""
+        # Build deep-link URL for single-item review page
+        if drawing_id and project_id:
+            in_app_link = f"/projects/{project_id}/drawing/{drawing_id}"
+        elif project_id:
+            in_app_link = f"/projects/{project_id}"
+        else:
+            in_app_link = "/projects"
+        
         return await self.send_notification(
             template_key="drawing_approved",
             recipient_phone=phone_number,
@@ -535,7 +544,7 @@ class TemplateNotificationService:
             recipient_id=recipient_id,
             in_app_title=f"Drawing Approved: {drawing_name}",
             in_app_message=f"Drawing '{drawing_name}' (Rev {revision}) has been approved",
-            in_app_link=f"/projects/{project_id}" if project_id else "/projects",
+            in_app_link=in_app_link,
             project_id=project_id
         )
     
@@ -551,9 +560,18 @@ class TemplateNotificationService:
         recipient_id: Optional[str] = None,
         project_id: Optional[str] = None,
         revision_number: int = 0,
-        revised_by: str = ""
+        revised_by: str = "",
+        drawing_id: Optional[str] = None
     ) -> Dict[str, Any]:
         """Notify about a drawing revision."""
+        # Build deep-link URL for single-item review page
+        if drawing_id and project_id:
+            in_app_link = f"/projects/{project_id}/drawing/{drawing_id}"
+        elif project_id:
+            in_app_link = f"/projects/{project_id}"
+        else:
+            in_app_link = "/projects"
+        
         return await self.send_notification(
             template_key="drawing_revised",
             recipient_phone=phone_number,
@@ -568,7 +586,7 @@ class TemplateNotificationService:
             recipient_id=recipient_id,
             in_app_title=f"Drawing Revised: {drawing_name}",
             in_app_message=f"Drawing '{drawing_name}' updated to Rev {revision or revision_number}",
-            in_app_link=f"/projects/{project_id}" if project_id else "/projects",
+            in_app_link=in_app_link,
             project_id=project_id
         )
     
