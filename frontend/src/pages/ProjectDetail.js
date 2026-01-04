@@ -1542,46 +1542,36 @@ export default function ProjectDetail({ user, onLogout }) {
                 </div>
               </div>
 
-              <div className="flex flex-col sm:flex-row gap-2">
-                {/* Edit button - Only for owner/team leader */}
-                {permissions.can_edit_project && (
-                <Button
-                  variant="outline"
-                  onClick={handleEditProject}
-                  size="sm"
-                  className="w-full sm:w-auto"
-                >
-                  <Edit className="w-4 h-4 mr-2" />
-                  Edit
-                </Button>
-                )}
-                
-                {/* Archive button - Owner only */}
-                {!project.archived && permissions.can_archive_project && (
-                  <Button
-                    variant="outline"
-                    onClick={() => setArchiveDialogOpen(true)}
-                    size="sm"
-                    className="w-full sm:w-auto border-orange-300 text-orange-700 hover:bg-orange-50"
-                  >
-                    <Calendar className="w-4 h-4 mr-2" />
-                    Archive
-                  </Button>
-                )}
-                
-                {/* Delete button - Owner only */}
-                {permissions.can_delete_project && (
-                  <Button
-                    variant="outline"
-                    onClick={() => setDeleteDialogOpen(true)}
-                    size="sm"
-                    className="w-full sm:w-auto border-red-300 text-red-700 hover:bg-red-50"
-                  >
-                    <Trash2 className="w-4 h-4 mr-2" />
-                    Delete
-                  </Button>
-                )}
-              </div>
+              {/* Settings Menu - Only for Owner/Team Leader (Mobile-friendly dropdown) */}
+              {(permissions.can_edit_project || permissions.can_archive_project || permissions.can_delete_project) && (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="outline" size="sm" className="h-9 w-9 p-0">
+                      <Edit className="w-4 h-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-48">
+                    {permissions.can_edit_project && (
+                      <DropdownMenuItem onClick={handleEditProject}>
+                        <Edit className="w-4 h-4 mr-2" />
+                        Edit Project
+                      </DropdownMenuItem>
+                    )}
+                    {!project.archived && permissions.can_archive_project && (
+                      <DropdownMenuItem onClick={() => setArchiveDialogOpen(true)} className="text-orange-600">
+                        <Calendar className="w-4 h-4 mr-2" />
+                        Archive Project
+                      </DropdownMenuItem>
+                    )}
+                    {permissions.can_delete_project && (
+                      <DropdownMenuItem onClick={() => setDeleteDialogOpen(true)} className="text-red-600">
+                        <Trash2 className="w-4 h-4 mr-2" />
+                        Delete Project
+                      </DropdownMenuItem>
+                    )}
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              )}
             </div>
           </CardContent>
         </Card>
