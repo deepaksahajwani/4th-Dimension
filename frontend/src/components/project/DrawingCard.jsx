@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent } from '../ui/card';
 import { Button } from '../ui/button';
 import {
@@ -42,9 +42,22 @@ const getDrawingStatusColor = (drawing) => {
   return 'bg-slate-50 text-slate-600 border-slate-200';
 };
 
+/**
+ * DrawingCard Component with Role-Based Permission Controls
+ * 
+ * Permissions prop structure:
+ * {
+ *   can_upload_drawing: boolean,
+ *   can_approve_drawing: boolean,
+ *   can_issue_drawing: boolean,
+ *   can_mark_na: boolean,
+ *   can_download_drawing: boolean
+ * }
+ */
 export const DrawingCard = ({
   drawing,
   user,
+  permissions = {},  // Role-based permissions
   projectContractors = [],
   onToggleIssued,
   onResolveRevision,
@@ -58,6 +71,17 @@ export const DrawingCard = ({
   onProgressUpdate
 }) => {
   const [showProgress, setShowProgress] = useState(false);
+  
+  // Permission checks with fallback to user-based check for backward compatibility
+  const canUpload = permissions.can_upload_drawing ?? (user?.is_owner || user?.role === 'team_leader');
+  const canApprove = permissions.can_approve_drawing ?? (user?.is_owner || user?.role === 'team_leader');
+  const canIssue = permissions.can_issue_drawing ?? (user?.is_owner || user?.role === 'team_leader');
+  const canMarkNA = permissions.can_mark_na ?? (user?.is_owner || user?.role === 'team_leader');
+  const canDownload = permissions.can_download_drawing ?? true; // Everyone can download by default
+  const canRevise = permissions.can_edit_drawing ?? (user?.is_owner || user?.role === 'team_leader');
+  
+  // Check if user is external (client/contractor/consultant/vendor)
+  const isExternalUser = ['client', 'contractor', 'consultant', 'vendor'].includes(user?.role);
   
   // Only show contractor progress for issued drawings
   const canShowProgress = drawing.is_issued && projectContractors.length > 0;
@@ -96,8 +120,8 @@ export const DrawingCard = ({
         </div>
         
         <div className="flex flex-wrap sm:flex-nowrap gap-1.5 sm:gap-2 sm:ml-4">
-          {/* STATE 1: PENDING - Show UPLOAD button */}
-          {!drawing.file_url && drawing.has_pending_revision !== true && (
+          {/* STATE 1: PENDING - Show UPLOAD button (OWNER/TEAM LEADER ONLY) */}
+          {canUpload && !drawing.file_url && drawing.has_pending_revision !== true && (
             <Button
               variant="outline"
               size="sm"
@@ -108,8 +132,8 @@ export const DrawingCard = ({
             </Button>
           )}
           
-          {/* STATE 3: REVISION PENDING - Show RESOLVE button */}
-          {drawing.has_pending_revision === true && (
+          {/* STATE 3: REVISION PENDING - Show RESOLVE button (OWNER/TEAM LEADER ONLY) */}
+          {canUpload && drawing.has_pending_revision === true && (
             <Button
               variant="outline"
               size="sm"
@@ -121,8 +145,8 @@ export const DrawingCard = ({
             </Button>
           )}
           
-          {/* STATE 2 & 5: UNDER REVIEW or ISSUED - Show REVISE button */}
-          {(drawing.under_review || drawing.is_issued) && drawing.has_pending_revision !== true && (
+          {/* STATE 2 & 5: UNDER REVIEW or ISSUED - Show REVISE button (OWNER/TEAM LEADER ONLY) */}
+          {canRevise && (drawing.under_review || drawing.is_issued) && drawing.has_pending_revision !== true && (
             <Button
               variant="outline"
               size="sm"
@@ -134,8 +158,8 @@ export const DrawingCard = ({
             </Button>
           )}
           
-          {/* STATE 2: UNDER REVIEW - Show APPROVE button */}
-          {drawing.under_review && !drawing.is_approved && drawing.has_pending_revision !== true && (
+          {/* STATE 2: UNDER REVIEW - Show APPROVE button (OWNER/TEAM LEADER ONLY) */}
+          {canApprove && drawing.under_review && !drawing.is_approved && drawing.has_pending_revision !== true && (
             <Button
               variant="outline"
               size="sm"
@@ -147,8 +171,8 @@ export const DrawingCard = ({
             </Button>
           )}
           
-          {/* STATE 4: APPROVED - Show ISSUE button */}
-          {drawing.is_approved && !drawing.is_issued && drawing.has_pending_revision !== true && (
+          {/* STATE 4: APPROVED - Show ISSUE button (OWNER/TEAM LEADER ONLY) */}
+          {canIssue && drawing.is_approved && !drawing.is_issued && drawing.has_pending_revision !== true && (
             <Button
               variant="outline"
               size="sm"
@@ -160,7 +184,7 @@ export const DrawingCard = ({
             </Button>
           )}
           
-          {/* PDF Button */}
+          {/* PDF Button - View for everyone, Download based on permission */}
           {drawing.file_url && (drawing.under_review || drawing.is_approved || drawing.is_issued || drawing.has_pending_revision === true) && (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -177,15 +201,17 @@ export const DrawingCard = ({
                   <Eye className="w-4 h-4 mr-2" />
                   View
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => onDownloadPDF(drawing)}>
-                  <Download className="w-4 h-4 mr-2" />
-                  Download
-                </DropdownMenuItem>
+                {canDownload && (
+                  <DropdownMenuItem onClick={() => onDownloadPDF(drawing)}>
+                    <Download className="w-4 h-4 mr-2" />
+                    Download
+                  </DropdownMenuItem>
+                )}
               </DropdownMenuContent>
             </DropdownMenu>
           )}
           
-          {/* Comment Button */}
+          {/* Comment Button - Everyone can comment */}
           <Button
             variant="outline"
             size="sm"
@@ -207,8 +233,8 @@ export const DrawingCard = ({
             )}
           </Button>
           
-          {/* Mark as N/A Button - Show for all non-issued drawings */}
-          {!drawing.is_issued && (
+          {/* Mark as N/A Button - Show for all non-issued drawings (OWNER/TEAM LEADER ONLY) */}
+          {canMarkNA && !drawing.is_issued && (
             <Button
               variant="outline"
               size="sm"
