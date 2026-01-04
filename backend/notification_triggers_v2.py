@@ -1650,6 +1650,7 @@ async def notify_owner_drawing_comment(
     """
     Notify owner when a comment is added on a drawing
     Uses template-based WhatsApp for reliable delivery
+    Uses magic links for secure one-click authentication
     """
     try:
         owner = await get_owner_info()
@@ -1667,8 +1668,12 @@ async def notify_owner_drawing_comment(
         # Truncate comment if too long
         comment_preview = comment_text[:100] + "..." if len(comment_text) > 100 else comment_text
         
-        # Deep link to the specific drawing
-        deep_link = f"{APP_URL}/projects/{project_id}?drawing={drawing_id}"
+        # Generate magic link for secure auto-login
+        deep_link = await get_magic_link_for_project(
+            recipient_id=owner['id'],
+            project_id=project_id,
+            drawing_id=drawing_id
+        )
         
         # Use template-based notification
         try:
