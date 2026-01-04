@@ -1770,7 +1770,6 @@ export default function ProjectDetail({ user, onLogout }) {
                       <div className="flex items-center gap-3 text-sm">
                         <span className="font-medium text-green-600">{issued} issued</span>
                         {revisions > 0 && <span className="text-amber-600">{revisions} revisions</span>}
-                        <span className="text-slate-400">of {total}</span>
                       </div>
                       <div className="mt-2 h-2 bg-slate-100 rounded-full overflow-hidden w-full max-w-xs">
                         <div 
