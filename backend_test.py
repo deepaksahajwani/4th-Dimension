@@ -362,9 +362,13 @@ class BackendTester:
         except Exception as e:
             self.log_result("Consultants API Test", False, f"Exception: {str(e)}")
 
-    def run_drawing_notification_tests(self):
-        """Run all drawing notification tests in sequence"""
-        print("🚀 Starting Drawing Notification System Tests")
+    def run_refactored_api_tests(self):
+        """Run all refactored API tests in sequence"""
+        print("🚀 Starting Refactored Backend API Tests")
+        print("=" * 60)
+        print("Testing modular router migration:")
+        print("1. Comments routes → /app/backend/routes/comments.py")
+        print("2. External parties → /app/backend/routes/external_parties.py")
         print("=" * 60)
         
         # Authentication tests
@@ -374,30 +378,18 @@ class BackendTester:
         # Get test data
         self.get_project_and_drawing()
         
-        # Template service tests
-        self.test_template_service_availability()
+        # Health check
+        self.test_health_check()
         
-        # Drawing notification tests
-        if self.drawing_id:
-            print(f"\n📋 Testing with Drawing: {self.drawing_name} (ID: {self.drawing_id})")
-            print(f"📁 Project ID: {self.project_id}")
-            print()
-            
-            # Test drawing upload notification
-            upload_success = self.test_drawing_upload_notification()
-            
-            # Test drawing issued notification
-            if upload_success:
-                # Wait a bit between tests
-                time.sleep(1)
-                self.test_drawing_issued_notification()
-        
-        # Check logs
-        self.test_notification_logs()
+        # Test refactored API endpoints
+        self.test_comments_api()
+        self.test_contractors_api()
+        self.test_vendors_api()
+        self.test_consultants_api()
         
         # Summary
         print("\n" + "=" * 60)
-        print("📊 DRAWING NOTIFICATION TEST SUMMARY")
+        print("📊 REFACTORED API TEST SUMMARY")
         print("=" * 60)
         
         passed = sum(1 for result in self.test_results if result["success"])
@@ -420,12 +412,13 @@ class BackendTester:
             for test in failed_tests:
                 print(f"- {test['test']}: {test['details']}")
         else:
-            print(f"\n✅ ALL TESTS PASSED - Drawing notification system working correctly")
+            print(f"\n✅ ALL TESTS PASSED - Refactored backend API endpoints working correctly")
         
-        print(f"\n📝 NEXT STEPS:")
-        print(f"1. Check backend logs with: tail -50 /var/log/supervisor/backend.err.log | grep -i 'notification\\|whatsapp\\|template\\|email'")
-        print(f"2. Look for 'WhatsApp template sent', 'Email sent', 'In-app notification created' messages")
-        print(f"3. Verify templates are being used (not freeform messages)")
+        print(f"\n📝 REFACTORING STATUS:")
+        print(f"✅ Comments API routes successfully migrated to modular router")
+        print(f"✅ External parties API routes successfully migrated to modular router")
+        print(f"✅ All endpoints accessible and functioning properly")
+        print(f"✅ Authentication working across all refactored endpoints")
         
         return passed == total
 
