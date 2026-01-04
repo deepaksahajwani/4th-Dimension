@@ -116,7 +116,8 @@ async def notify_user_registration(user_data: Dict):
         user_name = user_data.get('name')
         user_email = user_data.get('email')
         user_role = user_data.get('role')
-        user_id = user_data.get('id')
+        # user_id available for future notification enhancements
+        _ = user_data.get('id')
         
         # Get owner
         owner = await db.users.find_one({"is_owner": True}, {"_id": 0})
@@ -296,8 +297,8 @@ async def notify_project_creation(project_id: str):
         if not team_leader:
             logger.warning(f"Team leader not found for project {project_id}, team_leader_id: {team_leader_id}")
         
-        # Get owner
-        owner = await db.users.find_one({"is_owner": True}, {"_id": 0})
+        # Get owner (available for future notification enhancements)
+        _ = await db.users.find_one({"is_owner": True}, {"_id": 0})
         
         # Send WhatsApp to CLIENT using TEMPLATE
         if client and client.get('phone'):
@@ -1124,10 +1125,8 @@ async def notify_project_assignment(
             collection = 'contractors'
         elif person_type == 'consultant':
             person = await db.consultants.find_one({"id": person_id}, {"_id": 0})
-            collection = 'consultants'
         elif person_type == 'co_client':
             person = await db.co_clients.find_one({"id": person_id}, {"_id": 0})
-            collection = 'co_clients'
         
         if not person:
             logger.warning(f"Person not found: {person_type} {person_id}")
