@@ -599,11 +599,20 @@ class TemplateNotificationService:
         issue_date: Optional[str] = None,
         portal_url: Optional[str] = None,
         recipient_id: Optional[str] = None,
-        project_id: Optional[str] = None
+        project_id: Optional[str] = None,
+        drawing_id: Optional[str] = None
     ) -> Dict[str, Any]:
         """Notify that a drawing was issued."""
         if not issue_date:
             issue_date = datetime.now(timezone.utc).strftime("%d %b %Y")
+        
+        # Build deep-link URL for single-item review page
+        if drawing_id and project_id:
+            in_app_link = f"/projects/{project_id}/drawing/{drawing_id}"
+        elif project_id:
+            in_app_link = f"/projects/{project_id}"
+        else:
+            in_app_link = "/projects"
         
         return await self.send_notification(
             template_key="drawing_issued",
@@ -618,7 +627,7 @@ class TemplateNotificationService:
             recipient_id=recipient_id,
             in_app_title=f"Drawing Issued: {drawing_name}",
             in_app_message=f"Drawing '{drawing_name}' has been issued",
-            in_app_link=f"/projects/{project_id}" if project_id else "/projects",
+            in_app_link=in_app_link,
             project_id=project_id
         )
     
@@ -631,9 +640,18 @@ class TemplateNotificationService:
         revision: str,
         contractor_type: str,
         contractor_id: Optional[str] = None,
-        project_id: Optional[str] = None
+        project_id: Optional[str] = None,
+        drawing_id: Optional[str] = None
     ) -> Dict[str, Any]:
         """Notify contractor that a drawing was issued to them."""
+        # Build deep-link URL for single-item review page
+        if drawing_id and project_id:
+            in_app_link = f"/projects/{project_id}/drawing/{drawing_id}"
+        elif project_id:
+            in_app_link = f"/projects/{project_id}"
+        else:
+            in_app_link = "/projects"
+        
         return await self.send_notification(
             template_key="drawing_issued_contractor",
             recipient_phone=phone_number,
@@ -648,7 +666,7 @@ class TemplateNotificationService:
             recipient_id=contractor_id,
             in_app_title=f"Drawing Issued: {drawing_name}",
             in_app_message=f"Drawing '{drawing_name}' issued for your {contractor_type} work",
-            in_app_link=f"/projects/{project_id}" if project_id else "/projects",
+            in_app_link=in_app_link,
             project_id=project_id
         )
     
