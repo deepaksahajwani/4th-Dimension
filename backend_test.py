@@ -424,7 +424,7 @@ class BackendTester:
 
 if __name__ == "__main__":
     tester = BackendTester()
-    success = tester.run_drawing_notification_tests()
+    success = tester.run_refactored_api_tests()
     
     # Exit with appropriate code
     sys.exit(0 if success else 1)
