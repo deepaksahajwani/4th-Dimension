@@ -256,6 +256,102 @@ The External Project Detail page (`/project/{id}`) is not properly fetching or d
 
 ---
 
+## Drawing Management UI with N/A Functionality and 3D Image Upload Testing (2026-01-04)
+
+### Review Request Testing:
+**Comprehensive testing of updated drawing management UI with N/A functionality and 3D image upload features as requested:**
+
+**Test Credentials Used:**
+- Team Leader: balbirgkaur@gmail.com / TeamLeader@123
+- Owner: deepaksahajwani@gmail.com / Deepak@2025
+
+### Test Results Summary:
+- **Total Tests**: 6
+- **Passed**: 4
+- **Failed**: 2
+- **Success Rate**: 66.7%
+
+### ✅ WORKING FEATURES:
+
+#### 1. **Team Leader Login and Navigation** - ✅ WORKING
+- Login with balbirgkaur@gmail.com / TeamLeader@123 successful
+- Navigation to Team Leader Dashboard working
+- Project detail navigation to "Aagam Heritage Bungalow" working correctly
+- Team Leader Project Detail page loads with proper layout
+
+#### 2. **N/A Button Functionality** - ✅ WORKING
+- Found 3 N/A buttons in "Not Started" drawings section
+- N/A buttons properly positioned next to Upload buttons
+- N/A confirmation dialog working (browser confirm dialog)
+- Drawing successfully moved to "Not Applicable" section after confirmation
+- Progress calculation correctly excludes N/A drawings from total count
+- "Not Applicable" section displays marked drawings with reduced opacity
+
+#### 3. **3D Image Upload Functionality** - ✅ WORKING
+- "Upload 3D Images" button present and clickable
+- Upload dialog opens correctly with proper form elements
+- Category dropdown working with preset categories (Living Room, Kitchen, etc.)
+- File input present for image selection
+- Upload and Cancel buttons functional
+- Existing 3D images display correctly in expandable categories:
+  - Living Room (1 image)
+  - Kitchen (9 images) 
+  - Test Room (1 image)
+
+#### 4. **Owner Project View - N/A Buttons Present** - ✅ WORKING
+- Owner login successful with deepaksahajwani@gmail.com / Deepak@2025
+- Navigation to project detail working
+- N/A buttons correctly available for owner (3 buttons found)
+- Progress counter displays correctly (shows "2 drawings issued")
+
+### ❌ ISSUES FOUND:
+
+#### 1. **Owner Project View - Delete Buttons Present** - ❌ CRITICAL ISSUE
+- **Problem**: Found 4 delete buttons on individual drawings in owner view
+- **Expected**: No delete buttons should be present for owner role
+- **Impact**: Owners can potentially delete drawings when they should only have view access
+- **Location**: Project detail page when logged in as owner
+- **Button Details**: Red-styled delete buttons with "Delete" text and red styling classes
+
+#### 2. **External Dashboard Access** - ❌ PARTIAL ISSUE
+- **Problem**: External dashboard not loading properly for contractor/client view
+- **Symptoms**: JavaScript error preventing proper page rendering
+- **Impact**: Contractors/clients cannot access project information through external dashboard
+- **Error**: "You need to enable JavaScript to run this app" message appearing
+- **Download Functionality**: Cannot test contractor download buttons due to dashboard access issue
+
+### 🔍 DETAILED FINDINGS:
+
+**Drawing Sections Structure:**
+- Not Started (3 drawings) - with Upload and N/A buttons
+- Issued (2 drawings) - with view and download options
+- Not Applicable (1 drawing) - properly excluded from progress calculation
+
+**3D Images Structure:**
+- Living Room: 1 image
+- Kitchen: 9 images (expandable category working)
+- Test Room: 1 image
+- Upload functionality accessible to team leaders
+
+**Progress Calculation:**
+- Correctly excludes N/A drawings from total count
+- Shows "2/5 drawings issued" (40% progress) when N/A drawings are excluded
+- Progress bar updates properly when drawings are marked as N/A
+
+### 📊 OVERALL ASSESSMENT:
+- **N/A Functionality**: ✅ FULLY WORKING - Drawings can be marked as N/A and are properly excluded from progress calculation
+- **3D Image Upload**: ✅ FULLY WORKING - Upload dialog, category selection, and existing image display working correctly
+- **Team Leader Access**: ✅ FULLY WORKING - All functionality accessible and working as expected
+- **Owner View**: ⚠️ PARTIAL ISSUE - N/A buttons working but delete buttons should not be present
+- **External Dashboard**: ❌ CRITICAL ISSUE - JavaScript/rendering issue preventing contractor access
+
+### 🔧 CRITICAL ISSUES REQUIRING IMMEDIATE ATTENTION:
+1. **HIGH PRIORITY**: Remove delete buttons from owner project view - security/permission issue
+2. **HIGH PRIORITY**: Fix external dashboard JavaScript/rendering issue for contractor access
+3. **MEDIUM PRIORITY**: Verify contractor download functionality once external dashboard is fixed
+
+---
+
 ## Performance Optimization Testing (2026-01-03)
 
 ### Features Implemented:
