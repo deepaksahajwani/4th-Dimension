@@ -63,21 +63,6 @@ export default function OwnerDashboard({ user, onLogout }) {
   // Progress breakdown dialog
   const [progressDialogOpen, setProgressDialogOpen] = useState(false);
 
-  useEffect(() => {
-    if (!user) return; // Wait for user to load
-    
-    if (user.role !== 'owner' && !user.is_owner) {
-      toast.error('Access denied. Owner only.');
-      navigate('/dashboard');
-      return;
-    }
-    fetchAllData();
-  }, [user]);
-
-  useEffect(() => {
-    filterProjects();
-  }, [projects, searchTerm, filterStatus, quickFilter]);
-
   const fetchAllData = async () => {
     try {
       const token = localStorage.getItem('token');
@@ -160,6 +145,21 @@ export default function OwnerDashboard({ user, onLogout }) {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    if (!user) return; // Wait for user to load
+    
+    if (user.role !== 'owner' && !user.is_owner) {
+      toast.error('Access denied. Owner only.');
+      navigate('/dashboard');
+      return;
+    }
+    fetchAllData();
+  }, [user, navigate]);
+
+  useEffect(() => {
+    filterProjects();
+  }, [projects, searchTerm, filterStatus, quickFilter]);
 
   const filterProjects = () => {
     let filtered = [...projects];
