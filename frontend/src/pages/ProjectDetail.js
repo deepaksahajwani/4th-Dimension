@@ -256,6 +256,27 @@ export default function ProjectDetail({ user, onLogout }) {
     }
   };
 
+  // Project-level comment handler for ChatView
+  const handleSendProjectComment = async ({ text, file, voiceNote }) => {
+    const token = localStorage.getItem('token');
+    const formData = new FormData();
+    formData.append('text', text || '');
+    
+    if (file) formData.append('file', file);
+    if (voiceNote) formData.append('voice_note', voiceNote, 'voice_note.webm');
+
+    await axios.post(`${API}/projects/${projectId}/comments`, formData, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'multipart/form-data'
+      }
+    });
+
+    // Refresh comments
+    const commentsRes = await axios.get(`${API}/projects/${projectId}/comments`);
+    setProjectComments(commentsRes.data || []);
+  };
+
   const loadRecipientsForCategory = async (category) => {
     console.log('Loading recipients for category:', category);
     
