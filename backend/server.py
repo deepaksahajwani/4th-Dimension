@@ -5967,33 +5967,7 @@ async def get_project_revisions(project_id: str, current_user: User = Depends(ge
     return revisions
 
 
-# ==================== ACCOUNTING ROUTES ====================
-
-@api_router.post("/accounting", response_model=Accounting)
-async def create_accounting_entry(entry_data: AccountingCreate, current_user: User = Depends(require_owner)):
-    entry = Accounting(
-        transaction_type=entry_data.transaction_type,
-        amount=entry_data.amount,
-        project_id=entry_data.project_id,
-        user_id=entry_data.user_id,
-        description=entry_data.description,
-        category=entry_data.category,
-        created_by=current_user.id
-    )
-    
-    entry_dict = entry.model_dump()
-    entry_dict['date'] = entry_dict['date'].isoformat()
-    
-    await db.accounting.insert_one(entry_dict)
-    return entry
-
-@api_router.get("/accounting", response_model=List[Accounting])
-async def get_accounting_entries(current_user: User = Depends(require_owner)):
-    entries = await db.accounting.find({}, {"_id": 0}).sort("date", -1).to_list(1000)
-    for entry in entries:
-        if isinstance(entry.get('date'), str):
-            entry['date'] = datetime.fromisoformat(entry['date'])
-    return entries
+# ==================== ACCOUNTING ROUTES (Moved to routes/accounting.py) ====================
 
 # ==================== DRAWING TEMPLATE ROUTES ====================
 
