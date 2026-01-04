@@ -3,6 +3,7 @@ Complete Notification Triggers - All notification types
 Implements the notification system using WhatsApp templates
 Uses template_notification_service for consistent template-based messaging
 All notifications are now non-blocking using async queue
+Magic links are used for secure one-click authentication from notifications
 """
 
 import os
@@ -28,6 +29,23 @@ try:
 except ImportError:
     async_notification_service = None
     USE_ASYNC_NOTIFICATIONS = False
+
+# Import magic link helper for secure notification links
+try:
+    from services.magic_link_helper import (
+        create_project_magic_link,
+        create_drawing_magic_link,
+        create_drawing_review_magic_link,
+        create_comment_magic_link,
+        create_dashboard_magic_link,
+        get_user_info_for_magic_link,
+        get_user_info_by_email
+    )
+    USE_MAGIC_LINKS = True
+except ImportError:
+    USE_MAGIC_LINKS = False
+    logger = logging.getLogger(__name__)
+    logger.warning("Magic link helper not available - using direct links")
 
 logger = logging.getLogger(__name__)
 
