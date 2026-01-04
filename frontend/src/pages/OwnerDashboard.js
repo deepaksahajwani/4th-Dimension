@@ -532,6 +532,156 @@ export default function OwnerDashboard({ user, onLogout }) {
           </div>
         </div>
 
+        {/* System Metrics Panel (Phase 5) */}
+        <div className="bg-white rounded-xl shadow-md mb-6 overflow-hidden">
+          <div 
+            onClick={() => setShowMetrics(!showMetrics)}
+            className="flex items-center justify-between p-4 cursor-pointer hover:bg-slate-50 transition-colors"
+          >
+            <div className="flex items-center gap-3">
+              <Activity className="w-5 h-5 text-indigo-600" />
+              <h2 className="text-lg font-semibold text-slate-900">System Metrics</h2>
+              {systemMetrics && (
+                <span className="px-2 py-0.5 text-xs bg-green-100 text-green-700 rounded-full">
+                  {systemMetrics.system_health?.status || 'healthy'}
+                </span>
+              )}
+            </div>
+            {showMetrics ? (
+              <ChevronUp className="w-5 h-5 text-slate-400" />
+            ) : (
+              <ChevronDown className="w-5 h-5 text-slate-400" />
+            )}
+          </div>
+          
+          {showMetrics && systemMetrics && (
+            <div className="border-t border-slate-200 p-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                {/* Notification Stats */}
+                <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-4">
+                  <div className="flex items-center gap-2 mb-3">
+                    <Bell className="w-4 h-4 text-blue-600" />
+                    <span className="text-sm font-medium text-blue-900">Notifications (7d)</span>
+                  </div>
+                  <div className="space-y-2">
+                    <div className="flex justify-between">
+                      <span className="text-xs text-blue-700">Total Sent</span>
+                      <span className="text-sm font-semibold text-blue-900">
+                        {systemMetrics.notifications?.summary?.total || 0}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-xs text-blue-700">Success Rate</span>
+                      <span className="text-sm font-semibold text-green-600">
+                        {systemMetrics.notifications?.summary?.success_rate || 100}%
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-xs text-blue-700">Failed</span>
+                      <span className={`text-sm font-semibold ${
+                        (systemMetrics.notifications?.summary?.failed || 0) > 0 ? 'text-red-600' : 'text-slate-600'
+                      }`}>
+                        {systemMetrics.notifications?.summary?.failed || 0}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+                
+                {/* Storage Stats */}
+                <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg p-4">
+                  <div className="flex items-center gap-2 mb-3">
+                    <HardDrive className="w-4 h-4 text-purple-600" />
+                    <span className="text-sm font-medium text-purple-900">Storage Usage</span>
+                  </div>
+                  <div className="space-y-2">
+                    <div className="flex justify-between">
+                      <span className="text-xs text-purple-700">Total Used</span>
+                      <span className="text-sm font-semibold text-purple-900">
+                        {systemMetrics.storage?.total?.formatted || '0 B'}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-xs text-purple-700">3D Images</span>
+                      <span className="text-sm font-semibold text-purple-900">
+                        {systemMetrics.storage?.breakdown?.['3d_images']?.formatted || '0 B'}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-xs text-purple-700">Total Files</span>
+                      <span className="text-sm font-semibold text-purple-900">
+                        {systemMetrics.storage?.total?.file_count || 0}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+                
+                {/* Drawing Stats */}
+                <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-lg p-4">
+                  <div className="flex items-center gap-2 mb-3">
+                    <FileText className="w-4 h-4 text-green-600" />
+                    <span className="text-sm font-medium text-green-900">Drawing Progress</span>
+                  </div>
+                  <div className="space-y-2">
+                    <div className="flex justify-between">
+                      <span className="text-xs text-green-700">Total Drawings</span>
+                      <span className="text-sm font-semibold text-green-900">
+                        {systemMetrics.system_health?.drawings?.total || 0}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-xs text-green-700">Issued</span>
+                      <span className="text-sm font-semibold text-green-900">
+                        {systemMetrics.system_health?.drawings?.issued || 0}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-xs text-green-700">Completion Rate</span>
+                      <span className="text-sm font-semibold text-green-600">
+                        {systemMetrics.system_health?.drawings?.completion_rate || 0}%
+                      </span>
+                    </div>
+                  </div>
+                </div>
+                
+                {/* API Activity */}
+                <div className="bg-gradient-to-br from-orange-50 to-orange-100 rounded-lg p-4">
+                  <div className="flex items-center gap-2 mb-3">
+                    <BarChart3 className="w-4 h-4 text-orange-600" />
+                    <span className="text-sm font-medium text-orange-900">Activity (7d)</span>
+                  </div>
+                  <div className="space-y-2">
+                    <div className="flex justify-between">
+                      <span className="text-xs text-orange-700">Active Users</span>
+                      <span className="text-sm font-semibold text-orange-900">
+                        {systemMetrics.api_usage?.users?.active || 0}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-xs text-orange-700">Drawings Uploaded</span>
+                      <span className="text-sm font-semibold text-orange-900">
+                        {systemMetrics.api_usage?.activity?.drawings_uploaded || 0}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-xs text-orange-700">Comments Added</span>
+                      <span className="text-sm font-semibold text-orange-900">
+                        {systemMetrics.api_usage?.activity?.comments_created || 0}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              {/* Last Updated */}
+              <div className="mt-4 text-right">
+                <span className="text-xs text-slate-500">
+                  Last updated: {new Date(systemMetrics.timestamp).toLocaleString()}
+                </span>
+              </div>
+            </div>
+          )}
+        </div>
+
         {/* Search and Filters */}
         <div className="bg-white rounded-xl shadow-md p-4 mb-6">
           <div className="flex flex-col sm:flex-row gap-4">
