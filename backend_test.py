@@ -194,159 +194,173 @@ class BackendTester:
         except Exception as e:
             self.log_result("Get Project and Drawing", False, f"Exception: {str(e)}")
 
-    def test_drawing_upload_notification(self):
-        """Test drawing upload notification (under_review: true)"""
-        if not self.team_leader_token or not self.drawing_id:
-            self.log_result("Drawing Upload Notification", False, "Missing token or drawing ID")
-            return
-            
+    def test_health_check(self):
+        """Test general health check endpoint"""
         try:
-            print("📤 Testing Drawing Upload Notification...")
+            print("🏥 Testing Health Check...")
             
-            headers = {"Authorization": f"Bearer {self.team_leader_token}"}
-            
-            # Update drawing to mark as under_review
-            update_data = {"under_review": True}
-            
-            response = self.session.put(
-                f"{BACKEND_URL}/drawings/{self.drawing_id}", 
-                headers=headers,
-                json=update_data
-            )
-            
-            if response.status_code == 200:
-                self.log_result("Drawing Upload Notification", True, 
-                              f"Drawing {self.drawing_name} marked as under_review. Check backend logs for notifications.")
-                
-                # Wait a moment for async notifications to process
-                time.sleep(2)
-                
-                return True
-            else:
-                self.log_result("Drawing Upload Notification", False, 
-                              f"Failed to update drawing: {response.status_code}", response.text)
-                return False
-                
-        except Exception as e:
-            self.log_result("Drawing Upload Notification", False, f"Exception: {str(e)}")
-            return False
-
-    def test_drawing_issued_notification(self):
-        """Test drawing issued notification (is_issued: true)"""
-        if not self.team_leader_token or not self.drawing_id:
-            self.log_result("Drawing Issued Notification", False, "Missing token or drawing ID")
-            return
-            
-        try:
-            print("✅ Testing Drawing Issued Notification...")
-            
-            headers = {"Authorization": f"Bearer {self.team_leader_token}"}
-            
-            # Update drawing to mark as issued
-            update_data = {"is_issued": True}
-            
-            response = self.session.put(
-                f"{BACKEND_URL}/drawings/{self.drawing_id}", 
-                headers=headers,
-                json=update_data
-            )
-            
-            if response.status_code == 200:
-                self.log_result("Drawing Issued Notification", True, 
-                              f"Drawing {self.drawing_name} marked as issued. Check backend logs for notifications.")
-                
-                # Wait a moment for async notifications to process
-                time.sleep(2)
-                
-                return True
-            else:
-                self.log_result("Drawing Issued Notification", False, 
-                              f"Failed to update drawing: {response.status_code}", response.text)
-                return False
-                
-        except Exception as e:
-            self.log_result("Drawing Issued Notification", False, f"Exception: {str(e)}")
-            return False
-
-    def test_notification_logs(self):
-        """Test notification logs to verify template usage"""
-        if not self.owner_token:
-            self.log_result("Notification Logs Check", False, "No owner token available")
-            return
-            
-        try:
-            print("📄 Testing Notification Logs...")
-            
-            headers = {"Authorization": f"Bearer {self.owner_token}"}
-            
-            # Try to get recent logs
-            response = self.session.get(f"{BACKEND_URL}/aggregated/logs?page=1&page_size=20", headers=headers)
-            
-            if response.status_code == 200:
-                data = response.json()
-                logs = data.get("logs", [])
-                
-                # Look for recent notification logs
-                notification_logs = []
-                template_logs = []
-                
-                for log in logs:
-                    log_message = log.get("message", "").lower()
-                    if any(keyword in log_message for keyword in ["notification", "whatsapp", "template", "email"]):
-                        notification_logs.append(log)
-                        if "template" in log_message:
-                            template_logs.append(log)
-                
-                if notification_logs:
-                    self.log_result("Notification Logs Check", True, 
-                                  f"Found {len(notification_logs)} notification logs, {len(template_logs)} template logs")
-                    
-                    # Print some recent notification logs
-                    print("   Recent notification logs:")
-                    for log in notification_logs[:5]:
-                        timestamp = log.get("timestamp", "")
-                        message = log.get("message", "")
-                        print(f"     {timestamp}: {message}")
-                else:
-                    self.log_result("Notification Logs Check", True, 
-                                  "No recent notification logs found (may be in different log format)")
-            else:
-                self.log_result("Notification Logs Check", False, 
-                              f"Failed to fetch logs: {response.status_code}", response.text)
-                
-        except Exception as e:
-            self.log_result("Notification Logs Check", False, f"Exception: {str(e)}")
-
-    def test_template_service_availability(self):
-        """Test if template notification service is available"""
-        try:
-            print("🔧 Testing Template Service Availability...")
-            
-            # Test health endpoint to see if template service is loaded
             response = self.session.get(f"{BACKEND_URL}/health")
             
             if response.status_code == 200:
-                self.log_result("Template Service Health", True, 
-                              "Backend health check passed")
-            else:
-                self.log_result("Template Service Health", False, 
-                              f"Health check failed: {response.status_code}")
-            
-            # Test ops status if available
-            if self.owner_token:
-                headers = {"Authorization": f"Bearer {self.owner_token}"}
-                ops_response = self.session.get(f"{BACKEND_URL}/ops/status", headers=headers)
-                
-                if ops_response.status_code == 200:
-                    ops_data = ops_response.json()
-                    self.log_result("Template Service Status", True, 
-                                  f"Ops status available with {len(ops_data)} status items")
+                data = response.json()
+                if data.get("ok") and data.get("status") == "healthy":
+                    self.log_result("Health Check", True, "Backend health check passed")
                 else:
-                    self.log_result("Template Service Status", False, 
-                                  f"Ops status failed: {ops_response.status_code}")
+                    self.log_result("Health Check", False, f"Unexpected health response: {data}")
+            else:
+                self.log_result("Health Check", False, f"Health check failed: {response.status_code}")
                 
         except Exception as e:
-            self.log_result("Template Service Availability", False, f"Exception: {str(e)}")
+            self.log_result("Health Check", False, f"Exception: {str(e)}")
+
+    def test_comments_api(self):
+        """Test Comments API endpoints (from comments.py router)"""
+        if not self.team_leader_token or not self.project_id:
+            self.log_result("Comments API Test", False, "Missing token or project ID")
+            return
+            
+        try:
+            print("💬 Testing Comments API...")
+            
+            headers = {"Authorization": f"Bearer {self.team_leader_token}"}
+            
+            # Test 1: GET project comments
+            response = self.session.get(f"{BACKEND_URL}/projects/{self.project_id}/comments", headers=headers)
+            
+            if response.status_code == 200:
+                comments = response.json()
+                self.log_result("GET Project Comments", True, f"Retrieved {len(comments)} project comments")
+            else:
+                self.log_result("GET Project Comments", False, f"Failed: {response.status_code} - {response.text}")
+                return
+            
+            # Test 2: POST project comment
+            comment_data = {
+                "text": f"Test comment from backend test - {datetime.now().isoformat()}"
+            }
+            
+            # Use form data for project comments
+            response = self.session.post(
+                f"{BACKEND_URL}/projects/{self.project_id}/comments", 
+                headers=headers,
+                data=comment_data
+            )
+            
+            if response.status_code == 200:
+                comment_response = response.json()
+                self.test_comment_id = comment_response.get("comment", {}).get("id")
+                self.log_result("POST Project Comment", True, "Successfully created project comment")
+            else:
+                self.log_result("POST Project Comment", False, f"Failed: {response.status_code} - {response.text}")
+            
+            # Test 3: GET drawing comments (if drawing exists)
+            if self.drawing_id:
+                response = self.session.get(f"{BACKEND_URL}/drawings/{self.drawing_id}/comments", headers=headers)
+                
+                if response.status_code == 200:
+                    drawing_comments = response.json()
+                    self.log_result("GET Drawing Comments", True, f"Retrieved {len(drawing_comments)} drawing comments")
+                else:
+                    self.log_result("GET Drawing Comments", False, f"Failed: {response.status_code} - {response.text}")
+                
+        except Exception as e:
+            self.log_result("Comments API Test", False, f"Exception: {str(e)}")
+
+    def test_contractors_api(self):
+        """Test Contractors API endpoints (from external_parties.py router)"""
+        if not self.team_leader_token:
+            self.log_result("Contractors API Test", False, "Missing token")
+            return
+            
+        try:
+            print("🔨 Testing Contractors API...")
+            
+            headers = {"Authorization": f"Bearer {self.team_leader_token}"}
+            
+            # Test 1: GET contractors
+            response = self.session.get(f"{BACKEND_URL}/contractors", headers=headers)
+            
+            if response.status_code == 200:
+                contractors = response.json()
+                self.log_result("GET Contractors", True, f"Retrieved {len(contractors)} contractors")
+            else:
+                self.log_result("GET Contractors", False, f"Failed: {response.status_code} - {response.text}")
+            
+            # Test 2: GET contractor types
+            response = self.session.get(f"{BACKEND_URL}/contractor-types", headers=headers)
+            
+            if response.status_code == 200:
+                contractor_types = response.json()
+                self.log_result("GET Contractor Types", True, f"Retrieved {len(contractor_types)} contractor types")
+            else:
+                self.log_result("GET Contractor Types", False, f"Failed: {response.status_code} - {response.text}")
+                
+        except Exception as e:
+            self.log_result("Contractors API Test", False, f"Exception: {str(e)}")
+
+    def test_vendors_api(self):
+        """Test Vendors API endpoints (from external_parties.py router)"""
+        if not self.team_leader_token:
+            self.log_result("Vendors API Test", False, "Missing token")
+            return
+            
+        try:
+            print("🏪 Testing Vendors API...")
+            
+            headers = {"Authorization": f"Bearer {self.team_leader_token}"}
+            
+            # Test 1: GET vendors
+            response = self.session.get(f"{BACKEND_URL}/vendors", headers=headers)
+            
+            if response.status_code == 200:
+                vendors = response.json()
+                self.log_result("GET Vendors", True, f"Retrieved {len(vendors)} vendors")
+            else:
+                self.log_result("GET Vendors", False, f"Failed: {response.status_code} - {response.text}")
+            
+            # Test 2: GET vendor types
+            response = self.session.get(f"{BACKEND_URL}/vendor-types", headers=headers)
+            
+            if response.status_code == 200:
+                vendor_types = response.json()
+                self.log_result("GET Vendor Types", True, f"Retrieved {len(vendor_types)} vendor types")
+            else:
+                self.log_result("GET Vendor Types", False, f"Failed: {response.status_code} - {response.text}")
+                
+        except Exception as e:
+            self.log_result("Vendors API Test", False, f"Exception: {str(e)}")
+
+    def test_consultants_api(self):
+        """Test Consultants API endpoints (from external_parties.py router)"""
+        if not self.team_leader_token:
+            self.log_result("Consultants API Test", False, "Missing token")
+            return
+            
+        try:
+            print("👨‍💼 Testing Consultants API...")
+            
+            headers = {"Authorization": f"Bearer {self.team_leader_token}"}
+            
+            # Test 1: GET consultants
+            response = self.session.get(f"{BACKEND_URL}/consultants", headers=headers)
+            
+            if response.status_code == 200:
+                consultants = response.json()
+                self.log_result("GET Consultants", True, f"Retrieved {len(consultants)} consultants")
+            else:
+                self.log_result("GET Consultants", False, f"Failed: {response.status_code} - {response.text}")
+            
+            # Test 2: GET consultant types
+            response = self.session.get(f"{BACKEND_URL}/consultant-types", headers=headers)
+            
+            if response.status_code == 200:
+                consultant_types = response.json()
+                self.log_result("GET Consultant Types", True, f"Retrieved {len(consultant_types)} consultant types")
+            else:
+                self.log_result("GET Consultant Types", False, f"Failed: {response.status_code} - {response.text}")
+                
+        except Exception as e:
+            self.log_result("Consultants API Test", False, f"Exception: {str(e)}")
 
     def run_drawing_notification_tests(self):
         """Run all drawing notification tests in sequence"""
