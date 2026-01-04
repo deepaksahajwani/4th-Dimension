@@ -1534,26 +1534,23 @@ async def notify_owner_drawing_comment(
             from template_notification_service import template_notification_service
             
             if requires_revision:
-                # Use revision_requested template
+                # Use revision_requested template - parameter names differ
                 result = await template_notification_service.notify_revision_requested(
                     phone_number=owner['mobile'],
-                    team_member_name=owner.get('name', 'Sir/Madam'),
+                    team_leader_name=owner.get('name', 'Sir/Madam'),
                     project_name=project_name,
                     drawing_name=drawing_name,
-                    requested_by=commenter_name,
-                    reason=comment_preview,
-                    portal_url=deep_link
+                    requester_name=commenter_name,
+                    reason=comment_preview
                 )
             else:
-                # Use new_comment template
+                # Use new_comment template - parameter names differ
                 result = await template_notification_service.notify_new_comment(
                     phone_number=owner['mobile'],
                     recipient_name=owner.get('name', 'Sir/Madam'),
-                    project_name=project_name,
-                    drawing_name=drawing_name,
                     commenter_name=commenter_name,
-                    comment_preview=comment_preview,
-                    portal_url=deep_link
+                    project_name=project_name,
+                    comment_preview=comment_preview
                 )
             
             if result.get('success'):
