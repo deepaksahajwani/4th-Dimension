@@ -7301,6 +7301,7 @@ from routes import drawing_whatsapp
 from routes import users as users_routes
 from routes import accounting as accounting_routes
 from routes import comments as comments_routes
+from routes import api_v2
 
 # Include the new modular routers under /api
 api_router.include_router(auth.router)
@@ -7311,6 +7312,7 @@ api_router.include_router(drawings.router)
 api_router.include_router(users_routes.router)
 api_router.include_router(accounting_routes.router)
 api_router.include_router(comments_routes.router)
+api_router.include_router(api_v2.router)  # v2 endpoints for mobile
 
 # Include drawing WhatsApp routes
 drawing_whatsapp.set_auth_dependency(get_current_user)
