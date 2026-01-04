@@ -219,6 +219,21 @@ export default function TeamLeaderProjectDetail({ user, onLogout }) {
     }
   };
 
+  const handleMarkAsNotApplicable = async (drawingId) => {
+    if (!window.confirm('Mark this drawing as Not Applicable? It will be excluded from progress calculation.')) return;
+    
+    try {
+      const token = localStorage.getItem('token');
+      await axios.patch(`${API}/drawings/${drawingId}/mark-not-applicable`, {}, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      toast.success('Drawing marked as Not Applicable');
+      fetchProjectData();
+    } catch (error) {
+      toast.error('Failed to mark drawing as N/A');
+    }
+  };
+
   const handleViewDrawing = (drawing) => {
     if (drawing.file_url) {
       window.open(`${BACKEND_URL}${drawing.file_url}`, '_blank');
