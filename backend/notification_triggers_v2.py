@@ -698,7 +698,8 @@ async def notify_drawing_revised_internal(project_id: str, drawing_id: str, revi
                 requester_name=revised_by.get('name'),
                 reason="Please review and update",
                 team_leader_id=team_leader_id,
-                project_id=project_id
+                project_id=project_id,
+                drawing_id=drawing_id
             )
         else:
             # Fallback to freeform message
@@ -710,7 +711,7 @@ async def notify_drawing_revised_internal(project_id: str, drawing_id: str, revi
 
 Please review the revision comments and update the drawing.
 
-View Revision: {APP_URL}/projects/{project_id}/drawings/{drawing_id}"""
+View Revision: {APP_URL}/projects/{project_id}/drawing/{drawing_id}"""
             
             await notification_service.send_notification(
                 user_ids=[team_leader_id],
@@ -718,7 +719,7 @@ View Revision: {APP_URL}/projects/{project_id}/drawings/{drawing_id}"""
                 message=message,
                 notification_type="drawing_revised_internal",
                 channels=['in_app', 'whatsapp'],
-                link=f"/projects/{project_id}/drawings/{drawing_id}",
+                link=f"/projects/{project_id}/drawing/{drawing_id}",
                 project_id=project_id
             )
         
@@ -756,7 +757,7 @@ async def notify_drawing_revised_external(project_id: str, drawing_id: str, revi
 
 Please review the comments and take necessary action.
 
-View Revision: {APP_URL}/projects/{project_id}/drawings/{drawing_id}"""
+View Revision: {APP_URL}/projects/{project_id}/drawing/{drawing_id}"""
         
         recipients = [owner['id']]
         if team_leader_id:
@@ -768,7 +769,7 @@ View Revision: {APP_URL}/projects/{project_id}/drawings/{drawing_id}"""
             message=message,
             notification_type="drawing_revised_external",
             channels=['in_app', 'whatsapp'],
-            link=f"/projects/{project_id}/drawings/{drawing_id}",
+            link=f"/projects/{project_id}/drawing/{drawing_id}",
             project_id=project_id
         )
         
