@@ -1818,7 +1818,6 @@ export default function ProjectDetail({ user, onLogout }) {
                           onDownloadPDF={handleDownloadPDF}
                           onOpenComments={handleOpenComments}
                           onMarkAsNotApplicable={handleMarkAsNotApplicable}
-                          onDeleteDrawing={handleDeleteDrawing}
                           onProgressUpdate={fetchProjectData}
                         />
                       ))}
