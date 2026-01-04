@@ -755,53 +755,25 @@ export default function TeamLeaderProjectDetail({ user, onLogout }) {
           </Card>
         )}
 
-        {/* COMMENTS SECTION */}
+        {/* COMMENTS SECTION - WhatsApp Style */}
         {activeSection === 'comments' && (
-          <div className="space-y-4">
-            <Button
-              onClick={() => setShowNewComment(true)}
-              className="w-full bg-orange-500 hover:bg-orange-600"
-            >
-              <Send className="w-4 h-4 mr-2" />
-              Post Comment
-            </Button>
-
-            {comments.length === 0 ? (
-              <div className="text-center py-12 bg-slate-50 rounded-lg">
-                <MessageSquare className="w-10 h-10 text-slate-300 mx-auto mb-2" />
-                <p className="text-slate-500">No comments yet</p>
-              </div>
-            ) : (
-              <div className="space-y-3">
-                {comments.map((comment) => (
-                  <Card key={comment.id}>
-                    <CardContent className="p-3">
-                      <div className="flex items-start gap-3">
-                        <div className="w-8 h-8 bg-orange-100 rounded-full flex items-center justify-center shrink-0">
-                          <User className="w-4 h-4 text-orange-600" />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2 mb-1">
-                            <span className="font-medium text-sm">{comment.user_name || 'User'}</span>
-                            <span className="text-xs text-slate-400">{formatDate(comment.created_at)}</span>
-                          </div>
-                          {comment.text && <p className="text-sm text-slate-700">{comment.text}</p>}
-                          {comment.file_url && (
-                            <a href={comment.file_url} target="_blank" rel="noopener noreferrer" className="text-xs text-blue-600 flex items-center gap-1 mt-1">
-                              <Paperclip className="w-3 h-3" /> Attached file
-                            </a>
-                          )}
-                          {comment.voice_note_url && (
-                            <audio controls src={comment.voice_note_url} className="mt-2 w-full h-8" />
-                          )}
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            )}
-          </div>
+          <Card className="overflow-hidden">
+            <div className="bg-gradient-to-r from-purple-600 to-purple-700 px-4 py-3">
+              <h3 className="text-white font-medium text-sm">Project Discussion</h3>
+              <p className="text-purple-200 text-xs">{comments.length} {comments.length === 1 ? 'message' : 'messages'}</p>
+            </div>
+            <div className="h-[400px]">
+              <ChatView
+                messages={comments}
+                currentUserId={user?.id}
+                loading={loading}
+                onSendMessage={handleSendComment}
+                placeholder="Type a message..."
+                emptyStateText="No messages yet"
+                emptyStateSubtext="Start the project discussion"
+              />
+            </div>
+          </Card>
         )}
 
         {/* Upload Drawing Dialog */}
