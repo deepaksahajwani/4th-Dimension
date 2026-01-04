@@ -213,7 +213,7 @@ async def send_immediate_approval_notification(
     """
     Send immediate notification when drawing is uploaded for review
     Called from the drawing upload/update endpoint
-    Sends: In-app, WhatsApp, SMS (fallback), and Email
+    Sends: In-app, WhatsApp (template-based), SMS (fallback), and Email
     """
     try:
         owner = await get_owner_info()
@@ -229,20 +229,6 @@ async def send_immediate_approval_notification(
         
         from notification_service import notification_service
         
-        whatsapp_message = f"""📤 *NEW: Drawing Uploaded for Approval*
-
-📁 *Drawing:* {drawing_name}
-🏗️ *Project:* {project_name}
-👤 *Uploaded by:* {uploaded_by_name}
-📅 *Time:* {datetime.now(timezone.utc).strftime('%d %b %Y, %I:%M %p')}
-
-Please review and approve this drawing.
-
-👉 *Click to view & approve:*
-{deep_link}
-
-⏰ You will receive hourly reminders if not approved within 6 hours."""
-        
         # 1. Create in-app notification FIRST (always works)
         await notification_service.create_in_app_notification(
             user_id=owner['id'],
@@ -254,15 +240,39 @@ Please review and approve this drawing.
         )
         logger.info(f"In-app notification created for drawing approval: {drawing_name}")
         
-        # 2. Send WhatsApp if owner has mobile
+        # 2. Send WhatsApp using TEMPLATE (works outside 24h window)
         if owner.get('mobile'):
-            result = await notification_service.send_whatsapp(owner['mobile'], whatsapp_message)
-            if result.get('success'):
-                logger.info(f"WhatsApp approval notification sent for: {drawing_name}")
-            else:
-                # Fallback to SMS
-                await notification_service.send_sms(owner['mobile'], whatsapp_message)
-                logger.info(f"SMS approval notification sent for: {drawing_name}")
+            try:
+                from template_notification_service import template_notification_service
+                
+                # Use the drawing_approval_needed template
+                result = await template_notification_service.notify_drawing_approval_needed(
+                    phone_number=owner['mobile'],
+                    owner_name=owner.get('name', 'Sir/Madam'),
+                    project_name=project_name,
+                    drawing_name=drawing_name,
+                    uploader_name=uploaded_by_name,
+                    portal_url=deep_link
+                )
+                
+                if result.get('success'):
+                    logger.info(f"WhatsApp template notification sent for drawing approval: {drawing_name}")
+                else:
+                    # Fallback to SMS
+                    sms_message = f"Drawing '{drawing_name}' needs your approval for {project_name}. Uploaded by {uploaded_by_name}. View: {deep_link}"
+                    await notification_service.send_sms(owner['mobile'], sms_message)
+                    logger.info(f"SMS approval notification sent for: {drawing_name}")
+                    
+            except ImportError:
+                # Template service not available, use freeform
+                whatsapp_message = f"""📤 *Drawing Uploaded for Approval*
+
+📁 *Drawing:* {drawing_name}
+🏗️ *Project:* {project_name}
+👤 *Uploaded by:* {uploaded_by_name}
+
+Please review and approve: {deep_link}"""
+                await notification_service.send_whatsapp(owner['mobile'], whatsapp_message)
         
         # 3. Send Email notification
         if owner.get('email'):
