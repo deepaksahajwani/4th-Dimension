@@ -105,10 +105,6 @@ export default function Accounting({ user, onLogout }) {
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    fetchAllData();
-  }, []);
-
   const fetchAllData = async () => {
     try {
       const token = localStorage.getItem('token');
@@ -138,6 +134,10 @@ export default function Accounting({ user, onLogout }) {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    fetchAllData();
+  }, []);
 
   const handleUpdateIncome = async () => {
     try {
