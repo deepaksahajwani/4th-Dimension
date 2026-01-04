@@ -861,3 +861,36 @@ Major backend refactoring where ~860 lines were removed from `/app/backend/serve
 - **No regression issues** found in the migration
 
 ---
+## Backend Refactoring Session - Code Cleanup Complete (2026-01-04)
+
+### Changes Made:
+
+**Phase 1: Modular Router Integration**
+1. **Comments Routes** - Migrated to `/app/backend/routes/comments.py`
+   - Project comments CRUD
+   - Drawing comments CRUD
+   - File/voice note upload for comments
+   - Legacy file serving routes
+
+2. **External Parties Routes** - Included `/app/backend/routes/external_parties.py`
+   - Contractors CRUD + types
+   - Vendors CRUD + types
+   - Consultants CRUD + types
+
+**Lines Removed from server.py:** ~862 lines
+- Original: 7,572 lines
+- After refactor: 6,710 lines
+
+### Test Results:
+- ✅ All API endpoints working correctly
+- ✅ Authentication maintained across all refactored routes
+- ✅ Database operations functioning properly
+- ✅ Notification integration working
+- ✅ Frontend fully functional
+
+### Files Modified:
+1. `/app/backend/server.py` - Removed duplicated routes
+2. `/app/backend/routes/comments.py` - Updated with all comment-related routes
+3. `/app/backend/routes/external_parties.py` - Already complete, now included
+
+---
