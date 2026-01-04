@@ -367,13 +367,16 @@ export default function TeamLeaderProjectDetail({ user, onLogout }) {
   };
 
   // Group drawings by status
-  const pendingRevisions = drawings.filter(d => d.has_pending_revision);
-  const underReview = drawings.filter(d => d.under_review && !d.is_approved && !d.has_pending_revision);
-  const readyToIssue = drawings.filter(d => d.is_approved && !d.is_issued);
-  const issued = drawings.filter(d => d.is_issued && !d.has_pending_revision);
-  const notStarted = drawings.filter(d => !d.file_url && !d.is_issued && !d.has_pending_revision);
+  const pendingRevisions = drawings.filter(d => d.has_pending_revision && !d.is_not_applicable);
+  const underReview = drawings.filter(d => d.under_review && !d.is_approved && !d.has_pending_revision && !d.is_not_applicable);
+  const readyToIssue = drawings.filter(d => d.is_approved && !d.is_issued && !d.is_not_applicable);
+  const issued = drawings.filter(d => d.is_issued && !d.has_pending_revision && !d.is_not_applicable);
+  const notStarted = drawings.filter(d => !d.file_url && !d.is_issued && !d.has_pending_revision && !d.is_not_applicable);
+  const notApplicable = drawings.filter(d => d.is_not_applicable);
 
-  const totalDrawings = drawings.length;
+  // Progress calculation - excludes N/A drawings
+  const applicableDrawings = drawings.filter(d => !d.is_not_applicable);
+  const totalDrawings = applicableDrawings.length;
   const issuedCount = issued.length;
   const percentComplete = totalDrawings > 0 ? Math.round((issuedCount / totalDrawings) * 100) : 0;
 
