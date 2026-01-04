@@ -236,12 +236,35 @@ export default function ExternalProjectDetail({ user, onLogout }) {
     }
   };
 
+  // ChatView handler for WhatsApp-style comments
+  const handleSendChatComment = async ({ text, file, voiceNote }) => {
+    const token = localStorage.getItem('token');
+    const formData = new FormData();
+    formData.append('text', text || '');
+    
+    if (file) formData.append('file', file);
+    if (voiceNote) formData.append('voice_note', voiceNote, 'voice_note.webm');
+
+    await axios.post(`${API}/projects/${projectId}/comments`, formData, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'multipart/form-data'
+      }
+    });
+
+    // Refresh and mark as viewed
+    localStorage.setItem(`comments_viewed_${projectId}`, new Date().toISOString());
+    setUnreadComments(0);
+    fetchComments();
+  };
+
   const openCommentsPanel = () => {
     setShowComments(true);
     // Mark as viewed
     localStorage.setItem(`comments_viewed_${projectId}`, new Date().toISOString());
     setUnreadComments(0);
   };
+
 
   const formatDate = (dateStr) => {
     if (!dateStr) return '';
