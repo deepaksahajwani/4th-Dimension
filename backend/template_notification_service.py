@@ -442,6 +442,7 @@ class TemplateNotificationService:
         project_name: str,
         drawing_name: str,
         uploader_name: str,
+        portal_url: Optional[str] = None,
         recipient_id: Optional[str] = None,
         project_id: Optional[str] = None
     ) -> Dict[str, Any]:
@@ -454,7 +455,7 @@ class TemplateNotificationService:
                 "project_name": project_name,
                 "drawing_name": drawing_name,
                 "uploader_name": uploader_name,
-                "portal_url": self.app_url
+                "portal_url": portal_url or self.app_url
             },
             recipient_id=recipient_id,
             in_app_title=f"New Drawing: {drawing_name}",
@@ -470,6 +471,7 @@ class TemplateNotificationService:
         project_name: str,
         drawing_name: str,
         uploader_name: str,
+        portal_url: Optional[str] = None,
         owner_id: Optional[str] = None,
         project_id: Optional[str] = None
     ) -> Dict[str, Any]:
@@ -482,7 +484,7 @@ class TemplateNotificationService:
                 "project_name": project_name,
                 "drawing_name": drawing_name,
                 "uploader_name": uploader_name,
-                "portal_url": self.app_url
+                "portal_url": portal_url or self.app_url
             },
             recipient_id=owner_id,
             in_app_title=f"Approval Needed: {drawing_name}",
