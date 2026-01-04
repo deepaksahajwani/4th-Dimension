@@ -52,6 +52,38 @@ import DrawingReviewPage from './pages/DrawingReviewPage';
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
 
+// Helper function to get cookie value
+function getCookie(name) {
+  const value = `; ${document.cookie}`;
+  const parts = value.split(`; ${name}=`);
+  if (parts.length === 2) return parts.pop().split(';').shift();
+  return null;
+}
+
+// Helper function to check for magic link auth (cookie-based)
+function checkMagicLinkAuth() {
+  const authCookie = getCookie('auth_token');
+  const userInfoCookie = getCookie('user_info');
+  
+  if (authCookie && userInfoCookie) {
+    try {
+      // Store in localStorage for consistent auth handling
+      localStorage.setItem('token', authCookie);
+      const userInfo = JSON.parse(decodeURIComponent(userInfoCookie));
+      localStorage.setItem('user', JSON.stringify(userInfo));
+      
+      // Clear the cookies after transferring to localStorage
+      document.cookie = 'auth_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+      document.cookie = 'user_info=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+      
+      return userInfo;
+    } catch (e) {
+      console.error('Error processing magic link auth:', e);
+    }
+  }
+  return null;
+}
+
 // Configure axios
 axios.interceptors.request.use(
   (config) => {
@@ -89,6 +121,14 @@ function App() {
   const [isProcessingOAuth, setIsProcessingOAuth] = useState(false);
 
   useEffect(() => {
+    // First check for magic link auth (cookie-based)
+    const magicLinkUser = checkMagicLinkAuth();
+    if (magicLinkUser) {
+      setUser(magicLinkUser);
+      return;
+    }
+    
+    // Then check localStorage
     const storedUser = localStorage.getItem('user');
     if (storedUser) {
       setUser(JSON.parse(storedUser));
