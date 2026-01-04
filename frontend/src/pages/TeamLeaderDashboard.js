@@ -35,12 +35,14 @@ export default function TeamLeaderDashboard({ user, onLogout }) {
               headers: { Authorization: `Bearer ${token}` }
             });
             const drawings = drawingsRes.data || [];
-            const totalDrawings = drawings.length;
-            const issuedDrawings = drawings.filter(d => d.is_issued).length;
-            const pendingRevisions = drawings.filter(d => d.has_pending_revision).length;
-            const underReview = drawings.filter(d => d.under_review && !d.is_approved).length;
+            // Progress: issued / (total - N/A)
+            const naDrawings = drawings.filter(d => d.is_not_applicable).length;
+            const totalDrawings = drawings.length - naDrawings;
+            const issuedDrawings = drawings.filter(d => d.is_issued && !d.is_not_applicable).length;
+            const pendingRevisions = drawings.filter(d => d.has_pending_revision && !d.is_not_applicable).length;
+            const underReview = drawings.filter(d => d.under_review && !d.is_approved && !d.is_not_applicable).length;
             const percentComplete = totalDrawings > 0 
-              ? Math.round((issuedDrawings / totalDrawings) * 100) 
+              ? parseFloat(((issuedDrawings / totalDrawings) * 100).toFixed(1))
               : 0;
             
             return {
