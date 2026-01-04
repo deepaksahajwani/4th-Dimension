@@ -925,7 +925,7 @@ A comment has been added to a drawing in your project "{project.get('title') or 
 💬 Comment: "{comment_text[:100]}..."
 
 Please review the comment using the link below:
-{APP_URL}/projects/{project_id}/drawings/{drawing_id}#comment
+{APP_URL}/projects/{project_id}/drawing/{drawing_id}
 
 Best regards,
 4th Dimension Architects"""
@@ -937,7 +937,7 @@ Best regards,
 📐 {drawing.get('name')}
 👤 {commenter.get('name')}: "{comment_text[:100]}..."
 
-View: {APP_URL}/projects/{project_id}/drawings/{drawing_id}#comment"""
+View: {APP_URL}/projects/{project_id}/drawing/{drawing_id}"""
             
             await notification_service.send_notification(
                 user_ids=[recipient_id],
@@ -945,7 +945,7 @@ View: {APP_URL}/projects/{project_id}/drawings/{drawing_id}#comment"""
                 message=message,
                 notification_type="drawing_comment",
                 channels=['in_app', 'whatsapp'],
-                link=f"/projects/{project_id}/drawings/{drawing_id}#comment",
+                link=f"/projects/{project_id}/drawing/{drawing_id}",
                 project_id=project_id
             )
         
