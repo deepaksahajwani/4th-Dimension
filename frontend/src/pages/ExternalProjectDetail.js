@@ -611,75 +611,27 @@ export default function ExternalProjectDetail({ user, onLogout }) {
           </Card>
         )}
 
-        {/* Comments Section - Inline */}
+        {/* Comments Section - WhatsApp Style */}
         {activeSection === 'comments' && (
-          <Card className="mb-6 animate-in slide-in-from-top-2">
-            <CardHeader className="pb-3 flex flex-row items-center justify-between">
-              <CardTitle className="text-lg flex items-center gap-2">
-                <MessageSquare className="w-5 h-5 text-orange-600" />
-                Comments
-              </CardTitle>
-              <Button
-                onClick={() => setShowNewComment(true)}
-                className="bg-orange-500 hover:bg-orange-600"
-                size="sm"
-              >
-                <Send className="w-4 h-4 mr-1" />
-                Post Comment
-              </Button>
-            </CardHeader>
-            <CardContent>
-              {comments.length === 0 ? (
-                <div className="text-center py-8">
-                  <MessageSquare className="w-10 h-10 text-slate-300 mx-auto mb-2" />
-                  <p className="text-slate-500">No comments yet</p>
-                  <p className="text-xs text-slate-400">Start the conversation!</p>
-                </div>
-              ) : (
-                <div className="space-y-3">
-                  {comments.map((comment) => (
-                    <div key={comment.id} className="bg-slate-50 rounded-lg p-3">
-                      <div className="flex items-start gap-3">
-                        <div className="w-8 h-8 bg-orange-100 rounded-full flex items-center justify-center shrink-0">
-                          <User className="w-4 h-4 text-orange-600" />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2 mb-1">
-                            <span className="font-medium text-slate-900 text-sm">
-                              {comment.user_name || 'User'}
-                            </span>
-                            <span className="text-xs text-slate-400">
-                              {formatDate(comment.created_at)}
-                            </span>
-                          </div>
-                          {comment.text && (
-                            <p className="text-sm text-slate-700">{comment.text}</p>
-                          )}
-                          {comment.file_url && (
-                            <a 
-                              href={comment.file_url.startsWith('http') ? comment.file_url : `${BACKEND_URL}${comment.file_url}`}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="inline-flex items-center gap-1 text-xs text-blue-600 hover:underline mt-1"
-                            >
-                              <Paperclip className="w-3 h-3" />
-                              Attached file
-                            </a>
-                          )}
-                          {comment.voice_note_url && (
-                            <audio 
-                              controls 
-                              src={comment.voice_note_url.startsWith('http') ? comment.voice_note_url : `${BACKEND_URL}${comment.voice_note_url}`}
-                              className="mt-2 w-full h-8"
-                            />
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </CardContent>
+          <Card className="mb-6 animate-in slide-in-from-top-2 overflow-hidden">
+            <div className="bg-gradient-to-r from-orange-500 to-orange-600 px-4 py-3">
+              <h3 className="text-white font-medium text-sm flex items-center gap-2">
+                <MessageSquare className="w-4 h-4" />
+                Project Discussion
+              </h3>
+              <p className="text-orange-100 text-xs">{comments.length} {comments.length === 1 ? 'message' : 'messages'}</p>
+            </div>
+            <div className="h-[350px]">
+              <ChatView
+                messages={comments}
+                currentUserId={user?.id}
+                loading={loading}
+                onSendMessage={handleSendChatComment}
+                placeholder="Type a message..."
+                emptyStateText="No messages yet"
+                emptyStateSubtext="Start the conversation"
+              />
+            </div>
           </Card>
         )}
 
