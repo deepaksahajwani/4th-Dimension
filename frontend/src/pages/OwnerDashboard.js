@@ -19,13 +19,18 @@ import {
   Send,
   X,
   ChevronDown,
+  ChevronUp,
   Calendar,
   Target,
   Flag,
   FileText,
   Square,
   Play,
-  Pause
+  Pause,
+  Activity,
+  HardDrive,
+  Bell,
+  BarChart3
 } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../components/ui/dialog';
