@@ -11,62 +11,77 @@ import {
   Circle,
   CheckCircle2,
   AlertCircle,
-  Calendar,
-  ChevronDown,
+  Clock,
   Eye,
   Download,
   MessageSquare,
-  HardHat
+  Upload,
+  CheckCheck,
+  RotateCcw,
+  FileText,
+  MoreVertical
 } from 'lucide-react';
-import { ContractorProgressTracker } from '../ContractorProgress';
-
-const getDrawingStatusIcon = (drawing) => {
-  if (drawing.has_pending_revision) {
-    return <AlertCircle className="w-5 h-5 text-amber-500" />;
-  }
-  if (drawing.is_issued) {
-    return <CheckCircle2 className="w-5 h-5 text-green-500" />;
-  }
-  if (drawing.is_approved) {
-    return <CheckCircle2 className="w-5 h-5 text-blue-500" />;
-  }
-  if (drawing.under_review) {
-    return <Circle className="w-5 h-5 text-orange-500 fill-orange-200" />;
-  }
-  return <Circle className="w-5 h-5 text-slate-300" />;
-};
-
-const getDrawingStatusText = (drawing) => {
-  if (drawing.has_pending_revision) return 'Revision Needed';
-  if (drawing.is_issued) return 'Issued';
-  if (drawing.is_approved) return 'Approved';
-  if (drawing.under_review) return 'Under Review';
-  return 'Pending';
-};
-
-const getDrawingStatusColor = (drawing) => {
-  if (drawing.has_pending_revision) return 'bg-amber-50 text-amber-700 border-amber-200';
-  if (drawing.is_issued) return 'bg-green-50 text-green-700 border-green-200';
-  if (drawing.is_approved) return 'bg-blue-50 text-blue-700 border-blue-200';
-  if (drawing.under_review) return 'bg-orange-50 text-orange-700 border-orange-200';
-  return 'bg-slate-50 text-slate-600 border-slate-200';
-};
 
 /**
- * DrawingCard Component with Role-Based Permission Controls
+ * DrawingCard Component - Mobile-First, Role-Based UX
  * 
- * Drawing States:
- * 1. PENDING - No file uploaded yet → Show: Upload, N/A
- * 2. UNDER_REVIEW - File uploaded, awaiting approval → Show: Approve, Revise, PDF
- * 3. REVISION_PENDING - Revision requested → Show: Resolve
- * 4. APPROVED - Approved, ready to issue → Show: Issue, Revise, PDF
- * 5. ISSUED - Final state → Show: Revise, PDF, Progress
+ * External Users (Client/Contractor/Consultant): Read-only + Comments
+ * Team Leader: Upload, Revise, Approve (contextual)
+ * Owner: Full access
+ * 
+ * Design: WhatsApp-like calm UI, minimal cognitive load
  */
+
+const getStatusConfig = (drawing) => {
+  if (drawing.has_pending_revision) {
+    return { 
+      icon: <AlertCircle className="w-4 h-4 text-amber-500" />,
+      text: 'Revision Needed',
+      bgColor: 'bg-amber-50',
+      textColor: 'text-amber-700',
+      borderColor: 'border-amber-200'
+    };
+  }
+  if (drawing.is_issued) {
+    return { 
+      icon: <CheckCircle2 className="w-4 h-4 text-green-500" />,
+      text: 'Issued',
+      bgColor: 'bg-green-50',
+      textColor: 'text-green-700',
+      borderColor: 'border-green-200'
+    };
+  }
+  if (drawing.is_approved) {
+    return { 
+      icon: <CheckCheck className="w-4 h-4 text-blue-500" />,
+      text: 'Approved',
+      bgColor: 'bg-blue-50',
+      textColor: 'text-blue-700',
+      borderColor: 'border-blue-200'
+    };
+  }
+  if (drawing.under_review) {
+    return { 
+      icon: <Clock className="w-4 h-4 text-orange-500" />,
+      text: 'Under Review',
+      bgColor: 'bg-orange-50',
+      textColor: 'text-orange-700',
+      borderColor: 'border-orange-200'
+    };
+  }
+  return { 
+    icon: <Circle className="w-4 h-4 text-slate-400" />,
+    text: 'Pending',
+    bgColor: 'bg-slate-50',
+    textColor: 'text-slate-600',
+    borderColor: 'border-slate-200'
+  };
+};
+
 export const DrawingCard = ({
   drawing,
   user,
   permissions = {},
-  projectContractors = [],
   onToggleIssued,
   onResolveRevision,
   onOpenRevisionDialog,
@@ -74,21 +89,22 @@ export const DrawingCard = ({
   onOpenIssueDialog,
   onViewPDF,
   onDownloadPDF,
-  onOpenComments,
-  onMarkAsNotApplicable,
-  onProgressUpdate
+  onOpenComments
 }) => {
-  const [showProgress, setShowProgress] = useState(false);
+  // Determine user type
+  const isExternalUser = ['client', 'contractor', 'consultant', 'vendor'].includes(user?.role);
+  const isTeamLeader = user?.role === 'team_leader' || user?.role?.includes('designer');
+  const isOwner = user?.is_owner === true;
   
-  // Permission checks with fallback to user-based check for backward compatibility
-  const canUpload = permissions.can_upload_drawing ?? (user?.is_owner || user?.role === 'team_leader');
-  const canApprove = permissions.can_approve_drawing ?? (user?.is_owner || user?.role === 'team_leader');
-  const canIssue = permissions.can_issue_drawing ?? (user?.is_owner || user?.role === 'team_leader');
-  const canMarkNA = permissions.can_mark_na ?? (user?.is_owner || user?.role === 'team_leader');
-  const canDownload = permissions.can_download_drawing ?? true;
-  const canRevise = permissions.can_edit_drawing ?? (user?.is_owner || user?.role === 'team_leader');
+  // Permission checks - strict for external users
+  const canUpload = !isExternalUser && (permissions.can_upload_drawing ?? (isOwner || isTeamLeader));
+  const canApprove = !isExternalUser && (permissions.can_approve_drawing ?? (isOwner || isTeamLeader));
+  const canIssue = !isExternalUser && (permissions.can_issue_drawing ?? (isOwner || isTeamLeader));
+  const canRevise = !isExternalUser && (permissions.can_edit_drawing ?? (isOwner || isTeamLeader));
+  const canDownload = true; // Everyone can download
+  const canComment = true; // Everyone can comment
   
-  // Determine drawing state
+  // Drawing state
   const isPending = !drawing.file_url && !drawing.under_review && !drawing.is_approved && !drawing.is_issued;
   const isUnderReview = drawing.under_review && !drawing.is_approved && !drawing.is_issued;
   const isApproved = drawing.is_approved && !drawing.is_issued;
@@ -96,217 +112,144 @@ export const DrawingCard = ({
   const hasRevisionPending = drawing.has_pending_revision === true;
   const hasFile = !!drawing.file_url;
   
-  // Only show contractor progress for issued drawings
-  const canShowProgress = isIssued && projectContractors.length > 0;
+  const status = getStatusConfig(drawing);
   
+  // Determine which single primary action to show (contextual)
+  const getPrimaryAction = () => {
+    if (hasRevisionPending && canUpload) {
+      return { action: 'resolve', label: 'Resolve', icon: <Upload className="w-4 h-4" />, color: 'text-green-600 border-green-300 hover:bg-green-50' };
+    }
+    if (isPending && canUpload) {
+      return { action: 'upload', label: 'Upload', icon: <Upload className="w-4 h-4" />, color: 'text-blue-600 border-blue-300 hover:bg-blue-50' };
+    }
+    if (isUnderReview && canApprove) {
+      return { action: 'approve', label: 'Approve', icon: <CheckCheck className="w-4 h-4" />, color: 'text-green-600 border-green-300 hover:bg-green-50' };
+    }
+    if (isApproved && canIssue) {
+      return { action: 'issue', label: 'Issue', icon: <CheckCircle2 className="w-4 h-4" />, color: 'text-blue-600 border-blue-300 hover:bg-blue-50' };
+    }
+    return null;
+  };
+  
+  const primaryAction = getPrimaryAction();
+  
+  const handlePrimaryAction = () => {
+    if (!primaryAction) return;
+    switch (primaryAction.action) {
+      case 'resolve': onResolveRevision?.(drawing); break;
+      case 'upload': onToggleIssued?.(drawing); break;
+      case 'approve': onApproveDrawing?.(drawing); break;
+      case 'issue': onOpenIssueDialog?.(drawing); break;
+      default: break;
+    }
+  };
+
   return (
-  <Card id={`drawing-${drawing.id}`} className="hover:shadow-md transition-all duration-300">
-    <CardContent className="p-3 sm:p-4">
-      <div className="flex flex-col sm:flex-row sm:items-start gap-3">
-        <div className="flex items-start gap-2 sm:gap-3 flex-1 min-w-0">
+    <Card className="hover:shadow-md transition-shadow duration-200 border border-slate-100 rounded-xl overflow-hidden">
+      <CardContent className="p-4">
+        {/* Header Row - Status icon, Name, Badge */}
+        <div className="flex items-start gap-3">
           <div className="flex-shrink-0 mt-0.5">
-            {getDrawingStatusIcon(drawing)}
+            {status.icon}
           </div>
           <div className="flex-1 min-w-0">
-            <h4 className="font-medium text-sm sm:text-base text-slate-900 break-words">{drawing.name}</h4>
-            <div className="flex flex-wrap gap-1.5 sm:gap-2 mt-2">
-              <span className={`px-2 py-0.5 text-[10px] sm:text-xs rounded border ${getDrawingStatusColor(drawing)}`}>
-                {getDrawingStatusText(drawing)}
+            <h4 className="font-medium text-sm text-slate-900 leading-tight line-clamp-2">
+              {drawing.name}
+            </h4>
+            <div className="flex items-center gap-2 mt-1.5">
+              <span className={`inline-flex px-2 py-0.5 text-[11px] font-medium rounded-full ${status.bgColor} ${status.textColor}`}>
+                {status.text}
               </span>
               {drawing.revision_count > 0 && (
-                <span className="px-2 py-0.5 text-[10px] sm:text-xs bg-blue-50 text-blue-700 rounded border border-blue-200">
+                <span className="text-[11px] text-slate-500">
                   R{drawing.revision_count}
                 </span>
               )}
-              {drawing.due_date && (
-                <span className="px-2 py-0.5 text-[10px] sm:text-xs bg-slate-100 text-slate-600 rounded border border-slate-200 flex items-center gap-1">
-                  <Calendar className="w-3 h-3" />
-                  <span className="hidden sm:inline">{new Date(drawing.due_date).toLocaleDateString()}</span>
-                  <span className="sm:hidden">{new Date(drawing.due_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>
-                </span>
-              )}
             </div>
-            {drawing.notes && (
-              <p className="text-xs sm:text-sm text-slate-600 mt-2 line-clamp-2">{drawing.notes}</p>
-            )}
           </div>
         </div>
         
-        <div className="flex flex-wrap sm:flex-nowrap gap-1.5 sm:gap-2 sm:ml-4">
+        {/* Action Row - Clean, minimal buttons */}
+        <div className="flex items-center justify-between mt-4 pt-3 border-t border-slate-100">
+          {/* Left side - View/Download */}
+          <div className="flex items-center gap-1">
+            {hasFile && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => onViewPDF?.(drawing)}
+                className="h-8 px-2 text-slate-600 hover:text-slate-900 hover:bg-slate-100"
+                title="View PDF"
+              >
+                <Eye className="w-4 h-4" />
+                <span className="ml-1 text-xs hidden sm:inline">View</span>
+              </Button>
+            )}
+            {hasFile && canDownload && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => onDownloadPDF?.(drawing)}
+                className="h-8 px-2 text-slate-600 hover:text-slate-900 hover:bg-slate-100"
+                title="Download"
+              >
+                <Download className="w-4 h-4" />
+              </Button>
+            )}
+          </div>
           
-          {/* ============ STATE 1: PENDING (No file yet) ============ */}
-          {/* UPLOAD button - Only when NO file AND NOT issued/approved/under_review */}
-          {canUpload && isPending && !hasRevisionPending && (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => onToggleIssued(drawing)}
-              className="flex-1 sm:flex-none text-xs h-8"
-            >
-              Upload
-            </Button>
-          )}
-          
-          {/* ============ STATE 2: REVISION PENDING ============ */}
-          {/* RESOLVE button - Only when revision is pending */}
-          {canUpload && hasRevisionPending && (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => onResolveRevision(drawing)}
-              className="flex-1 sm:flex-none text-xs h-8 border-green-500 text-green-600"
-              title="Upload Revised Drawing"
-            >
-              Resolve
-            </Button>
-          )}
-          
-          {/* ============ STATE 3: UNDER REVIEW ============ */}
-          {/* APPROVE button - Only when under_review AND NOT approved/issued */}
-          {canApprove && isUnderReview && !hasRevisionPending && (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => onApproveDrawing(drawing)}
-              className="flex-1 sm:flex-none text-xs h-8 border-green-500 text-green-600"
-              title="Approve for Issuance"
-            >
-              Approve
-            </Button>
-          )}
-          
-          {/* ============ STATE 4: APPROVED ============ */}
-          {/* ISSUE button - Only when approved AND NOT issued */}
-          {canIssue && isApproved && !hasRevisionPending && (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => onOpenIssueDialog(drawing)}
-              className="flex-1 sm:flex-none text-xs h-8 border-blue-500 text-blue-600"
-              title="Issue Drawing"
-            >
-              Issue
-            </Button>
-          )}
-          
-          {/* ============ REVISE button - For any state with a file (except pending revision) ============ */}
-          {canRevise && hasFile && !hasRevisionPending && (isUnderReview || isApproved || isIssued) && (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => onOpenRevisionDialog(drawing)}
-              className="flex-1 sm:flex-none text-xs h-8 border-amber-500 text-amber-600"
-              title="Request Revision"
-            >
-              Revise
-            </Button>
-          )}
-          
-          {/* ============ PDF Button - Only when file exists ============ */}
-          {hasFile && (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="flex-1 sm:flex-none text-xs h-8 border-blue-500 text-blue-600"
-                >
-                  📄 PDF <ChevronDown className="w-3 h-3 ml-1" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent>
-                <DropdownMenuItem onClick={() => onViewPDF(drawing)}>
-                  <Eye className="w-4 h-4 mr-2" />
-                  View
-                </DropdownMenuItem>
-                {canDownload && (
-                  <DropdownMenuItem onClick={() => onDownloadPDF(drawing)}>
-                    <Download className="w-4 h-4 mr-2" />
-                    Download
-                  </DropdownMenuItem>
+          {/* Right side - Actions */}
+          <div className="flex items-center gap-1">
+            {/* Revise button - Only for Team Leader/Owner on issued/reviewed drawings */}
+            {canRevise && hasFile && (isUnderReview || isApproved || isIssued) && !hasRevisionPending && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => onOpenRevisionDialog?.(drawing)}
+                className="h-8 px-2 text-amber-600 hover:text-amber-700 hover:bg-amber-50"
+                title="Request Revision"
+              >
+                <RotateCcw className="w-4 h-4" />
+              </Button>
+            )}
+            
+            {/* Primary Action Button - Contextual */}
+            {primaryAction && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handlePrimaryAction}
+                className={`h-8 px-3 text-xs font-medium ${primaryAction.color}`}
+              >
+                {primaryAction.icon}
+                <span className="ml-1.5">{primaryAction.label}</span>
+              </Button>
+            )}
+            
+            {/* Comment Button - Always visible */}
+            {canComment && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => onOpenComments?.(drawing)}
+                className="h-8 px-2 text-purple-600 hover:text-purple-700 hover:bg-purple-50 relative"
+                title="Comments"
+              >
+                <MessageSquare className="w-4 h-4" />
+                {(drawing.comment_count > 0 || drawing.unread_comments > 0) && (
+                  <span className={`absolute -top-1 -right-1 min-w-[16px] h-4 px-1 text-[10px] font-medium rounded-full flex items-center justify-center ${
+                    drawing.unread_comments > 0 
+                      ? 'bg-red-500 text-white animate-pulse' 
+                      : 'bg-purple-100 text-purple-700'
+                  }`}>
+                    {drawing.unread_comments || drawing.comment_count}
+                  </span>
                 )}
-              </DropdownMenuContent>
-            </DropdownMenu>
-          )}
-          
-          {/* ============ COMMENTS Button - Always available ============ */}
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => onOpenComments(drawing)}
-            className="flex-1 sm:flex-none text-xs h-8 border-purple-500 text-purple-600 relative"
-            title="Comments"
-          >
-            <MessageSquare className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
-            Comments
-            {drawing.comment_count > 0 && !drawing.unread_comments && (
-              <span className="absolute -top-1 -right-1 bg-purple-600 text-white text-[10px] rounded-full w-4 h-4 flex items-center justify-center">
-                {drawing.comment_count}
-              </span>
+              </Button>
             )}
-            {drawing.unread_comments > 0 && (
-              <span className="absolute -top-1 -right-1 bg-red-600 text-white text-[10px] rounded-full w-4 h-4 flex items-center justify-center animate-pulse">
-                {drawing.unread_comments}
-              </span>
-            )}
-          </Button>
-          
-          {/* ============ N/A Button - Only for pending drawings (not issued/approved) ============ */}
-          {canMarkNA && isPending && !hasRevisionPending && (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => onMarkAsNotApplicable(drawing.id)}
-              className="flex-1 sm:flex-none text-xs h-8 border-slate-400 text-slate-600 hover:bg-slate-50"
-              title="Mark this drawing as not applicable for this project"
-            >
-              N/A
-            </Button>
-          )}
-          
-          {/* ============ Progress Button - Only for issued drawings ============ */}
-          {canShowProgress && (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setShowProgress(!showProgress)}
-              className={`flex-1 sm:flex-none text-xs h-8 ${
-                showProgress 
-                  ? 'border-orange-500 text-orange-600 bg-orange-50' 
-                  : 'border-slate-300 text-slate-600'
-              }`}
-              title="View contractor progress"
-            >
-              <HardHat className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
-              Progress
-            </Button>
-          )}
-        </div>
-      </div>
-      
-      {/* Contractor Progress Section for Issued Drawings */}
-      {canShowProgress && showProgress && (
-        <div className="mt-4 pt-4 border-t border-slate-200">
-          <div className="flex items-center gap-2 mb-3">
-            <HardHat className="w-4 h-4 text-orange-600" />
-            <span className="text-sm font-medium text-slate-700">Contractor Progress</span>
-          </div>
-          <div className="space-y-2">
-            {projectContractors.map((contractor) => (
-              <ContractorProgressTracker
-                key={contractor.id}
-                drawingId={drawing.id}
-                contractorId={contractor.id}
-                contractorName={contractor.name}
-                contractorType={contractor.contractor_type || contractor.type || 'Other'}
-                user={user}
-                onProgressUpdate={onProgressUpdate}
-              />
-            ))}
           </div>
         </div>
-      )}
-    </CardContent>
-  </Card>
+      </CardContent>
+    </Card>
   );
 };
