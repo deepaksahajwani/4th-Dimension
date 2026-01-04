@@ -8169,8 +8169,11 @@ async def upload_3d_images(
             "deleted_at": None
         }
         
+        # Create response record before inserting (to avoid _id being added)
+        response_record = {k: v for k, v in image_record.items() if k != "file_path"}
+        
         await db.project_3d_images.insert_one(image_record)
-        uploaded_images.append({k: v for k, v in image_record.items() if k != "file_path"})
+        uploaded_images.append(response_record)
     
     # Send notification to client about new images
     if uploaded_images:
