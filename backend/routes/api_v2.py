@@ -9,6 +9,7 @@ from datetime import datetime, timezone
 import logging
 
 from utils.auth import get_current_user, User
+from utils.permissions import get_frontend_permissions, Permission, has_permission
 from repositories import (
     get_project_repository,
     get_drawing_repository,
