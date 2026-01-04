@@ -253,10 +253,11 @@ export default function ExternalProjectDetail({ user, onLogout }) {
     });
   };
 
-  // Calculate stats
-  const totalDrawings = drawings.length;
-  const issuedDrawings = drawings.filter(d => d.is_issued).length;
-  const percentComplete = totalDrawings > 0 ? Math.round((issuedDrawings / totalDrawings) * 100) : 0;
+  // Calculate stats - Progress: issued / (total - N/A)
+  const naDrawings = drawings.filter(d => d.is_not_applicable).length;
+  const totalDrawings = drawings.length - naDrawings;
+  const issuedDrawings = drawings.filter(d => d.is_issued && !d.is_not_applicable).length;
+  const percentComplete = totalDrawings > 0 ? ((issuedDrawings / totalDrawings) * 100).toFixed(1) : 0;
 
   if (loading) {
     return (
