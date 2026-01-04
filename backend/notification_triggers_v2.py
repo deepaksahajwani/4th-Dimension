@@ -1734,6 +1734,7 @@ async def notify_owner_drawing_revision_posted(
     """
     Notify owner when a revised drawing is posted
     Uses template-based WhatsApp for reliable delivery
+    Uses magic links for secure one-click authentication
     """
     try:
         owner = await get_owner_info()
@@ -1744,8 +1745,12 @@ async def notify_owner_drawing_revision_posted(
         project = await get_project_by_id(project_id)
         project_name = project.get('title', 'Unknown Project') if project else 'Unknown Project'
         
-        # Deep link to the specific drawing
-        deep_link = f"{APP_URL}/projects/{project_id}?drawing={drawing_id}"
+        # Generate magic link for secure auto-login
+        deep_link = await get_magic_link_for_project(
+            recipient_id=owner['id'],
+            project_id=project_id,
+            drawing_id=drawing_id
+        )
         
         # Use template-based notification
         try:
