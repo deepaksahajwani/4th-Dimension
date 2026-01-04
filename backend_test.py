@@ -1,21 +1,32 @@
 #!/usr/bin/env python3
 """
 Backend API Testing Script for Architecture Firm Management System
-Testing Refactored Backend API Endpoints after modular router migration:
+Testing Phase 1-3 Implementation of Performance and Security Refactoring:
 
-**Context:**
-Major backend refactoring where ~860 lines were removed from server.py.
-Routes migrated to modular routers:
-1. Comments routes → /app/backend/routes/comments.py
-2. External parties (contractors, vendors, consultants) → /app/backend/routes/external_parties.py
+**Test Credentials:**
+- Owner: deepaksahajwani@gmail.com / Deepak@2025
+- Team Leader: balbirgkaur@gmail.com / TeamLeader@123
 
 **Tests to perform:**
-1. Authentication Tests (Owner & Team Leader)
-2. Comments API Tests (Project & Drawing comments)
-3. Contractors API Tests
-4. Vendors API Tests  
-5. Consultants API Tests
-6. General Health Check
+1. Phase 1 - Async Notifications (Backend):
+   - Login as owner
+   - Check if async notification worker is running (GET /api/health should confirm)
+   - Look at backend logs for "notification worker" mentions
+
+2. Phase 1 - Slim API V2 (Mobile Optimization):
+   - GET /api/v2/projects - Should return slim project list
+   - GET /api/v2/projects/{project_id} - Should return minimal project data without full drawings
+   - GET /api/v2/projects/{project_id}/drawings?limit=10&skip=0 - Test pagination
+
+3. Phase 3 - Permissions API:
+   - GET /api/v2/me/permissions - Should return role-based permissions
+   - Test as owner: should have all permissions (can_delete_project, can_archive_project, etc.)
+   - Test as team leader: should have limited permissions (can_edit_project, can_upload_drawing, etc.)
+
+4. General Health:
+   - GET /api/health
+   - GET /api/projects (as owner)
+   - GET /api/contractors
 """
 
 import requests
