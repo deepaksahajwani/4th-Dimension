@@ -209,7 +209,7 @@ export const DrawingCard = ({
             )}
           </Button>
           
-          {/* Mark as N/A Button */}
+          {/* Mark as N/A Button - Show for all non-issued drawings */}
           {!drawing.is_issued && (
             <Button
               variant="outline"
@@ -219,17 +219,6 @@ export const DrawingCard = ({
               title="Mark this drawing as not applicable for this project"
             >
               N/A
-            </Button>
-          )}
-          
-          {user?.role === 'owner' && (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => onDeleteDrawing(drawing.id)}
-              className="text-red-600 hover:text-red-700 text-xs h-8 px-2 sm:px-3"
-            >
-              <Trash2 className="w-3 h-3 sm:w-4 sm:h-4" />
             </Button>
           )}
           
