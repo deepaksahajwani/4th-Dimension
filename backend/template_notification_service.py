@@ -444,9 +444,18 @@ class TemplateNotificationService:
         uploader_name: str,
         portal_url: Optional[str] = None,
         recipient_id: Optional[str] = None,
-        project_id: Optional[str] = None
+        project_id: Optional[str] = None,
+        drawing_id: Optional[str] = None
     ) -> Dict[str, Any]:
         """Notify about a new drawing upload."""
+        # Build deep-link URL for single-item review page
+        if drawing_id and project_id:
+            in_app_link = f"/projects/{project_id}/drawing/{drawing_id}"
+        elif project_id:
+            in_app_link = f"/projects/{project_id}"
+        else:
+            in_app_link = "/projects"
+        
         return await self.send_notification(
             template_key="drawing_uploaded",
             recipient_phone=phone_number,
@@ -460,7 +469,7 @@ class TemplateNotificationService:
             recipient_id=recipient_id,
             in_app_title=f"New Drawing: {drawing_name}",
             in_app_message=f"New drawing uploaded for '{project_name}' by {uploader_name}",
-            in_app_link=f"/projects/{project_id}" if project_id else "/projects",
+            in_app_link=in_app_link,
             project_id=project_id
         )
     
@@ -473,9 +482,18 @@ class TemplateNotificationService:
         uploader_name: str,
         portal_url: Optional[str] = None,
         owner_id: Optional[str] = None,
-        project_id: Optional[str] = None
+        project_id: Optional[str] = None,
+        drawing_id: Optional[str] = None
     ) -> Dict[str, Any]:
         """Notify owner that a drawing needs approval."""
+        # Build deep-link URL for single-item review page
+        if drawing_id and project_id:
+            in_app_link = f"/projects/{project_id}/drawing/{drawing_id}"
+        elif project_id:
+            in_app_link = f"/projects/{project_id}"
+        else:
+            in_app_link = "/projects"
+        
         return await self.send_notification(
             template_key="drawing_approval_needed",
             recipient_phone=phone_number,
@@ -489,7 +507,7 @@ class TemplateNotificationService:
             recipient_id=owner_id,
             in_app_title=f"Approval Needed: {drawing_name}",
             in_app_message=f"Drawing '{drawing_name}' needs your approval",
-            in_app_link=f"/projects/{project_id}" if project_id else "/projects",
+            in_app_link=in_app_link,
             project_id=project_id
         )
     
