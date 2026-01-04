@@ -865,7 +865,7 @@ async def notify_drawing_issued(
                 title=f"Drawing Issued: {drawing_name}",
                 message=f"Drawing '{drawing_name}' for project '{project_name}' has been issued.",
                 notification_type="drawing_issued",
-                link=f"/projects/{project_id}",
+                link=f"/projects/{project_id}/drawing/{drawing_id}",
                 project_id=project_id
             )
         
