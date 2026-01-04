@@ -843,7 +843,8 @@ async def notify_drawing_issued(
                         revision=revision,
                         contractor_type=recipient.get('contractor_type', 'Contractor'),
                         contractor_id=recipient_id,
-                        project_id=project_id
+                        project_id=project_id,
+                        drawing_id=drawing_id
                     )
                 else:
                     # Use general drawing issued template
@@ -854,7 +855,8 @@ async def notify_drawing_issued(
                         drawing_name=drawing_name,
                         issue_date=issue_date,
                         recipient_id=recipient_id,
-                        project_id=project_id
+                        project_id=project_id,
+                        drawing_id=drawing_id
                     )
             
             # Send in-app notification
