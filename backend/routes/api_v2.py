@@ -319,3 +319,27 @@ async def get_notification_metrics(
         "metrics": metrics,
         "recent_whatsapp_errors": errors
     }
+
+
+# ==================== PERMISSIONS ====================
+
+@router.get("/me/permissions")
+async def get_my_permissions(
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Get current user's permissions for frontend UI control
+    """
+    permissions = get_frontend_permissions(
+        role=current_user.role,
+        is_owner=current_user.is_owner,
+        is_admin=getattr(current_user, 'is_admin', False)
+    )
+    
+    return {
+        "user_id": current_user.id,
+        "role": current_user.role,
+        "is_owner": current_user.is_owner,
+        "is_admin": getattr(current_user, 'is_admin', False),
+        "permissions": permissions
+    }
