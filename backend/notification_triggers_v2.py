@@ -723,7 +723,7 @@ View Revision: {APP_URL}/projects/{project_id}/drawing/{drawing_id}"""
                 project_id=project_id
             )
         
-        logger.info(f"Internal drawing revision notification sent")
+        logger.info("Internal drawing revision notification sent")
         
     except Exception as e:
         logger.error(f"Error in notify_drawing_revised_internal: {str(e)}")
@@ -773,7 +773,7 @@ View Revision: {APP_URL}/projects/{project_id}/drawing/{drawing_id}"""
             project_id=project_id
         )
         
-        logger.info(f"External drawing revision notification sent")
+        logger.info("External drawing revision notification sent")
         
     except Exception as e:
         logger.error(f"Error in notify_drawing_revised_external: {str(e)}")
@@ -801,7 +801,7 @@ async def notify_drawing_issued(
         owner = await db.users.find_one({"is_owner": True}, {"_id": 0})
         
         if not all([project, drawing, issued_by, owner]):
-            logger.error(f"Drawing issued notification failed: Missing data")
+            logger.error("Drawing issued notification failed: Missing data")
             return
         
         project_name = project.get('title') or project.get('name')
@@ -949,7 +949,7 @@ View: {APP_URL}/projects/{project_id}/drawing/{drawing_id}"""
                 project_id=project_id
             )
         
-        logger.info(f"Drawing comment notifications sent")
+        logger.info("Drawing comment notifications sent")
         
     except Exception as e:
         logger.error(f"Error in notify_drawing_comment: {str(e)}")
