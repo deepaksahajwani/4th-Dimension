@@ -455,6 +455,23 @@ function App() {
                 </ProtectedRoute>
               }
             />
+            {/* Single-Item Review Routes for Notification Deep-Links */}
+            <Route
+              path="/projects/:projectId/drawing/:drawingId"
+              element={
+                <ProtectedRoute>
+                  <DrawingReviewPage user={user} onLogout={handleLogout} />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/projects/:projectId/3d-image/:imageId"
+              element={
+                <ProtectedRoute>
+                  <DrawingReviewPage user={user} onLogout={handleLogout} />
+                </ProtectedRoute>
+              }
+            />
           </Routes>
         )}
       </BrowserRouter>
