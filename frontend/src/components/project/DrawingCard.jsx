@@ -27,37 +27,45 @@ const getDrawingStatusIcon = (drawing) => {
   if (drawing.is_issued) {
     return <CheckCircle2 className="w-5 h-5 text-green-500" />;
   }
+  if (drawing.is_approved) {
+    return <CheckCircle2 className="w-5 h-5 text-blue-500" />;
+  }
+  if (drawing.under_review) {
+    return <Circle className="w-5 h-5 text-orange-500 fill-orange-200" />;
+  }
   return <Circle className="w-5 h-5 text-slate-300" />;
 };
 
 const getDrawingStatusText = (drawing) => {
   if (drawing.has_pending_revision) return 'Revision Needed';
   if (drawing.is_issued) return 'Issued';
+  if (drawing.is_approved) return 'Approved';
+  if (drawing.under_review) return 'Under Review';
   return 'Pending';
 };
 
 const getDrawingStatusColor = (drawing) => {
   if (drawing.has_pending_revision) return 'bg-amber-50 text-amber-700 border-amber-200';
   if (drawing.is_issued) return 'bg-green-50 text-green-700 border-green-200';
+  if (drawing.is_approved) return 'bg-blue-50 text-blue-700 border-blue-200';
+  if (drawing.under_review) return 'bg-orange-50 text-orange-700 border-orange-200';
   return 'bg-slate-50 text-slate-600 border-slate-200';
 };
 
 /**
  * DrawingCard Component with Role-Based Permission Controls
  * 
- * Permissions prop structure:
- * {
- *   can_upload_drawing: boolean,
- *   can_approve_drawing: boolean,
- *   can_issue_drawing: boolean,
- *   can_mark_na: boolean,
- *   can_download_drawing: boolean
- * }
+ * Drawing States:
+ * 1. PENDING - No file uploaded yet → Show: Upload, N/A
+ * 2. UNDER_REVIEW - File uploaded, awaiting approval → Show: Approve, Revise, PDF
+ * 3. REVISION_PENDING - Revision requested → Show: Resolve
+ * 4. APPROVED - Approved, ready to issue → Show: Issue, Revise, PDF
+ * 5. ISSUED - Final state → Show: Revise, PDF, Progress
  */
 export const DrawingCard = ({
   drawing,
   user,
-  permissions = {},  // Role-based permissions
+  permissions = {},
   projectContractors = [],
   onToggleIssued,
   onResolveRevision,
@@ -77,14 +85,19 @@ export const DrawingCard = ({
   const canApprove = permissions.can_approve_drawing ?? (user?.is_owner || user?.role === 'team_leader');
   const canIssue = permissions.can_issue_drawing ?? (user?.is_owner || user?.role === 'team_leader');
   const canMarkNA = permissions.can_mark_na ?? (user?.is_owner || user?.role === 'team_leader');
-  const canDownload = permissions.can_download_drawing ?? true; // Everyone can download by default
+  const canDownload = permissions.can_download_drawing ?? true;
   const canRevise = permissions.can_edit_drawing ?? (user?.is_owner || user?.role === 'team_leader');
   
-  // Check if user is external (client/contractor/consultant/vendor)
-  const isExternalUser = ['client', 'contractor', 'consultant', 'vendor'].includes(user?.role);
+  // Determine drawing state
+  const isPending = !drawing.file_url && !drawing.under_review && !drawing.is_approved && !drawing.is_issued;
+  const isUnderReview = drawing.under_review && !drawing.is_approved && !drawing.is_issued;
+  const isApproved = drawing.is_approved && !drawing.is_issued;
+  const isIssued = drawing.is_issued;
+  const hasRevisionPending = drawing.has_pending_revision === true;
+  const hasFile = !!drawing.file_url;
   
   // Only show contractor progress for issued drawings
-  const canShowProgress = drawing.is_issued && projectContractors.length > 0;
+  const canShowProgress = isIssued && projectContractors.length > 0;
   
   return (
   <Card id={`drawing-${drawing.id}`} className="hover:shadow-md transition-all duration-300">
@@ -120,8 +133,10 @@ export const DrawingCard = ({
         </div>
         
         <div className="flex flex-wrap sm:flex-nowrap gap-1.5 sm:gap-2 sm:ml-4">
-          {/* STATE 1: PENDING - Show UPLOAD button (OWNER/TEAM LEADER ONLY) */}
-          {canUpload && !drawing.file_url && drawing.has_pending_revision !== true && (
+          
+          {/* ============ STATE 1: PENDING (No file yet) ============ */}
+          {/* UPLOAD button - Only when NO file AND NOT issued/approved/under_review */}
+          {canUpload && isPending && !hasRevisionPending && (
             <Button
               variant="outline"
               size="sm"
@@ -132,8 +147,9 @@ export const DrawingCard = ({
             </Button>
           )}
           
-          {/* STATE 3: REVISION PENDING - Show RESOLVE button (OWNER/TEAM LEADER ONLY) */}
-          {canUpload && drawing.has_pending_revision === true && (
+          {/* ============ STATE 2: REVISION PENDING ============ */}
+          {/* RESOLVE button - Only when revision is pending */}
+          {canUpload && hasRevisionPending && (
             <Button
               variant="outline"
               size="sm"
@@ -145,21 +161,9 @@ export const DrawingCard = ({
             </Button>
           )}
           
-          {/* STATE 2 & 5: UNDER REVIEW or ISSUED - Show REVISE button (OWNER/TEAM LEADER ONLY) */}
-          {canRevise && (drawing.under_review || drawing.is_issued) && drawing.has_pending_revision !== true && (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => onOpenRevisionDialog(drawing)}
-              className="flex-1 sm:flex-none text-xs h-8 border-amber-500 text-amber-600"
-              title="Request Revision"
-            >
-              Revise
-            </Button>
-          )}
-          
-          {/* STATE 2: UNDER REVIEW - Show APPROVE button (OWNER/TEAM LEADER ONLY) */}
-          {canApprove && drawing.under_review && !drawing.is_approved && drawing.has_pending_revision !== true && (
+          {/* ============ STATE 3: UNDER REVIEW ============ */}
+          {/* APPROVE button - Only when under_review AND NOT approved/issued */}
+          {canApprove && isUnderReview && !hasRevisionPending && (
             <Button
               variant="outline"
               size="sm"
@@ -171,8 +175,9 @@ export const DrawingCard = ({
             </Button>
           )}
           
-          {/* STATE 4: APPROVED - Show ISSUE button (OWNER/TEAM LEADER ONLY) */}
-          {canIssue && drawing.is_approved && !drawing.is_issued && drawing.has_pending_revision !== true && (
+          {/* ============ STATE 4: APPROVED ============ */}
+          {/* ISSUE button - Only when approved AND NOT issued */}
+          {canIssue && isApproved && !hasRevisionPending && (
             <Button
               variant="outline"
               size="sm"
@@ -180,12 +185,25 @@ export const DrawingCard = ({
               className="flex-1 sm:flex-none text-xs h-8 border-blue-500 text-blue-600"
               title="Issue Drawing"
             >
-              Issue Drawing
+              Issue
             </Button>
           )}
           
-          {/* PDF Button - View for everyone, Download based on permission */}
-          {drawing.file_url && (drawing.under_review || drawing.is_approved || drawing.is_issued || drawing.has_pending_revision === true) && (
+          {/* ============ REVISE button - For any state with a file (except pending revision) ============ */}
+          {canRevise && hasFile && !hasRevisionPending && (isUnderReview || isApproved || isIssued) && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => onOpenRevisionDialog(drawing)}
+              className="flex-1 sm:flex-none text-xs h-8 border-amber-500 text-amber-600"
+              title="Request Revision"
+            >
+              Revise
+            </Button>
+          )}
+          
+          {/* ============ PDF Button - Only when file exists ============ */}
+          {hasFile && (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button
@@ -211,7 +229,7 @@ export const DrawingCard = ({
             </DropdownMenu>
           )}
           
-          {/* Comment Button - Everyone can comment */}
+          {/* ============ COMMENTS Button - Always available ============ */}
           <Button
             variant="outline"
             size="sm"
@@ -233,8 +251,8 @@ export const DrawingCard = ({
             )}
           </Button>
           
-          {/* Mark as N/A Button - Show for all non-issued drawings (OWNER/TEAM LEADER ONLY) */}
-          {canMarkNA && !drawing.is_issued && (
+          {/* ============ N/A Button - Only for pending drawings (not issued/approved) ============ */}
+          {canMarkNA && isPending && !hasRevisionPending && (
             <Button
               variant="outline"
               size="sm"
@@ -246,7 +264,7 @@ export const DrawingCard = ({
             </Button>
           )}
           
-          {/* Progress Toggle Button for Issued Drawings */}
+          {/* ============ Progress Button - Only for issued drawings ============ */}
           {canShowProgress && (
             <Button
               variant="outline"
