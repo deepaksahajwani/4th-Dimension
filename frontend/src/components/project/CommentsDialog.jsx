@@ -57,7 +57,7 @@ const getDayLabel = (dateString) => {
 };
 
 // Get time only (e.g., "10:30 AM")
-const formatTime = (dateString) => {
+const formatMessageTime = (dateString) => {
   const date = new Date(dateString);
   return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 };
