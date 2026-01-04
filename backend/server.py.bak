@@ -3398,6 +3398,466 @@ async def download_drawing_file(
     )
 
 
+# ==================== PROJECT COMMENTS ROUTES ====================
+
+@api_router.get("/projects/{project_id}/comments")
+async def get_project_comments(
+    project_id: str,
+    current_user: User = Depends(get_current_user)
+):
+    """Get all comments for a project (for client/contractor/consultant portal)"""
+    try:
+        # Verify project exists and user has access
+        project = await db.projects.find_one({"id": project_id}, {"_id": 0})
+        if not project:
+            raise HTTPException(status_code=404, detail="Project not found")
+        
+        # Get comments from project_comments collection
+        comments = await db.project_comments.find(
+            {"project_id": project_id},
+            {"_id": 0}
+        ).sort("created_at", -1).to_list(500)
+        
+        return comments
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"Error fetching project comments: {str(e)}")
+        raise HTTPException(status_code=500, detail="Failed to fetch comments")
+
+
+@api_router.post("/projects/{project_id}/comments")
+async def create_project_comment(
+    project_id: str,
+    text: str = Form(""),
+    file: UploadFile = File(None),
+    voice_note: UploadFile = File(None),
+    current_user: User = Depends(get_current_user)
+):
+    """Create a comment on a project (supports text, file, voice note)"""
+    from uuid import uuid4
+    
+    try:
+        # Verify project exists
+        project = await db.projects.find_one({"id": project_id}, {"_id": 0})
+        if not project:
+            raise HTTPException(status_code=404, detail="Project not found")
+        
+        comment_id = str(uuid4())
+        comment = {
+            "id": comment_id,
+            "project_id": project_id,
+            "user_id": current_user.id,
+            "user_name": current_user.name,
+            "user_role": current_user.role or "user",
+            "text": text,
+            "file_url": None,
+            "file_name": None,
+            "voice_note_url": None,
+            "created_at": datetime.now(timezone.utc).isoformat()
+        }
+        
+        # Handle file upload
+        if file and file.filename:
+            import os
+            upload_dir = "/app/backend/uploads/comments"
+            os.makedirs(upload_dir, exist_ok=True)
+            
+            file_ext = os.path.splitext(file.filename)[1]
+            file_id = str(uuid4())
+            file_path = f"{upload_dir}/{file_id}{file_ext}"
+            
+            content = await file.read()
+            with open(file_path, "wb") as f:
+                f.write(content)
+            
+            comment["file_url"] = f"{BACKEND_URL}/api/comments/file/{file_id}{file_ext}"
+            comment["file_name"] = file.filename
+        
+        # Handle voice note upload
+        if voice_note and voice_note.filename:
+            import os
+            upload_dir = "/app/backend/uploads/voice_notes"
+            os.makedirs(upload_dir, exist_ok=True)
+            
+            voice_id = str(uuid4())
+            voice_path = f"{upload_dir}/{voice_id}.webm"
+            
+            content = await voice_note.read()
+            with open(voice_path, "wb") as f:
+                f.write(content)
+            
+            comment["voice_note_url"] = f"{BACKEND_URL}/api/comments/voice/{voice_id}.webm"
+        
+        # Insert comment
+        await db.project_comments.insert_one(comment)
+        
+        # Send notification to project team (owner + team leader)
+        try:
+            from notification_triggers_v2 import notify_project_comment
+            asyncio.create_task(notify_project_comment(
+                project_id=project_id,
+                comment_id=comment_id,
+                commenter_name=current_user.name,
+                comment_preview=text[:100] if text else "Voice/File attachment"
+            ))
+        except Exception as e:
+            print(f"Comment notification error: {str(e)}")
+        
+        return {"success": True, "comment_id": comment_id}
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"Error creating project comment: {str(e)}")
+        raise HTTPException(status_code=500, detail="Failed to create comment")
+
+
+@api_router.get("/comments/file/{filename}")
+async def get_comment_file(filename: str):
+    """Serve comment file attachments"""
+    from fastapi.responses import FileResponse
+    import os
+    
+    file_path = f"/app/backend/uploads/comments/{filename}"
+    if not os.path.exists(file_path):
+        raise HTTPException(status_code=404, detail="File not found")
+    
+    return FileResponse(file_path)
+
+
+@api_router.get("/comments/voice/{filename}")
+async def get_comment_voice(filename: str):
+    """Serve comment voice notes"""
+    from fastapi.responses import FileResponse
+    import os
+    
+    file_path = f"/app/backend/uploads/voice_notes/{filename}"
+    if not os.path.exists(file_path):
+        raise HTTPException(status_code=404, detail="Voice note not found")
+    
+    return FileResponse(file_path, media_type="audio/webm")
+
+
+# ==================== DRAWING COMMENTS ROUTES ====================
+
+@api_router.post("/drawings/{drawing_id}/comments")
+async def create_drawing_comment(
+    drawing_id: str,
+    comment_data: DrawingCommentCreate,
+    current_user: User = Depends(get_current_user)
+):
+    """Create a comment on a drawing"""
+    
+    # Verify drawing exists
+    drawing = await db.project_drawings.find_one({"id": drawing_id}, {"_id": 0})
+    if not drawing:
+        raise HTTPException(status_code=404, detail="Drawing not found")
+    
+    # Create comment
+    comment = DrawingComment(
+        drawing_id=drawing_id,
+        user_id=current_user.id,
+        user_name=current_user.name,
+        user_role=current_user.role,
+        comment_text=comment_data.comment_text
+    )
+    
+    comment_dict = comment.model_dump()
+    comment_dict['created_at'] = comment_dict['created_at'].isoformat()
+    comment_dict['updated_at'] = comment_dict['updated_at'].isoformat()
+    
+    await db.drawing_comments.insert_one(comment_dict)
+    
+    # If comment requires revision, update drawing status
+    if comment_data.requires_revision:
+        await db.project_drawings.update_one(
+            {"id": drawing_id},
+            {
+                "$set": {
+                    "has_pending_revision": True,
+                    "status": "revision_needed",
+                    "updated_at": datetime.now(timezone.utc).isoformat()
+                }
+            }
+        )
+        logger.info(f"Drawing {drawing_id} marked for revision due to comment")
+    
+    # Increment comment count and unread comments on drawing
+    await db.project_drawings.update_one(
+        {"id": drawing_id},
+        {
+            "$inc": {
+                "comment_count": 1,
+                "unread_comments": 1
+            }
+        }
+    )
+    
+    # Create in-app notifications for relevant users
+    try:
+        # Get project details
+        project = await db.projects.find_one({"id": drawing.get("project_id")}, {"_id": 0})
+        if project:
+            notification_users = set()
+            
+            # Notify team leader if exists and not the commenter
+            if project.get("lead_architect_id") and project["lead_architect_id"] != current_user.id:
+                notification_users.add(project["lead_architect_id"])
+            
+            # Notify owner if not the commenter
+            owner = await db.users.find_one({"role": "owner"}, {"_id": 0, "id": 1})
+            if owner and owner["id"] != current_user.id:
+                notification_users.add(owner["id"])
+            
+            # Create notifications for each user
+            for user_id in notification_users:
+                notification = {
+                    "id": str(uuid.uuid4()),
+                    "user_id": user_id,
+                    "type": "comment_added",
+                    "title": "New Comment on Drawing",
+                    "message": f"{current_user.name} commented on {drawing.get('name', 'a drawing')} in {project.get('title', 'a project')}",
+                    "related_id": comment_dict["id"],
+                    "related_type": "comment",
+                    "project_id": drawing.get("project_id"),
+                    "project_name": project.get("title"),
+                    "is_read": False,
+                    "created_at": datetime.now(timezone.utc).isoformat(),
+                    "created_by_id": current_user.id,
+                    "created_by_name": current_user.name
+                }
+                await db.notifications.insert_one(notification)
+    except Exception as e:
+        logger.warning(f"Failed to create comment notifications: {e}")
+    
+    # Send WhatsApp notification to owner for drawing comment
+    try:
+        from notification_triggers_v2 import notify_owner_drawing_comment
+        await notify_owner_drawing_comment(
+            drawing_id=drawing_id,
+            drawing_name=drawing.get('name', 'Drawing'),
+            project_id=drawing.get('project_id'),
+            commenter_name=current_user.name,
+            comment_text=comment_data.comment_text,
+            requires_revision=comment_data.requires_revision or False
+        )
+    except Exception as e:
+        logger.warning(f"Owner WhatsApp notification failed (non-critical): {str(e)}")
+    
+    return comment
+
+@api_router.get("/drawings/{drawing_id}/comments")
+async def get_drawing_comments(
+    drawing_id: str,
+    current_user: User = Depends(get_current_user)
+):
+    """Get all comments for a drawing"""
+    comments = await db.drawing_comments.find(
+        {"drawing_id": drawing_id, "deleted_at": None},
+        {"_id": 0}
+    ).sort("created_at", -1).to_list(1000)
+    
+    for comment in comments:
+        if isinstance(comment.get('created_at'), str):
+            comment['created_at'] = datetime.fromisoformat(comment['created_at'])
+        if isinstance(comment.get('updated_at'), str):
+            comment['updated_at'] = datetime.fromisoformat(comment['updated_at'])
+    
+    return comments
+
+@api_router.put("/drawings/comments/{comment_id}")
+async def update_drawing_comment(
+    comment_id: str,
+    comment_data: DrawingCommentUpdate,
+    current_user: User = Depends(get_current_user)
+):
+    """Update a comment (only by comment author)"""
+    
+    # Find comment
+    comment = await db.drawing_comments.find_one({"id": comment_id, "deleted_at": None}, {"_id": 0})
+    if not comment:
+        raise HTTPException(status_code=404, detail="Comment not found")
+    
+    # Check if user is the author
+    if comment['user_id'] != current_user.id:
+        raise HTTPException(status_code=403, detail="You can only edit your own comments")
+    
+    # Update comment
+    await db.drawing_comments.update_one(
+        {"id": comment_id},
+        {"$set": {
+            "comment_text": comment_data.comment_text,
+            "updated_at": datetime.now(timezone.utc).isoformat()
+        }}
+    )
+    
+    updated_comment = await db.drawing_comments.find_one({"id": comment_id}, {"_id": 0})
+    return updated_comment
+
+@api_router.delete("/drawings/comments/{comment_id}")
+async def delete_drawing_comment(
+    comment_id: str,
+    current_user: User = Depends(get_current_user)
+):
+    """Delete a comment (only by comment author)"""
+    # Find comment
+    comment = await db.drawing_comments.find_one({"id": comment_id, "deleted_at": None}, {"_id": 0})
+    if not comment:
+        raise HTTPException(status_code=404, detail="Comment not found")
+    
+    # Check if user is the author
+    if comment['user_id'] != current_user.id:
+        raise HTTPException(status_code=403, detail="You can only delete your own comments")
+    
+    # Soft delete
+    await db.drawing_comments.update_one(
+        {"id": comment_id},
+        {"$set": {"deleted_at": datetime.now(timezone.utc).isoformat()}}
+    )
+    
+    return {"message": "Comment deleted successfully"}
+
+@api_router.post("/drawings/comments/{comment_id}/upload-reference")
+async def upload_comment_reference(
+    comment_id: str,
+    files: List[UploadFile] = File(...),
+    current_user: User = Depends(get_current_user)
+):
+    """Upload multiple reference files (images/PDFs) for a comment"""
+    # Find comment
+    comment = await db.drawing_comments.find_one({"id": comment_id, "deleted_at": None}, {"_id": 0})
+    if not comment:
+        raise HTTPException(status_code=404, detail="Comment not found")
+    
+    # Check if user is the author
+    if comment['user_id'] != current_user.id:
+        raise HTTPException(status_code=403, detail="You can only add files to your own comments")
+    
+    uploaded_files = []
+    current_files = comment.get('reference_files', [])
+    
+    for file in files:
+        # Validate file type (expanded support for architectural files)
+        allowed_extensions = [
+            # Documents
+            '.pdf', '.doc', '.docx', '.txt', '.rtf',
+            # Images  
+            '.jpg', '.jpeg', '.png', '.gif', '.bmp', '.tiff', '.svg',
+            # CAD/Drawing files
+            '.dwg', '.dxf', '.dwf', '.dgn',
+            # Spreadsheets
+            '.xls', '.xlsx', '.csv',
+            # Presentations
+            '.ppt', '.pptx',
+            # Archives
+            '.zip', '.rar', '.7z'
+        ]
+        file_extension = Path(file.filename).suffix.lower()
+        if file_extension not in allowed_extensions:
+            raise HTTPException(status_code=400, detail=f"File type {file_extension} not allowed. Supported: PDF, images, CAD files (.dwg, .dxf), documents, spreadsheets, and archives")
+        
+        # Create uploads directory
+        upload_dir = Path("uploads/comment_references")
+        upload_dir.mkdir(parents=True, exist_ok=True)
+        
+        # Generate unique filename
+        unique_filename = f"{comment_id}_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}_{len(uploaded_files)}{file_extension}"
+        file_path = upload_dir / unique_filename
+        
+        # Save file
+        with open(file_path, "wb") as buffer:
+            content = await file.read()
+            buffer.write(content)
+        
+        # Return file URL
+        file_url = f"/uploads/comment_references/{unique_filename}"
+        uploaded_files.append({
+            "url": file_url,
+            "filename": file.filename,
+            "original_name": file.filename
+        })
+        current_files.append(file_url)
+    
+    # Update comment with all reference files
+    await db.drawing_comments.update_one(
+        {"id": comment_id},
+        {"$set": {"reference_files": current_files}}
+    )
+    
+    return {
+        "uploaded_files": uploaded_files,
+        "total_files": len(current_files),
+        "message": f"Successfully uploaded {len(uploaded_files)} file(s)"
+    }
+
+@api_router.post("/drawings/comments/{comment_id}/upload-voice")
+async def upload_comment_voice_note(
+    comment_id: str,
+    voice_note: UploadFile = File(...),
+    current_user: User = Depends(get_current_user)
+):
+    """Upload voice note for a comment"""
+    # Find comment
+    comment = await db.drawing_comments.find_one({"id": comment_id, "deleted_at": None}, {"_id": 0})
+    if not comment:
+        raise HTTPException(status_code=404, detail="Comment not found")
+    
+    # Check if user is the author
+    if comment['user_id'] != current_user.id:
+        raise HTTPException(status_code=403, detail="You can only add voice notes to your own comments")
+    
+    # Validate file type (audio files only)
+    allowed_extensions = ['.webm', '.mp3', '.wav', '.m4a', '.ogg']
+    file_extension = Path(voice_note.filename).suffix.lower()
+    if file_extension not in allowed_extensions:
+        raise HTTPException(status_code=400, detail="Only audio files are allowed")
+    
+    # Create uploads directory
+    upload_dir = Path("uploads/voice_notes")
+    upload_dir.mkdir(parents=True, exist_ok=True)
+    
+    # Generate unique filename
+    unique_filename = f"voice_{comment_id}_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}.webm"
+    file_path = upload_dir / unique_filename
+    
+    # Save file
+    with open(file_path, "wb") as buffer:
+        content = await voice_note.read()
+        buffer.write(content)
+    
+    # Return file URL
+    voice_url = f"/uploads/voice_notes/{unique_filename}"
+    
+    # Add voice note URL to comment
+    await db.drawing_comments.update_one(
+        {"id": comment_id},
+        {"$set": {"voice_note_url": voice_url}}
+    )
+    
+    # Trigger enhanced WhatsApp notification for voice note
+    try:
+        # Get drawing and project details for notification
+        drawing = await db.project_drawings.find_one({"id": comment.get("drawing_id")}, {"_id": 0})
+        if drawing:
+            project_id = drawing.get("project_id")
+            drawing_name = drawing.get("name", "Unknown Drawing")
+            
+            # Import notification function
+            from notification_triggers import notify_voice_note_added
+            await notify_voice_note_added(
+                project_id=project_id,
+                drawing_name=drawing_name,
+                commenter_id=current_user.id,
+                comment_id=comment_id
+            )
+    except Exception as e:
+        logger.warning(f"Failed to send voice note notification: {e}")
+    
+    return {"voice_url": voice_url, "message": "Voice note uploaded successfully"}
+
+
 @api_router.post("/drawings/{drawing_id}/voice-note")
 async def upload_drawing_voice_note(
     drawing_id: str,
