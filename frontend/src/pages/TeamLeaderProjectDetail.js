@@ -579,19 +579,49 @@ export default function TeamLeaderProjectDetail({ user, onLogout }) {
                         <p className="font-medium text-sm truncate">{drawing.name}</p>
                         <p className="text-xs text-slate-500">{drawing.category}</p>
                       </div>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => {
-                          setSelectedDrawing(drawing);
-                          setUploadType('new');
-                          setUploadDialogOpen(true);
-                        }}
-                        className="shrink-0"
-                      >
-                        <Upload className="w-4 h-4 mr-1" />
-                        Upload
-                      </Button>
+                      <div className="flex gap-1 shrink-0">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => {
+                            setSelectedDrawing(drawing);
+                            setUploadType('new');
+                            setUploadDialogOpen(true);
+                          }}
+                        >
+                          <Upload className="w-4 h-4 mr-1" />
+                          Upload
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => handleMarkAsNotApplicable(drawing.id)}
+                          className="text-slate-500 hover:text-slate-700"
+                          title="Mark as Not Applicable"
+                        >
+                          N/A
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Not Applicable Section */}
+            {notApplicable.length > 0 && (
+              <Card className="border-slate-200 bg-slate-50 opacity-60">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm flex items-center gap-2 text-slate-500">
+                    <X className="w-4 h-4" />
+                    Not Applicable ({notApplicable.length})
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-2">
+                  {notApplicable.map(drawing => (
+                    <div key={drawing.id} className="bg-white/50 p-3 rounded-lg">
+                      <p className="font-medium text-sm text-slate-500 truncate">{drawing.name}</p>
+                      <p className="text-xs text-slate-400">{drawing.category}</p>
                     </div>
                   ))}
                 </CardContent>
