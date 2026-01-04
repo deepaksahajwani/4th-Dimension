@@ -894,3 +894,21 @@ Major backend refactoring where ~860 lines were removed from `/app/backend/serve
 3. `/app/backend/routes/external_parties.py` - Already complete, now included
 
 ---
+
+## Phase Implementation Status (2026-01-04)
+
+### Testing Request:
+
+**Phase 3 - UI Permission Locking:**
+- Test as Owner: Should see Edit, Archive, Delete, Add Drawing buttons
+- Test as Team Leader: Should see Edit, Add Drawing buttons, no Delete/Archive
+- Test permissions are properly applied to drawing actions
+
+**Phase 2 - Frontend Performance:**
+- Verify thumbnail generation works on 3D image uploads
+- Verify LazyComments component is available
+
+**Phase 1 - Async Notifications:**
+- Verify notifications are queued asynchronously (check backend logs)
+
+---
