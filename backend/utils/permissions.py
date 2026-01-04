@@ -88,6 +88,16 @@ ROLE_PERMISSIONS: Dict[str, Set[Permission]] = {
         Permission.COMMENT_CREATE, Permission.COMMENT_DELETE_OWN, Permission.COMMENT_VIEW,
     },
     
+    "senior_interior_designer": {
+        # Same as team_leader - can edit projects and upload drawings
+        Permission.PROJECT_VIEW, Permission.PROJECT_EDIT,
+        Permission.DRAWING_CREATE, Permission.DRAWING_EDIT, Permission.DRAWING_UPLOAD,
+        Permission.DRAWING_APPROVE, Permission.DRAWING_ISSUE, Permission.DRAWING_MARK_NA,
+        Permission.DRAWING_VIEW, Permission.DRAWING_DOWNLOAD,
+        Permission.COMMENT_CREATE, Permission.COMMENT_DELETE_OWN, Permission.COMMENT_VIEW,
+        Permission.USER_VIEW,
+    },
+    
     "junior_designer": {
         Permission.PROJECT_VIEW,
         Permission.DRAWING_VIEW, Permission.DRAWING_DOWNLOAD,
