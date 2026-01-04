@@ -7291,6 +7291,7 @@ from routes import drawing_whatsapp
 from routes import users as users_routes
 from routes import accounting as accounting_routes
 from routes import comments as comments_routes
+from routes import external_parties as external_parties_routes
 from routes import api_v2
 
 # Include the new modular routers under /api
