@@ -349,7 +349,192 @@ async def mark_comment_read(
     return {"message": "Comment marked as read"}
 
 
+# ==================== DRAWING COMMENT UPDATES ====================
+
+@router.put("/drawings/comments/{comment_id}")
+async def update_drawing_comment(
+    comment_id: str,
+    comment_data: DrawingCommentUpdate,
+    current_user: User = Depends(get_current_user)
+):
+    """Update a comment (only by comment author)"""
+    comment = await db.drawing_comments.find_one({"id": comment_id, "deleted_at": None}, {"_id": 0})
+    if not comment:
+        raise HTTPException(status_code=404, detail="Comment not found")
+    
+    if comment['user_id'] != current_user.id:
+        raise HTTPException(status_code=403, detail="You can only edit your own comments")
+    
+    await db.drawing_comments.update_one(
+        {"id": comment_id},
+        {"$set": {
+            "comment_text": comment_data.comment_text,
+            "updated_at": datetime.now(timezone.utc).isoformat()
+        }}
+    )
+    
+    updated_comment = await db.drawing_comments.find_one({"id": comment_id}, {"_id": 0})
+    return updated_comment
+
+
+@router.delete("/drawings/comments/{comment_id}")
+async def delete_drawing_comment_by_id(
+    comment_id: str,
+    current_user: User = Depends(get_current_user)
+):
+    """Delete a comment (only by comment author) - soft delete"""
+    comment = await db.drawing_comments.find_one({"id": comment_id, "deleted_at": None}, {"_id": 0})
+    if not comment:
+        raise HTTPException(status_code=404, detail="Comment not found")
+    
+    if comment['user_id'] != current_user.id:
+        raise HTTPException(status_code=403, detail="You can only delete your own comments")
+    
+    await db.drawing_comments.update_one(
+        {"id": comment_id},
+        {"$set": {"deleted_at": datetime.now(timezone.utc).isoformat()}}
+    )
+    
+    return {"message": "Comment deleted successfully"}
+
+
+@router.post("/drawings/comments/{comment_id}/upload-reference")
+async def upload_comment_reference(
+    comment_id: str,
+    files: List[UploadFile] = File(...),
+    current_user: User = Depends(get_current_user)
+):
+    """Upload multiple reference files (images/PDFs) for a comment"""
+    comment = await db.drawing_comments.find_one({"id": comment_id, "deleted_at": None}, {"_id": 0})
+    if not comment:
+        raise HTTPException(status_code=404, detail="Comment not found")
+    
+    if comment['user_id'] != current_user.id:
+        raise HTTPException(status_code=403, detail="You can only add files to your own comments")
+    
+    uploaded_files = []
+    current_files = comment.get('reference_files', [])
+    
+    # Allowed file types
+    allowed_extensions = [
+        '.pdf', '.doc', '.docx', '.txt', '.rtf',
+        '.jpg', '.jpeg', '.png', '.gif', '.bmp', '.tiff', '.svg',
+        '.dwg', '.dxf', '.dwf', '.dgn',
+        '.xls', '.xlsx', '.csv',
+        '.ppt', '.pptx',
+        '.zip', '.rar', '.7z'
+    ]
+    
+    upload_dir = Path("uploads/comment_references")
+    upload_dir.mkdir(parents=True, exist_ok=True)
+    
+    for file in files:
+        file_extension = Path(file.filename).suffix.lower()
+        if file_extension not in allowed_extensions:
+            raise HTTPException(
+                status_code=400, 
+                detail=f"File type {file_extension} not allowed"
+            )
+        
+        unique_filename = f"{comment_id}_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}_{len(uploaded_files)}{file_extension}"
+        file_path = upload_dir / unique_filename
+        
+        with open(file_path, "wb") as buffer:
+            content = await file.read()
+            buffer.write(content)
+        
+        file_url = f"/uploads/comment_references/{unique_filename}"
+        uploaded_files.append({
+            "url": file_url,
+            "filename": file.filename,
+            "original_name": file.filename
+        })
+        current_files.append(file_url)
+    
+    await db.drawing_comments.update_one(
+        {"id": comment_id},
+        {"$set": {"reference_files": current_files}}
+    )
+    
+    return {
+        "uploaded_files": uploaded_files,
+        "total_files": len(current_files),
+        "message": f"Successfully uploaded {len(uploaded_files)} file(s)"
+    }
+
+
+@router.post("/drawings/comments/{comment_id}/upload-voice")
+async def upload_comment_voice_note(
+    comment_id: str,
+    voice_note: UploadFile = File(...),
+    current_user: User = Depends(get_current_user)
+):
+    """Upload voice note for a comment"""
+    comment = await db.drawing_comments.find_one({"id": comment_id, "deleted_at": None}, {"_id": 0})
+    if not comment:
+        raise HTTPException(status_code=404, detail="Comment not found")
+    
+    if comment['user_id'] != current_user.id:
+        raise HTTPException(status_code=403, detail="You can only add voice notes to your own comments")
+    
+    allowed_extensions = ['.webm', '.mp3', '.wav', '.m4a', '.ogg']
+    file_extension = Path(voice_note.filename).suffix.lower()
+    if file_extension not in allowed_extensions:
+        raise HTTPException(status_code=400, detail="Only audio files are allowed")
+    
+    upload_dir = Path("uploads/voice_notes")
+    upload_dir.mkdir(parents=True, exist_ok=True)
+    
+    unique_filename = f"voice_{comment_id}_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}.webm"
+    file_path = upload_dir / unique_filename
+    
+    with open(file_path, "wb") as buffer:
+        content = await voice_note.read()
+        buffer.write(content)
+    
+    voice_url = f"/uploads/voice_notes/{unique_filename}"
+    
+    await db.drawing_comments.update_one(
+        {"id": comment_id},
+        {"$set": {"voice_note_url": voice_url}}
+    )
+    
+    # Send notification for voice note
+    try:
+        drawing = await db.project_drawings.find_one({"id": comment.get("drawing_id")}, {"_id": 0})
+        if drawing:
+            from notification_triggers import notify_voice_note_added
+            await notify_voice_note_added(
+                project_id=drawing.get("project_id"),
+                drawing_name=drawing.get("name", "Unknown Drawing"),
+                commenter_id=current_user.id,
+                comment_id=comment_id
+            )
+    except Exception as e:
+        logger.warning(f"Failed to send voice note notification: {e}")
+    
+    return {"voice_url": voice_url, "message": "Voice note uploaded successfully"}
+
+
 # ==================== FILE SERVING ====================
+
+@router.get("/comments/file/{filename}")
+async def get_comment_file(filename: str):
+    """Serve comment file attachments (legacy path)"""
+    file_path = Path("/app/backend/uploads/comments") / filename
+    if not file_path.exists():
+        raise HTTPException(status_code=404, detail="File not found")
+    return FileResponse(str(file_path))
+
+
+@router.get("/comments/voice/{filename}")
+async def get_comment_voice(filename: str):
+    """Serve comment voice notes (legacy path)"""
+    file_path = Path("/app/backend/uploads/voice_notes") / filename
+    if not file_path.exists():
+        raise HTTPException(status_code=404, detail="Voice note not found")
+    return FileResponse(str(file_path), media_type="audio/webm")
+
 
 @router.get("/uploads/comments/{filename}")
 async def serve_comment_file(filename: str):
