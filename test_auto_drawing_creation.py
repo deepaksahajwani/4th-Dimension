@@ -10,7 +10,7 @@ import sys
 from datetime import datetime, timedelta
 
 # Get backend URL from frontend .env
-BACKEND_URL = "https://pm-system.preview.emergentagent.com/api"
+BACKEND_URL = "https://review-page.preview.emergentagent.com/api"
 
 class AutoDrawingTester:
     def __init__(self):

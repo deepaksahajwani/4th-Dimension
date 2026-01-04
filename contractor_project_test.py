@@ -12,7 +12,7 @@ import uuid
 import io
 
 # Get backend URL from frontend .env
-BACKEND_URL = "https://pm-system.preview.emergentagent.com/api"
+BACKEND_URL = "https://review-page.preview.emergentagent.com/api"
 
 class ContractorProjectTester:
     def __init__(self):

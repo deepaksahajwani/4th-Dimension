@@ -1626,7 +1626,7 @@ async def get_email_preview(user_id: str = Query(None), role: str = Query(...), 
             'preferred_language': lang
         }
         
-        login_url = os.getenv('REACT_APP_BACKEND_URL', 'https://pm-system.preview.emergentagent.com')
+        login_url = os.getenv('REACT_APP_BACKEND_URL', 'https://review-page.preview.emergentagent.com')
         
         subject, html_content = get_translated_email_content(mock_user, login_url, lang)
         
@@ -8571,7 +8571,7 @@ async def send_drawing_via_whatsapp(
             raise HTTPException(status_code=403, detail="Not authorized to send this drawing")
         
         # Prepare message
-        app_url = os.environ.get('REACT_APP_BACKEND_URL', 'https://pm-system.preview.emergentagent.com')
+        app_url = os.environ.get('REACT_APP_BACKEND_URL', 'https://review-page.preview.emergentagent.com')
         drawing_link = f"{app_url}/projects/{project['id']}?drawing={drawing_id}"
         
         message = (
@@ -8746,7 +8746,7 @@ async def request_drawing_approval(
         )
         
         # Send notification with file
-        app_url = os.environ.get('REACT_APP_BACKEND_URL', 'https://pm-system.preview.emergentagent.com')
+        app_url = os.environ.get('REACT_APP_BACKEND_URL', 'https://review-page.preview.emergentagent.com')
         drawing_link = f"{app_url}/projects/{project['id']}?drawing={drawing_id}"
         
         message = (

@@ -52,7 +52,7 @@ TWILIO_ACCOUNT_SID = os.environ.get('TWILIO_ACCOUNT_SID')
 TWILIO_AUTH_TOKEN = os.environ.get('TWILIO_AUTH_TOKEN')
 TWILIO_WHATSAPP_FROM = os.environ.get('TWILIO_WHATSAPP_NUMBER', 'whatsapp:+14155238886')
 TWILIO_SMS_FROM = os.environ.get('TWILIO_PHONE_NUMBER')
-APP_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://pm-system.preview.emergentagent.com')
+APP_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://review-page.preview.emergentagent.com')
 
 
 class TemplateNotificationService:
