@@ -7303,6 +7303,7 @@ api_router.include_router(drawings.router)
 api_router.include_router(users_routes.router)
 api_router.include_router(accounting_routes.router)
 api_router.include_router(comments_routes.router)
+api_router.include_router(external_parties_routes.router)
 api_router.include_router(api_v2.router)  # v2 endpoints for mobile
 
 # Include drawing WhatsApp routes
