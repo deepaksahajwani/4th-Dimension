@@ -1609,9 +1609,9 @@ async def notify_owner_drawing_revision_posted(
                 phone_number=owner['mobile'],
                 recipient_name=owner.get('name', 'Sir/Madam'),
                 project_name=project_name,
-                drawing_name=f"{drawing_name} (R{revision_number})",
-                revision_number=revision_number,
-                revised_by=posted_by_name,
+                drawing_name=f"{drawing_name}",
+                revision=str(revision_number),
+                updater_name=posted_by_name,
                 portal_url=deep_link
             )
             
