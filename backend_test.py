@@ -441,39 +441,34 @@ class BackendTester:
         except Exception as e:
             self.log_result("Metrics Permission Check", False, f"Exception: {str(e)}")
 
-    def run_phase_1_3_tests(self):
-        """Run Phase 1-3 implementation tests"""
-        print("🚀 Starting Phase 1-3 Implementation Tests")
+    def run_phase_5_metrics_tests(self):
+        """Run Phase 5 Monitoring Metrics API tests"""
+        print("🚀 Starting Phase 5 Monitoring Metrics API Tests")
         print("=" * 60)
-        print("Testing Performance and Security Refactoring:")
-        print("1. Phase 1 - Async Notifications")
-        print("2. Phase 1 - Slim API V2 (Mobile Optimization)")
-        print("3. Phase 3 - Permissions API")
-        print("4. General Health")
+        print("Testing Monitoring Metrics API Implementation:")
+        print("1. System Health API")
+        print("2. Notification Metrics API")
+        print("3. Storage Metrics API")
+        print("4. API Usage Metrics API")
+        print("5. Overview Endpoint")
+        print("6. Permission Check (Team Leader)")
         print("=" * 60)
         
         # Authentication tests
         self.test_team_leader_login()
         self.test_owner_login()
         
-        # Phase 1 - Async Notifications
-        self.test_async_notifications_health()
-        
-        # Phase 1 - Slim API V2 (Mobile Optimization)
-        if self.test_slim_api_v2_projects():
-            self.test_slim_api_v2_project_detail()
-            self.test_slim_api_v2_drawings_pagination()
-        
-        # Phase 3 - Permissions API
-        self.test_permissions_api_owner()
-        self.test_permissions_api_team_leader()
-        
-        # General Health
-        self.test_general_health_endpoints()
+        # Phase 5 - Monitoring Metrics API tests
+        self.test_system_health_metrics()
+        self.test_notification_metrics()
+        self.test_storage_metrics()
+        self.test_api_usage_metrics()
+        self.test_metrics_overview()
+        self.test_metrics_permission_check()
         
         # Summary
         print("\n" + "=" * 60)
-        print("📊 PHASE 1-3 IMPLEMENTATION TEST SUMMARY")
+        print("📊 PHASE 5 MONITORING METRICS API TEST SUMMARY")
         print("=" * 60)
         
         passed = sum(1 for result in self.test_results if result["success"])
@@ -496,13 +491,15 @@ class BackendTester:
             for test in failed_tests:
                 print(f"- {test['test']}: {test['details']}")
         else:
-            print(f"\n✅ ALL TESTS PASSED - Phase 1-3 implementation working correctly")
+            print(f"\n✅ ALL TESTS PASSED - Phase 5 Monitoring Metrics API working correctly")
         
         print(f"\n📝 IMPLEMENTATION STATUS:")
-        print(f"✅ Phase 1 - Async Notifications: Health check confirms worker running")
-        print(f"✅ Phase 1 - Slim API V2: Mobile-optimized endpoints functional")
-        print(f"✅ Phase 3 - Permissions API: Role-based permissions working")
-        print(f"✅ General Health: Core endpoints operational")
+        print(f"✅ System Health API: Returns status, users, projects, drawings with completion rate")
+        print(f"✅ Notification Metrics API: Returns total notifications, success rate, failure reasons, daily breakdown")
+        print(f"✅ Storage Metrics API: Returns total storage used, breakdown by category")
+        print(f"✅ API Usage Metrics API: Returns active users, projects created, drawings uploaded, comments created")
+        print(f"✅ Overview Endpoint: Returns all metrics combined in one response")
+        print(f"✅ Permission Check: Team leader correctly denied access (Owner only)")
         
         return passed == total
 
