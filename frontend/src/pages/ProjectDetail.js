@@ -1612,14 +1612,43 @@ export default function ProjectDetail({ user, onLogout }) {
 
         {/* Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid grid-cols-6 w-full">
+          <TabsList className="grid grid-cols-7 w-full">
             <TabsTrigger value="urgent" className="text-xs sm:text-sm">Urgent</TabsTrigger>
             <TabsTrigger value="drawings" className="text-xs sm:text-sm">All</TabsTrigger>
+            <TabsTrigger value="chat" className="text-xs sm:text-sm relative">
+              Chat
+              {projectComments.length > 0 && (
+                <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white text-[10px] rounded-full flex items-center justify-center">
+                  {projectComments.length}
+                </span>
+              )}
+            </TabsTrigger>
             <TabsTrigger value="info" className="text-xs sm:text-sm">Info</TabsTrigger>
             <TabsTrigger value="brands" className="text-xs sm:text-sm">Brands</TabsTrigger>
             <TabsTrigger value="team" className="text-xs sm:text-sm">Team</TabsTrigger>
             <TabsTrigger value="coclients" className="text-xs sm:text-sm">Co-Clients</TabsTrigger>
           </TabsList>
+
+          {/* Project Chat Tab - WhatsApp Style */}
+          <TabsContent value="chat" className="mt-4 sm:mt-6">
+            <Card className="overflow-hidden">
+              <div className="bg-gradient-to-r from-purple-600 to-purple-700 px-4 py-3">
+                <h3 className="text-white font-medium text-sm">Project Discussion</h3>
+                <p className="text-purple-200 text-xs">{projectComments.length} {projectComments.length === 1 ? 'message' : 'messages'}</p>
+              </div>
+              <div className="h-[400px]">
+                <ChatView
+                  messages={projectComments}
+                  currentUserId={user?.id}
+                  loading={loadingProjectComments}
+                  onSendMessage={handleSendProjectComment}
+                  placeholder="Type a message..."
+                  emptyStateText="No messages yet"
+                  emptyStateSubtext="Start the project discussion"
+                />
+              </div>
+            </Card>
+          </TabsContent>
 
           {/* Urgent Drawings Tab - Sorted by Due Date */}
           <TabsContent value="urgent" className="mt-4 sm:mt-6">
