@@ -1,32 +1,41 @@
 #!/usr/bin/env python3
 """
 Backend API Testing Script for Architecture Firm Management System
-Testing Phase 1-3 Implementation of Performance and Security Refactoring:
+Testing Phase 5 Monitoring Metrics API Implementation:
 
 **Test Credentials:**
 - Owner: deepaksahajwani@gmail.com / Deepak@2025
 - Team Leader: balbirgkaur@gmail.com / TeamLeader@123
 
+**API URL:** Use REACT_APP_BACKEND_URL from /app/frontend/.env
+
 **Tests to perform:**
-1. Phase 1 - Async Notifications (Backend):
-   - Login as owner
-   - Check if async notification worker is running (GET /api/health should confirm)
-   - Look at backend logs for "notification worker" mentions
 
-2. Phase 1 - Slim API V2 (Mobile Optimization):
-   - GET /api/v2/projects - Should return slim project list
-   - GET /api/v2/projects/{project_id} - Should return minimal project data without full drawings
-   - GET /api/v2/projects/{project_id}/drawings?limit=10&skip=0 - Test pagination
+1. **System Health API:**
+   - GET /api/metrics/system-health
+   - Should return: status, users count, projects count, drawings count with completion rate
 
-3. Phase 3 - Permissions API:
-   - GET /api/v2/me/permissions - Should return role-based permissions
-   - Test as owner: should have all permissions (can_delete_project, can_archive_project, etc.)
-   - Test as team leader: should have limited permissions (can_edit_project, can_upload_drawing, etc.)
+2. **Notification Metrics API:**
+   - GET /api/metrics/notifications?days=30
+   - Should return: total notifications, success rate, failure reasons, daily breakdown
 
-4. General Health:
-   - GET /api/health
-   - GET /api/projects (as owner)
-   - GET /api/contractors
+3. **Storage Metrics API:**
+   - GET /api/metrics/storage
+   - Should return: total storage used, breakdown by category (drawings, 3d_images, voice_notes, etc.)
+
+4. **API Usage Metrics:**
+   - GET /api/metrics/api-usage?days=7
+   - Should return: active users, projects created, drawings uploaded, comments created
+
+5. **Overview Endpoint:**
+   - GET /api/metrics/overview
+   - Should return all metrics combined in one response
+
+6. **Permission Check:**
+   - Login as team leader (balbirgkaur@gmail.com / TeamLeader@123)
+   - Try GET /api/metrics/system-health - should return 403 Forbidden (Owner only)
+
+Report success/failure for each test.
 """
 
 import requests
