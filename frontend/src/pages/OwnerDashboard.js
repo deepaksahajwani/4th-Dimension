@@ -45,6 +45,10 @@ export default function OwnerDashboard({ user, onLogout }) {
   const [quickFilter, setQuickFilter] = useState(null); // 'critical', 'all', etc.
   const [teamOverview, setTeamOverview] = useState(null);
   
+  // System Metrics (Phase 5)
+  const [systemMetrics, setSystemMetrics] = useState(null);
+  const [showMetrics, setShowMetrics] = useState(false);
+  
   // Quick assign dialog
   const [assignDialogOpen, setAssignDialogOpen] = useState(false);
   const [selectedProject, setSelectedProject] = useState(null);
