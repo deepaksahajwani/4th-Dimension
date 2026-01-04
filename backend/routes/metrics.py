@@ -9,17 +9,14 @@ from typing import Dict, List, Optional
 import logging
 
 from utils.auth import get_current_user, User
+from utils.database import get_database
 
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/metrics", tags=["Metrics"])
 
-# Initialize DB reference
-db = None
-
-def init_db(database):
-    global db
-    db = database
+# Get DB reference
+db = get_database()
 
 
 @router.get("/system-health")
