@@ -1759,9 +1759,29 @@ export default function ProjectDetail({ user, onLogout }) {
             <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-4 sm:mb-6">
               <div className="flex-1 min-w-0">
                 <h2 className="text-lg sm:text-xl lg:text-2xl font-bold text-slate-900">Project Drawings</h2>
-                <p className="text-xs sm:text-sm text-slate-600 mt-1">
-                  {drawings.filter(d => !d.is_not_applicable).length} total • {drawings.filter(d => d.is_issued && !d.is_not_applicable).length} issued • {drawings.filter(d => d.has_pending_revision && !d.is_not_applicable).length} revisions
-                </p>
+                {/* Progress: issued / (total - N/A) */}
+                {(() => {
+                  const issued = drawings.filter(d => d.is_issued && !d.is_not_applicable).length;
+                  const total = drawings.filter(d => !d.is_not_applicable).length;
+                  const progress = total > 0 ? ((issued / total) * 100).toFixed(1) : 0;
+                  const revisions = drawings.filter(d => d.has_pending_revision && !d.is_not_applicable).length;
+                  return (
+                    <div className="mt-2">
+                      <div className="flex items-center gap-3 text-sm">
+                        <span className="font-medium text-green-600">{issued} issued</span>
+                        {revisions > 0 && <span className="text-amber-600">{revisions} revisions</span>}
+                        <span className="text-slate-400">of {total}</span>
+                      </div>
+                      <div className="mt-2 h-2 bg-slate-100 rounded-full overflow-hidden w-full max-w-xs">
+                        <div 
+                          className="h-full bg-green-500 rounded-full transition-all duration-500"
+                          style={{ width: `${progress}%` }}
+                        />
+                      </div>
+                      <p className="text-xs text-slate-500 mt-1">{progress}% complete</p>
+                    </div>
+                  );
+                })()}
               </div>
               {/* Add Drawing button - Only for owner/team leader */}
               {permissions.can_create_drawing && (
