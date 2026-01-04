@@ -86,7 +86,7 @@ def get_welcome_email_content(user: dict, login_url: str) -> tuple[str, str]:
     <div style="background: #D1FAE5; padding: 20px; border-radius: 8px; margin: 25px 0; text-align: center; border: 2px solid #10B981;">
         <p style="margin: 0 0 15px 0; font-size: 18px;"><strong>🔐 Your Login Credentials</strong></p>
         <p style="margin: 10px 0;"><strong>Email:</strong> {email}</p>
-        {f'<p style="margin: 10px 0;"><strong>Password:</strong> As set during registration</p>' if registered_via == 'email' else '<p style="margin: 10px 0;"><strong>Login Method:</strong> Use your Google account</p>'}
+        {'<p style="margin: 10px 0;"><strong>Password:</strong> As set during registration</p>' if registered_via == 'email' else '<p style="margin: 10px 0;"><strong>Login Method:</strong> Use your Google account</p>'}
         
         <a href="{login_url}" style="{button_style}">
             🚀 Login to Your Dashboard

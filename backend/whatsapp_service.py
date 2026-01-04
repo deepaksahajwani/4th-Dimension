@@ -36,7 +36,7 @@ class WhatsAppNotificationService:
         else:
             try:
                 self.client = Client(self.account_sid, self.auth_token)
-                logger.info(f"✅ WhatsApp Notification Service initialized (Sandbox mode)")
+                logger.info("✅ WhatsApp Notification Service initialized (Sandbox mode)")
                 logger.info(f"   Using WhatsApp number: {self.whatsapp_number}")
             except Exception as e:
                 logger.error(f"Failed to initialize Twilio client: {str(e)}")
