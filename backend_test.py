@@ -365,7 +365,8 @@ class BackendTester:
             response = self.session.get(f"{BACKEND_URL}/v2/me/permissions", headers=headers)
             
             if response.status_code == 200:
-                permissions = response.json()
+                data = response.json()
+                permissions = data.get("permissions", {})
                 
                 # Check for owner permissions
                 expected_owner_permissions = [
@@ -408,7 +409,8 @@ class BackendTester:
             response = self.session.get(f"{BACKEND_URL}/v2/me/permissions", headers=headers)
             
             if response.status_code == 200:
-                permissions = response.json()
+                data = response.json()
+                permissions = data.get("permissions", {})
                 
                 # Check for team leader permissions (should have limited permissions)
                 expected_team_permissions = ["can_edit_project", "can_upload_drawing"]
