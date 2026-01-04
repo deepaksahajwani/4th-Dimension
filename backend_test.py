@@ -250,7 +250,7 @@ class BackendTester:
         """Test Slim API V2 - Projects endpoint"""
         if not self.owner_token:
             self.log_result("Slim API V2 Projects", False, "No owner token available")
-            return
+            return False
             
         try:
             print("📱 Testing Slim API V2 - Projects...")
@@ -261,7 +261,8 @@ class BackendTester:
             response = self.session.get(f"{BACKEND_URL}/v2/projects", headers=headers)
             
             if response.status_code == 200:
-                projects = response.json()
+                data = response.json()
+                projects = data.get("projects", [])
                 self.log_result("GET /api/v2/projects", True, 
                               f"Retrieved {len(projects)} slim projects")
                 
@@ -269,6 +270,9 @@ class BackendTester:
                 if projects:
                     self.project_id = projects[0].get("id")
                     return True
+                else:
+                    self.log_result("GET /api/v2/projects", False, "No projects found")
+                    return False
             else:
                 self.log_result("GET /api/v2/projects", False, 
                               f"Failed: {response.status_code} - {response.text}")
