@@ -18,7 +18,12 @@
    - Removed separate "New Comment Dialog" - now inline
    - Purple gradient header showing "Project Discussion" and message count
 
-3. **CommentsDialog.jsx** (Drawing Comments) - Enhanced:
+3. **ProjectDetail.js** (Owner view) - Added Chat tab:
+   - New "Chat" tab with message count badge
+   - WhatsApp-style ChatView for project-level discussion
+   - Messages from Team Leader appear on LEFT, Owner's messages on RIGHT
+
+4. **CommentsDialog.jsx** (Drawing Comments) - Enhanced:
    - Added day grouping with separators
    - Changed timestamps from relative ("5m ago") to time only ("10:30 AM")
    - Improved spacing and bubble styling
@@ -28,9 +33,13 @@
    - Ensured comment return doesn't include MongoDB _id
 
 ## Test Results Summary:
-- **WhatsApp-style Project Comments**: ✅ WORKING
-- **Message sending**: ✅ WORKING
+- **WhatsApp-style Project Comments (Team Leader)**: ✅ WORKING
+- **WhatsApp-style Project Comments (Owner)**: ✅ WORKING
+- **Cross-role message alignment**: ✅ WORKING
+  - Own messages → RIGHT (purple)
+  - Other's messages → LEFT (white with sender name)
 - **Day separators**: ✅ WORKING
+- **Message count badges**: ✅ WORKING
 - **Input bar with attachment/voice**: ✅ WORKING
 - **Real-time message count update**: ✅ WORKING
 
