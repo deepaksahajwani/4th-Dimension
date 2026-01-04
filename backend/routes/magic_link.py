@@ -134,6 +134,7 @@ async def handle_magic_link(token: str):
         # Also set a non-httponly cookie with user info for frontend display
         # (This is safe as it only contains display info, not the auth token)
         import json
+        import urllib.parse
         user_info = json.dumps({
             "id": user.get("id", ""),
             "email": user.get("email", ""),
@@ -141,9 +142,11 @@ async def handle_magic_link(token: str):
             "role": user.get("role", ""),
             "is_owner": user.get("is_owner", False)
         })
+        # URL encode the JSON to handle special characters
+        encoded_user_info = urllib.parse.quote(user_info)
         response.set_cookie(
             key="user_info",
-            value=user_info,
+            value=encoded_user_info,
             max_age=COOKIE_MAX_AGE,
             httponly=False,  # Frontend can read this
             secure=COOKIE_SECURE,
