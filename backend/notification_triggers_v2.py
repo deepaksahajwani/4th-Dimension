@@ -1563,6 +1563,7 @@ async def notify_owner_drawing_revision_posted(
 ):
     """
     Notify owner when a revised drawing is posted
+    Uses template-based WhatsApp for reliable delivery
     """
     try:
         owner = await get_owner_info()
@@ -1576,25 +1577,37 @@ async def notify_owner_drawing_revision_posted(
         # Deep link to the specific drawing
         deep_link = f"{APP_URL}/projects/{project_id}?drawing={drawing_id}"
         
-        message = f"""🔄 *Revised Drawing Posted*
+        # Use template-based notification
+        try:
+            from template_notification_service import template_notification_service
+            
+            result = await template_notification_service.notify_drawing_revised(
+                phone_number=owner['mobile'],
+                recipient_name=owner.get('name', 'Sir/Madam'),
+                project_name=project_name,
+                drawing_name=f"{drawing_name} (R{revision_number})",
+                revision_number=revision_number,
+                revised_by=posted_by_name,
+                portal_url=deep_link
+            )
+            
+            if result.get('success'):
+                logger.info(f"Owner notified of drawing revision (template): {drawing_name} R{revision_number}")
+            else:
+                # Fallback to SMS
+                sms_msg = f"Revised drawing '{drawing_name}' (R{revision_number}) posted for '{project_name}' by {posted_by_name}. View: {deep_link}"
+                await notification_service.send_sms(owner['mobile'], sms_msg)
+                
+        except ImportError:
+            # Fallback to freeform
+            message = f"""🔄 *Revised Drawing Posted*
 
 📁 *Drawing:* {drawing_name} (R{revision_number})
 🏗️ *Project:* {project_name}
 👤 *Revised by:* {posted_by_name}
-📅 *Time:* {datetime.now(timezone.utc).strftime('%d %b %Y, %I:%M %p')}
 
-The revised drawing is ready for review.
-
-👉 *View & approve:*
-{deep_link}"""
-
-        # Send WhatsApp
-        result = await notification_service.send_whatsapp(owner['mobile'], message)
-        if result.get('success'):
-            logger.info(f"Owner notified of drawing revision: {drawing_name} R{revision_number}")
-        else:
-            # Fallback to SMS
-            await notification_service.send_sms(owner['mobile'], message)
+View & approve: {deep_link}"""
+            await notification_service.send_whatsapp(owner['mobile'], message)
             
     except Exception as e:
         logger.error(f"Error notifying owner of drawing revision: {str(e)}")
