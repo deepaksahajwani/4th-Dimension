@@ -91,6 +91,10 @@ export default function ProjectDetail({ user, onLogout }) {
   const [referenceFiles, setReferenceFiles] = useState([]);
   const [submittingComment, setSubmittingComment] = useState(false);
   
+  // Project-level comments state
+  const [projectComments, setProjectComments] = useState([]);
+  const [loadingProjectComments, setLoadingProjectComments] = useState(false);
+  
   // Voice recording states
   const [isRecording, setIsRecording] = useState(false);
   const [audioBlob, setAudioBlob] = useState(null);
