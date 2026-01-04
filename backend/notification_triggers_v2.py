@@ -56,6 +56,114 @@ client = AsyncIOMotorClient(mongo_url)
 db = client[db_name]
 
 
+async def get_magic_link_for_project(
+    recipient_id: str,
+    project_id: str,
+    drawing_id: str = None
+) -> str:
+    """
+    Generate a magic link for project access, or fallback to direct link.
+    
+    Args:
+        recipient_id: The user ID who will receive this link
+        project_id: The project to link to
+        drawing_id: Optional drawing to highlight
+    
+    Returns:
+        Magic link URL or direct link as fallback
+    """
+    if USE_MAGIC_LINKS:
+        try:
+            user = await get_user_info_for_magic_link(recipient_id)
+            if user:
+                return await create_project_magic_link(
+                    user_id=user["id"],
+                    user_email=user["email"],
+                    user_role=user.get("role", "client"),
+                    project_id=project_id,
+                    drawing_id=drawing_id
+                )
+        except Exception as e:
+            logger.warning(f"Failed to create magic link, using direct link: {e}")
+    
+    # Fallback to direct link
+    url = f"{APP_URL}/projects/{project_id}"
+    if drawing_id:
+        url += f"?drawing={drawing_id}"
+    return url
+
+
+async def get_magic_link_for_drawing_review(
+    recipient_id: str,
+    project_id: str,
+    drawing_id: str
+) -> str:
+    """
+    Generate a magic link for dedicated drawing review page.
+    """
+    if USE_MAGIC_LINKS:
+        try:
+            user = await get_user_info_for_magic_link(recipient_id)
+            if user:
+                return await create_drawing_review_magic_link(
+                    user_id=user["id"],
+                    user_email=user["email"],
+                    user_role=user.get("role", "client"),
+                    project_id=project_id,
+                    drawing_id=drawing_id
+                )
+        except Exception as e:
+            logger.warning(f"Failed to create magic link: {e}")
+    
+    return f"{APP_URL}/projects/{project_id}/drawing/{drawing_id}"
+
+
+async def get_magic_link_for_comment(
+    recipient_id: str,
+    project_id: str,
+    drawing_id: str,
+    comment_id: str
+) -> str:
+    """
+    Generate a magic link for comment notification.
+    """
+    if USE_MAGIC_LINKS:
+        try:
+            user = await get_user_info_for_magic_link(recipient_id)
+            if user:
+                return await create_comment_magic_link(
+                    user_id=user["id"],
+                    user_email=user["email"],
+                    user_role=user.get("role", "client"),
+                    project_id=project_id,
+                    drawing_id=drawing_id,
+                    comment_id=comment_id
+                )
+        except Exception as e:
+            logger.warning(f"Failed to create magic link: {e}")
+    
+    return f"{APP_URL}/projects/{project_id}?drawing={drawing_id}&comment={comment_id}"
+
+
+async def get_magic_link_for_dashboard(recipient_id: str) -> str:
+    """
+    Generate a magic link for dashboard access.
+    """
+    if USE_MAGIC_LINKS:
+        try:
+            user = await get_user_info_for_magic_link(recipient_id)
+            if user:
+                return await create_dashboard_magic_link(
+                    user_id=user["id"],
+                    user_email=user["email"],
+                    user_role=user.get("role", "client")
+                )
+        except Exception as e:
+            logger.warning(f"Failed to create magic link: {e}")
+    
+    return f"{APP_URL}/dashboard"
+
+
 def queue_whatsapp_async(phone: str, message: str = None, content_sid: str = None, variables: dict = None):
     """Queue WhatsApp notification for async delivery (non-blocking)"""
     if USE_ASYNC_NOTIFICATIONS and async_notification_service:
