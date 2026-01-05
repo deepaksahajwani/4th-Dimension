@@ -528,7 +528,7 @@ class BackendTester:
 
 if __name__ == "__main__":
     tester = BackendTester()
-    success = tester.run_phase_5_metrics_tests()
+    success = tester.run_magic_link_tests()
     
     # Exit with appropriate code
     sys.exit(0 if success else 1)
