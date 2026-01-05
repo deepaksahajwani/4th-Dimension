@@ -109,7 +109,32 @@ axios.interceptors.response.use(
 );
 
 function ProtectedRoute({ children }) {
-  const token = localStorage.getItem('token');
+  // Check localStorage first
+  let token = localStorage.getItem('token');
+  
+  // If no token in localStorage, check for magic link cookie and transfer it
+  if (!token) {
+    const authCookie = getCookie('auth_token');
+    const userInfoCookie = getCookie('user_info');
+    
+    if (authCookie && userInfoCookie) {
+      try {
+        // Store in localStorage for consistent auth handling
+        localStorage.setItem('token', authCookie);
+        const userInfo = JSON.parse(decodeURIComponent(userInfoCookie));
+        localStorage.setItem('user', JSON.stringify(userInfo));
+        
+        // Clear the cookies after transferring to localStorage
+        document.cookie = 'auth_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+        document.cookie = 'user_info=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+        
+        token = authCookie;
+      } catch (e) {
+        console.error('Error processing magic link auth in ProtectedRoute:', e);
+      }
+    }
+  }
+  
   if (!token) {
     return <Navigate to="/" replace />;
   }
