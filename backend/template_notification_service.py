@@ -743,6 +743,24 @@ class TemplateNotificationService:
         else:
             in_app_link = "/projects"
         
+        # Generate magic link for WhatsApp portal_url
+        actual_portal_url = self.app_url
+        if team_leader_id and drawing_id and project_id:
+            try:
+                from services.magic_link_helper import create_drawing_review_magic_link, get_user_info_for_magic_link
+                user_info = await get_user_info_for_magic_link(team_leader_id)
+                if user_info:
+                    actual_portal_url = await create_drawing_review_magic_link(
+                        user_id=user_info["id"],
+                        user_email=user_info["email"],
+                        user_role=user_info.get("role", "team_leader"),
+                        project_id=project_id,
+                        drawing_id=drawing_id
+                    )
+            except Exception as e:
+                logger.warning(f"Failed to create magic link for revision request: {e}")
+                actual_portal_url = f"{self.app_url}/projects/{project_id}/drawing/{drawing_id}"
+        
         return await self.send_notification(
             template_key="revision_requested",
             recipient_phone=phone_number,
@@ -752,7 +770,7 @@ class TemplateNotificationService:
                 "drawing_name": drawing_name,
                 "requester_name": requester_name,
                 "reason": reason[:50] if reason else "See comments",
-                "portal_url": self.app_url
+                "portal_url": actual_portal_url
             },
             recipient_id=team_leader_id,
             in_app_title=f"Revision Requested: {drawing_name}",
