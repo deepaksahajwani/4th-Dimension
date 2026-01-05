@@ -227,13 +227,14 @@ def build_destination_url(token_data: Dict[str, Any]) -> str:
     # Base routes mapping
     if dest_type == DestinationType.PROJECT.value or dest_type == "project":
         url = f"/projects/{dest_id}"
-        # Add drawing highlight if specified
+        # If drawing_id specified, redirect to Drawing Review Page
         if extra_params.get("drawing_id"):
-            url += f"?drawing={extra_params['drawing_id']}"
+            url = f"/projects/{dest_id}/drawing/{extra_params['drawing_id']}"
     
     elif dest_type == DestinationType.DRAWING.value or dest_type == "drawing":
         project_id = extra_params.get("project_id", "")
-        url = f"/projects/{project_id}?drawing={dest_id}"
+        # Use Drawing Review Page format
+        url = f"/projects/{project_id}/drawing/{dest_id}"
     
     elif dest_type == DestinationType.DRAWING_REVIEW.value or dest_type == "drawing_review":
         project_id = extra_params.get("project_id", "")
@@ -246,7 +247,8 @@ def build_destination_url(token_data: Dict[str, Any]) -> str:
     elif dest_type == DestinationType.COMMENT.value or dest_type == "comment":
         project_id = extra_params.get("project_id", "")
         drawing_id = extra_params.get("drawing_id", "")
-        url = f"/projects/{project_id}?drawing={drawing_id}&comment={dest_id}"
+        # Use Drawing Review Page format
+        url = f"/projects/{project_id}/drawing/{drawing_id}"
     
     elif dest_type == DestinationType.PENDING_APPROVALS.value or dest_type == "pending_approvals":
         url = "/pending-approvals"
