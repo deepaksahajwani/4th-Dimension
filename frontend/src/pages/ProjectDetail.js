@@ -1652,6 +1652,62 @@ export default function ProjectDetail({ user, onLogout }) {
 
           {/* Urgent Drawings Tab - Sorted by Due Date */}
           <TabsContent value="urgent" className="mt-4 sm:mt-6">
+            {/* Pending Approval Section - Owner can approve drawings */}
+            {(() => {
+              const pendingApproval = drawings.filter(d => 
+                d.under_review && !d.is_approved && !d.has_pending_revision && !d.is_not_applicable && d.file_url
+              );
+              
+              if (pendingApproval.length === 0) return null;
+              
+              return (
+                <Card className="border-amber-200 bg-amber-50 mb-6">
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-sm flex items-center gap-2 text-amber-700">
+                      <Clock className="w-4 h-4" />
+                      Pending Approval ({pendingApproval.length})
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-2">
+                    {pendingApproval.map(drawing => (
+                      <div key={drawing.id} className="bg-white p-3 rounded-lg flex items-center justify-between">
+                        <div className="flex-1 min-w-0 mr-2">
+                          <p className="font-medium text-sm truncate">{drawing.name}</p>
+                          <p className="text-xs text-slate-500">{drawing.category}</p>
+                        </div>
+                        <div className="flex gap-2 shrink-0">
+                          <Button 
+                            size="sm" 
+                            variant="outline" 
+                            onClick={() => handleViewPDF(drawing)}
+                            title="View"
+                          >
+                            <Eye className="w-4 h-4" />
+                          </Button>
+                          <Button 
+                            size="sm" 
+                            variant="outline" 
+                            onClick={() => handleDownloadPDF(drawing)}
+                            title="Download"
+                          >
+                            <Download className="w-4 h-4" />
+                          </Button>
+                          <Button 
+                            size="sm" 
+                            onClick={() => handleApproveDrawing(drawing)} 
+                            className="bg-green-600 hover:bg-green-700"
+                          >
+                            <Check className="w-4 h-4 mr-1" />
+                            Approve
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
+                  </CardContent>
+                </Card>
+              );
+            })()}
+
             <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-4 sm:mb-6">
               <div className="flex-1 min-w-0">
                 <h2 className="text-lg sm:text-xl lg:text-2xl font-bold text-slate-900 flex items-center gap-2">
