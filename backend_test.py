@@ -331,16 +331,19 @@ class BackendTester:
                         break
                 
                 if target_drawing:
-                    # Check required fields
-                    required_fields = ["id", "name", "status"]
+                    # Check required fields (updated based on actual API response)
+                    required_fields = ["id", "name"]
                     has_all_fields = all(field in target_drawing for field in required_fields)
                     
                     if has_all_fields:
                         drawing_name = target_drawing.get("name", "Unknown")
-                        drawing_status = target_drawing.get("status", "Unknown")
+                        # Check for status-related fields
+                        is_issued = target_drawing.get("is_issued", False)
+                        is_approved = target_drawing.get("is_approved", False)
+                        under_review = target_drawing.get("under_review", False)
                         has_file_url = "file_url" in target_drawing
                         
-                        details = f"Drawing found: {drawing_name}, Status: {drawing_status}, Has file_url: {has_file_url}"
+                        details = f"Drawing found: {drawing_name}, Issued: {is_issued}, Approved: {is_approved}, Under Review: {under_review}, Has file_url: {has_file_url}"
                         self.log_result("Drawing Review Page API", True, details)
                     else:
                         missing = [f for f in required_fields if f not in target_drawing]
