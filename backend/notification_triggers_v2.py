@@ -942,94 +942,160 @@ View Revision: {APP_URL}/projects/{project_id}/drawing/{drawing_id}"""
 # 9. DRAWING ISSUED
 # ============================================
 async def notify_drawing_issued(
-    project_id: str,
-    drawing_id: str,
-    recipient_ids: List[str],
-    issued_by_id: str
+    project_id: str = None,
+    drawing_id: str = None,
+    recipient_ids: List[str] = None,
+    issued_by_id: str = None,
+    # New parameters for recipient objects
+    drawing_name: str = None,
+    issued_by_name: str = None,
+    revision_number: int = 0,
+    recipients: List[dict] = None
 ):
     """
     Trigger: Drawing is issued
-    Recipients: Selected recipients + Owner (mandatory)
+    Recipients: Selected recipients (clients, contractors, co-clients)
     Channels: WhatsApp (template), In-App
     Message: Uses approved WhatsApp templates based on recipient type
+    
+    Can be called with either:
+    - recipient_ids (list of IDs) for backward compatibility
+    - recipients (list of dicts with type, id, name, phone) for new flow
     """
     try:
         project = await get_project_by_id(project_id)
         drawing = await db.project_drawings.find_one({"id": drawing_id}, {"_id": 0})
-        issued_by = await get_user_by_id(issued_by_id)
-        owner = await db.users.find_one({"is_owner": True}, {"_id": 0})
         
-        if not all([project, drawing, issued_by, owner]):
-            logger.error("Drawing issued notification failed: Missing data")
+        if not project or not drawing:
+            logger.error("Drawing issued notification failed: Missing project or drawing")
             return
         
         project_name = project.get('title') or project.get('name')
-        drawing_name = drawing.get('name')
-        revision = str(drawing.get('current_revision', 0))
+        final_drawing_name = drawing_name or drawing.get('name')
+        revision = str(revision_number or drawing.get('current_revision', 0))
         issue_date = datetime.now(timezone.utc).strftime('%d %b %Y')
         
-        # Ensure owner is in recipients
-        if owner['id'] not in recipient_ids:
-            recipient_ids.append(owner['id'])
-        
-        for recipient_id in recipient_ids:
-            recipient = await get_user_by_id(recipient_id)
-            if not recipient:
-                # Try clients collection
-                recipient = await db.clients.find_one({"id": recipient_id}, {"_id": 0})
-            if not recipient:
-                # Try contractors collection
-                recipient = await db.contractors.find_one({"id": recipient_id}, {"_id": 0})
-            if not recipient:
-                logger.warning(f"Drawing issued: Recipient not found: {recipient_id}")
-                continue
-            
-            recipient_name = recipient.get('name', recipient.get('contact_person', 'User'))
-            recipient_phone = recipient.get('mobile', recipient.get('phone'))
-            recipient_role = recipient.get('role', recipient.get('contractor_type', ''))
-            
-            # Use template notification service
-            if template_notification_service and recipient_phone:
-                # Check if recipient is a contractor
-                is_contractor = recipient_role in ['contractor'] or recipient.get('contractor_type')
+        # Handle new recipients format (list of dicts)
+        if recipients:
+            for recipient in recipients:
+                recipient_id = recipient.get('id')
+                recipient_name = recipient.get('name', 'User')
+                recipient_phone = recipient.get('phone')
+                recipient_type = recipient.get('type', '')
+                contractor_type = recipient.get('contractor_type', 'Contractor')
                 
-                if is_contractor:
-                    # Use contractor-specific template
-                    await template_notification_service.notify_drawing_issued_contractor(
-                        phone_number=recipient_phone,
-                        contractor_name=recipient_name,
-                        project_name=project_name,
-                        drawing_name=drawing_name,
-                        revision=revision,
-                        contractor_type=recipient.get('contractor_type', 'Contractor'),
-                        contractor_id=recipient_id,
-                        project_id=project_id,
-                        drawing_id=drawing_id
-                    )
-                else:
-                    # Use general drawing issued template
-                    await template_notification_service.notify_drawing_issued(
-                        phone_number=recipient_phone,
-                        recipient_name=recipient_name,
-                        project_name=project_name,
-                        drawing_name=drawing_name,
-                        issue_date=issue_date,
-                        recipient_id=recipient_id,
-                        project_id=project_id,
-                        drawing_id=drawing_id
-                    )
+                if not recipient_phone:
+                    # Try to get phone from database
+                    if recipient_type == 'client':
+                        client = await db.clients.find_one({"id": recipient_id}, {"_id": 0, "phone": 1, "mobile": 1})
+                        recipient_phone = client.get('phone') or client.get('mobile') if client else None
+                    elif recipient_type == 'contractor':
+                        contractor = await db.contractors.find_one({"id": recipient_id}, {"_id": 0, "phone": 1})
+                        recipient_phone = contractor.get('phone') if contractor else None
+                    elif recipient_type == 'co_client':
+                        co_client = await db.project_co_clients.find_one({"id": recipient_id}, {"_id": 0, "phone": 1})
+                        recipient_phone = co_client.get('phone') if co_client else None
+                
+                # Send WhatsApp notification
+                if template_notification_service and recipient_phone:
+                    if recipient_type == 'contractor':
+                        await template_notification_service.notify_drawing_issued_contractor(
+                            phone_number=recipient_phone,
+                            contractor_name=recipient_name,
+                            project_name=project_name,
+                            drawing_name=final_drawing_name,
+                            revision=revision,
+                            contractor_type=contractor_type,
+                            contractor_id=recipient_id,
+                            project_id=project_id,
+                            drawing_id=drawing_id
+                        )
+                    else:
+                        await template_notification_service.notify_drawing_issued(
+                            phone_number=recipient_phone,
+                            recipient_name=recipient_name,
+                            project_name=project_name,
+                            drawing_name=final_drawing_name,
+                            issue_date=issue_date,
+                            recipient_id=recipient_id,
+                            project_id=project_id,
+                            drawing_id=drawing_id
+                        )
+                    logger.info(f"Drawing issued notification sent to {recipient_name} ({recipient_type})")
+                
+                # Send in-app notification
+                await notification_service.create_in_app_notification(
+                    user_id=recipient_id,
+                    title=f"Drawing Issued: {final_drawing_name}",
+                    message=f"Drawing '{final_drawing_name}' for project '{project_name}' has been issued.",
+                    notification_type="drawing_issued",
+                    link=f"/projects/{project_id}/drawing/{drawing_id}",
+                    project_id=project_id
+                )
             
-            # Send in-app notification
-            await notification_service.create_in_app_notification(
-                user_id=recipient_id,
-                title=f"Drawing Issued: {drawing_name}",
-                message=f"Drawing '{drawing_name}' for project '{project_name}' has been issued.",
-                notification_type="drawing_issued",
-                link=f"/projects/{project_id}/drawing/{drawing_id}",
-                project_id=project_id
-            )
+            logger.info(f"Drawing issued notifications sent for {final_drawing_name} to {len(recipients)} recipients")
+            return
         
-        logger.info(f"Drawing issued notifications sent for {drawing_name} to {len(recipient_ids)} recipients")
+        # LEGACY: Handle old format with recipient_ids
+        if recipient_ids:
+            owner = await db.users.find_one({"is_owner": True}, {"_id": 0})
+            issued_by = await get_user_by_id(issued_by_id) if issued_by_id else None
+            
+            # Ensure owner is in recipients
+            if owner and owner['id'] not in recipient_ids:
+                recipient_ids.append(owner['id'])
+            
+            for recipient_id in recipient_ids:
+                recipient = await get_user_by_id(recipient_id)
+                if not recipient:
+                    recipient = await db.clients.find_one({"id": recipient_id}, {"_id": 0})
+                if not recipient:
+                    recipient = await db.contractors.find_one({"id": recipient_id}, {"_id": 0})
+                if not recipient:
+                    logger.warning(f"Drawing issued: Recipient not found: {recipient_id}")
+                    continue
+                
+                recipient_name = recipient.get('name', recipient.get('contact_person', 'User'))
+                recipient_phone = recipient.get('mobile', recipient.get('phone'))
+                recipient_role = recipient.get('role', recipient.get('contractor_type', ''))
+                
+                if template_notification_service and recipient_phone:
+                    is_contractor = recipient_role in ['contractor'] or recipient.get('contractor_type')
+                    
+                    if is_contractor:
+                        await template_notification_service.notify_drawing_issued_contractor(
+                            phone_number=recipient_phone,
+                            contractor_name=recipient_name,
+                            project_name=project_name,
+                            drawing_name=final_drawing_name,
+                            revision=revision,
+                            contractor_type=recipient.get('contractor_type', 'Contractor'),
+                            contractor_id=recipient_id,
+                            project_id=project_id,
+                            drawing_id=drawing_id
+                        )
+                    else:
+                        await template_notification_service.notify_drawing_issued(
+                            phone_number=recipient_phone,
+                            recipient_name=recipient_name,
+                            project_name=project_name,
+                            drawing_name=final_drawing_name,
+                            issue_date=issue_date,
+                            recipient_id=recipient_id,
+                            project_id=project_id,
+                            drawing_id=drawing_id
+                        )
+                
+                await notification_service.create_in_app_notification(
+                    user_id=recipient_id,
+                    title=f"Drawing Issued: {final_drawing_name}",
+                    message=f"Drawing '{final_drawing_name}' for project '{project_name}' has been issued.",
+                    notification_type="drawing_issued",
+                    link=f"/projects/{project_id}/drawing/{drawing_id}",
+                    project_id=project_id
+                )
+            
+            logger.info(f"Drawing issued notifications sent for {final_drawing_name} to {len(recipient_ids)} recipients")
         
     except Exception as e:
         logger.error(f"Error in notify_drawing_issued: {str(e)}")
