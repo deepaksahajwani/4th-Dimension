@@ -1777,8 +1777,8 @@ async def notify_owner_drawing_revision_posted(
         project = await get_project_by_id(project_id)
         project_name = project.get('title', 'Unknown Project') if project else 'Unknown Project'
         
-        # Generate magic link for secure auto-login
-        deep_link = await get_magic_link_for_project(
+        # Generate magic link for secure auto-login - uses Drawing Review Page
+        deep_link = await get_magic_link_for_drawing(
             recipient_id=owner['id'],
             project_id=project_id,
             drawing_id=drawing_id
