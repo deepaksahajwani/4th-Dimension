@@ -59,6 +59,13 @@ class BackendTester:
         self.drawing_id = None
         self.drawing_name = None
         self.test_comment_id = None
+        self.magic_token = None
+        
+        # Test data from review request
+        self.test_recipient_id = '54121be0-79b5-4db0-a08f-3a23a6ee935b'  # owner
+        self.test_project_id = 'ed5e1e98-73e0-423f-af81-b04a5fd3f896'   # Aagam Heritage Bungalow
+        self.test_drawing_id = 'ae595239-5c3b-4f23-a6c7-6ef5640af07e'
+        self.bertina_project_id = '97b4a6bf-ea89-49f6-a463-3ddcc314e32c'  # Should be deleted
         
     def log_result(self, test_name, success, details="", response_data=None):
         """Log test result"""
