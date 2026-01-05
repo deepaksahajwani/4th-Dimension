@@ -173,7 +173,8 @@ async def get_magic_link_for_comment(
         except Exception as e:
             logger.warning(f"Failed to create magic link: {e}")
     
-    return f"{APP_URL}/projects/{project_id}?drawing={drawing_id}&comment={comment_id}"
+    # Fallback - use Drawing Review Page format
+    return f"{APP_URL}/projects/{project_id}/drawing/{drawing_id}"
 
 
 async def get_magic_link_for_dashboard(recipient_id: str) -> str:
