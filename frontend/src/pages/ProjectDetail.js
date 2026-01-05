@@ -16,7 +16,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { 
-  ArrowLeft, Plus, CheckCircle2, Circle, AlertCircle, 
+  ArrowLeft, Plus, CheckCircle2, Circle, AlertCircle, Check,
   Calendar, Edit, Trash2, FileText, Users, Clock, MessageSquare, Send, Upload, X, 
   Download, Eye, ChevronDown, Mic, Square, Play, Pause, Phone, Mail, Building, HardHat, Briefcase
 } from 'lucide-react';
