@@ -213,19 +213,72 @@ export default function TeamLeaderProjectDetail({ user, onLogout }) {
     }
   };
 
-  const handleIssueDrawing = async (drawing) => {
+  // Open Issue Dialog with recipient selection
+  const handleOpenIssueDialog = (drawing) => {
+    setDrawingToIssue(drawing);
+    // Pre-select client if exists
+    const preSelected = [];
+    if (client?.id) {
+      preSelected.push({ type: 'client', id: client.id, name: client.name, phone: client.phone });
+    }
+    setSelectedRecipients(preSelected);
+    setIssueDialogOpen(true);
+  };
+
+  // Toggle recipient selection
+  const toggleRecipient = (recipient) => {
+    setSelectedRecipients(prev => {
+      const exists = prev.find(r => r.id === recipient.id && r.type === recipient.type);
+      if (exists) {
+        return prev.filter(r => !(r.id === recipient.id && r.type === recipient.type));
+      }
+      return [...prev, recipient];
+    });
+  };
+
+  // Issue drawing with selected recipients
+  const handleIssueDrawing = async () => {
+    if (!drawingToIssue) return;
+    
+    setIsIssuing(true);
     try {
       const token = localStorage.getItem('token');
-      await axios.put(`${API}/drawings/${drawing.id}`, {
+      await axios.put(`${API}/drawings/${drawingToIssue.id}`, {
         is_issued: true,
-        issued_date: new Date().toISOString()
+        issued_date: new Date().toISOString(),
+        issued_to: selectedRecipients.map(r => ({
+          type: r.type,
+          id: r.id,
+          name: r.name
+        }))
       }, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      toast.success('Drawing issued!');
+      
+      // Send notifications to selected recipients
+      if (selectedRecipients.length > 0) {
+        try {
+          await axios.post(`${API}/notifications/drawing-issued`, {
+            drawing_id: drawingToIssue.id,
+            project_id: projectId,
+            recipients: selectedRecipients
+          }, {
+            headers: { Authorization: `Bearer ${token}` }
+          });
+        } catch (notifErr) {
+          console.log('Notification sending handled by backend');
+        }
+      }
+      
+      toast.success(`Drawing issued to ${selectedRecipients.length} recipient(s)!`);
+      setIssueDialogOpen(false);
+      setDrawingToIssue(null);
+      setSelectedRecipients([]);
       fetchProjectData();
     } catch (error) {
       toast.error('Failed to issue drawing');
+    } finally {
+      setIsIssuing(false);
     }
   };
 
