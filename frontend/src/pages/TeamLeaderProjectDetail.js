@@ -654,18 +654,18 @@ export default function TeamLeaderProjectDetail({ user, onLogout }) {
               </Card>
             )}
 
-            {/* Not Started */}
+            {/* Next Up - Only show next 3 drawings to work on */}
             {notStarted.length > 0 && (
-              <Card>
+              <Card className="border-orange-200">
                 <CardHeader className="pb-2">
-                  <CardTitle className="text-sm flex items-center gap-2 text-slate-600">
+                  <CardTitle className="text-sm flex items-center gap-2 text-orange-700">
                     <FileText className="w-4 h-4" />
-                    Not Started ({notStarted.length})
+                    Next Up ({Math.min(3, notStarted.length)} of {notStarted.length})
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-2">
-                  {notStarted.map(drawing => (
-                    <div key={drawing.id} className="bg-slate-50 p-3 rounded-lg flex items-center justify-between">
+                  {notStarted.slice(0, 3).map(drawing => (
+                    <div key={drawing.id} className="bg-white p-3 rounded-lg flex items-center justify-between border border-orange-100">
                       <div className="flex-1 min-w-0 mr-2">
                         <p className="font-medium text-sm truncate">{drawing.name}</p>
                         <p className="text-xs text-slate-500">{drawing.category}</p>
@@ -673,7 +673,7 @@ export default function TeamLeaderProjectDetail({ user, onLogout }) {
                       <div className="flex gap-1 shrink-0">
                         <Button
                           size="sm"
-                          variant="outline"
+                          className="bg-orange-500 hover:bg-orange-600"
                           onClick={() => {
                             setSelectedDrawing(drawing);
                             setUploadType('new');
@@ -695,6 +695,11 @@ export default function TeamLeaderProjectDetail({ user, onLogout }) {
                       </div>
                     </div>
                   ))}
+                  {notStarted.length > 3 && (
+                    <p className="text-xs text-center text-slate-500 pt-2">
+                      +{notStarted.length - 3} more drawings will appear as you complete these
+                    </p>
+                  )}
                 </CardContent>
               </Card>
             )}
@@ -709,45 +714,58 @@ export default function TeamLeaderProjectDetail({ user, onLogout }) {
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-2">
-                  {notApplicable.map(drawing => (
+                  {notApplicable.slice(0, 3).map(drawing => (
                     <div key={drawing.id} className="bg-white/50 p-3 rounded-lg">
                       <p className="font-medium text-sm text-slate-500 truncate">{drawing.name}</p>
                       <p className="text-xs text-slate-400">{drawing.category}</p>
                     </div>
                   ))}
+                  {notApplicable.length > 3 && (
+                    <p className="text-xs text-center text-slate-400">+{notApplicable.length - 3} more</p>
+                  )}
                 </CardContent>
               </Card>
             )}
+          </div>
+        )}
 
-            {/* Issued */}
-            {issued.length > 0 && (
+        {/* ISSUED DRAWINGS TAB */}
+        {activeSection === 'issued' && (
+          <div className="space-y-4">
+            {issued.length === 0 ? (
+              <div className="text-center py-12 bg-slate-50 rounded-lg">
+                <Check className="w-12 h-12 text-slate-300 mx-auto mb-3" />
+                <p className="text-slate-500">No drawings issued yet</p>
+                <p className="text-xs text-slate-400">Issued drawings will appear here</p>
+              </div>
+            ) : (
               <Card>
                 <CardHeader className="pb-2">
-                  <CardTitle className="text-sm flex items-center gap-2 text-slate-600">
-                    <Check className="w-4 h-4 text-green-600" />
-                    Issued ({issued.length})
+                  <CardTitle className="text-sm flex items-center gap-2 text-green-700">
+                    <Check className="w-4 h-4" />
+                    Issued Drawings ({issued.length})
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-2">
-                  {issued.slice(0, 5).map(drawing => (
-                    <div key={drawing.id} className="bg-slate-50 p-3 rounded-lg flex items-center justify-between">
+                  {issued.map(drawing => (
+                    <div key={drawing.id} className="bg-green-50 p-3 rounded-lg flex items-center justify-between">
                       <div className="flex-1 min-w-0 mr-2">
                         <p className="font-medium text-sm truncate">{drawing.name}</p>
                         <p className="text-xs text-slate-500">{drawing.category} • Rev {drawing.current_revision || 0}</p>
+                        {drawing.issued_date && (
+                          <p className="text-xs text-green-600">Issued: {formatDate(drawing.issued_date)}</p>
+                        )}
                       </div>
                       <div className="flex gap-1 shrink-0">
-                        <Button size="sm" variant="ghost" onClick={() => handleViewDrawing(drawing)}>
+                        <Button size="sm" variant="ghost" onClick={() => handleViewDrawing(drawing)} title="View">
                           <Eye className="w-4 h-4" />
                         </Button>
-                        <Button size="sm" variant="ghost" onClick={() => handleDownloadDrawing(drawing)}>
+                        <Button size="sm" variant="ghost" onClick={() => handleDownloadDrawing(drawing)} title="Download">
                           <Download className="w-4 h-4" />
                         </Button>
                       </div>
                     </div>
                   ))}
-                  {issued.length > 5 && (
-                    <p className="text-xs text-center text-slate-500">+{issued.length - 5} more issued drawings</p>
-                  )}
                 </CardContent>
               </Card>
             )}
