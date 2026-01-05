@@ -1700,8 +1700,8 @@ async def notify_owner_drawing_comment(
         # Truncate comment if too long
         comment_preview = comment_text[:100] + "..." if len(comment_text) > 100 else comment_text
         
-        # Generate magic link for secure auto-login
-        deep_link = await get_magic_link_for_project(
+        # Generate magic link for secure auto-login - uses Drawing Review Page
+        deep_link = await get_magic_link_for_drawing(
             recipient_id=owner['id'],
             project_id=project_id,
             drawing_id=drawing_id
