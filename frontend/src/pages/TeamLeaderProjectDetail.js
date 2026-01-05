@@ -642,7 +642,7 @@ export default function TeamLeaderProjectDetail({ user, onLogout }) {
                         <p className="font-medium text-sm truncate">{drawing.name}</p>
                         <p className="text-xs text-slate-500">{drawing.category}</p>
                       </div>
-                      <Button size="sm" onClick={() => handleIssueDrawing(drawing)} className="bg-blue-600 hover:bg-blue-700 shrink-0">
+                      <Button size="sm" onClick={() => handleOpenIssueDialog(drawing)} className="bg-blue-600 hover:bg-blue-700 shrink-0">
                         Issue
                       </Button>
                     </div>
