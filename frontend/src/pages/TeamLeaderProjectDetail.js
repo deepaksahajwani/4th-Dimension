@@ -531,13 +531,13 @@ export default function TeamLeaderProjectDetail({ user, onLogout }) {
 
         {/* Section Tabs */}
         <div className="flex gap-2 mb-4 overflow-x-auto pb-2">
-          {['drawings', '3d', 'client', 'comments'].map((section) => (
+          {['drawings', 'issued', '3d', 'client', 'comments'].map((section) => (
             <Button
               key={section}
               variant={activeSection === section ? 'default' : 'outline'}
               size="sm"
               onClick={() => setActiveSection(section)}
-              className={`shrink-0 ${activeSection === section ? 'bg-orange-500 hover:bg-orange-600' : ''}`}
+              className={`shrink-0 relative ${activeSection === section ? 'bg-orange-500 hover:bg-orange-600' : ''}`}
             >
               {section === 'drawings' && <FileText className="w-4 h-4 mr-1" />}
               {section === '3d' && <Image className="w-4 h-4 mr-1" />}
