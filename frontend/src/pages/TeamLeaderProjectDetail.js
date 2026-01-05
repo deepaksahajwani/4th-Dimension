@@ -103,17 +103,19 @@ export default function TeamLeaderProjectDetail({ user, onLogout }) {
       const token = localStorage.getItem('token');
       const headers = { Authorization: `Bearer ${token}` };
 
-      const [projectRes, drawingsRes, images3DRes, commentsRes] = await Promise.all([
+      const [projectRes, drawingsRes, images3DRes, commentsRes, teamRes] = await Promise.all([
         axios.get(`${API}/projects/${projectId}`, { headers }),
         axios.get(`${API}/projects/${projectId}/drawings`, { headers }),
         axios.get(`${API}/projects/${projectId}/3d-images`, { headers }).catch(() => ({ data: { categories: [] } })),
-        axios.get(`${API}/projects/${projectId}/comments`, { headers }).catch(() => ({ data: [] }))
+        axios.get(`${API}/projects/${projectId}/comments`, { headers }).catch(() => ({ data: [] })),
+        axios.get(`${API}/projects/${projectId}/team`, { headers }).catch(() => ({ data: { contractors: [], consultants: [], co_clients: [] } }))
       ]);
 
       setProject(projectRes.data);
       setDrawings(drawingsRes.data || []);
       setImages3D(images3DRes.data?.categories || []);
       setComments(commentsRes.data || []);
+      setProjectTeam(teamRes.data || { contractors: [], consultants: [], co_clients: [] });
       
       // Get client info
       if (projectRes.data.client_id) {
