@@ -3265,8 +3265,9 @@ async def update_drawing(
                 uploaded_by_name=current_user.name
             )
         
-        # Notification 2: Drawing issued
+        # Notification 2: Drawing issued - Send to all recipients
         if update_dict.get('is_issued') == True and not drawing.get('is_issued'):
+            # First, notify owner
             await notify_owner_drawing_issued(
                 drawing_id=drawing_id,
                 drawing_name=drawing_name,
@@ -3274,6 +3275,19 @@ async def update_drawing(
                 issued_by_name=current_user.name,
                 revision_number=drawing.get('revision_count', 0)
             )
+            
+            # Then, notify all recipients in issued_to list
+            issued_to = update_dict.get('issued_to', [])
+            if issued_to:
+                from notification_triggers_v2 import notify_drawing_issued
+                await notify_drawing_issued(
+                    drawing_id=drawing_id,
+                    drawing_name=drawing_name,
+                    project_id=project_id,
+                    issued_by_name=current_user.name,
+                    revision_number=drawing.get('revision_count', 0),
+                    recipients=issued_to
+                )
         
         # Notification 3: Revision posted (has_pending_revision cleared after upload)
         if update_dict.get('has_pending_revision') == False and drawing.get('has_pending_revision') == True:
