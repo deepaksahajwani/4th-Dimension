@@ -491,6 +491,25 @@ class TemplateNotificationService:
         else:
             in_app_link = "/projects"
         
+        # Generate magic link for WhatsApp portal_url if owner_id provided
+        actual_portal_url = portal_url or self.app_url
+        if owner_id and drawing_id and project_id:
+            try:
+                from services.magic_link_helper import create_drawing_review_magic_link, get_user_info_for_magic_link
+                user_info = await get_user_info_for_magic_link(owner_id)
+                if user_info:
+                    actual_portal_url = await create_drawing_review_magic_link(
+                        user_id=user_info["id"],
+                        user_email=user_info["email"],
+                        user_role=user_info.get("role", "owner"),
+                        project_id=project_id,
+                        drawing_id=drawing_id
+                    )
+            except Exception as e:
+                logger.warning(f"Failed to create magic link for drawing approval: {e}")
+                # Fallback to direct URL
+                actual_portal_url = f"{self.app_url}/projects/{project_id}/drawing/{drawing_id}"
+        
         return await self.send_notification(
             template_key="drawing_approval_needed",
             recipient_phone=phone_number,
@@ -499,7 +518,7 @@ class TemplateNotificationService:
                 "project_name": project_name,
                 "drawing_name": drawing_name,
                 "uploader_name": uploader_name,
-                "portal_url": portal_url or self.app_url
+                "portal_url": actual_portal_url
             },
             recipient_id=owner_id,
             in_app_title=f"Approval Needed: {drawing_name}",
