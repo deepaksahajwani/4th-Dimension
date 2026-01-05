@@ -968,6 +968,134 @@ export default function TeamLeaderProjectDetail({ user, onLogout }) {
             </DialogFooter>
           </DialogContent>
         </Dialog>
+
+        {/* Issue Drawing Dialog - Select Recipients */}
+        <Dialog open={issueDialogOpen} onOpenChange={setIssueDialogOpen}>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle>Issue Drawing</DialogTitle>
+            </DialogHeader>
+            
+            <div className="space-y-4">
+              {/* Drawing Info */}
+              {drawingToIssue && (
+                <div className="p-3 bg-slate-50 rounded-lg">
+                  <p className="font-medium text-sm">{drawingToIssue.name}</p>
+                  <p className="text-xs text-slate-500">{drawingToIssue.category}</p>
+                </div>
+              )}
+              
+              <p className="text-sm text-slate-600">Select who should receive this drawing:</p>
+              
+              {/* Client */}
+              {client && (
+                <div className="space-y-2">
+                  <p className="text-xs font-medium text-slate-500 uppercase">Client</p>
+                  <label className="flex items-center gap-3 p-3 bg-blue-50 rounded-lg cursor-pointer hover:bg-blue-100 transition-colors">
+                    <input
+                      type="checkbox"
+                      checked={selectedRecipients.some(r => r.id === client.id && r.type === 'client')}
+                      onChange={() => toggleRecipient({ type: 'client', id: client.id, name: client.name, phone: client.phone })}
+                      className="w-4 h-4 rounded border-slate-300"
+                    />
+                    <div className="flex-1">
+                      <p className="font-medium text-sm">{client.name}</p>
+                      {client.phone && <p className="text-xs text-slate-500">{client.phone}</p>}
+                    </div>
+                    <User className="w-4 h-4 text-blue-600" />
+                  </label>
+                </div>
+              )}
+              
+              {/* Contractors */}
+              {projectTeam.contractors && projectTeam.contractors.length > 0 && (
+                <div className="space-y-2">
+                  <p className="text-xs font-medium text-slate-500 uppercase">Contractors</p>
+                  {projectTeam.contractors.map(contractor => (
+                    <label 
+                      key={contractor.id} 
+                      className="flex items-center gap-3 p-3 bg-orange-50 rounded-lg cursor-pointer hover:bg-orange-100 transition-colors"
+                    >
+                      <input
+                        type="checkbox"
+                        checked={selectedRecipients.some(r => r.id === contractor.id && r.type === 'contractor')}
+                        onChange={() => toggleRecipient({ 
+                          type: 'contractor', 
+                          id: contractor.id, 
+                          name: contractor.name, 
+                          phone: contractor.phone,
+                          contractor_type: contractor.contractor_type 
+                        })}
+                        className="w-4 h-4 rounded border-slate-300"
+                      />
+                      <div className="flex-1">
+                        <p className="font-medium text-sm">{contractor.name}</p>
+                        <p className="text-xs text-slate-500">{contractor.contractor_type || 'Contractor'}</p>
+                      </div>
+                      <HardHat className="w-4 h-4 text-orange-600" />
+                    </label>
+                  ))}
+                </div>
+              )}
+              
+              {/* Co-Clients */}
+              {projectTeam.co_clients && projectTeam.co_clients.length > 0 && (
+                <div className="space-y-2">
+                  <p className="text-xs font-medium text-slate-500 uppercase">Co-Clients</p>
+                  {projectTeam.co_clients.map(coClient => (
+                    <label 
+                      key={coClient.id} 
+                      className="flex items-center gap-3 p-3 bg-purple-50 rounded-lg cursor-pointer hover:bg-purple-100 transition-colors"
+                    >
+                      <input
+                        type="checkbox"
+                        checked={selectedRecipients.some(r => r.id === coClient.id && r.type === 'co_client')}
+                        onChange={() => toggleRecipient({ 
+                          type: 'co_client', 
+                          id: coClient.id, 
+                          name: coClient.name, 
+                          phone: coClient.phone 
+                        })}
+                        className="w-4 h-4 rounded border-slate-300"
+                      />
+                      <div className="flex-1">
+                        <p className="font-medium text-sm">{coClient.name}</p>
+                        {coClient.phone && <p className="text-xs text-slate-500">{coClient.phone}</p>}
+                      </div>
+                      <Users className="w-4 h-4 text-purple-600" />
+                    </label>
+                  ))}
+                </div>
+              )}
+              
+              {/* No recipients available */}
+              {!client && (!projectTeam.contractors || projectTeam.contractors.length === 0) && (!projectTeam.co_clients || projectTeam.co_clients.length === 0) && (
+                <div className="text-center py-4 text-slate-500">
+                  <p className="text-sm">No recipients available</p>
+                  <p className="text-xs mt-1">Add a client or contractors to the project first</p>
+                </div>
+              )}
+              
+              {/* Selected count */}
+              {selectedRecipients.length > 0 && (
+                <p className="text-sm text-green-600 font-medium">
+                  {selectedRecipients.length} recipient(s) selected
+                </p>
+              )}
+            </div>
+            
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setIssueDialogOpen(false)}>Cancel</Button>
+              <Button 
+                onClick={handleIssueDrawing} 
+                disabled={isIssuing || selectedRecipients.length === 0}
+                className="bg-blue-600 hover:bg-blue-700"
+              >
+                {isIssuing ? 'Issuing...' : `Issue to ${selectedRecipients.length} recipient(s)`}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
     </Layout>
   );
