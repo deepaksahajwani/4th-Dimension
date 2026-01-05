@@ -547,8 +547,11 @@ export default function TeamLeaderProjectDetail({ user, onLogout }) {
                         <p className="text-xs text-slate-500">{drawing.category}</p>
                       </div>
                       <div className="flex gap-2 shrink-0">
-                        <Button size="sm" variant="outline" onClick={() => handleViewDrawing(drawing)}>
+                        <Button size="sm" variant="outline" onClick={() => handleViewDrawing(drawing)} title="View">
                           <Eye className="w-4 h-4" />
+                        </Button>
+                        <Button size="sm" variant="outline" onClick={() => handleDownloadDrawing(drawing)} title="Download">
+                          <Download className="w-4 h-4" />
                         </Button>
                         <Button size="sm" onClick={() => handleApproveDrawing(drawing)} className="bg-green-600 hover:bg-green-700">
                           <Check className="w-4 h-4 mr-1" />
