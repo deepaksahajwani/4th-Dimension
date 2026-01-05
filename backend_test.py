@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Backend API Testing Script for Architecture Firm Management System
-Testing Phase 5 Monitoring Metrics API Implementation:
+Testing Magic Link Notification Flow for Drawing Review Page:
 
 **Test Credentials:**
 - Owner: deepaksahajwani@gmail.com / Deepak@2025
@@ -11,29 +11,30 @@ Testing Phase 5 Monitoring Metrics API Implementation:
 
 **Tests to perform:**
 
-1. **System Health API:**
-   - GET /api/metrics/system-health
-   - Should return: status, users count, projects count, drawings count with completion rate
+1. **Verify Magic Link Generation:**
+   - Call `get_magic_link_for_drawing()` function with:
+     - recipient_id: '54121be0-79b5-4db0-a08f-3a23a6ee935b' (owner)
+     - project_id: 'ed5e1e98-73e0-423f-af81-b04a5fd3f896' (Aagam Heritage Bungalow)
+     - drawing_id: 'ae595239-5c3b-4f23-a6c7-6ef5640af07e'
+   - Verify the generated magic link token resolves to `/projects/{projectId}/drawing/{drawingId}` format
+   - **NOT** the old `?drawing=` format
 
-2. **Notification Metrics API:**
-   - GET /api/metrics/notifications?days=30
-   - Should return: total notifications, success rate, failure reasons, daily breakdown
+2. **Verify Magic Token Storage:**
+   - Check that newly created magic tokens have `destination_type: drawing_review`
+   - Check that `extra_params` contains `project_id`
 
-3. **Storage Metrics API:**
-   - GET /api/metrics/storage
-   - Should return: total storage used, breakdown by category (drawings, 3d_images, voice_notes, etc.)
+3. **Verify Drawing Review Page API:**
+   - Test that GET `/api/projects/{projectId}/drawings` returns the drawing
+   - Test that the drawing data includes `id`, `name`, `file_url`, `status`
 
-4. **API Usage Metrics:**
-   - GET /api/metrics/api-usage?days=7
-   - Should return: active users, projects created, drawings uploaded, comments created
+4. **Verify Bertina Project Deletion:**
+   - Confirm project with ID '97b4a6bf-ea89-49f6-a463-3ddcc314e32c' no longer exists
+   - Confirm related drawings are also deleted
 
-5. **Overview Endpoint:**
-   - GET /api/metrics/overview
-   - Should return all metrics combined in one response
-
-6. **Permission Check:**
-   - Login as team leader (balbirgkaur@gmail.com / TeamLeader@123)
-   - Try GET /api/metrics/system-health - should return 403 Forbidden (Owner only)
+**Expected Results:**
+- Magic links should use `/projects/{projectId}/drawing/{drawingId}` format
+- No `?drawing=` query parameter format should be used
+- Drawing Review Page should load the specific drawing
 
 Report success/failure for each test.
 """
