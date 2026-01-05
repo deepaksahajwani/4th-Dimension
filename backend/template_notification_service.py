@@ -630,6 +630,24 @@ class TemplateNotificationService:
         else:
             in_app_link = "/projects"
         
+        # Generate magic link for WhatsApp portal_url if recipient_id provided
+        actual_portal_url = portal_url or self.app_url
+        if recipient_id and drawing_id and project_id:
+            try:
+                from services.magic_link_helper import create_drawing_review_magic_link, get_user_info_for_magic_link
+                user_info = await get_user_info_for_magic_link(recipient_id)
+                if user_info:
+                    actual_portal_url = await create_drawing_review_magic_link(
+                        user_id=user_info["id"],
+                        user_email=user_info["email"],
+                        user_role=user_info.get("role", "client"),
+                        project_id=project_id,
+                        drawing_id=drawing_id
+                    )
+            except Exception as e:
+                logger.warning(f"Failed to create magic link for drawing issued: {e}")
+                actual_portal_url = f"{self.app_url}/projects/{project_id}/drawing/{drawing_id}"
+        
         return await self.send_notification(
             template_key="drawing_issued",
             recipient_phone=phone_number,
@@ -638,7 +656,7 @@ class TemplateNotificationService:
                 "project_name": project_name,
                 "drawing_name": drawing_name,
                 "issue_date": issue_date,
-                "portal_url": portal_url or self.app_url
+                "portal_url": actual_portal_url
             },
             recipient_id=recipient_id,
             in_app_title=f"Drawing Issued: {drawing_name}",
@@ -668,6 +686,24 @@ class TemplateNotificationService:
         else:
             in_app_link = "/projects"
         
+        # Generate magic link for WhatsApp portal_url if contractor_id provided
+        actual_portal_url = self.app_url
+        if contractor_id and drawing_id and project_id:
+            try:
+                from services.magic_link_helper import create_drawing_review_magic_link, get_user_info_for_magic_link
+                user_info = await get_user_info_for_magic_link(contractor_id)
+                if user_info:
+                    actual_portal_url = await create_drawing_review_magic_link(
+                        user_id=user_info["id"],
+                        user_email=user_info["email"],
+                        user_role=user_info.get("role", "contractor"),
+                        project_id=project_id,
+                        drawing_id=drawing_id
+                    )
+            except Exception as e:
+                logger.warning(f"Failed to create magic link for contractor: {e}")
+                actual_portal_url = f"{self.app_url}/projects/{project_id}/drawing/{drawing_id}"
+        
         return await self.send_notification(
             template_key="drawing_issued_contractor",
             recipient_phone=phone_number,
@@ -677,7 +713,7 @@ class TemplateNotificationService:
                 "drawing_name": drawing_name,
                 "revision": revision,
                 "contractor_type": contractor_type,
-                "portal_url": self.app_url
+                "portal_url": actual_portal_url
             },
             recipient_id=contractor_id,
             in_app_title=f"Drawing Issued: {drawing_name}",
