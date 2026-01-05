@@ -540,6 +540,7 @@ export default function TeamLeaderProjectDetail({ user, onLogout }) {
               className={`shrink-0 relative ${activeSection === section ? 'bg-orange-500 hover:bg-orange-600' : ''}`}
             >
               {section === 'drawings' && <FileText className="w-4 h-4 mr-1" />}
+              {section === 'issued' && <Check className="w-4 h-4 mr-1" />}
               {section === '3d' && <Image className="w-4 h-4 mr-1" />}
               {section === 'client' && <User className="w-4 h-4 mr-1" />}
               {section === 'comments' && (
@@ -552,7 +553,7 @@ export default function TeamLeaderProjectDetail({ user, onLogout }) {
                   )}
                 </div>
               )}
-              {section.charAt(0).toUpperCase() + section.slice(1).replace('3d', '3D')}
+              {section === 'issued' ? `Issued (${issued.length})` : section.charAt(0).toUpperCase() + section.slice(1).replace('3d', '3D')}
             </Button>
           ))}
         </div>
