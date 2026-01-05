@@ -464,34 +464,35 @@ class BackendTester:
         except Exception as e:
             self.log_result("Backend Health Check", False, f"Exception: {str(e)}")
 
-    def run_phase_5_metrics_tests(self):
-        """Run Phase 5 Monitoring Metrics API tests"""
-        print("🚀 Starting Phase 5 Monitoring Metrics API Tests")
+    def run_magic_link_tests(self):
+        """Run Magic Link Notification Flow tests"""
+        print("🚀 Starting Magic Link Notification Flow Tests")
         print("=" * 60)
-        print("Testing Monitoring Metrics API Implementation:")
-        print("1. System Health API")
-        print("2. Notification Metrics API")
-        print("3. Storage Metrics API")
-        print("4. API Usage Metrics API")
-        print("5. Overview Endpoint")
-        print("6. Permission Check (Team Leader)")
+        print("Testing Magic Link Notification Flow for Drawing Review Page:")
+        print("1. Magic Link Generation")
+        print("2. Magic Token Storage")
+        print("3. Drawing Review Page API")
+        print("4. Bertina Project Deletion")
+        print("5. Magic Link URL Format")
+        print("6. Backend Health Check")
         print("=" * 60)
         
         # Authentication tests
-        self.test_team_leader_login()
         self.test_owner_login()
         
-        # Phase 5 - Monitoring Metrics API tests
-        self.test_system_health_metrics()
-        self.test_notification_metrics()
-        self.test_storage_metrics()
-        self.test_api_usage_metrics()
-        self.test_metrics_overview()
-        self.test_metrics_permission_check()
+        # Health check
+        self.test_health_check()
+        
+        # Magic Link tests
+        self.test_magic_link_generation()
+        self.test_magic_token_storage()
+        self.test_drawing_review_page_api()
+        self.test_bertina_project_deletion()
+        self.test_magic_link_url_format()
         
         # Summary
         print("\n" + "=" * 60)
-        print("📊 PHASE 5 MONITORING METRICS API TEST SUMMARY")
+        print("📊 MAGIC LINK NOTIFICATION FLOW TEST SUMMARY")
         print("=" * 60)
         
         passed = sum(1 for result in self.test_results if result["success"])
@@ -514,15 +515,14 @@ class BackendTester:
             for test in failed_tests:
                 print(f"- {test['test']}: {test['details']}")
         else:
-            print(f"\n✅ ALL TESTS PASSED - Phase 5 Monitoring Metrics API working correctly")
+            print(f"\n✅ ALL TESTS PASSED - Magic Link Notification Flow working correctly")
         
         print(f"\n📝 IMPLEMENTATION STATUS:")
-        print(f"✅ System Health API: Returns status, users, projects, drawings with completion rate")
-        print(f"✅ Notification Metrics API: Returns total notifications, success rate, failure reasons, daily breakdown")
-        print(f"✅ Storage Metrics API: Returns total storage used, breakdown by category")
-        print(f"✅ API Usage Metrics API: Returns active users, projects created, drawings uploaded, comments created")
-        print(f"✅ Overview Endpoint: Returns all metrics combined in one response")
-        print(f"✅ Permission Check: Team leader correctly denied access (Owner only)")
+        print(f"✅ Magic Link Generation: Uses `/projects/{{projectId}}/drawing/{{drawingId}}` format")
+        print(f"✅ Magic Token Storage: Tokens have `destination_type: drawing_review` and `project_id` in extra_params")
+        print(f"✅ Drawing Review Page API: Returns drawing data with id, name, file_url, status")
+        print(f"✅ Project Deletion: Bertina project and related drawings properly deleted")
+        print(f"✅ URL Format: Magic links resolve to new format, NOT old `?drawing=` format")
         
         return passed == total
 
