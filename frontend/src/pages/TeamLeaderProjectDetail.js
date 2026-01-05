@@ -33,7 +33,9 @@ import {
   ChevronDown,
   ChevronUp,
   Phone,
-  Mail
+  Mail,
+  Users,
+  HardHat
 } from 'lucide-react';
 import { toast } from 'sonner';
 
