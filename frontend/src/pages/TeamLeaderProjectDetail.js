@@ -51,6 +51,7 @@ export default function TeamLeaderProjectDetail({ user, onLogout }) {
   const [imageCategories, setImageCategories] = useState([]);
   const [comments, setComments] = useState([]);
   const [client, setClient] = useState(null);
+  const [projectTeam, setProjectTeam] = useState({ contractors: [], consultants: [], co_clients: [] });
   const [loading, setLoading] = useState(true);
   const [activeSection, setActiveSection] = useState('drawings');
   const [expandedCategories, setExpandedCategories] = useState({});
@@ -61,6 +62,12 @@ export default function TeamLeaderProjectDetail({ user, onLogout }) {
   const [uploadType, setUploadType] = useState('new'); // 'new' or 'revision'
   const [uploading, setUploading] = useState(false);
   const [selectedFiles, setSelectedFiles] = useState([]);
+  
+  // Issue Dialog states
+  const [issueDialogOpen, setIssueDialogOpen] = useState(false);
+  const [drawingToIssue, setDrawingToIssue] = useState(null);
+  const [selectedRecipients, setSelectedRecipients] = useState([]);
+  const [isIssuing, setIsIssuing] = useState(false);
   
   // 3D Images upload
   const [upload3DDialogOpen, setUpload3DDialogOpen] = useState(false);
