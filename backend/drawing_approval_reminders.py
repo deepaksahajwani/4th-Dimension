@@ -66,8 +66,19 @@ async def send_approval_reminder(
     else:
         time_text = ""
     
-    # Deep link to the specific drawing
-    deep_link = f"{APP_URL}/projects/{project_id}?drawing={drawing_id}"
+    # Generate magic link to Drawing Review Page
+    try:
+        from services.magic_link_helper import create_drawing_review_magic_link
+        deep_link = await create_drawing_review_magic_link(
+            user_id=owner['id'],
+            user_email=owner.get('email', ''),
+            user_role='owner',
+            project_id=project_id,
+            drawing_id=drawing_id
+        )
+    except Exception as e:
+        logger.warning(f"Failed to create magic link for reminder: {e}")
+        deep_link = f"{APP_URL}/projects/{project_id}/drawing/{drawing_id}"
     
     if is_initial:
         message = f"""📤 *Drawing Uploaded - Approval Required*
