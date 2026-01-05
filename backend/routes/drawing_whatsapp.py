@@ -211,7 +211,8 @@ async def request_drawing_approval(
         )
         
         app_url = os.environ.get('REACT_APP_BACKEND_URL', 'https://magic-auth.preview.emergentagent.com')
-        drawing_link = f"{app_url}/projects/{project['id']}?drawing={drawing_id}"
+        # Use Drawing Review Page format
+        drawing_link = f"{app_url}/projects/{project['id']}/drawing/{drawing_id}"
         
         message = (
             f"📋 *Approval Required*\n\n"
@@ -251,7 +252,7 @@ async def request_drawing_approval(
                 "type": "drawing_approval_needed",
                 "title": "Drawing Approval Required",
                 "message": f"{drawing.get('name')} from {project.get('title')} needs your approval",
-                "link": f"/projects/{project['id']}?drawing={drawing_id}",
+                "link": f"/projects/{project['id']}/drawing/{drawing_id}",
                 "project_id": project['id'],
                 "read": False,
                 "created_at": datetime.now(timezone.utc)
