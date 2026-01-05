@@ -224,8 +224,23 @@ async def send_immediate_approval_notification(
         project = await db.projects.find_one({"id": project_id}, {"_id": 0})
         project_name = project.get('title', 'Project') if project else 'Project'
         
-        # Deep link to the specific drawing
-        deep_link = f"{APP_URL}/projects/{project_id}?drawing={drawing_id}"
+        # Generate magic link to Drawing Review Page
+        try:
+            from services.magic_link_helper import create_drawing_review_magic_link
+            deep_link = await create_drawing_review_magic_link(
+                user_id=owner['id'],
+                user_email=owner.get('email', ''),
+                user_role='owner',
+                project_id=project_id,
+                drawing_id=drawing_id
+            )
+        except Exception as e:
+            logger.warning(f"Failed to create magic link: {e}")
+            # Fallback to direct Drawing Review Page URL
+            deep_link = f"{APP_URL}/projects/{project_id}/drawing/{drawing_id}"
+        
+        # In-app link uses Drawing Review Page format
+        in_app_link = f"/projects/{project_id}/drawing/{drawing_id}"
         
         from notification_service import notification_service
         
@@ -235,7 +250,7 @@ async def send_immediate_approval_notification(
             title="Drawing Approval Needed",
             message=f"📤 {drawing_name} uploaded for approval by {uploaded_by_name}",
             notification_type="drawing_approval_needed",
-            link=f"/projects/{project_id}?drawing={drawing_id}",
+            link=in_app_link,
             project_id=project_id
         )
         logger.info(f"In-app notification created for drawing approval: {drawing_name}")
@@ -252,7 +267,10 @@ async def send_immediate_approval_notification(
                     project_name=project_name,
                     drawing_name=drawing_name,
                     uploader_name=uploaded_by_name,
-                    portal_url=deep_link
+                    portal_url=deep_link,
+                    owner_id=owner['id'],
+                    project_id=project_id,
+                    drawing_id=drawing_id
                 )
                 
                 if result.get('success'):
