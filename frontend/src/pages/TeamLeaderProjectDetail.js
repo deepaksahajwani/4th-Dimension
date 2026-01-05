@@ -461,7 +461,7 @@ export default function TeamLeaderProjectDetail({ user, onLogout }) {
               <Badge className="bg-orange-100 text-orange-700">{percentComplete}%</Badge>
             </div>
             <Progress value={percentComplete} className="h-2" />
-            <p className="text-xs text-slate-500 mt-2">{issuedCount}/{totalDrawings} drawings issued</p>
+            <p className="text-xs text-slate-500 mt-2">{issuedCount} issued</p>
           </CardContent>
         </Card>
 
