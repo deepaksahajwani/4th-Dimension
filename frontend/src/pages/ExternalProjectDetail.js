@@ -343,7 +343,7 @@ export default function ExternalProjectDetail({ user, onLogout }) {
             </div>
             <Progress value={percentComplete} className="h-2 bg-slate-100" />
             <p className="text-xs text-slate-500 mt-2">
-              {issuedDrawings} drawings issued
+              {issuedDrawings} issued
             </p>
           </CardContent>
         </Card>
@@ -362,7 +362,7 @@ export default function ExternalProjectDetail({ user, onLogout }) {
                 <FileText className="w-6 h-6 text-blue-600" />
               </div>
               <h3 className="font-semibold text-slate-900">Drawings</h3>
-              <p className="text-xs text-slate-500">{totalDrawings} files</p>
+              <p className="text-xs text-slate-500">{issuedDrawings} issued</p>
             </CardContent>
           </Card>
 
