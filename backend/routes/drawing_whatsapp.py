@@ -93,7 +93,8 @@ async def send_drawing_via_whatsapp(
             raise HTTPException(status_code=403, detail="Not authorized to send this drawing")
         
         app_url = os.environ.get('REACT_APP_BACKEND_URL', 'https://magic-auth.preview.emergentagent.com')
-        drawing_link = f"{app_url}/projects/{project['id']}?drawing={drawing_id}"
+        # Use Drawing Review Page format
+        drawing_link = f"{app_url}/projects/{project['id']}/drawing/{drawing_id}"
         
         message = (
             f"📋 *Drawing for Review*\n\n"
