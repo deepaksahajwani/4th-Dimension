@@ -222,232 +222,247 @@ class BackendTester:
         except Exception as e:
             self.log_result("Get Project and Drawing", False, f"Exception: {str(e)}")
 
-    def test_system_health_metrics(self):
-        """Test System Health Metrics API (Owner only)"""
+    def test_magic_link_generation(self):
+        """Test magic link generation for drawing review"""
         if not self.owner_token:
-            self.log_result("System Health Metrics", False, "No owner token available")
+            self.log_result("Magic Link Generation", False, "No owner token available")
             return
             
         try:
-            print("📊 Testing System Health Metrics API...")
+            print("🔗 Testing Magic Link Generation...")
             
-            headers = {"Authorization": f"Bearer {self.owner_token}"}
+            # Import the function we need to test
+            import sys
+            import os
+            sys.path.append('/app/backend')
             
-            # Test GET /api/metrics/system-health
-            response = self.session.get(f"{BACKEND_URL}/metrics/system-health", headers=headers)
+            from notification_triggers_v2 import get_magic_link_for_drawing
             
-            if response.status_code == 200:
-                data = response.json()
+            # Test the function with specific IDs from review request
+            magic_link = await get_magic_link_for_drawing(
+                recipient_id=self.test_recipient_id,
+                project_id=self.test_project_id,
+                drawing_id=self.test_drawing_id
+            )
+            
+            if magic_link:
+                # Check if it uses the new format: /projects/{projectId}/drawing/{drawingId}
+                expected_path = f"/projects/{self.test_project_id}/drawing/{self.test_drawing_id}"
                 
-                # Check required fields
-                required_fields = ["status", "users", "projects", "drawings"]
-                has_all_fields = all(field in data for field in required_fields)
-                
-                if has_all_fields:
-                    users = data.get("users", {})
-                    projects = data.get("projects", {})
-                    drawings = data.get("drawings", {})
-                    
-                    details = f"Status: {data.get('status')}, Users: {users.get('total', 0)}, Projects: {projects.get('total', 0)}, Drawings: {drawings.get('total', 0)} (completion: {drawings.get('completion_rate', 0)}%)"
-                    self.log_result("System Health Metrics", True, details)
-                else:
-                    missing = [f for f in required_fields if f not in data]
-                    self.log_result("System Health Metrics", False, f"Missing fields: {missing}")
-            else:
-                self.log_result("System Health Metrics", False, 
-                              f"Failed: {response.status_code} - {response.text}")
-                
-        except Exception as e:
-            self.log_result("System Health Metrics", False, f"Exception: {str(e)}")
-
-    def test_notification_metrics(self):
-        """Test Notification Metrics API (Owner only)"""
-        if not self.owner_token:
-            self.log_result("Notification Metrics", False, "No owner token available")
-            return
-            
-        try:
-            print("📧 Testing Notification Metrics API...")
-            
-            headers = {"Authorization": f"Bearer {self.owner_token}"}
-            
-            # Test GET /api/metrics/notifications?days=30
-            response = self.session.get(f"{BACKEND_URL}/metrics/notifications?days=30", headers=headers)
-            
-            if response.status_code == 200:
-                data = response.json()
-                
-                # Check required fields
-                required_fields = ["period_days", "summary", "failure_reasons", "daily_breakdown"]
-                has_all_fields = all(field in data for field in required_fields)
-                
-                if has_all_fields:
-                    summary = data.get("summary", {})
-                    total = summary.get("total", 0)
-                    success_rate = summary.get("success_rate", 0)
-                    
-                    details = f"Period: {data.get('period_days')} days, Total: {total}, Success Rate: {success_rate}%"
-                    self.log_result("Notification Metrics", True, details)
-                else:
-                    missing = [f for f in required_fields if f not in data]
-                    self.log_result("Notification Metrics", False, f"Missing fields: {missing}")
-            else:
-                self.log_result("Notification Metrics", False, 
-                              f"Failed: {response.status_code} - {response.text}")
-                
-        except Exception as e:
-            self.log_result("Notification Metrics", False, f"Exception: {str(e)}")
-
-    def test_storage_metrics(self):
-        """Test Storage Metrics API (Owner only)"""
-        if not self.owner_token:
-            self.log_result("Storage Metrics", False, "No owner token available")
-            return
-            
-        try:
-            print("💾 Testing Storage Metrics API...")
-            
-            headers = {"Authorization": f"Bearer {self.owner_token}"}
-            
-            # Test GET /api/metrics/storage
-            response = self.session.get(f"{BACKEND_URL}/metrics/storage", headers=headers)
-            
-            if response.status_code == 200:
-                data = response.json()
-                
-                # Check required fields
-                required_fields = ["total", "breakdown"]
-                has_all_fields = all(field in data for field in required_fields)
-                
-                if has_all_fields:
-                    total = data.get("total", {})
-                    breakdown = data.get("breakdown", {})
-                    
-                    # Check breakdown categories
-                    expected_categories = ["drawings", "3d_images", "voice_notes", "comments", "thumbnails"]
-                    has_categories = all(cat in breakdown for cat in expected_categories)
-                    
-                    if has_categories:
-                        total_size = total.get("formatted", "0 B")
-                        file_count = total.get("file_count", 0)
-                        
-                        details = f"Total: {total_size}, Files: {file_count}, Categories: {len(breakdown)}"
-                        self.log_result("Storage Metrics", True, details)
+                if expected_path in magic_link:
+                    # Extract token from magic link
+                    if "/magic/" in magic_link:
+                        self.magic_token = magic_link.split("/magic/")[-1]
+                        self.log_result("Magic Link Generation", True, 
+                                      f"Magic link generated with correct format: {magic_link}")
                     else:
-                        missing_cats = [cat for cat in expected_categories if cat not in breakdown]
-                        self.log_result("Storage Metrics", False, f"Missing categories: {missing_cats}")
+                        self.log_result("Magic Link Generation", True, 
+                                      f"Direct link generated with correct format: {magic_link}")
+                elif "?drawing=" in magic_link:
+                    self.log_result("Magic Link Generation", False, 
+                                  f"Magic link uses old query parameter format: {magic_link}")
                 else:
-                    missing = [f for f in required_fields if f not in data]
-                    self.log_result("Storage Metrics", False, f"Missing fields: {missing}")
+                    self.log_result("Magic Link Generation", False, 
+                                  f"Magic link format unexpected: {magic_link}")
             else:
-                self.log_result("Storage Metrics", False, 
-                              f"Failed: {response.status_code} - {response.text}")
+                self.log_result("Magic Link Generation", False, "No magic link generated")
                 
         except Exception as e:
-            self.log_result("Storage Metrics", False, f"Exception: {str(e)}")
+            self.log_result("Magic Link Generation", False, f"Exception: {str(e)}")
 
-    def test_api_usage_metrics(self):
-        """Test API Usage Metrics API (Owner only)"""
-        if not self.owner_token:
-            self.log_result("API Usage Metrics", False, "No owner token available")
+    def test_magic_token_storage(self):
+        """Test magic token storage in database"""
+        if not self.magic_token:
+            self.log_result("Magic Token Storage", False, "No magic token available to test")
             return
             
         try:
-            print("📈 Testing API Usage Metrics API...")
+            print("💾 Testing Magic Token Storage...")
+            
+            # Connect to database to check token storage
+            import sys
+            sys.path.append('/app/backend')
+            from utils.database import get_database
+            
+            db = get_database()
+            
+            # Find the token in database
+            token_doc = await db.magic_tokens.find_one({"token": self.magic_token}, {"_id": 0})
+            
+            if token_doc:
+                # Check destination_type
+                dest_type = token_doc.get("destination_type")
+                extra_params = token_doc.get("extra_params", {})
+                
+                if dest_type == "drawing_review":
+                    if "project_id" in extra_params:
+                        self.log_result("Magic Token Storage", True, 
+                                      f"Token stored correctly: destination_type={dest_type}, project_id in extra_params")
+                    else:
+                        self.log_result("Magic Token Storage", False, 
+                                      f"Token missing project_id in extra_params: {extra_params}")
+                else:
+                    self.log_result("Magic Token Storage", False, 
+                                  f"Token has wrong destination_type: {dest_type} (expected: drawing_review)")
+            else:
+                self.log_result("Magic Token Storage", False, "Magic token not found in database")
+                
+        except Exception as e:
+            self.log_result("Magic Token Storage", False, f"Exception: {str(e)}")
+
+    def test_drawing_review_page_api(self):
+        """Test Drawing Review Page API endpoint"""
+        if not self.owner_token:
+            self.log_result("Drawing Review Page API", False, "No owner token available")
+            return
+            
+        try:
+            print("📋 Testing Drawing Review Page API...")
             
             headers = {"Authorization": f"Bearer {self.owner_token}"}
             
-            # Test GET /api/metrics/api-usage?days=7
-            response = self.session.get(f"{BACKEND_URL}/metrics/api-usage?days=7", headers=headers)
+            # Test GET /api/projects/{projectId}/drawings
+            response = self.session.get(
+                f"{BACKEND_URL}/projects/{self.test_project_id}/drawings", 
+                headers=headers
+            )
             
             if response.status_code == 200:
-                data = response.json()
+                drawings = response.json()
                 
-                # Check required fields
-                required_fields = ["period_days", "users", "activity"]
-                has_all_fields = all(field in data for field in required_fields)
+                # Find the specific drawing
+                target_drawing = None
+                for drawing in drawings:
+                    if drawing.get("id") == self.test_drawing_id:
+                        target_drawing = drawing
+                        break
                 
-                if has_all_fields:
-                    users = data.get("users", {})
-                    activity = data.get("activity", {})
+                if target_drawing:
+                    # Check required fields
+                    required_fields = ["id", "name", "status"]
+                    has_all_fields = all(field in target_drawing for field in required_fields)
                     
-                    active_users = users.get("active", 0)
-                    projects_created = activity.get("projects_created", 0)
-                    drawings_uploaded = activity.get("drawings_uploaded", 0)
-                    comments_created = activity.get("comments_created", 0)
-                    
-                    details = f"Period: {data.get('period_days')} days, Active Users: {active_users}, Projects: {projects_created}, Drawings: {drawings_uploaded}, Comments: {comments_created}"
-                    self.log_result("API Usage Metrics", True, details)
+                    if has_all_fields:
+                        drawing_name = target_drawing.get("name", "Unknown")
+                        drawing_status = target_drawing.get("status", "Unknown")
+                        has_file_url = "file_url" in target_drawing
+                        
+                        details = f"Drawing found: {drawing_name}, Status: {drawing_status}, Has file_url: {has_file_url}"
+                        self.log_result("Drawing Review Page API", True, details)
+                    else:
+                        missing = [f for f in required_fields if f not in target_drawing]
+                        self.log_result("Drawing Review Page API", False, f"Missing fields: {missing}")
                 else:
-                    missing = [f for f in required_fields if f not in data]
-                    self.log_result("API Usage Metrics", False, f"Missing fields: {missing}")
+                    self.log_result("Drawing Review Page API", False, 
+                                  f"Drawing {self.test_drawing_id} not found in project {self.test_project_id}")
             else:
-                self.log_result("API Usage Metrics", False, 
-                              f"Failed: {response.status_code} - {response.text}")
+                self.log_result("Drawing Review Page API", False, 
+                              f"API call failed: {response.status_code} - {response.text}")
                 
         except Exception as e:
-            self.log_result("API Usage Metrics", False, f"Exception: {str(e)}")
+            self.log_result("Drawing Review Page API", False, f"Exception: {str(e)}")
 
-    def test_metrics_overview(self):
-        """Test Metrics Overview API (Owner only)"""
+    def test_bertina_project_deletion(self):
+        """Test that Bertina project has been deleted"""
         if not self.owner_token:
-            self.log_result("Metrics Overview", False, "No owner token available")
+            self.log_result("Bertina Project Deletion", False, "No owner token available")
             return
             
         try:
-            print("🔍 Testing Metrics Overview API...")
+            print("🗑️ Testing Bertina Project Deletion...")
             
             headers = {"Authorization": f"Bearer {self.owner_token}"}
             
-            # Test GET /api/metrics/overview
-            response = self.session.get(f"{BACKEND_URL}/metrics/overview", headers=headers)
+            # Try to get the Bertina project
+            response = self.session.get(
+                f"{BACKEND_URL}/projects/{self.bertina_project_id}", 
+                headers=headers
+            )
             
-            if response.status_code == 200:
-                data = response.json()
-                
-                # Check required fields (should contain all metrics combined)
-                required_fields = ["timestamp", "system_health", "notifications", "storage", "api_usage"]
-                has_all_fields = all(field in data for field in required_fields)
-                
-                if has_all_fields:
-                    details = f"Combined metrics response with {len(data)} sections"
-                    self.log_result("Metrics Overview", True, details)
-                else:
-                    missing = [f for f in required_fields if f not in data]
-                    self.log_result("Metrics Overview", False, f"Missing sections: {missing}")
-            else:
-                self.log_result("Metrics Overview", False, 
-                              f"Failed: {response.status_code} - {response.text}")
-                
-        except Exception as e:
-            self.log_result("Metrics Overview", False, f"Exception: {str(e)}")
-
-    def test_metrics_permission_check(self):
-        """Test that team leader cannot access metrics (403 Forbidden)"""
-        if not self.team_leader_token:
-            self.log_result("Metrics Permission Check", False, "No team leader token available")
-            return
-            
-        try:
-            print("🔒 Testing Metrics Permission Check (Team Leader)...")
-            
-            headers = {"Authorization": f"Bearer {self.team_leader_token}"}
-            
-            # Test GET /api/metrics/system-health - should return 403 Forbidden
-            response = self.session.get(f"{BACKEND_URL}/metrics/system-health", headers=headers)
-            
-            if response.status_code == 403:
-                self.log_result("Metrics Permission Check", True, 
-                              "Team leader correctly denied access (403 Forbidden)")
+            if response.status_code == 404:
+                self.log_result("Bertina Project Deletion", True, 
+                              f"Project {self.bertina_project_id} correctly deleted (404 Not Found)")
             elif response.status_code == 200:
-                self.log_result("Metrics Permission Check", False, 
-                              "Team leader incorrectly granted access - security issue!")
+                project_data = response.json()
+                project_name = project_data.get("name", "Unknown")
+                self.log_result("Bertina Project Deletion", False, 
+                              f"Project {self.bertina_project_id} still exists: {project_name}")
             else:
-                self.log_result("Metrics Permission Check", False, 
+                self.log_result("Bertina Project Deletion", False, 
                               f"Unexpected response: {response.status_code} - {response.text}")
+            
+            # Also check drawings for this project
+            drawings_response = self.session.get(
+                f"{BACKEND_URL}/projects/{self.bertina_project_id}/drawings", 
+                headers=headers
+            )
+            
+            if drawings_response.status_code == 404:
+                print("   ✅ Related drawings also deleted (404 Not Found)")
+            elif drawings_response.status_code == 200:
+                drawings = drawings_response.json()
+                if not drawings:
+                    print("   ✅ No drawings found for deleted project")
+                else:
+                    print(f"   ⚠️ Found {len(drawings)} drawings for supposedly deleted project")
                 
         except Exception as e:
-            self.log_result("Metrics Permission Check", False, f"Exception: {str(e)}")
+            self.log_result("Bertina Project Deletion", False, f"Exception: {str(e)}")
+
+    def test_magic_link_url_format(self):
+        """Test that magic links resolve to correct URL format"""
+        if not self.magic_token:
+            self.log_result("Magic Link URL Format", False, "No magic token available to test")
+            return
+            
+        try:
+            print("🌐 Testing Magic Link URL Format...")
+            
+            # Test the magic link validation endpoint
+            response = self.session.get(f"{BACKEND_URL}/magic/validate/{self.magic_token}")
+            
+            if response.status_code == 200:
+                validation_data = response.json()
+                destination_url = validation_data.get("destination_url", "")
+                
+                # Check if it uses the new format
+                expected_path = f"/projects/{self.test_project_id}/drawing/{self.test_drawing_id}"
+                
+                if expected_path in destination_url:
+                    self.log_result("Magic Link URL Format", True, 
+                                  f"Magic link resolves to correct format: {destination_url}")
+                elif "?drawing=" in destination_url:
+                    self.log_result("Magic Link URL Format", False, 
+                                  f"Magic link resolves to old query format: {destination_url}")
+                else:
+                    self.log_result("Magic Link URL Format", False, 
+                                  f"Magic link resolves to unexpected format: {destination_url}")
+            else:
+                self.log_result("Magic Link URL Format", False, 
+                              f"Magic link validation failed: {response.status_code} - {response.text}")
+                
+        except Exception as e:
+            self.log_result("Magic Link URL Format", False, f"Exception: {str(e)}")
+
+    def test_health_check(self):
+        """Basic health check to ensure backend is running"""
+        try:
+            print("🏥 Testing Backend Health...")
+            
+            response = self.session.get(f"{BACKEND_URL}/health")
+            
+            if response.status_code == 200:
+                data = response.json()
+                if data.get("status") == "healthy":
+                    self.log_result("Backend Health Check", True, "Backend is healthy")
+                else:
+                    self.log_result("Backend Health Check", False, f"Backend status: {data}")
+            else:
+                self.log_result("Backend Health Check", False, 
+                              f"Health check failed: {response.status_code}")
+                
+        except Exception as e:
+            self.log_result("Backend Health Check", False, f"Exception: {str(e)}")
 
     def run_phase_5_metrics_tests(self):
         """Run Phase 5 Monitoring Metrics API tests"""
