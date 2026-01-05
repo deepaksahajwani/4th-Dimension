@@ -92,6 +92,38 @@ async def get_magic_link_for_project(
         url += f"?drawing={drawing_id}"
     return url
 
+async def get_magic_link_for_drawing(recipient_id: str, project_id: str, drawing_id: str = None):
+    """
+    Generate a magic link for a drawing notification.
+    Uses the Drawing Review Page for a dedicated single-item view.
+    
+    Args:
+        recipient_id: The user ID who will receive this link
+        project_id: The project ID
+        drawing_id: The drawing ID to review
+    
+    Returns:
+        Magic link URL or direct link as fallback
+    """
+    if USE_MAGIC_LINKS and drawing_id:
+        try:
+            user = await get_user_info_for_magic_link(recipient_id)
+            if user:
+                return await create_drawing_review_magic_link(
+                    user_id=user["id"],
+                    user_email=user["email"],
+                    user_role=user.get("role", "client"),
+                    project_id=project_id,
+                    drawing_id=drawing_id
+                )
+        except Exception as e:
+            logger.warning(f"Failed to create magic link, using direct link: {e}")
+    
+    # Fallback to direct link using Drawing Review Page format
+    if drawing_id:
+        return f"{APP_URL}/projects/{project_id}/drawing/{drawing_id}"
+    return f"{APP_URL}/projects/{project_id}"
+
 
 async def get_magic_link_for_drawing_review(
     recipient_id: str,
