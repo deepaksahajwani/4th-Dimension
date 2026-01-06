@@ -542,7 +542,11 @@ export default function TeamLeaderProjectDetail({ user, onLogout }) {
                   )}
                 </div>
               )}
-              {section === 'issued' ? `Issued (${issued.length})` : section.charAt(0).toUpperCase() + section.slice(1).replace('3d', '3D')}
+              {section === 'drawings' ? 'Drawings' : 
+               section === 'issued' ? 'Issued' : 
+               section === '3d' ? '3D' : 
+               section === 'client' ? 'Client' : 
+               'Comments'}
             </Button>
           ))}
         </div>
