@@ -1387,6 +1387,158 @@ export default function OwnerDashboard({ user, onLogout }) {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Pending Approvals Dialog */}
+      <Dialog open={pendingApprovalsDialogOpen} onOpenChange={setPendingApprovalsDialogOpen}>
+        <DialogContent className="max-w-4xl max-h-[85vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <FileText className="w-5 h-5 text-orange-600" />
+              Drawings Pending Approval
+            </DialogTitle>
+            <p className="text-sm text-slate-600 mt-1">
+              {pendingApprovals.length} drawing{pendingApprovals.length !== 1 ? 's' : ''} awaiting your review
+            </p>
+          </DialogHeader>
+
+          <div className="space-y-4 mt-4">
+            {pendingApprovals.length > 0 ? (
+              pendingApprovals.map((drawing) => (
+                <Card key={drawing.id} className="border-l-4 border-l-orange-500">
+                  <CardContent className="p-4">
+                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                      {/* Drawing Info */}
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-start gap-3">
+                          <div className="bg-orange-100 rounded-lg p-2 shrink-0">
+                            <FileText className="w-6 h-6 text-orange-600" />
+                          </div>
+                          <div className="min-w-0">
+                            <h4 className="font-semibold text-slate-900 truncate">{drawing.name}</h4>
+                            <p className="text-sm text-slate-600">{drawing.category}</p>
+                            <div className="flex flex-wrap items-center gap-2 mt-1">
+                              <Badge variant="outline" className="text-xs">
+                                {drawing.project_title}
+                              </Badge>
+                              {drawing.project_code && (
+                                <Badge variant="secondary" className="text-xs">
+                                  {drawing.project_code}
+                                </Badge>
+                              )}
+                            </div>
+                            {drawing.reviewed_date && (
+                              <p className="text-xs text-slate-500 mt-1">
+                                Uploaded: {new Date(drawing.reviewed_date).toLocaleDateString('en-IN', { 
+                                  day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' 
+                                })}
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Actions */}
+                      <div className="flex flex-wrap gap-2 shrink-0">
+                        {drawing.file_url && (
+                          <>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => handleViewDrawing(drawing)}
+                              className="gap-1"
+                            >
+                              <Eye className="w-4 h-4" />
+                              View
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => handleDownloadDrawing(drawing)}
+                              className="gap-1"
+                            >
+                              <Download className="w-4 h-4" />
+                              Download
+                            </Button>
+                          </>
+                        )}
+                        <Button
+                          size="sm"
+                          className="bg-green-600 hover:bg-green-700 gap-1"
+                          onClick={() => handleApproveDrawing(drawing)}
+                          disabled={actionLoading}
+                        >
+                          <Check className="w-4 h-4" />
+                          Approve
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="text-orange-600 border-orange-300 hover:bg-orange-50 gap-1"
+                          onClick={() => setSelectedDrawingForAction(drawing)}
+                        >
+                          <RefreshCw className="w-4 h-4" />
+                          Request Revision
+                        </Button>
+                      </div>
+                    </div>
+
+                    {/* Revision Comment Input (shown when requesting revision) */}
+                    {selectedDrawingForAction?.id === drawing.id && (
+                      <div className="mt-4 p-4 bg-orange-50 rounded-lg border border-orange-200">
+                        <Label className="text-sm font-medium text-orange-900">
+                          What revisions are needed?
+                        </Label>
+                        <Textarea
+                          value={revisionComment}
+                          onChange={(e) => setRevisionComment(e.target.value)}
+                          placeholder="Describe the changes required..."
+                          className="mt-2 bg-white"
+                          rows={3}
+                        />
+                        <div className="flex gap-2 mt-3">
+                          <Button
+                            size="sm"
+                            className="bg-orange-600 hover:bg-orange-700"
+                            onClick={() => handleRequestRevision(drawing)}
+                            disabled={actionLoading || !revisionComment.trim()}
+                          >
+                            Submit Revision Request
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => {
+                              setSelectedDrawingForAction(null);
+                              setRevisionComment('');
+                            }}
+                          >
+                            Cancel
+                          </Button>
+                        </div>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              ))
+            ) : (
+              <div className="text-center py-12 bg-slate-50 rounded-lg">
+                <CheckCircle2 className="w-12 h-12 text-green-500 mx-auto mb-3" />
+                <p className="text-lg font-medium text-slate-900">All caught up!</p>
+                <p className="text-sm text-slate-600">No drawings pending approval</p>
+              </div>
+            )}
+          </div>
+
+          <DialogFooter className="mt-6 pt-4 border-t">
+            <Button
+              variant="outline"
+              onClick={() => setPendingApprovalsDialogOpen(false)}
+            >
+              Close
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </Layout>
   );
 }
