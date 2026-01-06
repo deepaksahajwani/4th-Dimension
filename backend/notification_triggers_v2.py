@@ -229,8 +229,29 @@ async def _send_whatsapp_background(phone: str, message: str = None, content_sid
         logger.error(f"Background WhatsApp send failed: {e}")
 
 
-def queue_email_async(to_email: str, subject: str, html_content: str):
-    """Queue email notification for async delivery (non-blocking)"""
+# Email notifications are DISABLED except for onboarding (OTP, registration, welcome)
+# All other notifications go via WhatsApp/SMS only
+ALLOWED_EMAIL_TYPES = ['otp', 'registration', 'welcome', 'password_reset', 'verification']
+
+def queue_email_async(to_email: str, subject: str, html_content: str, email_type: str = None):
+    """Queue email notification for async delivery (non-blocking)
+    
+    NOTE: Email notifications are disabled except for onboarding.
+    Only OTP, registration, welcome, and password reset emails are sent.
+    """
+    # Check if email type is allowed
+    if email_type and email_type.lower() not in ALLOWED_EMAIL_TYPES:
+        logger.info(f"Email notification skipped (not allowed type): {email_type} to {to_email}")
+        return
+    
+    # Check subject for onboarding keywords
+    subject_lower = subject.lower() if subject else ''
+    is_onboarding_email = any(keyword in subject_lower for keyword in ['otp', 'verification', 'welcome', 'registration', 'password reset', 'verify'])
+    
+    if not is_onboarding_email and not email_type:
+        logger.info(f"Email notification skipped (non-onboarding): {subject} to {to_email}")
+        return
+    
     if USE_ASYNC_NOTIFICATIONS and async_notification_service:
         async_notification_service.queue_email(
             to_email=to_email,
