@@ -91,8 +91,13 @@ function checkMagicLinkAuth() {
 axios.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('token');
+    const useCookieAuth = localStorage.getItem('use_cookie_auth');
+    
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
+    } else if (useCookieAuth) {
+      // For cookie-based auth, ensure cookies are sent with requests
+      config.withCredentials = true;
     }
     return config;
   },
@@ -105,6 +110,7 @@ axios.interceptors.response.use(
     if (error.response?.status === 401) {
       localStorage.removeItem('token');
       localStorage.removeItem('user');
+      localStorage.removeItem('use_cookie_auth');
       window.location.href = '/';
     }
     return Promise.reject(error);
