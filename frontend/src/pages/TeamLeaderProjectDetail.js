@@ -801,6 +801,149 @@ export default function TeamLeaderProjectDetail({ user, onLogout }) {
           </div>
         )}
 
+        {/* ALL DRAWINGS TAB */}
+        {activeSection === 'all' && (
+          <div className="space-y-4">
+            {drawings.length === 0 ? (
+              <div className="text-center py-12 bg-slate-50 rounded-lg">
+                <FileText className="w-12 h-12 text-slate-300 mx-auto mb-3" />
+                <p className="text-slate-500">No drawings in this project</p>
+                <p className="text-xs text-slate-400">Drawings will appear here once added</p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {/* Group drawings by category */}
+                {Object.entries(
+                  drawings.reduce((acc, drawing) => {
+                    const category = drawing.category || 'Uncategorized';
+                    if (!acc[category]) acc[category] = [];
+                    acc[category].push(drawing);
+                    return acc;
+                  }, {})
+                ).map(([category, categoryDrawings]) => (
+                  <Card key={category}>
+                    <CardHeader 
+                      className="pb-2 cursor-pointer"
+                      onClick={() => toggleCategory(category)}
+                    >
+                      <CardTitle className="text-sm flex items-center justify-between">
+                        <span className="flex items-center gap-2">
+                          <FileText className="w-4 h-4 text-slate-600" />
+                          {category}
+                          <Badge variant="outline" className="ml-2">
+                            {categoryDrawings.length}
+                          </Badge>
+                        </span>
+                        {expandedCategories[category] ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                      </CardTitle>
+                    </CardHeader>
+                    {expandedCategories[category] && (
+                      <CardContent className="space-y-2">
+                        {categoryDrawings.map(drawing => (
+                          <div key={drawing.id} className="p-3 rounded-lg border flex items-center justify-between">
+                            <div className="flex-1 min-w-0 mr-2">
+                              <div className="flex items-center gap-2 mb-1">
+                                <p className="font-medium text-sm truncate">{drawing.name}</p>
+                                {/* Status badges */}
+                                {drawing.is_not_applicable && (
+                                  <Badge variant="outline" className="text-xs bg-slate-100 text-slate-500">N/A</Badge>
+                                )}
+                                {drawing.has_pending_revision && (
+                                  <Badge variant="destructive" className="text-xs">Revision Required</Badge>
+                                )}
+                                {drawing.under_review && !drawing.is_approved && !drawing.has_pending_revision && (
+                                  <Badge variant="outline" className="text-xs bg-amber-100 text-amber-700">Under Review</Badge>
+                                )}
+                                {drawing.is_approved && !drawing.is_issued && (
+                                  <Badge variant="outline" className="text-xs bg-green-100 text-green-700">Ready to Issue</Badge>
+                                )}
+                                {drawing.is_issued && (
+                                  <Badge variant="outline" className="text-xs bg-blue-100 text-blue-700">Issued</Badge>
+                                )}
+                                {!drawing.file_url && !drawing.is_issued && !drawing.has_pending_revision && !drawing.is_not_applicable && (
+                                  <Badge variant="outline" className="text-xs bg-slate-100 text-slate-600">Not Started</Badge>
+                                )}
+                              </div>
+                              <div className="flex items-center gap-4 text-xs text-slate-500">
+                                {drawing.current_revision && (
+                                  <span>Rev {drawing.current_revision}</span>
+                                )}
+                                {drawing.issued_date && (
+                                  <span>Issued: {formatDate(drawing.issued_date)}</span>
+                                )}
+                                {drawing.updated_at && (
+                                  <span>Updated: {formatDate(drawing.updated_at)}</span>
+                                )}
+                              </div>
+                            </div>
+                            <div className="flex gap-1 shrink-0">
+                              {drawing.file_url && (
+                                <>
+                                  <Button size="sm" variant="ghost" onClick={() => handleViewDrawing(drawing)} title="View">
+                                    <Eye className="w-4 h-4" />
+                                  </Button>
+                                  <Button size="sm" variant="ghost" onClick={() => handleDownloadDrawing(drawing)} title="Download">
+                                    <Download className="w-4 h-4" />
+                                  </Button>
+                                </>
+                              )}
+                              {/* Action buttons based on status */}
+                              {drawing.has_pending_revision && (
+                                <Button
+                                  size="sm"
+                                  onClick={() => {
+                                    setSelectedDrawing(drawing);
+                                    setUploadType('revision');
+                                    setUploadDialogOpen(true);
+                                  }}
+                                  className="bg-red-600 hover:bg-red-700"
+                                >
+                                  <Upload className="w-4 h-4 mr-1" />
+                                  Upload
+                                </Button>
+                              )}
+                              {drawing.under_review && !drawing.is_approved && !drawing.has_pending_revision && (
+                                <Button size="sm" onClick={() => handleApproveDrawing(drawing)} className="bg-green-600 hover:bg-green-700">
+                                  <Check className="w-4 h-4 mr-1" />
+                                  Approve
+                                </Button>
+                              )}
+                              {drawing.is_approved && !drawing.is_issued && (
+                                <Button 
+                                  size="sm" 
+                                  className="bg-blue-600 hover:bg-blue-700"
+                                  onClick={() => {
+                                    setDrawingToIssue(drawing);
+                                    setIssueDialogOpen(true);
+                                  }}
+                                >
+                                  Issue
+                                </Button>
+                              )}
+                              {!drawing.file_url && !drawing.is_issued && !drawing.has_pending_revision && !drawing.is_not_applicable && (
+                                <Button
+                                  size="sm"
+                                  onClick={() => {
+                                    setSelectedDrawing(drawing);
+                                    setUploadType('new');
+                                    setUploadDialogOpen(true);
+                                  }}
+                                >
+                                  <Upload className="w-4 h-4 mr-1" />
+                                  Upload
+                                </Button>
+                              )}
+                            </div>
+                          </div>
+                        ))}
+                      </CardContent>
+                    )}
+                  </Card>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
         {/* ISSUED DRAWINGS TAB */}
         {activeSection === 'issued' && (
           <div className="space-y-4">
