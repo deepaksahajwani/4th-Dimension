@@ -152,20 +152,24 @@ export default function DrawingReviewPage({ user, onLogout }) {
     setSubmitting(true);
     try {
       const token = localStorage.getItem('token');
-      const headers = token ? { Authorization: `Bearer ${token}` } : {};
+      const useCookieAuth = localStorage.getItem('use_cookie_auth');
+      const config = {
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+        withCredentials: useCookieAuth ? true : false
+      };
       
       // Add comment with revision flag
       await axios.post(`${API}/drawings/${drawingId}/comments`, {
         text: newComment,
         requires_revision: true
-      }, { headers });
+      }, config);
       
       // Update drawing status
       await axios.put(`${API}/drawings/${drawingId}`, {
         has_pending_revision: true,
         under_review: false,
         is_approved: false
-      }, { headers });
+      }, config);
       
       toast.success('Revision requested');
       setActionTaken(true);
