@@ -1349,7 +1349,7 @@ export default function OwnerDashboard({ user, onLogout }) {
                         <div className="flex items-center gap-4 text-xs text-slate-600">
                           <span className="flex items-center gap-1">
                             <FileText className="w-3 h-3" />
-                            {project.completedDrawings}/{project.totalDrawings} drawings
+                            {project.completedDrawings} issued
                           </span>
                           {project.overdueDrawings > 0 && (
                             <span className="flex items-center gap-1 text-red-600 font-medium">
