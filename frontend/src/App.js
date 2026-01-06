@@ -257,6 +257,7 @@ function App() {
     } finally {
       localStorage.removeItem('token');
       localStorage.removeItem('user');
+      localStorage.removeItem('use_cookie_auth');
       setUser(null);
       window.location.href = '/';
     }
