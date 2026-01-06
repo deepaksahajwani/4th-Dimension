@@ -1342,6 +1342,94 @@ export default function TeamLeaderProjectDetail({ user, onLogout }) {
             </DialogFooter>
           </DialogContent>
         </Dialog>
+
+        {/* Add New Drawing Dialog */}
+        <Dialog open={addDrawingDialogOpen} onOpenChange={setAddDrawingDialogOpen}>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <Plus className="w-5 h-5 text-orange-600" />
+                Add New Drawing
+              </DialogTitle>
+            </DialogHeader>
+            
+            <div className="space-y-4 py-4">
+              <div className="space-y-2">
+                <Label>Drawing Name *</Label>
+                <Input
+                  value={newDrawingName}
+                  onChange={(e) => setNewDrawingName(e.target.value)}
+                  placeholder="e.g., Kitchen Detail Layout"
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label>Category *</Label>
+                <select
+                  value={newDrawingCategory}
+                  onChange={(e) => setNewDrawingCategory(e.target.value)}
+                  className="w-full border rounded-lg p-2 text-sm"
+                >
+                  <option value="">Select category...</option>
+                  {project?.project_types?.map(type => (
+                    <option key={type} value={type}>{type}</option>
+                  ))}
+                </select>
+              </div>
+              
+              <div className="space-y-2">
+                <Label>Upload Drawing File (Optional)</Label>
+                <div 
+                  className="border-2 border-dashed border-slate-200 rounded-lg p-4 text-center cursor-pointer hover:border-orange-300 transition-colors"
+                  onClick={() => document.getElementById('newDrawingFileInput').click()}
+                >
+                  {newDrawingFiles.length > 0 ? (
+                    <div className="space-y-1">
+                      {newDrawingFiles.map((file, idx) => (
+                        <p key={idx} className="text-sm text-slate-700">{file.name}</p>
+                      ))}
+                    </div>
+                  ) : (
+                    <>
+                      <Upload className="w-8 h-8 mx-auto text-slate-400 mb-2" />
+                      <p className="text-sm text-slate-500">Click to select PDF files</p>
+                      <p className="text-xs text-slate-400">Or leave empty to add drawing without file</p>
+                    </>
+                  )}
+                </div>
+                <input
+                  id="newDrawingFileInput"
+                  type="file"
+                  accept=".pdf"
+                  multiple
+                  className="hidden"
+                  onChange={(e) => setNewDrawingFiles(Array.from(e.target.files || []))}
+                />
+              </div>
+            </div>
+            
+            <DialogFooter>
+              <Button 
+                variant="outline" 
+                onClick={() => {
+                  setAddDrawingDialogOpen(false);
+                  setNewDrawingName('');
+                  setNewDrawingCategory('');
+                  setNewDrawingFiles([]);
+                }}
+              >
+                Cancel
+              </Button>
+              <Button 
+                onClick={handleAddNewDrawing}
+                disabled={addingDrawing || !newDrawingName.trim() || !newDrawingCategory}
+                className="bg-orange-500 hover:bg-orange-600"
+              >
+                {addingDrawing ? 'Adding...' : 'Add Drawing'}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
     </Layout>
   );
