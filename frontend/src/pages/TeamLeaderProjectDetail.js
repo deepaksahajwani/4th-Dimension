@@ -792,7 +792,7 @@ export default function TeamLeaderProjectDetail({ user, onLogout }) {
                     <CardTitle className="text-sm flex items-center justify-between">
                       <span className="flex items-center gap-2">
                         <Image className="w-4 h-4 text-purple-600" />
-                        {category} ({images.length})
+                        {category}
                       </span>
                       {expandedCategories[category] ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
                     </CardTitle>
