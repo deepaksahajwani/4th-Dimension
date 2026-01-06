@@ -561,12 +561,13 @@ async def notify_project_creation(project_id: str):
         </html>
         """
         
-        if client and client.get('email'):
-            await notification_service.send_email(
-                to_email=client['email'],
-                subject=email_subject,
-                html_content=email_html
-            )
+        # Email notifications disabled - WhatsApp/SMS only for non-onboarding
+        # if client and client.get('email'):
+        #     await notification_service.send_email(
+        #         to_email=client['email'],
+        #         subject=email_subject,
+        #         html_content=email_html
+        #     )
         
         # Send to TEAM LEADER using TEMPLATE
         if team_leader and team_leader.get('mobile'):
