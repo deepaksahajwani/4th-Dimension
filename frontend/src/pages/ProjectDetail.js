@@ -1863,7 +1863,7 @@ export default function ProjectDetail({ user, onLogout }) {
                     <CheckCircle2 className="w-5 h-5 text-green-600" />
                     <div>
                       <p className="text-sm font-medium text-green-900">
-                        {getCompletedDrawings().length} drawings completed
+                        Drawings completed
                       </p>
                       <p className="text-xs text-green-700">View all in &quot;All Drawings&quot; tab</p>
                     </div>
