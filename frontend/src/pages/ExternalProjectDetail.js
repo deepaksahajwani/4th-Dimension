@@ -444,7 +444,12 @@ export default function ExternalProjectDetail({ user, onLogout }) {
                 <p className="text-center text-slate-500 py-8">No drawings uploaded yet</p>
               ) : (
                 <div className="space-y-3">
-                  {drawings.filter(d => d.is_issued).map((drawing) => (
+                  {[...drawings.filter(d => d.is_issued)].sort((a, b) => {
+                    // Sort by issued_date descending (newest first)
+                    const dateA = a.issued_date ? new Date(a.issued_date) : new Date(0);
+                    const dateB = b.issued_date ? new Date(b.issued_date) : new Date(0);
+                    return dateB - dateA;
+                  }).map((drawing) => (
                     <div 
                       key={drawing.id}
                       className="flex items-center justify-between p-3 bg-slate-50 rounded-lg"
