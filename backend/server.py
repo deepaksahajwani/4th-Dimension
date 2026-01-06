@@ -412,8 +412,20 @@ def verify_password(plain_password, hashed_password):
 def get_password_hash(password):
     return pwd_context.hash(password)
 
-async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(security)):
-    token = credentials.credentials
+async def get_current_user(
+    credentials: HTTPAuthorizationCredentials = Depends(security),
+    auth_token: str = Cookie(None)
+):
+    # Try Bearer token first, then fall back to cookie
+    token = None
+    
+    if credentials and credentials.credentials:
+        token = credentials.credentials
+    elif auth_token:
+        token = auth_token
+    
+    if not token:
+        raise HTTPException(status_code=401, detail="Authentication required")
     
     try:
         # Check if it's a JWT token
