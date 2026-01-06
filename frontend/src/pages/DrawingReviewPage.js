@@ -44,24 +44,30 @@ export default function DrawingReviewPage({ user, onLogout }) {
 
   const fetchData = async () => {
     try {
-      // Get token if available - for magic link users, auth is via httponly cookie (sent automatically)
+      // Get token if available - for magic link users, auth is via httponly cookie
       const token = localStorage.getItem('token');
-      const headers = token ? { Authorization: `Bearer ${token}` } : {};
+      const useCookieAuth = localStorage.getItem('use_cookie_auth');
+      
+      // Build request config - include withCredentials for cookie-based auth
+      const config = {
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+        withCredentials: useCookieAuth ? true : false
+      };
 
       // Fetch project
-      const projectRes = await axios.get(`${API}/projects/${projectId}`, { headers });
+      const projectRes = await axios.get(`${API}/projects/${projectId}`, config);
       setProject(projectRes.data);
 
       if (drawingId) {
         // Fetch specific drawing
-        const drawingsRes = await axios.get(`${API}/projects/${projectId}/drawings`, { headers });
+        const drawingsRes = await axios.get(`${API}/projects/${projectId}/drawings`, config);
         const drawing = drawingsRes.data.find(d => d.id === drawingId);
         if (drawing) {
           setItem(drawing);
           setItemType('drawing');
           // Fetch comments for this drawing
           try {
-            const commentsRes = await axios.get(`${API}/drawings/${drawingId}/comments`, { headers });
+            const commentsRes = await axios.get(`${API}/drawings/${drawingId}/comments`, config);
             setComments(commentsRes.data || []);
           } catch (e) {
             setComments([]);
