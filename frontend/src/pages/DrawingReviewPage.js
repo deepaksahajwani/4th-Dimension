@@ -188,18 +188,22 @@ export default function DrawingReviewPage({ user, onLogout }) {
     setSubmitting(true);
     try {
       const token = localStorage.getItem('token');
-      const headers = token ? { Authorization: `Bearer ${token}` } : {};
+      const useCookieAuth = localStorage.getItem('use_cookie_auth');
+      const config = {
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+        withCredentials: useCookieAuth ? true : false
+      };
       
       if (itemType === 'drawing') {
         await axios.post(`${API}/drawings/${drawingId}/comments`, {
           text: newComment
-        }, { headers });
+        }, config);
       } else {
         // For 3D images - add to project comments
         await axios.post(`${API}/projects/${projectId}/comments`, {
           text: newComment,
           image_id: imageId
-        }, { headers });
+        }, config);
       }
       
       toast.success('Comment added');
