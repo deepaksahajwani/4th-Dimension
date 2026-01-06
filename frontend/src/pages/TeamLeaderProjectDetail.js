@@ -628,7 +628,7 @@ export default function TeamLeaderProjectDetail({ user, onLogout }) {
                 <CardHeader className="pb-2">
                   <CardTitle className="text-sm flex items-center gap-2 text-green-700">
                     <Check className="w-4 h-4" />
-                    Ready to Issue ({readyToIssue.length})
+                    Ready to Issue
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-2">
