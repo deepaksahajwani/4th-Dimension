@@ -1519,11 +1519,12 @@ View project details: {APP_URL}
             </html>
             """
             
-            await notification_service.send_email(
-                to_email=person_email,
-                subject=email_subject,
-                html_content=email_html
-            )
+            # Email notifications disabled - WhatsApp/SMS only for non-onboarding
+            # await notification_service.send_email(
+            #     to_email=person_email,
+            #     subject=email_subject,
+            #     html_content=email_html
+            # )
         
         logger.info(f"Project assignment notification sent to {person_name} ({person_type})")
         
