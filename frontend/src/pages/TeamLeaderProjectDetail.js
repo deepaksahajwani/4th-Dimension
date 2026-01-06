@@ -1007,30 +1007,79 @@ export default function TeamLeaderProjectDetail({ user, onLogout }) {
                     const dateB = b.issued_date ? new Date(b.issued_date) : new Date(0);
                     return dateB - dateA;
                   }).map(drawing => (
-                    <div key={drawing.id} className="bg-green-50 p-3 rounded-lg flex items-center justify-between">
-                      <div className="flex-1 min-w-0 mr-2">
-                        <p className="font-medium text-sm truncate">{drawing.name}</p>
-                        <p className="text-xs text-slate-500">{drawing.category} • Rev {drawing.current_revision || 0}</p>
-                        {drawing.issued_date && (
-                          <p className="text-xs text-green-600">Issued: {formatDate(drawing.issued_date)}</p>
-                        )}
+                    <div key={drawing.id} className="bg-green-50 p-3 rounded-lg">
+                      <div className="flex items-center justify-between">
+                        <div className="flex-1 min-w-0 mr-2">
+                          <p className="font-medium text-sm truncate">{drawing.name}</p>
+                          <p className="text-xs text-slate-500">{drawing.category} • Rev {drawing.current_revision || 0}</p>
+                          {drawing.issued_date && (
+                            <p className="text-xs text-green-600">Issued: {formatDate(drawing.issued_date)}</p>
+                          )}
+                        </div>
+                        <div className="flex gap-1 shrink-0">
+                          <Button size="sm" variant="ghost" onClick={() => handleViewDrawing(drawing)} title="View">
+                            <Eye className="w-4 h-4" />
+                          </Button>
+                          <Button size="sm" variant="ghost" onClick={() => handleDownloadDrawing(drawing)} title="Download">
+                            <Download className="w-4 h-4" />
+                          </Button>
+                          <Button 
+                            size="sm" 
+                            variant="ghost" 
+                            onClick={() => navigate(`/projects/${projectId}/drawing/${drawing.id}`)} 
+                            title="View Details & Comments"
+                          >
+                            <MessageSquare className="w-4 h-4" />
+                          </Button>
+                          <Button 
+                            size="sm" 
+                            variant="ghost"
+                            onClick={() => setShowRevisionHistory(prev => ({...prev, [drawing.id]: !prev[drawing.id]}))}
+                            title="Revision History"
+                          >
+                            <Clock className="w-4 h-4" />
+                          </Button>
+                          {/* Re-issue button - shown if drawing was revised after last issue */}
+                          {drawing.current_revision > 0 && (
+                            <Button 
+                              size="sm" 
+                              className="bg-blue-600 hover:bg-blue-700"
+                              onClick={() => {
+                                setDrawingToIssue(drawing);
+                                setIssueDialogOpen(true);
+                              }}
+                              title="Re-issue to recipients"
+                            >
+                              <RefreshCw className="w-4 h-4 mr-1" />
+                              Re-issue
+                            </Button>
+                          )}
+                        </div>
                       </div>
-                      <div className="flex gap-1 shrink-0">
-                        <Button size="sm" variant="ghost" onClick={() => handleViewDrawing(drawing)} title="View">
-                          <Eye className="w-4 h-4" />
-                        </Button>
-                        <Button size="sm" variant="ghost" onClick={() => handleDownloadDrawing(drawing)} title="Download">
-                          <Download className="w-4 h-4" />
-                        </Button>
-                        <Button 
-                          size="sm" 
-                          variant="ghost" 
-                          onClick={() => navigate(`/projects/${projectId}/drawing/${drawing.id}`)} 
-                          title="View Details & Comments"
-                        >
-                          <MessageSquare className="w-4 h-4" />
-                        </Button>
-                      </div>
+                      {/* Revision History Expandable */}
+                      {showRevisionHistory[drawing.id] && drawing.revision_history && drawing.revision_history.length > 0 && (
+                        <div className="mt-3 pt-3 border-t border-green-200">
+                          <p className="text-xs font-medium text-slate-600 mb-2">Revision History:</p>
+                          <div className="space-y-1">
+                            {drawing.revision_history.map((rev, idx) => (
+                              <div key={idx} className="flex items-center justify-between text-xs bg-white p-2 rounded">
+                                <span className="text-slate-600">Rev {rev.revision || idx}</span>
+                                <span className="text-slate-500">{rev.date ? formatDate(rev.date) : 'N/A'}</span>
+                                {rev.file_url && (
+                                  <Button 
+                                    size="sm" 
+                                    variant="ghost" 
+                                    className="h-6 px-2"
+                                    onClick={() => window.open(`${BACKEND_URL}${rev.file_url}`, '_blank')}
+                                  >
+                                    <Eye className="w-3 h-3" />
+                                  </Button>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
                     </div>
                   ))}
                 </CardContent>
