@@ -112,36 +112,34 @@ axios.interceptors.response.use(
 );
 
 function ProtectedRoute({ children }) {
-  // Check localStorage first
+  // Check localStorage first for regular token-based auth
   let token = localStorage.getItem('token');
   
-  // If no token in localStorage, check for magic link cookie and transfer it
-  if (!token) {
-    const authCookie = getCookie('auth_token');
-    const userInfoCookie = getCookie('user_info');
-    
-    if (authCookie && userInfoCookie) {
-      try {
-        // Store in localStorage for consistent auth handling
-        localStorage.setItem('token', authCookie);
-        const userInfo = JSON.parse(decodeURIComponent(userInfoCookie));
-        localStorage.setItem('user', JSON.stringify(userInfo));
-        
-        // Clear the cookies after transferring to localStorage
-        document.cookie = 'auth_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
-        document.cookie = 'user_info=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
-        
-        token = authCookie;
-      } catch (e) {
-        console.error('Error processing magic link auth in ProtectedRoute:', e);
-      }
+  // Check if we should use cookie-based auth (magic link)
+  const useCookieAuth = localStorage.getItem('use_cookie_auth');
+  const userInfoCookie = getCookie('user_info');
+  
+  // If no token in localStorage, check for magic link cookie auth
+  if (!token && userInfoCookie) {
+    try {
+      const userInfo = JSON.parse(decodeURIComponent(userInfoCookie));
+      localStorage.setItem('use_cookie_auth', 'true');
+      localStorage.setItem('user', JSON.stringify(userInfo));
+      
+      // For cookie-based auth, we don't have a token in localStorage
+      // but the httponly auth_token cookie will be sent with requests
+      return children;
+    } catch (e) {
+      console.error('Error processing magic link auth in ProtectedRoute:', e);
     }
   }
   
-  if (!token) {
-    return <Navigate to="/" replace />;
+  // Allow access if we have either a token or cookie-based auth
+  if (token || useCookieAuth) {
+    return children;
   }
-  return children;
+  
+  return <Navigate to="/" replace />;
 }
 
 function App() {
