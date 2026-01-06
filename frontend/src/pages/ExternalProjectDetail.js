@@ -49,6 +49,7 @@ export default function ExternalProjectDetail({ user, onLogout }) {
   const [loading, setLoading] = useState(true);
   const [activeSection, setActiveSection] = useState(null);
   const [expandedCategories, setExpandedCategories] = useState({});
+  const [searchQuery, setSearchQuery] = useState('');
   
   // Comments state
   const [showComments, setShowComments] = useState(false);
