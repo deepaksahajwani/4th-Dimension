@@ -303,51 +303,8 @@ async def send_immediate_approval_notification(
 Please review and approve: {deep_link}"""
                 await notification_service.send_whatsapp(owner['mobile'], whatsapp_message)
         
-        # 3. Send Email notification
-        if owner.get('email'):
-            email_subject = f"Drawing Approval Needed - {drawing_name}"
-            email_html = f"""
-            <html>
-                <head>
-                    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-                </head>
-                <body style="font-family: 'Segoe UI', Arial, sans-serif; line-height: 1.8; color: #1F2937; background-color: #F9FAFB; padding: 20px;">
-                    <div style="max-width: 650px; margin: 0 auto; background: white; padding: 40px; border-radius: 15px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
-                        <div style="text-align: center; margin-bottom: 30px;">
-                            <h1 style="color: #F59E0B; font-size: 28px; margin-bottom: 10px;">📤 Drawing Uploaded for Approval</h1>
-                            <p style="color: #6B7280; font-size: 16px;">Action Required</p>
-                        </div>
-                        
-                        <div style="background: #FEF3C7; padding: 25px; border-radius: 10px; margin: 25px 0; border-left: 4px solid #F59E0B;">
-                            <h3 style="color: #92400E; margin-top: 0;">Drawing Details:</h3>
-                            <p style="margin: 10px 0;"><strong>📁 Drawing:</strong> {drawing_name}</p>
-                            <p style="margin: 10px 0;"><strong>🏗️ Project:</strong> {project_name}</p>
-                            <p style="margin: 10px 0;"><strong>👤 Uploaded by:</strong> {uploaded_by_name}</p>
-                            <p style="margin: 10px 0;"><strong>📅 Time:</strong> {datetime.now(timezone.utc).strftime('%d %b %Y, %I:%M %p')}</p>
-                        </div>
-                        
-                        <p style="font-size: 16px; color: #374151;">Please review and approve this drawing at your earliest convenience.</p>
-                        
-                        <div style="text-align: center; margin: 30px 0;">
-                            <a href="{deep_link}" style="display: inline-block; background: #F59E0B; color: white; padding: 15px 40px; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 16px;">
-                                View & Approve Drawing
-                            </a>
-                        </div>
-                        
-                        <p style="font-size: 14px; color: #6B7280; text-align: center;">
-                            ⏰ You will receive hourly reminders if this drawing is not approved within 6 hours.
-                        </p>
-                        
-                        <div style="margin-top: 40px; padding-top: 25px; border-top: 2px solid #E5E7EB; text-align: center; color: #6B7280; font-size: 13px;">
-                            <p style="margin: 5px 0;"><strong style="color: #4F46E5;">4th Dimension - Architecture & Design</strong></p>
-                        </div>
-                    </div>
-                </body>
-            </html>
-            """
-            
-            await notification_service.send_email(owner['email'], email_subject, email_html)
-            logger.info(f"Email approval notification sent for: {drawing_name}")
+        # Email notifications disabled - WhatsApp/SMS only
+        # (Email only for OTP, registration, and welcome messages)
         
         # Mark the upload time for reminder tracking
         await db.project_drawings.update_one(
