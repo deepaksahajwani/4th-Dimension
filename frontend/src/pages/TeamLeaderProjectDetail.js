@@ -813,6 +813,26 @@ export default function TeamLeaderProjectDetail({ user, onLogout }) {
                 Add New Drawing
               </Button>
             </div>
+
+            {/* Search Bar */}
+            <div className="relative mb-4">
+              <input
+                type="text"
+                placeholder="Search drawings by name..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full px-4 py-2 pl-10 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-orange-500"
+              />
+              <FileText className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-400" />
+              {searchQuery && (
+                <button
+                  onClick={() => setSearchQuery('')}
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              )}
+            </div>
             
             {drawings.length === 0 ? (
               <div className="text-center py-12 bg-slate-50 rounded-lg">
@@ -822,15 +842,29 @@ export default function TeamLeaderProjectDetail({ user, onLogout }) {
               </div>
             ) : (
               <div className="space-y-4">
-                {/* Group drawings by category */}
-                {Object.entries(
-                  drawings.reduce((acc, drawing) => {
-                    const category = drawing.category || 'Uncategorized';
-                    if (!acc[category]) acc[category] = [];
-                    acc[category].push(drawing);
-                    return acc;
-                  }, {})
-                ).map(([category, categoryDrawings]) => (
+                {/* Filter drawings by search query */}
+                {(() => {
+                  const filteredDrawings = searchQuery.trim() 
+                    ? drawings.filter(d => d.name.toLowerCase().includes(searchQuery.toLowerCase()))
+                    : drawings;
+                  
+                  if (filteredDrawings.length === 0) {
+                    return (
+                      <div className="text-center py-8 bg-slate-50 rounded-lg">
+                        <p className="text-slate-500">No drawings match "{searchQuery}"</p>
+                      </div>
+                    );
+                  }
+                  
+                  // Group filtered drawings by category
+                  return Object.entries(
+                    filteredDrawings.reduce((acc, drawing) => {
+                      const category = drawing.category || 'Uncategorized';
+                      if (!acc[category]) acc[category] = [];
+                      acc[category].push(drawing);
+                      return acc;
+                    }, {})
+                  ).map(([category, categoryDrawings]) => (
                   <Card key={category}>
                     <CardHeader 
                       className="pb-2 cursor-pointer"
