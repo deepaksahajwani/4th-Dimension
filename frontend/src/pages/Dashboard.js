@@ -370,7 +370,7 @@ export default function Dashboard({ user, onLogout }) {
               <CardHeader className="pb-3 sm:pb-4">
                 <CardTitle className="text-base sm:text-lg flex items-center gap-2">
                   <Calendar className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
-                  Upcoming Drawings ({upcomingDrawings.length})
+                  Upcoming Drawings
                 </CardTitle>
                 <p className="text-xs sm:text-sm text-slate-500 mt-1">
                   Prepare these in advance
