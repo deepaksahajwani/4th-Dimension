@@ -525,7 +525,6 @@ export default function ExternalProjectDetail({ user, onLogout }) {
                         <div className="flex items-center gap-2">
                           <Image className="w-4 h-4 text-purple-600" />
                           <span className="font-medium text-slate-900">{category}</span>
-                          <Badge variant="outline" className="text-xs">{images.length}</Badge>
                         </div>
                         {expandedCategories[category] ? (
                           <ChevronUp className="w-4 h-4 text-slate-500" />
