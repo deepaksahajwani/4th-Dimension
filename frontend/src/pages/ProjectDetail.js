@@ -1612,8 +1612,9 @@ export default function ProjectDetail({ user, onLogout }) {
 
         {/* Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid grid-cols-7 w-full">
+          <TabsList className="grid grid-cols-8 w-full">
             <TabsTrigger value="urgent" className="text-xs sm:text-sm">Urgent</TabsTrigger>
+            <TabsTrigger value="issued" className="text-xs sm:text-sm">Issued</TabsTrigger>
             <TabsTrigger value="drawings" className="text-xs sm:text-sm">All</TabsTrigger>
             <TabsTrigger value="chat" className="text-xs sm:text-sm relative">
               Chat
@@ -1628,6 +1629,60 @@ export default function ProjectDetail({ user, onLogout }) {
             <TabsTrigger value="team" className="text-xs sm:text-sm">Team</TabsTrigger>
             <TabsTrigger value="coclients" className="text-xs sm:text-sm">Co-Clients</TabsTrigger>
           </TabsList>
+
+          {/* Issued Drawings Tab */}
+          <TabsContent value="issued" className="mt-4 sm:mt-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-sm flex items-center gap-2">
+                  <Check className="w-4 h-4 text-green-600" />
+                  Issued Drawings
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {drawings.filter(d => d.is_issued && !d.is_not_applicable).length === 0 ? (
+                  <div className="text-center py-8 text-slate-500">
+                    <Check className="w-8 h-8 mx-auto mb-2 text-slate-300" />
+                    <p className="text-sm">No drawings issued yet</p>
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    {[...drawings.filter(d => d.is_issued && !d.is_not_applicable)]
+                      .sort((a, b) => {
+                        const dateA = a.issued_date ? new Date(a.issued_date) : new Date(0);
+                        const dateB = b.issued_date ? new Date(b.issued_date) : new Date(0);
+                        return dateB - dateA;
+                      })
+                      .map(drawing => (
+                        <div key={drawing.id} className="bg-green-50 p-3 rounded-lg flex items-center justify-between border border-green-100">
+                          <div className="flex-1 min-w-0 mr-2">
+                            <p className="font-medium text-sm truncate">{drawing.name}</p>
+                            <p className="text-xs text-slate-500">{drawing.category}</p>
+                            {drawing.issued_date && (
+                              <p className="text-xs text-green-600">
+                                Issued: {new Date(drawing.issued_date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
+                              </p>
+                            )}
+                          </div>
+                          <div className="flex gap-1 shrink-0">
+                            {drawing.file_url && (
+                              <>
+                                <Button size="sm" variant="ghost" onClick={() => handleViewDrawing(drawing)}>
+                                  <Eye className="w-4 h-4" />
+                                </Button>
+                                <Button size="sm" variant="ghost" onClick={() => handleDownloadDrawing(drawing)}>
+                                  <Download className="w-4 h-4" />
+                                </Button>
+                              </>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
 
           {/* Project Chat Tab - WhatsApp Style */}
           <TabsContent value="chat" className="mt-4 sm:mt-6">
