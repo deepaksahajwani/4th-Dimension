@@ -62,25 +62,28 @@ function getCookie(name) {
 
 // Helper function to check for magic link auth (cookie-based)
 function checkMagicLinkAuth() {
-  const authCookie = getCookie('auth_token');
+  // Check for user_info cookie (set by magic link - non-httponly)
   const userInfoCookie = getCookie('user_info');
   
-  if (authCookie && userInfoCookie) {
+  if (userInfoCookie) {
     try {
-      // Store in localStorage for consistent auth handling
-      localStorage.setItem('token', authCookie);
       const userInfo = JSON.parse(decodeURIComponent(userInfoCookie));
+      
+      // The auth_token cookie is httponly, so we can't read it directly
+      // But it will be sent automatically with API requests as a cookie
+      // We need to store a flag that tells the app to use cookie-based auth
+      localStorage.setItem('use_cookie_auth', 'true');
       localStorage.setItem('user', JSON.stringify(userInfo));
       
-      // Clear the cookies after transferring to localStorage
-      document.cookie = 'auth_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
-      document.cookie = 'user_info=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+      // Clear the user_info cookie after reading (optional - one-time read)
+      // document.cookie = 'user_info=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
       
       return userInfo;
     } catch (e) {
-      console.error('Error processing magic link auth:', e);
+      console.error('Error parsing magic link user info:', e);
     }
   }
+  
   return null;
 }
 
