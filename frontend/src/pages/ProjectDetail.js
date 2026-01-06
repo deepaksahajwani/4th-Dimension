@@ -48,6 +48,8 @@ export default function ProjectDetail({ user, onLogout }) {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('drawings');
   const [highlightedDrawingId, setHighlightedDrawingId] = useState(null);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [showRevisionHistory, setShowRevisionHistory] = useState({});
   
   // Drawing dialog states
   const [drawingDialogOpen, setDrawingDialogOpen] = useState(false);
