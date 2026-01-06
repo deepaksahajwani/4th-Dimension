@@ -441,16 +441,38 @@ export default function ExternalProjectDetail({ user, onLogout }) {
               </CardTitle>
             </CardHeader>
             <CardContent>
+              {/* Search Bar */}
+              <div className="relative mb-4">
+                <input
+                  type="text"
+                  placeholder="Search drawings..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full px-4 py-2 pl-10 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+                <FileText className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-400" />
+                {searchQuery && (
+                  <button
+                    onClick={() => setSearchQuery('')}
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                )}
+              </div>
+              
               {drawings.length === 0 ? (
                 <p className="text-center text-slate-500 py-8">No drawings uploaded yet</p>
               ) : (
                 <div className="space-y-3">
-                  {[...drawings.filter(d => d.is_issued)].sort((a, b) => {
-                    // Sort by issued_date descending (newest first)
-                    const dateA = a.issued_date ? new Date(a.issued_date) : new Date(0);
-                    const dateB = b.issued_date ? new Date(b.issued_date) : new Date(0);
-                    return dateB - dateA;
-                  }).map((drawing) => (
+                  {[...drawings.filter(d => d.is_issued)]
+                    .filter(d => !searchQuery.trim() || d.name.toLowerCase().includes(searchQuery.toLowerCase()))
+                    .sort((a, b) => {
+                      // Sort by issued_date descending (newest first)
+                      const dateA = a.issued_date ? new Date(a.issued_date) : new Date(0);
+                      const dateB = b.issued_date ? new Date(b.issued_date) : new Date(0);
+                      return dateB - dateA;
+                    }).map((drawing) => (
                     <div 
                       key={drawing.id}
                       className="flex items-center justify-between p-3 bg-slate-50 rounded-lg"
