@@ -118,12 +118,11 @@ export default function DrawingReviewPage({ user, onLogout }) {
     setSubmitting(true);
     try {
       const token = localStorage.getItem('token');
+      const headers = token ? { Authorization: `Bearer ${token}` } : {};
       await axios.put(`${API}/drawings/${drawingId}`, {
         is_approved: true,
         under_review: false
-      }, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      }, { headers });
       toast.success('Drawing approved!');
       setActionTaken(true);
       setItem(prev => ({ ...prev, is_approved: true, under_review: false }));
