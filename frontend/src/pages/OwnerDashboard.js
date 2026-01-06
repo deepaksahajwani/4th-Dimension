@@ -928,9 +928,9 @@ export default function OwnerDashboard({ user, onLogout }) {
 
                     <div className="grid grid-cols-2 gap-2 text-xs">
                       <div className="bg-white p-2 rounded">
-                        <span className="text-slate-600">Drawings:</span>
+                        <span className="text-slate-600">Issued:</span>
                         <span className="font-bold ml-1">
-                          {project.completedDrawings}/{project.totalDrawings}
+                          {project.completedDrawings}
                         </span>
                       </div>
                       
