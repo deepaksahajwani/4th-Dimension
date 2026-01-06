@@ -977,7 +977,8 @@ export default function TeamLeaderProjectDetail({ user, onLogout }) {
                       </CardContent>
                     )}
                   </Card>
-                ))}
+                ));
+                })()}
               </div>
             )}
           </div>
