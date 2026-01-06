@@ -582,7 +582,7 @@ export default function TeamLeaderProjectDetail({ user, onLogout }) {
 
         {/* Section Tabs */}
         <div className="flex gap-2 mb-4 overflow-x-auto pb-2">
-          {['drawings', 'issued', '3d', 'client', 'comments'].map((section) => (
+          {['upcoming', 'issued', 'all', '3d', 'client', 'comments'].map((section) => (
             <Button
               key={section}
               variant={activeSection === section ? 'default' : 'outline'}
@@ -590,8 +590,9 @@ export default function TeamLeaderProjectDetail({ user, onLogout }) {
               onClick={() => setActiveSection(section)}
               className={`shrink-0 relative ${activeSection === section ? 'bg-orange-500 hover:bg-orange-600' : ''}`}
             >
-              {section === 'drawings' && <FileText className="w-4 h-4 mr-1" />}
+              {section === 'upcoming' && <Clock className="w-4 h-4 mr-1" />}
               {section === 'issued' && <Check className="w-4 h-4 mr-1" />}
+              {section === 'all' && <FileText className="w-4 h-4 mr-1" />}
               {section === '3d' && <Image className="w-4 h-4 mr-1" />}
               {section === 'client' && <User className="w-4 h-4 mr-1" />}
               {section === 'comments' && (
@@ -604,8 +605,9 @@ export default function TeamLeaderProjectDetail({ user, onLogout }) {
                   )}
                 </div>
               )}
-              {section === 'drawings' ? 'Drawings' : 
+              {section === 'upcoming' ? 'Upcoming' : 
                section === 'issued' ? 'Issued' : 
+               section === 'all' ? 'All Drawings' :
                section === '3d' ? '3D' : 
                section === 'client' ? 'Client' : 
                'Comments'}
@@ -613,8 +615,8 @@ export default function TeamLeaderProjectDetail({ user, onLogout }) {
           ))}
         </div>
 
-        {/* DRAWINGS SECTION */}
-        {activeSection === 'drawings' && (
+        {/* UPCOMING DRAWINGS TAB */}
+        {activeSection === 'upcoming' && (
           <div className="space-y-4">
             {/* Pending Revisions - Red Alert */}
             {pendingRevisions.length > 0 && (
@@ -700,35 +702,46 @@ export default function TeamLeaderProjectDetail({ user, onLogout }) {
                         <p className="font-medium text-sm truncate">{drawing.name}</p>
                         <p className="text-xs text-slate-500">{drawing.category}</p>
                       </div>
-                      <Button size="sm" onClick={() => handleOpenIssueDialog(drawing)} className="bg-blue-600 hover:bg-blue-700 shrink-0">
-                        Issue
-                      </Button>
+                      <div className="flex gap-2 shrink-0">
+                        <Button size="sm" variant="outline" onClick={() => handleViewDrawing(drawing)}>
+                          <Eye className="w-4 h-4" />
+                        </Button>
+                        <Button 
+                          size="sm" 
+                          className="bg-green-600 hover:bg-green-700"
+                          onClick={() => {
+                            setDrawingToIssue(drawing);
+                            setIssueDialogOpen(true);
+                          }}
+                        >
+                          Issue
+                        </Button>
+                      </div>
                     </div>
                   ))}
                 </CardContent>
               </Card>
             )}
 
-            {/* Next Up - Only show next 3 drawings to work on */}
+            {/* Not Started - Need to Upload */}
             {notStarted.length > 0 && (
-              <Card className="border-orange-200">
+              <Card>
                 <CardHeader className="pb-2">
-                  <CardTitle className="text-sm flex items-center gap-2 text-orange-700">
+                  <CardTitle className="text-sm flex items-center gap-2 text-slate-700">
                     <FileText className="w-4 h-4" />
-                    Next Up
+                    Pending Upload
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-2">
-                  {notStarted.slice(0, 3).map(drawing => (
-                    <div key={drawing.id} className="bg-white p-3 rounded-lg flex items-center justify-between border border-orange-100">
+                  {notStarted.map(drawing => (
+                    <div key={drawing.id} className="bg-slate-50 p-3 rounded-lg flex items-center justify-between border border-slate-200">
                       <div className="flex-1 min-w-0 mr-2">
                         <p className="font-medium text-sm truncate">{drawing.name}</p>
                         <p className="text-xs text-slate-500">{drawing.category}</p>
                       </div>
-                      <div className="flex gap-1 shrink-0">
+                      <div className="flex gap-2 shrink-0">
                         <Button
                           size="sm"
-                          className="bg-orange-500 hover:bg-orange-600"
                           onClick={() => {
                             setSelectedDrawing(drawing);
                             setUploadType('new');
@@ -740,12 +753,12 @@ export default function TeamLeaderProjectDetail({ user, onLogout }) {
                         </Button>
                         <Button
                           size="sm"
-                          variant="outline"
+                          variant="ghost"
                           onClick={() => handleMarkAsNotApplicable(drawing.id)}
-                          className="text-slate-500 hover:text-slate-700"
                           title="Mark as Not Applicable"
+                          className="text-slate-400 hover:text-slate-600"
                         >
-                          N/A
+                          <X className="w-4 h-4" />
                         </Button>
                       </div>
                     </div>
@@ -775,6 +788,15 @@ export default function TeamLeaderProjectDetail({ user, onLogout }) {
                   )}
                 </CardContent>
               </Card>
+            )}
+
+            {/* Empty State */}
+            {pendingRevisions.length === 0 && underReview.length === 0 && readyToIssue.length === 0 && notStarted.length === 0 && (
+              <div className="text-center py-12 bg-slate-50 rounded-lg">
+                <Check className="w-12 h-12 text-green-500 mx-auto mb-3" />
+                <p className="text-slate-600 font-medium">All caught up!</p>
+                <p className="text-sm text-slate-500">No pending drawings to work on</p>
+              </div>
             )}
           </div>
         )}
