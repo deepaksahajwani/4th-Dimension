@@ -695,11 +695,6 @@ export default function TeamLeaderProjectDetail({ user, onLogout }) {
                       </div>
                     </div>
                   ))}
-                  {notStarted.length > 3 && (
-                    <p className="text-xs text-center text-slate-500 pt-2">
-                      +{notStarted.length - 3} more drawings will appear as you complete these
-                    </p>
-                  )}
                 </CardContent>
               </Card>
             )}
