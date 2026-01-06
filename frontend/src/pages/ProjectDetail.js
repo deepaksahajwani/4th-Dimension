@@ -1665,7 +1665,7 @@ export default function ProjectDetail({ user, onLogout }) {
                   <CardHeader className="pb-2">
                     <CardTitle className="text-sm flex items-center gap-2 text-amber-700">
                       <Clock className="w-4 h-4" />
-                      Pending Approval ({pendingApproval.length})
+                      Pending Approval
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-2">
