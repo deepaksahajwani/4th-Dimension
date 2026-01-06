@@ -493,6 +493,36 @@ export default function OwnerDashboard({ user, onLogout }) {
             </div>
           </div>
         </div>
+
+        {/* PENDING APPROVALS - Primary Action Card */}
+        {pendingApprovals.length > 0 && (
+          <div 
+            onClick={() => setPendingApprovalsDialogOpen(true)}
+            className="bg-gradient-to-r from-orange-500 to-orange-600 rounded-xl shadow-lg p-6 mb-6 cursor-pointer transition-all hover:shadow-xl hover:scale-[1.01]"
+          >
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <div className="bg-white/20 rounded-full p-3">
+                  <FileText className="w-8 h-8 text-white" />
+                </div>
+                <div>
+                  <h2 className="text-xl font-bold text-white">Drawings Pending Your Approval</h2>
+                  <p className="text-orange-100 text-sm mt-1">
+                    {pendingApprovals.length} drawing{pendingApprovals.length > 1 ? 's' : ''} awaiting review
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center gap-3">
+                <div className="text-right">
+                  <p className="text-4xl font-bold text-white">{pendingApprovals.length}</p>
+                  <p className="text-orange-100 text-xs">Click to Review</p>
+                </div>
+                <CheckCircle2 className="w-10 h-10 text-white/80" />
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Quick Stats */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
           <div 
