@@ -838,9 +838,6 @@ export default function TeamLeaderProjectDetail({ user, onLogout }) {
                         <span className="flex items-center gap-2">
                           <FileText className="w-4 h-4 text-slate-600" />
                           {category}
-                          <Badge variant="outline" className="ml-2">
-                            {categoryDrawings.length}
-                          </Badge>
                         </span>
                         {expandedCategories[category] ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
                       </CardTitle>
