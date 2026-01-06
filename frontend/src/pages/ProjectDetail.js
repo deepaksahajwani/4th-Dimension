@@ -18,7 +18,7 @@ import {
 import { 
   ArrowLeft, Plus, CheckCircle2, Circle, AlertCircle, Check,
   Calendar, Edit, Trash2, FileText, Users, Clock, MessageSquare, Send, Upload, X, 
-  Download, Eye, ChevronDown, Mic, Square, Play, Pause, Phone, Mail, Building, HardHat, Briefcase
+  Download, Eye, ChevronDown, Mic, Square, Play, Pause, Phone, Mail, Building, HardHat, Briefcase, RefreshCw
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { formatErrorMessage } from '@/utils/errorHandler';
