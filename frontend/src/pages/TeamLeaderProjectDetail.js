@@ -709,10 +709,7 @@ export default function TeamLeaderProjectDetail({ user, onLogout }) {
                         <Button 
                           size="sm" 
                           className="bg-green-600 hover:bg-green-700"
-                          onClick={() => {
-                            setDrawingToIssue(drawing);
-                            setIssueDialogOpen(true);
-                          }}
+                          onClick={() => handleOpenIssueDialog(drawing)}
                         >
                           Issue
                         </Button>
