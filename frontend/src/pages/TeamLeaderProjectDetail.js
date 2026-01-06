@@ -57,6 +57,8 @@ export default function TeamLeaderProjectDetail({ user, onLogout }) {
   const [loading, setLoading] = useState(true);
   const [activeSection, setActiveSection] = useState('upcoming');
   const [expandedCategories, setExpandedCategories] = useState({});
+  const [searchQuery, setSearchQuery] = useState('');
+  const [showRevisionHistory, setShowRevisionHistory] = useState({});
   
   // Dialog states
   const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
