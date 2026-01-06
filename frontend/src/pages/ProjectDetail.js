@@ -1923,7 +1923,6 @@ export default function ProjectDetail({ user, onLogout }) {
                   <div className="flex items-center gap-3 mb-4">
                     <FileText className="w-5 h-5 text-orange-500" />
                     <h3 className="text-xl font-semibold text-slate-900">{category}</h3>
-                    <span className="text-sm text-slate-500">({categoryDrawings.length})</span>
                   </div>
                   
                   {categoryDrawings.length > 0 ? (
