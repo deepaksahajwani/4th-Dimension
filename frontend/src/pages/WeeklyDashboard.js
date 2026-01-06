@@ -331,7 +331,7 @@ export default function WeeklyDashboard({ user, onLogout }) {
                   {/* Drawings List */}
                   <div className="p-4">
                     <div className="text-sm text-slate-600 mb-3">
-                      {project.completed_points} of {project.total_points} points • {project.drawings.length} drawings
+                      {project.completed_points} of {project.total_points} points
                     </div>
                     
                     <div className="space-y-2">
