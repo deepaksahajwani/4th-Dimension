@@ -482,7 +482,7 @@ export default function ExternalProjectDetail({ user, onLogout }) {
                   ))}
                   {drawings.filter(d => !d.is_issued).length > 0 && (
                     <p className="text-xs text-slate-400 text-center pt-2">
-                      {drawings.filter(d => !d.is_issued).length} drawings pending issue
+                      More drawings coming soon
                     </p>
                   )}
                 </div>
