@@ -801,6 +801,17 @@ export default function TeamLeaderProjectDetail({ user, onLogout }) {
         {/* ALL DRAWINGS TAB */}
         {activeSection === 'all' && (
           <div className="space-y-4">
+            {/* Add New Drawing Button */}
+            <div className="flex justify-end">
+              <Button
+                onClick={() => setAddDrawingDialogOpen(true)}
+                className="bg-orange-500 hover:bg-orange-600"
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                Add New Drawing
+              </Button>
+            </div>
+            
             {drawings.length === 0 ? (
               <div className="text-center py-12 bg-slate-50 rounded-lg">
                 <FileText className="w-12 h-12 text-slate-300 mx-auto mb-3" />
