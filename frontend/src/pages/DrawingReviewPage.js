@@ -44,8 +44,9 @@ export default function DrawingReviewPage({ user, onLogout }) {
 
   const fetchData = async () => {
     try {
+      // Get token if available - for magic link users, auth is via httponly cookie (sent automatically)
       const token = localStorage.getItem('token');
-      const headers = { Authorization: `Bearer ${token}` };
+      const headers = token ? { Authorization: `Bearer ${token}` } : {};
 
       // Fetch project
       const projectRes = await axios.get(`${API}/projects/${projectId}`, { headers });
