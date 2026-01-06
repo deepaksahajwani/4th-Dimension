@@ -160,6 +160,16 @@ export default function OwnerDashboard({ user, onLogout }) {
       );
       setTeamMembers(approvedMembers);
       
+      // Fetch pending approval drawings
+      try {
+        const pendingRes = await axios.get(`${API}/api/drawings/pending-approval`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        setPendingApprovals(pendingRes.data);
+      } catch (pendingError) {
+        console.warn('Could not fetch pending approvals:', pendingError);
+      }
+      
       // Fetch system metrics (Phase 5)
       try {
         const metricsRes = await axios.get(`${API}/api/metrics/overview`, {
