@@ -698,7 +698,7 @@ export default function TeamLeaderProjectDetail({ user, onLogout }) {
                 <CardHeader className="pb-2">
                   <CardTitle className="text-sm flex items-center gap-2 text-slate-500">
                     <X className="w-4 h-4" />
-                    Not Applicable ({notApplicable.length})
+                    Not Applicable
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-2">
@@ -709,7 +709,7 @@ export default function TeamLeaderProjectDetail({ user, onLogout }) {
                     </div>
                   ))}
                   {notApplicable.length > 3 && (
-                    <p className="text-xs text-center text-slate-400">+{notApplicable.length - 3} more</p>
+                    <p className="text-xs text-center text-slate-400">and more...</p>
                   )}
                 </CardContent>
               </Card>
