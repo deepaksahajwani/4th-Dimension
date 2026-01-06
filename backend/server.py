@@ -49,7 +49,7 @@ db = client[os.environ['DB_NAME']]
 
 # Security
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-security = HTTPBearer()
+security = HTTPBearer(auto_error=False)  # Don't auto-error - allow cookie auth fallback
 
 # JWT settings
 JWT_SECRET_KEY = os.environ.get('JWT_SECRET_KEY', 'your-secret-key')
