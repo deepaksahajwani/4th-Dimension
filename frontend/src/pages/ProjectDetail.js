@@ -2023,9 +2023,34 @@ export default function ProjectDetail({ user, onLogout }) {
               )}
             </div>
 
+            {/* Search Bar */}
+            <div className="relative mb-4">
+              <input
+                type="text"
+                placeholder="Search drawings by name..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full px-4 py-2 pl-10 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-orange-500"
+              />
+              <FileText className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-400" />
+              {searchQuery && (
+                <button
+                  onClick={() => setSearchQuery('')}
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              )}
+            </div>
+
             {/* Drawings by Category */}
             {DRAWING_CATEGORIES.filter(cat => project.project_types?.includes(cat)).map((category) => {
-              const categoryDrawings = getDrawingsByCategory(category);
+              const allCategoryDrawings = getDrawingsByCategory(category);
+              const categoryDrawings = searchQuery.trim() 
+                ? allCategoryDrawings.filter(d => d.name.toLowerCase().includes(searchQuery.toLowerCase()))
+                : allCategoryDrawings;
+              
+              if (searchQuery.trim() && categoryDrawings.length === 0) return null;
               
               return (
                 <div key={category} className="mb-8">
