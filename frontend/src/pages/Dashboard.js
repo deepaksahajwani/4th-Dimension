@@ -235,7 +235,7 @@ export default function Dashboard({ user, onLogout }) {
                 <Calendar className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
               </div>
               <div className="text-xl sm:text-2xl lg:text-3xl font-bold text-slate-900">
-                {upcomingDrawings.length}
+                -
               </div>
               <p className="text-[10px] sm:text-xs text-slate-500 mt-1">Prepare in advance</p>
             </CardContent>
