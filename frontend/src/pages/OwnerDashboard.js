@@ -30,14 +30,21 @@ import {
   Activity,
   HardDrive,
   Bell,
-  BarChart3
+  BarChart3,
+  Eye,
+  Download,
+  RefreshCw,
+  Check
 } from 'lucide-react';
 import { Button } from '../components/ui/button';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '../components/ui/dialog';
 import { Textarea } from '../components/ui/textarea';
 import { Label } from '../components/ui/label';
+import { Badge } from '../components/ui/badge';
+import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 
 const API = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8001';
+const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8001';
 
 export default function OwnerDashboard({ user, onLogout }) {
   const navigate = useNavigate();
@@ -53,6 +60,13 @@ export default function OwnerDashboard({ user, onLogout }) {
   // System Metrics (Phase 5)
   const [systemMetrics, setSystemMetrics] = useState(null);
   const [showMetrics, setShowMetrics] = useState(false);
+  
+  // Pending Approvals
+  const [pendingApprovals, setPendingApprovals] = useState([]);
+  const [pendingApprovalsDialogOpen, setPendingApprovalsDialogOpen] = useState(false);
+  const [selectedDrawingForAction, setSelectedDrawingForAction] = useState(null);
+  const [revisionComment, setRevisionComment] = useState('');
+  const [actionLoading, setActionLoading] = useState(false);
   
   // Quick assign dialog
   const [assignDialogOpen, setAssignDialogOpen] = useState(false);
