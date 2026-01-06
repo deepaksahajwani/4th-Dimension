@@ -3065,6 +3065,56 @@ async def get_project_drawings(
     return drawings
 
 
+@api_router.get("/drawings/pending-approval")
+async def get_pending_approval_drawings(
+    current_user: User = Depends(require_owner)
+):
+    """
+    Get all drawings pending owner approval across all projects.
+    Only accessible by owner.
+    """
+    # Find all drawings that are under_review=True and not yet approved/issued
+    pending_drawings = await db.project_drawings.find(
+        {
+            "under_review": True,
+            "is_approved": {"$ne": True},
+            "is_issued": {"$ne": True},
+            "deleted_at": None
+        },
+        {"_id": 0}
+    ).to_list(1000)
+    
+    # Enrich with project info
+    result = []
+    for drawing in pending_drawings:
+        project = await db.projects.find_one(
+            {"id": drawing.get("project_id")},
+            {"_id": 0, "id": 1, "title": 1, "code": 1, "client_name": 1}
+        )
+        
+        drawing_data = {
+            **drawing,
+            "project_title": project.get("title") if project else "Unknown Project",
+            "project_code": project.get("code") if project else "",
+            "client_name": project.get("client_name") if project else ""
+        }
+        
+        # Convert datetime fields
+        for field in ['created_at', 'updated_at', 'reviewed_date', 'due_date']:
+            if drawing_data.get(field) and isinstance(drawing_data[field], str):
+                try:
+                    drawing_data[field] = datetime.fromisoformat(drawing_data[field])
+                except:
+                    pass
+        
+        result.append(drawing_data)
+    
+    # Sort by reviewed_date (most recent uploads first)
+    result.sort(key=lambda x: x.get('reviewed_date') or x.get('updated_at') or '', reverse=True)
+    
+    return result
+
+
 @api_router.post("/projects/{project_id}/drawings")
 async def create_drawing(
     project_id: str,
