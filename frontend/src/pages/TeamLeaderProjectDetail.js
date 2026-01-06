@@ -985,6 +985,14 @@ export default function TeamLeaderProjectDetail({ user, onLogout }) {
                         <Button size="sm" variant="ghost" onClick={() => handleDownloadDrawing(drawing)} title="Download">
                           <Download className="w-4 h-4" />
                         </Button>
+                        <Button 
+                          size="sm" 
+                          variant="ghost" 
+                          onClick={() => navigate(`/projects/${projectId}/drawing/${drawing.id}`)} 
+                          title="View Details & Comments"
+                        >
+                          <MessageSquare className="w-4 h-4" />
+                        </Button>
                       </div>
                     </div>
                   ))}
