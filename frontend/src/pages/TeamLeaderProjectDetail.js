@@ -295,6 +295,61 @@ export default function TeamLeaderProjectDetail({ user, onLogout }) {
     }
   };
 
+  // Add new drawing not in list
+  const handleAddNewDrawing = async () => {
+    if (!newDrawingName.trim()) {
+      toast.error('Please enter a drawing name');
+      return;
+    }
+    if (!newDrawingCategory) {
+      toast.error('Please select a category');
+      return;
+    }
+    
+    setAddingDrawing(true);
+    try {
+      const token = localStorage.getItem('token');
+      const headers = { Authorization: `Bearer ${token}` };
+      
+      // First create the drawing
+      const createRes = await axios.post(`${API}/projects/${projectId}/drawings`, {
+        name: newDrawingName.trim(),
+        category: newDrawingCategory,
+        notes: 'Added by Team Leader'
+      }, { headers });
+      
+      const newDrawing = createRes.data;
+      
+      // If files selected, upload them
+      if (newDrawingFiles.length > 0) {
+        const formData = new FormData();
+        formData.append('drawing_id', newDrawing.id);
+        newDrawingFiles.forEach(file => {
+          formData.append('files', file);
+        });
+        
+        await axios.post(`${API}/drawings/upload`, formData, {
+          headers: { 
+            ...headers,
+            'Content-Type': 'multipart/form-data'
+          }
+        });
+      }
+      
+      toast.success('Drawing added successfully!');
+      setAddDrawingDialogOpen(false);
+      setNewDrawingName('');
+      setNewDrawingCategory('');
+      setNewDrawingFiles([]);
+      fetchProjectData();
+    } catch (error) {
+      console.error('Error adding drawing:', error);
+      toast.error('Failed to add drawing');
+    } finally {
+      setAddingDrawing(false);
+    }
+  };
+
   const handleViewDrawing = (drawing) => {
     if (drawing.file_url) {
       window.open(`${BACKEND_URL}${drawing.file_url}`, '_blank');
