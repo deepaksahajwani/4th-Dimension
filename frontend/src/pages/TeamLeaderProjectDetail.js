@@ -65,6 +65,13 @@ export default function TeamLeaderProjectDetail({ user, onLogout }) {
   const [uploading, setUploading] = useState(false);
   const [selectedFiles, setSelectedFiles] = useState([]);
   
+  // Add New Drawing Dialog
+  const [addDrawingDialogOpen, setAddDrawingDialogOpen] = useState(false);
+  const [newDrawingName, setNewDrawingName] = useState('');
+  const [newDrawingCategory, setNewDrawingCategory] = useState('');
+  const [newDrawingFiles, setNewDrawingFiles] = useState([]);
+  const [addingDrawing, setAddingDrawing] = useState(false);
+  
   // Issue Dialog states
   const [issueDialogOpen, setIssueDialogOpen] = useState(false);
   const [drawingToIssue, setDrawingToIssue] = useState(null);
