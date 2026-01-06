@@ -660,7 +660,7 @@ export default function TeamLeaderProjectDetail({ user, onLogout }) {
                 <CardHeader className="pb-2">
                   <CardTitle className="text-sm flex items-center gap-2 text-orange-700">
                     <FileText className="w-4 h-4" />
-                    Next Up ({Math.min(3, notStarted.length)} of {notStarted.length})
+                    Next Up
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-2">
