@@ -245,32 +245,21 @@ export default function TeamLeaderProjectDetail({ user, onLogout }) {
     setIsIssuing(true);
     try {
       const token = localStorage.getItem('token');
+      
+      // Include issued_to in the PUT request - backend will send notifications
       await axios.put(`${API}/drawings/${drawingToIssue.id}`, {
         is_issued: true,
         issued_date: new Date().toISOString(),
         issued_to: selectedRecipients.map(r => ({
           type: r.type,
           id: r.id,
-          name: r.name
+          name: r.name,
+          phone: r.phone,
+          contractor_type: r.contractor_type
         }))
       }, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      
-      // Send notifications to selected recipients
-      if (selectedRecipients.length > 0) {
-        try {
-          await axios.post(`${API}/notifications/drawing-issued`, {
-            drawing_id: drawingToIssue.id,
-            project_id: projectId,
-            recipients: selectedRecipients
-          }, {
-            headers: { Authorization: `Bearer ${token}` }
-          });
-        } catch (notifErr) {
-          console.log('Notification sending handled by backend');
-        }
-      }
       
       toast.success(`Drawing issued to ${selectedRecipients.length} recipient(s)!`);
       setIssueDialogOpen(false);
