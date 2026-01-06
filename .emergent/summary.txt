@@ -1,48 +1,99 @@
 <analysis>**original_problem_statement:**
 The user's primary goal is a comprehensive, multi-phase refactoring and performance optimization of the application. Key phases included improving performance (async notifications, repository pattern, lazy loading), enhancing security (role-based UI locking), and adding features (monitoring dashboard).
 
-During the session, the user introduced several high-priority tasks:
-1.  Implement a secure Magic Link authentication system for notifications to provide a seamless, auto-login experience for users clicking links from WhatsApp/Email.
-2.  Redesign the user experience based on a provided wireframe, focusing on a mobile-first, WhatsApp-like interface with simplified, contextual actions, especially on the Project Detail page.
-3.  Correct the project completion progress bar logic to be based on a master list of expected drawings for the project, and simplify its display.
-4.  Fix a critical UX bug where an Upload button was incorrectly shown for drawings that were already issued.
+During the session, the user introduced several high-priority tasks and bug reports:
+1.  Implement a secure Magic Link authentication system for notifications to provide a seamless, auto-login experience.
+2.  Redesign the user experience based on a WhatsApp-like interface, focusing on mobile-first, contextual actions.
+3.  Correct the project completion progress bar logic to be based on a master list of drawings.
+4.  The issue button should open a dialog to select recipients (clients, contractors) for notifications.
+5.  Remove the total drawing count from all UIs, showing only the number of issued drawings.
+6.  The Team Leader's dashboard should only show the next 3 drawings to be worked on sequentially.
+7.  Disable all email notifications except for initial user onboarding (registration, welcome, OTP).
+8.  Fix a critical bug where the magic link for drawing approvals was not taking the Owner to the correct single-drawing approval page, instead showing a blank page or the wrong project page.
+9.  Fix a bug where contractors were not receiving notifications when a drawing was issued to them.
 
 **PRODUCT REQUIREMENTS:**
-1.  **Phase 1 (Critical Performance):** Make all notifications asynchronous, enforce a repository pattern for DB access, and create slim API payloads for mobile.
-2.  **Phase 2 (Frontend Performance):** Lazy load comments, paginate drawings, and optimize images by serving thumbnails.
-3.  **Phase 3 (Role-Based Locking):** Enforce strict UI and backend permissions based on user roles.
+1.  **Phase 1 (Performance):** Make notifications asynchronous, enforce a repository pattern, and create slim API payloads.
+2.  **Phase 2 (Frontend Performance):** Lazy load comments, paginate drawings, and optimize images.
+3.  **Phase 3 (Role-Based Locking):** Enforce strict UI/backend permissions based on user roles.
 4.  **Phase 5 (Monitoring):** Add performance and usage metrics to the Owner Dashboard.
-5.  **Magic Link Auth:** Implement one-time, expiring, secure links for notifications that auto-authenticate users via HTTP-only cookies.
-6.  **UX Simplification:** Redesign key interfaces (Project Detail, Comments) to be mobile-first and contextual, removing UI clutter for different user roles.
-7.  **Progress Calculation:** Base project completion percentage on a full, pre-defined list of drawings for the project, not just the ones created in the system.
+5.  **Magic Link Auth:** Implement one-time, expiring, secure links for notifications that auto-authenticate users via HTTP-only cookies, leading them to a dedicated single-item view page.
+6.  **UX Simplification:**
+    *   Redesign key interfaces (Project Detail, Comments) to be mobile-first and WhatsApp-like.
+    *   The Team Leader's main project view should only show the next 3 actionable drawings, with completed ones moving to an Issued tab.
+7.  **Progress Calculation:** Base project completion percentage on a pre-defined list of drawings.
+8.  **Notification Channels:** Use WhatsApp/SMS as the primary channel for all operational notifications. Email is restricted to onboarding only.
 
 **User's preferred language**: English
 
 **what currently exists?**
-The application is a full-stack project management tool that has undergone significant refactoring and feature implementation in this session.
--   **Backend Refactoring:** The monolithic  was reduced by over 862 lines by extracting , , and newly created  and  routes into modular files.
--   **Magic Link Authentication:** A complete, secure magic link system is now live. It generates one-time tokens for notifications, validates them, and creates a secure, HTTP-only cookie-based session, redirecting users directly to the relevant content without needing to log in.
--   **Phase 5 (Monitoring Dashboard):** A new backend metrics API () was created to serve data on notifications, storage, and user activity. This data is displayed in a new System Metrics panel on the Owner Dashboard.
--   **Phase 3 (UI Locking):** Role-based permissions are now strictly enforced on the frontend, particularly on the  and  pages, hiding or showing action buttons based on user role.
--   **UX Simplification & Bug Fixes:** The  and  header have been redesigned for a cleaner, mobile-first, WhatsApp-like experience. A critical bug showing redundant Upload buttons was fixed by tightening the conditional logic for actions based on drawing status.
--   **Progress Bar Logic:** The agent imported a master list of 141 drawings for a project and updated the progress bar calculation across all dashboards. The display is now simplified to show only the number of issued drawings (e.g., 3 issued) and the percentage bar, as per user's final request.
+The application is a full-stack project management tool. A significant refactoring effort has modularized the backend and simplified the frontend UX.
+-   **WhatsApp-like Comments:** A reusable  component has been created and implemented across all user roles (Owner, Team Leader, External) for a consistent project discussion experience.
+-   **Magic Link Fixes:** Multiple backend files (, , ) were repeatedly patched to fix an issue where old-format URLs () were being generated instead of the correct ones for the dedicated .
+-   **Owner Approval Flow:** A Pending Approval section was added to the Owner's  page.
+-   **Drawing Issue Workflow:** The Issue button now opens a dialog for selecting recipients (clients, contractors). The backend was updated to accept a list of recipients and trigger notifications accordingly.
+-   **UI Cleanup:** Total drawing counts have been removed from progress displays. Architectural drawings were deleted from the Aagam Heritage Bungalow project to align with its Interior type.
+-   **Email Disablement:** Email-sending code has been commented out or conditionally bypassed for all non-onboarding notifications.
+-   **Testing Policy:** The user has explicitly **disabled all autonomous testing agents**. Verification is now done exclusively through manual testing by the product owner.
 
 **Last working item**:
--   Last item agent was working: The user approved the previous work and directed the agent to begin the next priority task: simplifying the **Comments flow** to match the new mobile-first, WhatsApp-like UX paradigm.
--   Status: **NOT STARTED**
+-   Last item agent was working: The agent was addressing three critical bugs reported by the user after the last set of changes.
+    1.  **Team Leader UI incorrect:** The Next Up section was still showing all drawings, not just the next 3.
+    2.  **Contractor notification failed:** A contractor did not receive a notification after a drawing was issued.
+    3.  **Owner magic link broken:** The magic link resulted in a blank page for the Owner.
+-   Status: **IN PROGRESS**
 -   Agent Testing Done: N
--   Which testing method agent to use? Frontend testing agent and screenshot tool to verify the new UI/UX.
--   User Testing Done: N
+-   Which testing method agent to use? **None.** The user has mandated manual testing only. The next agent must implement fixes and then ask the user to verify.
+-   User Testing Done: Y
 
 **All Pending/In progress Issue list**:
--   **Issue 1: Contractor Dashboard UI/UX Bugs (P1)**
--   **Issue 2: Pre-existing Linting Warnings (P2)**
--   **Issue 3: Incomplete Notification Audit (P2)**
--   **Issue 4: Data Inconsistency (P3)**
+-   **Issue 1: Team Leader Dashboard UI is incorrect (P0)**
+-   **Issue 2: Contractor not receiving drawing issued notification (P0)**
+-   **Issue 3: Owner's magic link leads to a blank page (P0)**
+-   **Issue 4: Contractor Dashboard UI/UX Bugs (P1)**
+-   **Issue 5: Pre-existing Linting Warnings (P2)**
+-   **Issue 6: Incomplete Notification Audit (P2)**
+-   **Issue 7: Data Inconsistency ( with no ) (P3)**
 
 Issues Detail:
--   **Issue 1: Contractor Dashboard UI/UX Bugs (P1)**
-    -   Attempted fixes: None in this session. This is a carry-over issue.
+-   **Issue 1: Team Leader Dashboard UI is incorrect (P0)**
+    -   Attempted fixes: The agent edited  to slice the  array to 3 items and remove the total count text. However, the user's screenshot indicates the change was not reflected.
+    -   Next debug checklist:
+        1.  Verify the code changes in  under the Next Up section ().
+        2.  Restart the frontend service (frontend: ERROR (not running)
+frontend: started) and ensure there are no build errors.
+        3.  After the fix, take a screenshot of the Team Leader's project page to confirm only 3 drawings are shown in Next Up.
+    -   Why fix this issue and what will be achieved with the fix?: To implement the user's required sequential workflow for the Team Leader.
+    -   Status: IN PROGRESS
+    -   Is recurring issue?: Y
+    -   Should Test frontend/backend/both after fix?: Frontend
+    -   Blocked on other issue: None
+
+-   **Issue 2: Contractor not receiving drawing issued notification (P0)**
+    -   Attempted fixes: The agent found that  was calling a non-existent endpoint. The fix involved changing the  function to pass the  array in the body of the  request.
+    -   Next debug checklist:
+        1.  Verify that the  endpoint in  correctly processes the  field from the request body.
+        2.  Trace the notification trigger within that endpoint, ensuring  is called with the correct recipient data.
+        3.  Check backend logs for any errors during notification dispatch for the contractor's phone number.
+    -   Why fix this issue and what will be achieved with the fix?: To ensure external collaborators are correctly notified of key project events.
+    -   Status: IN PROGRESS
+    -   Is recurring issue?: N
+    -   Should Test frontend/backend/both after fix?: Backend
+    -   Blocked on other issue: None
+
+-   **Issue 3: Owner's magic link leads to a blank page (P0)**
+    -   Attempted fixes: The agent correctly deduced the issue is likely due to the  cookie being , making it unreadable by the frontend JS  function.
+    -   Next debug checklist:
+        1.  Modify . In  and , change the logic to rely on the presence of the non-  cookie to determine auth state.
+        2.  Add  to the application's entry point (e.g., ) to ensure the   cookie is automatically sent with all API requests.
+    -   Why fix this issue and what will be achieved with the fix?: To restore the critical magic link functionality for the Owner, which is a core part of the notification system.
+    -   Status: IN PROGRESS
+    -   Is recurring issue?: Y
+    -   Should Test frontend/backend/both after fix?: Frontend
+    -   Blocked on other issue: None
+
+-   **Issue 4: Contractor Dashboard UI/UX Bugs (P1)**
+    -   Attempted fixes: None in this session.
     -   Next debug checklist: Requires manual testing to verify drawing downloads and inline comments from a contractor's perspective.
     -   Why fix this issue and what will be achieved with the fix?: To polish the external user experience and fix core functionality for contractors.
     -   Status: USER VERIFICATION PENDING
@@ -50,16 +101,16 @@ Issues Detail:
     -   Should Test frontend/backend/both after fix?: Frontend
     -   Blocked on other issue: None
 
--   **Issue 2: Pre-existing Linting Warnings (P2)**
-    -   Attempted fixes: The agent fixed some critical linting errors as they appeared during development.
-    -   Next debug checklist: A full pass with E722 Do not use bare `except`
-   --> backend/drawing_approval_reminders.py:162:17
+-   **Issue 5: Pre-existing Linting Warnings (P2)**
+    -   Attempted fixes: Some errors were fixed as they arose.
+    -   Next debug checklist: Run E722 Do not use bare `except`
+   --> backend/drawing_approval_reminders.py:173:17
     |
-160 |                 try:
-161 |                     uploaded_at = datetime.fromisoformat(uploaded_at.replace('Z', '+00:00'))
-162 |                 except:
+171 |                 try:
+172 |                     uploaded_at = datetime.fromisoformat(uploaded_at.replace('Z', '+00:00'))
+173 |                 except:
     |                 ^^^^^^
-163 |                     uploaded_at = now - timedelta(hours=7)  # Default to eligible for reminder
+174 |                     uploaded_at = now - timedelta(hours=7)  # Default to eligible for reminder
     |
 
 F841 Local variable `user_id` is assigned to but never used
@@ -142,17 +193,77 @@ F401 `services.magic_link_helper.get_user_info_by_email` imported but unused; co
    |
 help: Remove unused import
 
-F841 Local variable `collection` is assigned to but never used
-    --> backend/notification_triggers_v2.py:1251:13
+F841 Local variable `email_subject` is assigned to but never used
+   --> backend/notification_triggers_v2.py:504:9
+    |
+502 |         # Send email notification to client
+503 |         project_url = f"{APP_URL}/projects/{project_id}"
+504 |         email_subject = f"Your Project is Ready - {project_name}"
+    |         ^^^^^^^^^^^^^
+505 |         email_html = f"""
+506 |         <html>
+    |
+help: Remove assignment to unused variable `email_subject`
+
+F841 Local variable `email_html` is assigned to but never used
+   --> backend/notification_triggers_v2.py:505:9
+    |
+503 |         project_url = f"{APP_URL}/projects/{project_id}"
+504 |         email_subject = f"Your Project is Ready - {project_name}"
+505 |         email_html = f"""
+    |         ^^^^^^^^^^
+506 |         <html>
+507 |             <head>
+    |
+help: Remove assignment to unused variable `email_html`
+
+F841 Local variable `issued_by` is assigned to but never used
+    --> backend/notification_triggers_v2.py:1064:13
      |
-1249 |         if person_type == 'contractor':
-1250 |             person = await db.contractors.find_one({"id": person_id}, {"_id": 0})
-1251 |             collection = 'contractors'
+1062 |         if recipient_ids:
+1063 |             owner = await db.users.find_one({"is_owner": True}, {"_id": 0})
+1064 |             issued_by = await get_user_by_id(issued_by_id) if issued_by_id else None
+     |             ^^^^^^^^^
+1065 |             
+1066 |             # Ensure owner is in recipients
+     |
+help: Remove assignment to unused variable `issued_by`
+
+F841 Local variable `collection` is assigned to but never used
+    --> backend/notification_triggers_v2.py:1358:13
+     |
+1356 |         if person_type == 'contractor':
+1357 |             person = await db.contractors.find_one({"id": person_id}, {"_id": 0})
+1358 |             collection = 'contractors'
      |             ^^^^^^^^^^
-1252 |         elif person_type == 'consultant':
-1253 |             person = await db.consultants.find_one({"id": person_id}, {"_id": 0})
+1359 |         elif person_type == 'consultant':
+1360 |             person = await db.consultants.find_one({"id": person_id}, {"_id": 0})
      |
 help: Remove assignment to unused variable `collection`
+
+F841 Local variable `email_subject` is assigned to but never used
+    --> backend/notification_triggers_v2.py:1451:13
+     |
+1449 | _4th Dimension Architects_"""
+1450 |             
+1451 |             email_subject = f"Project Access - {project_title}"
+     |             ^^^^^^^^^^^^^
+1452 |         
+1453 |         # Send WhatsApp notification
+     |
+help: Remove assignment to unused variable `email_subject`
+
+F841 Local variable `email_html` is assigned to but never used
+    --> backend/notification_triggers_v2.py:1479:13
+     |
+1477 |         # Send Email
+1478 |         if person_email:
+1479 |             email_html = f"""
+     |             ^^^^^^^^^^
+1480 |             <!DOCTYPE html>
+1481 |             <html>
+     |
+help: Remove assignment to unused variable `email_html`
 
 E402 Module level import not at top of file
   --> backend/routes/comments.py:26:1
@@ -412,241 +523,241 @@ help: Replace with `update_dict.get('under_review')`
 E712 Avoid equality comparisons to `True`; use `update_dict.get('is_issued'):` for truth checks
     --> backend/server.py:3269:12
      |
-3268 |         # Notification 2: Drawing issued
+3268 |         # Notification 2: Drawing issued - Send to all recipients
 3269 |         if update_dict.get('is_issued') == True and not drawing.get('is_issued'):
      |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-3270 |             await notify_owner_drawing_issued(
-3271 |                 drawing_id=drawing_id,
+3270 |             # First, notify owner
+3271 |             await notify_owner_drawing_issued(
      |
 help: Replace with `update_dict.get('is_issued')`
 
 E712 Avoid equality comparisons to `False`; use `not update_dict.get('has_pending_revision'):` for false checks
-    --> backend/server.py:3279:12
+    --> backend/server.py:3293:12
      |
-3278 |         # Notification 3: Revision posted (has_pending_revision cleared after upload)
-3279 |         if update_dict.get('has_pending_revision') == False and drawing.get('has_pending_revision') == True:
+3292 |         # Notification 3: Revision posted (has_pending_revision cleared after upload)
+3293 |         if update_dict.get('has_pending_revision') == False and drawing.get('has_pending_revision') == True:
      |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-3280 |             await notify_owner_drawing_revision_posted(
-3281 |                 drawing_id=drawing_id,
+3294 |             await notify_owner_drawing_revision_posted(
+3295 |                 drawing_id=drawing_id,
      |
 help: Replace with `not update_dict.get('has_pending_revision')`
 
 E712 Avoid equality comparisons to `True`; use `drawing.get('has_pending_revision'):` for truth checks
-    --> backend/server.py:3279:65
+    --> backend/server.py:3293:65
      |
-3278 |         # Notification 3: Revision posted (has_pending_revision cleared after upload)
-3279 |         if update_dict.get('has_pending_revision') == False and drawing.get('has_pending_revision') == True:
+3292 |         # Notification 3: Revision posted (has_pending_revision cleared after upload)
+3293 |         if update_dict.get('has_pending_revision') == False and drawing.get('has_pending_revision') == True:
      |                                                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-3280 |             await notify_owner_drawing_revision_posted(
-3281 |                 drawing_id=drawing_id,
+3294 |             await notify_owner_drawing_revision_posted(
+3295 |                 drawing_id=drawing_id,
      |
 help: Replace with `drawing.get('has_pending_revision')`
 
 E722 Do not use bare `except`
-    --> backend/server.py:4038:5
+    --> backend/server.py:4052:5
      |
-4036 |     try:
-4037 |         expiry_date = datetime.fromisoformat(expires_at.replace('Z', '+00:00'))
-4038 |     except:
+4050 |     try:
+4051 |         expiry_date = datetime.fromisoformat(expires_at.replace('Z', '+00:00'))
+4052 |     except:
      |     ^^^^^^
-4039 |         raise HTTPException(status_code=400, detail="Invalid date format")
+4053 |         raise HTTPException(status_code=400, detail="Invalid date format")
      |
 
 E722 Do not use bare `except`
-    --> backend/server.py:4135:13
+    --> backend/server.py:4149:13
      |
-4133 |                     access['is_active'] = True
-4134 |                     active_access.append(access)
-4135 |             except:
+4147 |                     access['is_active'] = True
+4148 |                     active_access.append(access)
+4149 |             except:
      |             ^^^^^^
-4136 |                 pass
+4150 |                 pass
      |
 
 E722 Do not use bare `except`
-    --> backend/server.py:4261:13
+    --> backend/server.py:4275:13
      |
-4259 |             try:
-4260 |                 expiry_date = datetime.fromisoformat(expires_at.replace('Z', '+00:00'))
-4261 |             except:
+4273 |             try:
+4274 |                 expiry_date = datetime.fromisoformat(expires_at.replace('Z', '+00:00'))
+4275 |             except:
      |             ^^^^^^
-4262 |                 expiry_date = datetime.now(timezone.utc) + timedelta(days=30)
+4276 |                 expiry_date = datetime.now(timezone.utc) + timedelta(days=30)
      |
 
 E712 Avoid equality comparisons to `True`; use `update_dict.get('completed'):` for truth checks
-    --> backend/server.py:4665:8
+    --> backend/server.py:4679:8
      |
-4663 |     update_dict = {k: v for k, v in task_data.model_dump().items() if v is not None}
-4664 |     
-4665 |     if update_dict.get('completed') == True:
+4677 |     update_dict = {k: v for k, v in task_data.model_dump().items() if v is not None}
+4678 |     
+4679 |     if update_dict.get('completed') == True:
      |        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-4666 |         update_dict['completed_at'] = datetime.now(timezone.utc).isoformat()
+4680 |         update_dict['completed_at'] = datetime.now(timezone.utc).isoformat()
      |
 help: Replace with `update_dict.get('completed')`
 
 E712 Avoid equality comparisons to `False`; use `not update_dict.get('has_pending_revision'):` for false checks
-    --> backend/server.py:4793:8
+    --> backend/server.py:4807:8
      |
-4792 |     # If marking has_pending_revision as False (resolving revision)
-4793 |     if update_dict.get('has_pending_revision') == False:
+4806 |     # If marking has_pending_revision as False (resolving revision)
+4807 |     if update_dict.get('has_pending_revision') == False:
      |        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-4794 |         # Increment revision count
-4795 |         update_dict['revision_count'] = drawing.get('revision_count', 0) + 1
+4808 |         # Increment revision count
+4809 |         update_dict['revision_count'] = drawing.get('revision_count', 0) + 1
      |
 help: Replace with `not update_dict.get('has_pending_revision')`
 
 F821 Undefined name `update_dict`
-    --> backend/server.py:4793:8
-     |
-4792 |     # If marking has_pending_revision as False (resolving revision)
-4793 |     if update_dict.get('has_pending_revision') == False:
-     |        ^^^^^^^^^^^
-4794 |         # Increment revision count
-4795 |         update_dict['revision_count'] = drawing.get('revision_count', 0) + 1
-     |
-
-F821 Undefined name `update_dict`
-    --> backend/server.py:4795:9
-     |
-4793 |     if update_dict.get('has_pending_revision') == False:
-4794 |         # Increment revision count
-4795 |         update_dict['revision_count'] = drawing.get('revision_count', 0) + 1
-     |         ^^^^^^^^^^^
-4796 |         
-4797 |         # Update revision history - mark as resolved
-     |
-
-F821 Undefined name `drawing`
-    --> backend/server.py:4795:41
-     |
-4793 |     if update_dict.get('has_pending_revision') == False:
-4794 |         # Increment revision count
-4795 |         update_dict['revision_count'] = drawing.get('revision_count', 0) + 1
-     |                                         ^^^^^^^
-4796 |         
-4797 |         # Update revision history - mark as resolved
-     |
-
-F821 Undefined name `drawing`
-    --> backend/server.py:4798:28
-     |
-4797 |         # Update revision history - mark as resolved
-4798 |         revision_history = drawing.get('revision_history', [])
-     |                            ^^^^^^^
-4799 |         if revision_history and not revision_history[-1].get('resolved_date'):
-4800 |             revision_history[-1]['resolved_date'] = datetime.now(timezone.utc).isoformat()
-     |
-
-F821 Undefined name `update_dict`
-    --> backend/server.py:4801:13
-     |
-4799 |         if revision_history and not revision_history[-1].get('resolved_date'):
-4800 |             revision_history[-1]['resolved_date'] = datetime.now(timezone.utc).isoformat()
-4801 |             update_dict['revision_history'] = revision_history
-     |             ^^^^^^^^^^^
-4802 |         
-4803 |         # Clear current revision fields
-     |
-
-F821 Undefined name `update_dict`
-    --> backend/server.py:4804:9
-     |
-4803 |         # Clear current revision fields
-4804 |         update_dict['current_revision_notes'] = None
-     |         ^^^^^^^^^^^
-4805 |         update_dict['current_revision_due_date'] = None
-     |
-
-F821 Undefined name `update_dict`
-    --> backend/server.py:4805:9
-     |
-4803 |         # Clear current revision fields
-4804 |         update_dict['current_revision_notes'] = None
-4805 |         update_dict['current_revision_due_date'] = None
-     |         ^^^^^^^^^^^
-4806 |     
-4807 |     if update_dict.get('due_date') and isinstance(update_dict['due_date'], str):
-     |
-
-F821 Undefined name `update_dict`
     --> backend/server.py:4807:8
      |
-4805 |         update_dict['current_revision_due_date'] = None
-4806 |     
-4807 |     if update_dict.get('due_date') and isinstance(update_dict['due_date'], str):
+4806 |     # If marking has_pending_revision as False (resolving revision)
+4807 |     if update_dict.get('has_pending_revision') == False:
      |        ^^^^^^^^^^^
-4808 |         update_dict['due_date'] = datetime.fromisoformat(update_dict['due_date']).isoformat()
+4808 |         # Increment revision count
+4809 |         update_dict['revision_count'] = drawing.get('revision_count', 0) + 1
      |
 
 F821 Undefined name `update_dict`
-    --> backend/server.py:4807:51
+    --> backend/server.py:4809:9
      |
-4805 |         update_dict['current_revision_due_date'] = None
-4806 |     
-4807 |     if update_dict.get('due_date') and isinstance(update_dict['due_date'], str):
-     |                                                   ^^^^^^^^^^^
-4808 |         update_dict['due_date'] = datetime.fromisoformat(update_dict['due_date']).isoformat()
-     |
-
-F821 Undefined name `update_dict`
-    --> backend/server.py:4808:9
-     |
-4807 |     if update_dict.get('due_date') and isinstance(update_dict['due_date'], str):
-4808 |         update_dict['due_date'] = datetime.fromisoformat(update_dict['due_date']).isoformat()
+4807 |     if update_dict.get('has_pending_revision') == False:
+4808 |         # Increment revision count
+4809 |         update_dict['revision_count'] = drawing.get('revision_count', 0) + 1
      |         ^^^^^^^^^^^
-4809 |     
-4810 |     update_dict['updated_at'] = datetime.now(timezone.utc).isoformat()
+4810 |         
+4811 |         # Update revision history - mark as resolved
+     |
+
+F821 Undefined name `drawing`
+    --> backend/server.py:4809:41
+     |
+4807 |     if update_dict.get('has_pending_revision') == False:
+4808 |         # Increment revision count
+4809 |         update_dict['revision_count'] = drawing.get('revision_count', 0) + 1
+     |                                         ^^^^^^^
+4810 |         
+4811 |         # Update revision history - mark as resolved
+     |
+
+F821 Undefined name `drawing`
+    --> backend/server.py:4812:28
+     |
+4811 |         # Update revision history - mark as resolved
+4812 |         revision_history = drawing.get('revision_history', [])
+     |                            ^^^^^^^
+4813 |         if revision_history and not revision_history[-1].get('resolved_date'):
+4814 |             revision_history[-1]['resolved_date'] = datetime.now(timezone.utc).isoformat()
      |
 
 F821 Undefined name `update_dict`
-    --> backend/server.py:4808:58
+    --> backend/server.py:4815:13
      |
-4807 |     if update_dict.get('due_date') and isinstance(update_dict['due_date'], str):
-4808 |         update_dict['due_date'] = datetime.fromisoformat(update_dict['due_date']).isoformat()
+4813 |         if revision_history and not revision_history[-1].get('resolved_date'):
+4814 |             revision_history[-1]['resolved_date'] = datetime.now(timezone.utc).isoformat()
+4815 |             update_dict['revision_history'] = revision_history
+     |             ^^^^^^^^^^^
+4816 |         
+4817 |         # Clear current revision fields
+     |
+
+F821 Undefined name `update_dict`
+    --> backend/server.py:4818:9
+     |
+4817 |         # Clear current revision fields
+4818 |         update_dict['current_revision_notes'] = None
+     |         ^^^^^^^^^^^
+4819 |         update_dict['current_revision_due_date'] = None
+     |
+
+F821 Undefined name `update_dict`
+    --> backend/server.py:4819:9
+     |
+4817 |         # Clear current revision fields
+4818 |         update_dict['current_revision_notes'] = None
+4819 |         update_dict['current_revision_due_date'] = None
+     |         ^^^^^^^^^^^
+4820 |     
+4821 |     if update_dict.get('due_date') and isinstance(update_dict['due_date'], str):
+     |
+
+F821 Undefined name `update_dict`
+    --> backend/server.py:4821:8
+     |
+4819 |         update_dict['current_revision_due_date'] = None
+4820 |     
+4821 |     if update_dict.get('due_date') and isinstance(update_dict['due_date'], str):
+     |        ^^^^^^^^^^^
+4822 |         update_dict['due_date'] = datetime.fromisoformat(update_dict['due_date']).isoformat()
+     |
+
+F821 Undefined name `update_dict`
+    --> backend/server.py:4821:51
+     |
+4819 |         update_dict['current_revision_due_date'] = None
+4820 |     
+4821 |     if update_dict.get('due_date') and isinstance(update_dict['due_date'], str):
+     |                                                   ^^^^^^^^^^^
+4822 |         update_dict['due_date'] = datetime.fromisoformat(update_dict['due_date']).isoformat()
+     |
+
+F821 Undefined name `update_dict`
+    --> backend/server.py:4822:9
+     |
+4821 |     if update_dict.get('due_date') and isinstance(update_dict['due_date'], str):
+4822 |         update_dict['due_date'] = datetime.fromisoformat(update_dict['due_date']).isoformat()
+     |         ^^^^^^^^^^^
+4823 |     
+4824 |     update_dict['updated_at'] = datetime.now(timezone.utc).isoformat()
+     |
+
+F821 Undefined name `update_dict`
+    --> backend/server.py:4822:58
+     |
+4821 |     if update_dict.get('due_date') and isinstance(update_dict['due_date'], str):
+4822 |         update_dict['due_date'] = datetime.fromisoformat(update_dict['due_date']).isoformat()
      |                                                          ^^^^^^^^^^^
-4809 |     
-4810 |     update_dict['updated_at'] = datetime.now(timezone.utc).isoformat()
+4823 |     
+4824 |     update_dict['updated_at'] = datetime.now(timezone.utc).isoformat()
      |
 
 F821 Undefined name `update_dict`
-    --> backend/server.py:4810:5
+    --> backend/server.py:4824:5
      |
-4808 |         update_dict['due_date'] = datetime.fromisoformat(update_dict['due_date']).isoformat()
-4809 |     
-4810 |     update_dict['updated_at'] = datetime.now(timezone.utc).isoformat()
+4822 |         update_dict['due_date'] = datetime.fromisoformat(update_dict['due_date']).isoformat()
+4823 |     
+4824 |     update_dict['updated_at'] = datetime.now(timezone.utc).isoformat()
      |     ^^^^^^^^^^^
-4811 |     
-4812 |     await db.project_drawings.update_one(
+4825 |     
+4826 |     await db.project_drawings.update_one(
      |
 
 F821 Undefined name `drawing_id`
-    --> backend/server.py:4813:16
+    --> backend/server.py:4827:16
      |
-4812 |     await db.project_drawings.update_one(
-4813 |         {"id": drawing_id},
+4826 |     await db.project_drawings.update_one(
+4827 |         {"id": drawing_id},
      |                ^^^^^^^^^^
-4814 |         {"$set": update_dict}
-4815 |     )
+4828 |         {"$set": update_dict}
+4829 |     )
      |
 
 F821 Undefined name `update_dict`
-    --> backend/server.py:4814:18
+    --> backend/server.py:4828:18
      |
-4812 |     await db.project_drawings.update_one(
-4813 |         {"id": drawing_id},
-4814 |         {"$set": update_dict}
+4826 |     await db.project_drawings.update_one(
+4827 |         {"id": drawing_id},
+4828 |         {"$set": update_dict}
      |                  ^^^^^^^^^^^
-4815 |     )
-4816 |     return {"message": "Drawing updated successfully"}
+4829 |     )
+4830 |     return {"message": "Drawing updated successfully"}
      |
 
 F811 Redefinition of unused `update_drawing` from line 3084
-    --> backend/server.py:4933:11
+    --> backend/server.py:4947:11
      |
-4932 | @api_router.patch("/drawings/{drawing_id}")
-4933 | async def update_drawing(drawing_id: str, updates: dict, current_user: User = Depends(get_current_user)):
+4946 | @api_router.patch("/drawings/{drawing_id}")
+4947 | async def update_drawing(drawing_id: str, updates: dict, current_user: User = Depends(get_current_user)):
      |           ^^^^^^^^^^^^^^ `update_drawing` redefined here
-4934 |     if 'issue_date' in updates and updates['issue_date']:
-4935 |         updates['issue_date'] = datetime.now(timezone.utc).isoformat()
+4948 |     if 'issue_date' in updates and updates['issue_date']:
+4949 |         updates['issue_date'] = datetime.now(timezone.utc).isoformat()
      |
     ::: backend/server.py:3084:11
      |
@@ -659,215 +770,215 @@ F811 Redefinition of unused `update_drawing` from line 3084
 help: Remove definition: `update_drawing`
 
 F841 Local variable `last_issued_index` is assigned to but never used
-    --> backend/server.py:5053:21
+    --> backend/server.py:5067:21
      |
-5051 |             for i, drawing in enumerate(drawings):
-5052 |                 if drawing.get("is_issued") and not drawing.get("has_pending_revision"):
-5053 |                     last_issued_index = i
+5065 |             for i, drawing in enumerate(drawings):
+5066 |                 if drawing.get("is_issued") and not drawing.get("has_pending_revision"):
+5067 |                     last_issued_index = i
      |                     ^^^^^^^^^^^^^^^^^
-5054 |             
-5055 |             # Determine due and upcoming drawings with new progressive disclosure logic
+5068 |             
+5069 |             # Determine due and upcoming drawings with new progressive disclosure logic
      |
 help: Remove assignment to unused variable `last_issued_index`
 
-F811 Redefinition of unused `get_project_tasks` from line 5148
-    --> backend/server.py:5431:11
+F811 Redefinition of unused `get_project_tasks` from line 5162
+    --> backend/server.py:5445:11
      |
-5429 | # Tasks
-5430 | @api_router.get("/projects/{project_id}/tasks")
-5431 | async def get_project_tasks(project_id: str, current_user: User = Depends(get_current_user)):
+5443 | # Tasks
+5444 | @api_router.get("/projects/{project_id}/tasks")
+5445 | async def get_project_tasks(project_id: str, current_user: User = Depends(get_current_user)):
      |           ^^^^^^^^^^^^^^^^^ `get_project_tasks` redefined here
-5432 |     tasks = await db.tasks.find({"project_id": project_id}, {"_id": 0}).to_list(1000)
-5433 |     for t in tasks:
+5446 |     tasks = await db.tasks.find({"project_id": project_id}, {"_id": 0}).to_list(1000)
+5447 |     for t in tasks:
      |
-    ::: backend/server.py:5148:11
+    ::: backend/server.py:5162:11
      |
-5147 | @api_router.get("/projects/{project_id}/tasks", response_model=List[Task])
-5148 | async def get_project_tasks(project_id: str, current_user: User = Depends(get_current_user)):
+5161 | @api_router.get("/projects/{project_id}/tasks", response_model=List[Task])
+5162 | async def get_project_tasks(project_id: str, current_user: User = Depends(get_current_user)):
      |           ----------------- previous definition of `get_project_tasks` here
-5149 |     tasks = await db.tasks.find({"project_id": project_id}, {"_id": 0}).to_list(1000)
-5150 |     for task in tasks:
+5163 |     tasks = await db.tasks.find({"project_id": project_id}, {"_id": 0}).to_list(1000)
+5164 |     for task in tasks:
      |
 help: Remove definition: `get_project_tasks`
 
-F811 Redefinition of unused `create_task` from line 5127
-    --> backend/server.py:5443:11
+F811 Redefinition of unused `create_task` from line 5141
+    --> backend/server.py:5457:11
      |
-5442 | @api_router.post("/tasks", response_model=Task)
-5443 | async def create_task(task_data: TaskCreate, current_user: User = Depends(get_current_user)):
+5456 | @api_router.post("/tasks", response_model=Task)
+5457 | async def create_task(task_data: TaskCreate, current_user: User = Depends(get_current_user)):
      |           ^^^^^^^^^^^ `create_task` redefined here
-5444 |     task = Task(**task_data.model_dump())
-5445 |     task_dict = task.model_dump()
+5458 |     task = Task(**task_data.model_dump())
+5459 |     task_dict = task.model_dump()
      |
-    ::: backend/server.py:5127:11
+    ::: backend/server.py:5141:11
      |
-5126 | @api_router.post("/tasks", response_model=Task)
-5127 | async def create_task(task_data: TaskCreate, current_user: User = Depends(get_current_user)):
+5140 | @api_router.post("/tasks", response_model=Task)
+5141 | async def create_task(task_data: TaskCreate, current_user: User = Depends(get_current_user)):
      |           ----------- previous definition of `create_task` here
-5128 |     task = Task(
-5129 |         project_id=task_data.project_id,
+5142 |     task = Task(
+5143 |         project_id=task_data.project_id,
      |
 help: Remove definition: `create_task`
 
 F841 Local variable `yearly_summary` is assigned to but never used
-    --> backend/server.py:6051:9
+    --> backend/server.py:6065:9
      |
-6050 |         # Yearly summary
-6051 |         yearly_summary = {
+6064 |         # Yearly summary
+6065 |         yearly_summary = {
      |         ^^^^^^^^^^^^^^
-6052 |             "financial_year": f"{fy_start_year}-{fy_start_year+1}",
-6053 |             "total_drawings_completed": 0,  # TODO: Calculate
+6066 |             "financial_year": f"{fy_start_year}-{fy_start_year+1}",
+6067 |             "total_drawings_completed": 0,  # TODO: Calculate
      |
 help: Remove assignment to unused variable `yearly_summary`
 
 E402 Module level import not at top of file
-    --> backend/server.py:6434:1
+    --> backend/server.py:6448:1
      |
-6433 | # Include modular routers
-6434 | from routes import auth, dashboard, notifications as notif_routes, projects, drawings
+6447 | # Include modular routers
+6448 | from routes import auth, dashboard, notifications as notif_routes, projects, drawings
      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-6435 | from routes import resources as resources_routes
-6436 | from routes import whatsapp_webhook
+6449 | from routes import resources as resources_routes
+6450 | from routes import whatsapp_webhook
      |
 
 E402 Module level import not at top of file
-    --> backend/server.py:6435:1
+    --> backend/server.py:6449:1
      |
-6433 | # Include modular routers
-6434 | from routes import auth, dashboard, notifications as notif_routes, projects, drawings
-6435 | from routes import resources as resources_routes
+6447 | # Include modular routers
+6448 | from routes import auth, dashboard, notifications as notif_routes, projects, drawings
+6449 | from routes import resources as resources_routes
      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-6436 | from routes import whatsapp_webhook
-6437 | from routes import ops as ops_routes
+6450 | from routes import whatsapp_webhook
+6451 | from routes import ops as ops_routes
      |
 
 E402 Module level import not at top of file
-    --> backend/server.py:6436:1
+    --> backend/server.py:6450:1
      |
-6434 | from routes import auth, dashboard, notifications as notif_routes, projects, drawings
-6435 | from routes import resources as resources_routes
-6436 | from routes import whatsapp_webhook
+6448 | from routes import auth, dashboard, notifications as notif_routes, projects, drawings
+6449 | from routes import resources as resources_routes
+6450 | from routes import whatsapp_webhook
      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-6437 | from routes import ops as ops_routes
-6438 | from routes import drawing_whatsapp
+6451 | from routes import ops as ops_routes
+6452 | from routes import drawing_whatsapp
      |
 
 E402 Module level import not at top of file
-    --> backend/server.py:6437:1
+    --> backend/server.py:6451:1
      |
-6435 | from routes import resources as resources_routes
-6436 | from routes import whatsapp_webhook
-6437 | from routes import ops as ops_routes
+6449 | from routes import resources as resources_routes
+6450 | from routes import whatsapp_webhook
+6451 | from routes import ops as ops_routes
      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-6438 | from routes import drawing_whatsapp
-6439 | from routes import users as users_routes
+6452 | from routes import drawing_whatsapp
+6453 | from routes import users as users_routes
      |
 
 E402 Module level import not at top of file
-    --> backend/server.py:6438:1
+    --> backend/server.py:6452:1
      |
-6436 | from routes import whatsapp_webhook
-6437 | from routes import ops as ops_routes
-6438 | from routes import drawing_whatsapp
+6450 | from routes import whatsapp_webhook
+6451 | from routes import ops as ops_routes
+6452 | from routes import drawing_whatsapp
      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-6439 | from routes import users as users_routes
-6440 | from routes import accounting as accounting_routes
+6453 | from routes import users as users_routes
+6454 | from routes import accounting as accounting_routes
      |
 
 E402 Module level import not at top of file
-    --> backend/server.py:6439:1
+    --> backend/server.py:6453:1
      |
-6437 | from routes import ops as ops_routes
-6438 | from routes import drawing_whatsapp
-6439 | from routes import users as users_routes
+6451 | from routes import ops as ops_routes
+6452 | from routes import drawing_whatsapp
+6453 | from routes import users as users_routes
      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-6440 | from routes import accounting as accounting_routes
-6441 | from routes import comments as comments_routes
+6454 | from routes import accounting as accounting_routes
+6455 | from routes import comments as comments_routes
      |
 
 E402 Module level import not at top of file
-    --> backend/server.py:6440:1
+    --> backend/server.py:6454:1
      |
-6438 | from routes import drawing_whatsapp
-6439 | from routes import users as users_routes
-6440 | from routes import accounting as accounting_routes
+6452 | from routes import drawing_whatsapp
+6453 | from routes import users as users_routes
+6454 | from routes import accounting as accounting_routes
      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-6441 | from routes import comments as comments_routes
-6442 | from routes import external_parties as external_parties_routes
+6455 | from routes import comments as comments_routes
+6456 | from routes import external_parties as external_parties_routes
      |
 
 E402 Module level import not at top of file
-    --> backend/server.py:6441:1
+    --> backend/server.py:6455:1
      |
-6439 | from routes import users as users_routes
-6440 | from routes import accounting as accounting_routes
-6441 | from routes import comments as comments_routes
+6453 | from routes import users as users_routes
+6454 | from routes import accounting as accounting_routes
+6455 | from routes import comments as comments_routes
      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-6442 | from routes import external_parties as external_parties_routes
-6443 | from routes import api_v2
+6456 | from routes import external_parties as external_parties_routes
+6457 | from routes import api_v2
      |
 
 E402 Module level import not at top of file
-    --> backend/server.py:6442:1
+    --> backend/server.py:6456:1
      |
-6440 | from routes import accounting as accounting_routes
-6441 | from routes import comments as comments_routes
-6442 | from routes import external_parties as external_parties_routes
+6454 | from routes import accounting as accounting_routes
+6455 | from routes import comments as comments_routes
+6456 | from routes import external_parties as external_parties_routes
      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-6443 | from routes import api_v2
-6444 | from routes import metrics as metrics_routes
+6457 | from routes import api_v2
+6458 | from routes import metrics as metrics_routes
      |
 
 E402 Module level import not at top of file
-    --> backend/server.py:6443:1
+    --> backend/server.py:6457:1
      |
-6441 | from routes import comments as comments_routes
-6442 | from routes import external_parties as external_parties_routes
-6443 | from routes import api_v2
+6455 | from routes import comments as comments_routes
+6456 | from routes import external_parties as external_parties_routes
+6457 | from routes import api_v2
      | ^^^^^^^^^^^^^^^^^^^^^^^^^
-6444 | from routes import metrics as metrics_routes
-6445 | from routes import magic_link as magic_link_routes
+6458 | from routes import metrics as metrics_routes
+6459 | from routes import magic_link as magic_link_routes
      |
 
 E402 Module level import not at top of file
-    --> backend/server.py:6444:1
+    --> backend/server.py:6458:1
      |
-6442 | from routes import external_parties as external_parties_routes
-6443 | from routes import api_v2
-6444 | from routes import metrics as metrics_routes
+6456 | from routes import external_parties as external_parties_routes
+6457 | from routes import api_v2
+6458 | from routes import metrics as metrics_routes
      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-6445 | from routes import magic_link as magic_link_routes
+6459 | from routes import magic_link as magic_link_routes
      |
 
 E402 Module level import not at top of file
-    --> backend/server.py:6445:1
+    --> backend/server.py:6459:1
      |
-6443 | from routes import api_v2
-6444 | from routes import metrics as metrics_routes
-6445 | from routes import magic_link as magic_link_routes
+6457 | from routes import api_v2
+6458 | from routes import metrics as metrics_routes
+6459 | from routes import magic_link as magic_link_routes
      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-6446 |
-6447 | # Include the new modular routers under /api
-     |
-
-E402 Module level import not at top of file
-    --> backend/server.py:6477:1
-     |
-6476 | # Include notifications and payments router
-6477 | from api_notifications_payments import notifications_payments_router
-     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-6478 | app.include_router(notifications_payments_router, prefix="/api")
+6460 |
+6461 | # Include the new modular routers under /api
      |
 
 E402 Module level import not at top of file
     --> backend/server.py:6491:1
      |
-6489 | # Mount uploads directory for serving static files
-6490 | # Using /api/uploads prefix to ensure Kubernetes ingress routes to backend
-6491 | from pathlib import Path
+6490 | # Include notifications and payments router
+6491 | from api_notifications_payments import notifications_payments_router
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+6492 | app.include_router(notifications_payments_router, prefix="/api")
+     |
+
+E402 Module level import not at top of file
+    --> backend/server.py:6505:1
+     |
+6503 | # Mount uploads directory for serving static files
+6504 | # Using /api/uploads prefix to ensure Kubernetes ingress routes to backend
+6505 | from pathlib import Path
      | ^^^^^^^^^^^^^^^^^^^^^^^^
-6492 | uploads_path = Path(__file__).parent / "uploads"
-6493 | uploads_path.mkdir(parents=True, exist_ok=True)
+6506 | uploads_path = Path(__file__).parent / "uploads"
+6507 | uploads_path.mkdir(parents=True, exist_ok=True)
      |
 
 F841 Local variable `role` is assigned to but never used
@@ -881,15 +992,15 @@ F841 Local variable `role` is assigned to but never used
     |
 help: Remove assignment to unused variable `role`
 
-Found 91 errors (19 fixed, 72 remaining).
-No fixes available (23 hidden fixes can be enabled with the `--unsafe-fixes` option). and  is needed to address remaining warnings.
+Found 77 errors.
+No fixes available (28 hidden fixes can be enabled with the `--unsafe-fixes` option). and .
     -   Why fix this issue and what will be achieved with the fix?: Improves code quality and maintainability.
     -   Status: IN PROGRESS
     -   Is recurring issue?: Y
     -   Should Test frontend/backend/both after fix?: Both
     -   Blocked on other issue: None
 
--   **Issue 3: Incomplete Notification Audit (P2)**
+-   **Issue 6: Incomplete Notification Audit (P2)**
     -   Attempted fixes: None.
     -   Next debug checklist: Audit all 17 WhatsApp templates in  to ensure they are correctly triggered and use the new magic link system.
     -   Why fix this issue and what will be achieved with the fix?: Ensures all notifications are reliable and provide the new seamless login experience.
@@ -898,9 +1009,9 @@ No fixes available (23 hidden fixes can be enabled with the `--unsafe-fixes` opt
     -   Should Test frontend/backend/both after fix?: Backend
     -   Blocked on other issue: None
 
--   **Issue 4: Data Inconsistency (P3)**
-    -   Attempted fixes: None. The agent identified the issue but worked around it on the frontend.
-    -   Next debug checklist: Investigate why a drawing can be marked  without having a . Consider adding a backend validation rule or a data cleanup script.
+-   **Issue 7: Data Inconsistency ( with no ) (P3)**
+    -   Attempted fixes: None.
+    -   Next debug checklist: Investigate why a drawing can be marked  without a . Add a backend validation rule or a data cleanup script.
     -   Why fix this issue and what will be achieved with the fix?: Prevents confusing UI states and ensures data integrity.
     -   Status: NOT STARTED
     -   Is recurring issue?: N
@@ -909,24 +1020,20 @@ No fixes available (23 hidden fixes can be enabled with the `--unsafe-fixes` opt
 
 **In progress Task List**:
 -   **Task 1: Complete UX Simplification (P0)**
--   **Task 2: Complete Performance & Refactoring Plan (P0)**
-
-Task Detail:
--   **Task 1: Complete UX Simplification (P0)**
-    -   Where to resume: Start by redesigning the  and its associated components to provide a clean, mobile-first, WhatsApp-like chat experience, as per the user's wireframe and last instruction. After that, simplify the role-based views on the various dashboards.
-    -   What will be achieved with this?: A more intuitive and user-friendly interface that aligns with the user's design vision.
+    -   Where to resume: This task is now focused on fixing the UI bugs reported by the user in the Team Leader dashboard.
+    -   What will be achieved with this?: A user-friendly interface that aligns with the user's design vision.
     -   Status: IN PROGRESS
     -   Should Test frontend/backend/both after fix?: Frontend
-    -   Blocked on something: None
+    -   Blocked on something: Blocked by **Issue 1**.
 
 -   **Task 2: Complete Performance & Refactoring Plan (P0)**
     -   Where to resume:
         1.  **Frontend (Lazy Loading):** Integrate the  component into .
-        2.  **Backend (Repository Pattern):** Refactor remaining routes in  and the newer modular routers to use the repository classes (, ) instead of making direct database calls.
+        2.  **Backend (Repository Pattern):** Refactor remaining routes to use repository classes.
     -   What will be achieved with this?: A more performant, scalable, and maintainable application.
-    -   Status: IN PROGRESS
+    -   Status: NOT STARTED
     -   Should Test frontend/backend/both after fix?: Both
-    -   Blocked on something: None
+    -   Blocked on something: Current P0 bug fixes.
 
 **Upcoming and Future Tasks**
 -   **Upcoming Tasks:**
@@ -939,103 +1046,103 @@ Task Detail:
     -   Create the Client Dashboard Financials UI.
 
 **Completed work in this session**
--   **Backend Refactoring:** Successfully removed ~862 lines from  by modularizing the  and  routes and removing the duplicated code.
--   **Magic Link Authentication:** Fully designed and implemented a secure, one-time, cookie-based magic link system for seamless user authentication from notifications.
--   **Phase 5 (Monitoring Dashboard):** Implemented a new backend metrics API and integrated it into a System Metrics panel on the Owner Dashboard, which was tested and verified.
--   **Phase 3 (UI Locking):** Implemented and verified role-based UI controls on key components, ensuring buttons and actions are only visible to authorized users.
--   **UX Redesign & Bug Fix:** Redesigned the  for a mobile-first, contextual UI, and fixed a critical bug where incorrect action buttons were displayed.
--   **Progress Bar Correction:** Imported a master list of 141 drawings and completely overhauled the progress calculation and display logic across the application to meet precise user requirements.
+-   **Comments Flow Simplification:** Successfully unified the comments UI across Project, Team Leader, and External views into a WhatsApp-like  component.
+-   **Magic Link URL Fix:** Systematically fixed the recurring bug where notifications generated incorrect magic link URLs, ensuring they now point to the dedicated .
+-   **Drawing Issue Workflow:** Implemented a recipient selection dialog for the Issue button and updated the backend to notify the selected parties.
+-   **Dashboard & Role-Based Views:** Added a Chat tab to the Owner's  page and a Pending Approval section.
+-   **Email Notification Disablement:** Disabled all operational email notifications, restricting email to user onboarding only.
+-   **Data and UI Cleanup:** Removed incorrect Architectural drawings from the Aagam project and deleted the test Bertina project. Removed total drawing counts from progress displays.
 
 **Earlier issues found/mentioned but not fixed**
--   **Issue 1: Incomplete Notification Audit**
-    -   Debug checklist: A full audit is needed to ensure all 17 WhatsApp templates defined in  are correctly implemented, triggered, and use the new magic link system.
-    -   Why to solve this issue and what will be achieved with this?: Ensures notification consistency and reliability.
-    -   Should Test frontend/backend/both after fix: Backend
-    -   Is recurring issue?: N
--   **Issue 2: Data Inconsistency**
-    -   Debug checklist: Find out how a drawing can be marked as 'Issued' without having a . Add backend validation to prevent this state or a script to clean up existing data.
-    -   Why to solve this issue and what will be achieved with this?: To maintain data integrity and prevent confusing UI states where an issued drawing has no file to view or download.
-    -   Should Test frontend/backend/both after fix: Backend
-    -   Is recurring issue?: N
+-   See All Pending/In progress Issue list. Issues 4, 5, 6, and 7 are carry-overs.
 
 **Known issue recurrence from previous fork**
--   None.
+-   **Magic Link URL Format:** A significant issue during this session was the repeated discovery of code paths generating old-format URLs (). The agent fixed this in multiple files (, , ) only after multiple user complaints. The root cause was a failure to perform a global search for the faulty pattern initially.
+-   **Status:** RESOLVED (but requires vigilance).
 
 **Code Architecture**
 
 
 **Key Technical Concepts**
--   **Magic Link Authentication:** Secure, one-time, time-limited token generation for notifications. Authentication is handled via secure, HTTP-only cookies, providing a seamless login experience without compromising security.
--   **Contextual UI/UX Design:** Shifting from a static UI to a dynamic one where actions and information are presented based on user role and the state of the data (e.g., a drawing's status).
--   **Mobile-First Responsive Design:** Prioritizing a clean, compact layout for mobile screens, resembling familiar chat applications like WhatsApp.
--   **Data-Driven Progress Calculation:** Using a master, project-specific list of expected items to calculate completion percentage, providing a more accurate measure of progress than simply counting created items.
--   **Backend Modularization:** Continuing the decomposition of a monolithic server file into feature-specific, self-contained router and service files.
+-   **Reusable Frontend Components:** The creation of  to unify the comments experience across different user roles and pages.
+-   **HTTP-Only Cookie Authentication:** The magic link system uses  cookies for security. A key bug (blank page) was traced to the frontend's inability to read this cookie with JavaScript, requiring a new approach to verify authentication state.
+-   **Declarative UI State:** The bug in the Team Leader's dashboard highlights the importance of ensuring the UI correctly reflects the state (e.g., ).
+-   **Centralized Notification Triggers:** Modifications were made in  and  to handle complex notification logic, such as issuing to multiple recipients.
 
 **key DB schema**
--   **magic_tokens** (NEW): . Stores the one-time tokens for the magic link system.
--   **project_drawings**: Populated with a full sequence of 141 drawings for the Aagam Heritage Bungalow project, including sequence numbers and categories.
+-   No new collections were added. The  and  collections were modified (drawings deleted from a project).
 
 **changes in tech stack**
 -   None.
 
 **All files of reference**
--   **/app/backend/routes/magic_link.py**: New router to handle magic link requests.
--   **/app/backend/services/magic_link_service.py**: New service for creating and validating magic link tokens.
--   **/app/backend/notification_triggers_v2.py**: Modified to generate and include magic links in notifications.
--   **/app/frontend/src/components/project/DrawingCard.jsx**: Heavily refactored for the new mobile-first, contextual UX.
--   **/app/frontend/src/pages/ProjectDetail.js**: Heavily modified to implement the new header, progress bar logic, and role-based action buttons.
--   **/app/frontend/src/App.js**: Updated to handle the new cookie-based authentication from magic links.
--   **/app/backend/server.py**: Significantly cleaned up, with duplicated routes removed.
+-   **/app/frontend/src/components/project/ChatView.jsx**: New reusable component for the WhatsApp-like chat interface.
+-   **/app/frontend/src/pages/TeamLeaderProjectDetail.js**: Heavily modified to implement the Next Up drawing queue and the new Issue Drawing dialog. **(Contains bugs)**.
+-   **/app/frontend/src/pages/ProjectDetail.js**: Heavily modified to add the Chat tab and Pending Approval section for the Owner.
+-   **/app/frontend/src/App.js**: Identified as the location for the fix for the Owner's blank page issue (magic link auth).
+-   **/app/backend/notification_triggers_v2.py**: Heavily modified to fix magic link URLs and disable email notifications.
+-   **/app/backend/server.py**: Modified to handle the  payload when a drawing is updated.
 
 **Areas that need refactoring**:
--   **Data Access Layer**: The highest priority refactoring task remains. All direct database calls in routes ( and the new modular routers) must be refactored to use the repository pattern.
--   ****: Still a very large component. The next planned tasks (integrating  and simplifying the comments flow) will help continue its decomposition.
--   ****: The next component targeted for a major UX simplification.
+-   **Data Access Layer**: The high-priority task of refactoring all direct database calls to use the repository pattern is still pending.
+-   ** & **: These components are very large and complex. They handle data fetching, state management, and rendering for many sub-sections. Breaking them down into smaller, more focused components would improve maintainability.
 
 **key api endpoints**
--   **NEW (Monitoring):**  - Provides system health, storage, and activity metrics for the Owner Dashboard.
--   **NEW (Authentication):**  - Validates a one-time token, sets authentication cookies, and redirects the user.
+-   : Modified to accept an  array in the request body to trigger notifications to a list of recipients.
 
 **Critical Info for New Agent**
-1.  **Follow User's Lead on UX:** The user is highly focused on specific UX/UI outcomes. The current priority is to simplify the **comments flow** to be WhatsApp-like. Always confirm design direction before and after implementation with screenshots.
-2.  **Authentication Has Two Patterns:** The original app uses  for tokens from a normal login. The new **Magic Link** system uses secure, **HTTP-only cookies**. The frontend  has been updated to handle both, but be aware of this dual mechanism.
-3.  **Progress is Data-Driven:** The project progress bar is no longer a simple count. It relies on a complete list of drawings imported into the  collection for a specific project. The calculation is .
-4.  **Refactoring is Paused but Important:** The high-priority task of refactoring all database calls to use the **Repository Pattern** is still pending. While user-facing features are the current focus, this technical debt should be addressed when possible.
-5.  **Test with Roles:** The UI is now highly dependent on user roles (, , , ). Always test UI changes by logging in with different user credentials to verify permissions are working correctly.
+1.  **NO AUTONOMOUS TESTING:** The user has explicitly disabled all testing agents (, ). All verification must be done manually by the user. Do not run any tests unless explicitly asked.
+2.  **IMMEDIATE BUGS (P0):** Your first priority is to fix the three critical bugs: the Team Leader's incorrect UI, the failed contractor notification, and the Owner's blank page from the magic link.
+3.  **HTTP-Only Cookie Auth is the Problem:** The blank page issue is almost certainly due to the frontend JS not being able to read the   cookie. The plan is to use the readable  cookie to check for a session and add  to Axios requests. This needs to be implemented.
+4.  **Global Search for Bugs:** The previous agent wasted time and credits by fixing the magic link URL issue in one file at a time. For recurring bugs, perform a global codebase search (e.g., /app/backend_test.py:20:   - **NOT** the old `?drawing=` format
+/app/backend_test.py:36:- No `?drawing=` query parameter format should be used
+/app/backend_test.py:268:                        old_format = f"?drawing={self.test_drawing_id}"
+/app/backend_test.py:417:            old_format = f"?drawing={self.test_drawing_id}"
+/app/backend_test.py:517:        print(f"✅ URL Format: Magic links resolve to new format, NOT old `?drawing=` format")
+/app/test_result.md:53:- **Old Format**: ✅ CONFIRMED does NOT use `?drawing=` query parameter format
+/app/test_result.md:80:- Magic links use NEW format `/projects/{projectId}/drawing/{drawingId}` instead of old `?drawing=` format) to identify and fix all instances at once.
+5.  **Confirm UI Changes:** The user is very attentive to UI details. After fixing the Team Leader's dashboard, provide a screenshot to prove it works as expected before finishing.
 
 **documents and test reports created in this job**
--    was updated multiple times by the backend and frontend testing agents.
+-    was updated, but this file is now deprecated due to the new manual testing policy.
 
 **Last 10 User Messages and any pending HUMAN messages**
-1.  **User:** Requests to upload drawing lists for progress calculation. (COMPLETE)
-2.  **Agent:** Acknowledges and asks for the lists. (COMPLETE)
-3.  **User:** Provides the Architectural drawing list. (COMPLETE)
-4.  **Agent:** Acknowledges and asks for the Interior list. (COMPLETE)
-5.  **User:** Provides the Interior drawing list. (COMPLETE)
-6.  **Agent:** Confirms import and shows the fixed progress bar. (COMPLETE)
-7.  **User:** Specifies that the total drawing count (e.g., of 139) should not be shown anywhere. (COMPLETE)
-8.  **Agent:** Implements the change, showing only X issued and the percentage bar. (COMPLETE)
-9.  **User:** Confirms the next priorities: Comments flow - Next priority, Dashboard - Role-based views, and tells the agent to proceed with Comments flow simplification. (PENDING)
-10. **Agent:** Acknowledges and begins analyzing the current comments implementation to start the simplification task. (IN PROGRESS)
+1.  **User:** Reports the total drawing count is still visible and a contractor didn't get a notification. (PENDING)
+2.  **User:** Reports Owner's URL from notification leads to a blank page. (PENDING)
+3.  **User:** Uploads a screenshot showing the Team Leader's UI is not fixed. (PENDING)
+4.  **Agent:** Acknowledges the three bugs and begins investigation. (IN PROGRESS)
+5.  **User:** Disables all autonomous testing agents, mandating manual testing only. (COMPLETE)
+6.  **Agent:** Acknowledges the new testing policy. (COMPLETE)
+7.  **User:** Reports the Owner doesn't see an approval section, and download links are missing. (ADDRESSED, but may have led to new bugs).
+8.  **Agent:** Summarizes fixes for the Owner approval/download issue. (COMPLETE)
+9.  **User:** Reports the magic link is still not working and asks why the simple issue isn't solved. (ADDRESSED, but new bugs appeared).
+10. **Agent:** Apologizes and commits to a more thorough -based approach for finding bugs. (COMPLETE)
 
 **Project Health Check:**
--   **Broken**: None. The application is stable and functional after all changes.
+-   **Broken**:
+    -   Magic link authentication flow for the Owner.
+    -   Notification dispatch for contractors upon drawing issuance.
+    -   Team Leader's project dashboard UI (sequential drawing view).
 -   **Mocked**: None.
 
 **3rd Party Integrations**
 -   **Twilio**: For SMS and WhatsApp, uses a User-provided API Key.
--   **SendGrid**: For email, uses a User-provided API Key.
+-   **SendGrid**: For email, uses a User-provided API Key (currently disabled for most operations).
 
 **Testing status**
--   Testing agent used after significant changes: YES (both backend and frontend agents were used).
+-   Testing agent used after significant changes: **NO**. The user has explicitly disabled this.
 -   Troubleshoot agent used after agent stuck in loop: NO
 -   Test files created: []
--   Known regressions: None.
+-   Known regressions:
+    -   The Owner's magic link flow, which was previously working, is now broken (leads to a blank page).
+    -   The Team Leader's UI simplification, which the agent reported as complete, is not working correctly.
 
 **Credentials to test flow:**
 -   **Owner**:  / 
 -   **Team Leader (Senior Designer)**:  / 
 
 **What agent forgot to execute**
--   The agent created performance-oriented components like  but has not yet integrated them into the main  page.
--   The full refactoring of the data access layer to use the Repository Pattern remains an outstanding, high-priority technical task.</analysis>
+-   The agent failed to perform a global search () for the buggy  URL pattern from the outset, leading to user frustration and wasted effort.
+-   The agent did not correctly verify its fix for the Team Leader's dashboard UI, claiming it was complete when it was not reflected on the user's end.
+-   The agent did not fully consider the implications of the  cookie when debugging the magic link, leading to the current blank page issue.
+-   The agent introduced a bug by calling a non-existent API endpoint () before realizing the correct approach was to modify the existing drawing update endpoint.</analysis>

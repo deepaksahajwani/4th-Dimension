@@ -35,7 +35,7 @@ JWT_SECRET = os.environ.get("JWT_SECRET", "your-secret-key-change-in-production"
 JWT_ALGORITHM = "HS256"
 JWT_EXPIRY_HOURS = 24 * 7  # 7 days - same as normal login
 
-APP_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://magic-auth.preview.emergentagent.com')
+APP_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://mobile-first-14.preview.emergentagent.com')
 
 # Cookie configuration
 COOKIE_NAME = "auth_token"

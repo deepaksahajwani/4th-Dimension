@@ -11,7 +11,7 @@ from datetime import datetime
 import uuid
 
 # Get backend URL from frontend .env
-BACKEND_URL = "https://magic-auth.preview.emergentagent.com/api"
+BACKEND_URL = "https://mobile-first-14.preview.emergentagent.com/api"
 
 def test_complete_registration_flow():
     """Test the complete simplified registration flow with auto-validation as requested"""

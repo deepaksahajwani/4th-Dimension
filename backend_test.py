@@ -47,7 +47,7 @@ from datetime import datetime
 import uuid
 
 # Get backend URL from frontend .env
-BACKEND_URL = "https://magic-auth.preview.emergentagent.com/api"
+BACKEND_URL = "https://mobile-first-14.preview.emergentagent.com/api"
 
 class BackendTester:
     def __init__(self):

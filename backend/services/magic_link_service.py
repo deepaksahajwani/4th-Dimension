@@ -289,5 +289,5 @@ def get_magic_link_url(token: str) -> str:
     """
     Get the full magic link URL for a token.
     """
-    app_url = os.environ.get('REACT_APP_BACKEND_URL', 'https://magic-auth.preview.emergentagent.com')
+    app_url = os.environ.get('REACT_APP_BACKEND_URL', 'https://mobile-first-14.preview.emergentagent.com')
     return f"{app_url}/magic/{token}"
