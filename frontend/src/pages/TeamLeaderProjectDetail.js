@@ -560,7 +560,7 @@ export default function TeamLeaderProjectDetail({ user, onLogout }) {
                 <CardHeader className="pb-2">
                   <CardTitle className="text-sm flex items-center gap-2 text-red-700">
                     <AlertCircle className="w-4 h-4" />
-                    Revisions Required ({pendingRevisions.length})
+                    Revisions Required
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-2">
