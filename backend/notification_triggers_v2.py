@@ -1292,23 +1292,10 @@ Best regards,
         
         # Send to client
         if payment_mode.lower() in ['cheque', 'online', 'bank transfer']:
-            # Send email with invoice
-            if invoice_url:
-                email_html = f"""
-                <html>
-                    <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
-                        <h2>Payment Receipt</h2>
-                        <p>{client_message.replace(chr(10), '<br>')}</p>
-                        <p><a href="{invoice_url}" style="background-color: #4CAF50; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: inline-block; margin-top: 10px;">Download Invoice</a></p>
-                    </body>
-                </html>
-                """
-                
-                await notification_service.send_email(
-                    to_email=client.get('email'),
-                    subject=f"Payment Receipt - {project.get('title') or project.get('name')}",
-                    html_content=email_html
-                )
+            # Email notifications disabled - WhatsApp/SMS only
+            # Send WhatsApp instead
+            if client.get('mobile'):
+                await notification_service.send_whatsapp(client['mobile'], client_message)
         else:
             # Send WhatsApp for cash
             if client.get('mobile'):
