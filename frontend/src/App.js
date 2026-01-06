@@ -87,17 +87,22 @@ function checkMagicLinkAuth() {
   return null;
 }
 
-// Configure axios - Enable credentials globally for cookie-based auth (magic links)
-axios.defaults.withCredentials = true;
-
+// Configure axios interceptors
 axios.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('token');
+    const useCookieAuth = localStorage.getItem('use_cookie_auth');
     
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
-    // withCredentials is already set globally, so cookies will be sent automatically
+    
+    // Only set withCredentials for authenticated requests when using cookie auth
+    // Don't set it for login/register to avoid CORS preflight issues
+    if (useCookieAuth && !config.url?.includes('/auth/login') && !config.url?.includes('/auth/register')) {
+      config.withCredentials = true;
+    }
+    
     return config;
   },
   (error) => Promise.reject(error)
