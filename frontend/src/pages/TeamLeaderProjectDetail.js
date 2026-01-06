@@ -55,7 +55,7 @@ export default function TeamLeaderProjectDetail({ user, onLogout }) {
   const [client, setClient] = useState(null);
   const [projectTeam, setProjectTeam] = useState({ contractors: [], consultants: [], co_clients: [] });
   const [loading, setLoading] = useState(true);
-  const [activeSection, setActiveSection] = useState('drawings');
+  const [activeSection, setActiveSection] = useState('upcoming');
   const [expandedCategories, setExpandedCategories] = useState({});
   
   // Dialog states
