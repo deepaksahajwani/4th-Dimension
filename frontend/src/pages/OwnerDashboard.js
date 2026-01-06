@@ -446,6 +446,88 @@ export default function OwnerDashboard({ user, onLogout }) {
     }
   };
 
+  // Pending Approvals Actions
+  const handleApproveDrawing = async (drawing) => {
+    setActionLoading(true);
+    try {
+      const token = localStorage.getItem('token');
+      await axios.put(`${API}/api/drawings/${drawing.id}`, {
+        is_approved: true,
+        under_review: false
+      }, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      toast.success(`"${drawing.name}" approved!`);
+      // Remove from pending list
+      setPendingApprovals(prev => prev.filter(d => d.id !== drawing.id));
+      setSelectedDrawingForAction(null);
+    } catch (error) {
+      toast.error('Failed to approve drawing');
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleRequestRevision = async (drawing) => {
+    if (!revisionComment.trim()) {
+      toast.error('Please add a comment explaining the revision needed');
+      return;
+    }
+    
+    setActionLoading(true);
+    try {
+      const token = localStorage.getItem('token');
+      const headers = { Authorization: `Bearer ${token}` };
+      
+      // Add comment with revision flag
+      await axios.post(`${API}/api/drawings/${drawing.id}/comments`, {
+        text: revisionComment,
+        requires_revision: true
+      }, { headers });
+      
+      // Update drawing status
+      await axios.put(`${API}/api/drawings/${drawing.id}`, {
+        has_pending_revision: true,
+        under_review: false,
+        is_approved: false
+      }, { headers });
+      
+      toast.success(`Revision requested for "${drawing.name}"`);
+      // Remove from pending list
+      setPendingApprovals(prev => prev.filter(d => d.id !== drawing.id));
+      setSelectedDrawingForAction(null);
+      setRevisionComment('');
+    } catch (error) {
+      toast.error('Failed to request revision');
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleViewDrawing = (drawing) => {
+    if (drawing.file_url) {
+      window.open(`${BACKEND_URL}${drawing.file_url}`, '_blank');
+    } else {
+      toast.error('No file available');
+    }
+  };
+
+  const handleDownloadDrawing = async (drawing) => {
+    if (drawing.file_url) {
+      try {
+        const link = document.createElement('a');
+        link.href = `${BACKEND_URL}${drawing.file_url}`;
+        link.download = `${drawing.name}.pdf`;
+        link.target = '_blank';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      } catch (error) {
+        toast.error('Failed to download');
+      }
+    }
+  };
+
   if (loading) {
     return (
       <Layout user={user} onLogout={onLogout}>
