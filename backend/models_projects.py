@@ -434,6 +434,7 @@ class ProjectDrawingUpdate(BaseModel):
     notes: Optional[str] = None
     file_url: Optional[str] = None  # PDF file URL
     revision_file_urls: Optional[List[str]] = None  # Revision PDF URLs
+    issued_to: Optional[List[Dict]] = None  # Recipients to notify when drawing is issued
 
 class DrawingRevision(BaseModel):
     model_config = ConfigDict(extra="ignore")
