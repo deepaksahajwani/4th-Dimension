@@ -142,7 +142,7 @@ export default function DrawingReviewPage({ user, onLogout }) {
     setSubmitting(true);
     try {
       const token = localStorage.getItem('token');
-      const headers = { Authorization: `Bearer ${token}` };
+      const headers = token ? { Authorization: `Bearer ${token}` } : {};
       
       // Add comment with revision flag
       await axios.post(`${API}/drawings/${drawingId}/comments`, {
