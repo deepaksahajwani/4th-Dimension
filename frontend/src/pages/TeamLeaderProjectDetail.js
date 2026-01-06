@@ -731,11 +731,16 @@ export default function TeamLeaderProjectDetail({ user, onLogout }) {
                 <CardHeader className="pb-2">
                   <CardTitle className="text-sm flex items-center gap-2 text-green-700">
                     <Check className="w-4 h-4" />
-                    Issued Drawings ({issued.length})
+                    Issued Drawings
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-2">
-                  {issued.map(drawing => (
+                  {[...issued].sort((a, b) => {
+                    // Sort by issued_date descending (newest first)
+                    const dateA = a.issued_date ? new Date(a.issued_date) : new Date(0);
+                    const dateB = b.issued_date ? new Date(b.issued_date) : new Date(0);
+                    return dateB - dateA;
+                  }).map(drawing => (
                     <div key={drawing.id} className="bg-green-50 p-3 rounded-lg flex items-center justify-between">
                       <div className="flex-1 min-w-0 mr-2">
                         <p className="font-medium text-sm truncate">{drawing.name}</p>
