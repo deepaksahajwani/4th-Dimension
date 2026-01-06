@@ -219,7 +219,7 @@ export default function TeamLeaderDashboard({ user, onLogout }) {
                       </span>
                     )}
                     <span className="px-2 py-1 text-xs bg-slate-100 text-slate-600 rounded-full">
-                      {project.issuedDrawings} drawings issued
+                      {project.issuedDrawings} issued
                     </span>
                   </div>
 
