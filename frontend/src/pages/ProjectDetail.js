@@ -25,6 +25,7 @@ import { formatErrorMessage } from '@/utils/errorHandler';
 import { DrawingCard, DeleteProjectDialog, ArchiveProjectDialog, ChatView } from '@/components/project';
 import TeamLeaderAccess from '@/components/TeamLeaderAccess';
 import { usePermissions } from '@/hooks/usePermissions';
+import { LoadingState, ErrorState } from '@/utils/stability';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
@@ -46,6 +47,7 @@ export default function ProjectDetail({ user, onLogout }) {
   const [teamLeader, setTeamLeader] = useState(null);
   const [allTeamMembers, setAllTeamMembers] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null); // New error state for stability
   const [activeTab, setActiveTab] = useState('drawings');
   const [highlightedDrawingId, setHighlightedDrawingId] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
