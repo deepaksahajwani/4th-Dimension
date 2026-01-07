@@ -10,6 +10,7 @@ import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { LoadingState, ErrorState, safeFileDownload } from '@/utils/stability';
 import {
   ArrowLeft,
   FileText,
@@ -49,6 +50,7 @@ export default function ExternalProjectDetail({ user, onLogout }) {
   const [teamLeader, setTeamLeader] = useState(null);
   const [comments, setComments] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null); // New error state for stability
   const [activeSection, setActiveSection] = useState(null);
   const [expandedCategories, setExpandedCategories] = useState({});
   const [searchQuery, setSearchQuery] = useState('');
