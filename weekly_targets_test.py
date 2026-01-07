@@ -11,7 +11,7 @@ from datetime import datetime, timedelta
 import uuid
 
 # Get backend URL from frontend .env
-BACKEND_URL = "https://mobile-first-14.preview.emergentagent.com/api"
+BACKEND_URL = "https://pmapp-stability.preview.emergentagent.com/api"
 
 class WeeklyTargetsTester:
     def __init__(self):

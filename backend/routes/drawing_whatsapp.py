@@ -92,7 +92,7 @@ async def send_drawing_via_whatsapp(
         if not is_owner and not is_team_leader:
             raise HTTPException(status_code=403, detail="Not authorized to send this drawing")
         
-        app_url = os.environ.get('REACT_APP_BACKEND_URL', 'https://mobile-first-14.preview.emergentagent.com')
+        app_url = os.environ.get('REACT_APP_BACKEND_URL', 'https://pmapp-stability.preview.emergentagent.com')
         # Use Drawing Review Page format
         drawing_link = f"{app_url}/projects/{project['id']}/drawing/{drawing_id}"
         
@@ -210,7 +210,7 @@ async def request_drawing_approval(
             }}
         )
         
-        app_url = os.environ.get('REACT_APP_BACKEND_URL', 'https://mobile-first-14.preview.emergentagent.com')
+        app_url = os.environ.get('REACT_APP_BACKEND_URL', 'https://pmapp-stability.preview.emergentagent.com')
         # Use Drawing Review Page format
         drawing_link = f"{app_url}/projects/{project['id']}/drawing/{drawing_id}"
         

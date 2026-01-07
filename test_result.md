@@ -62,7 +62,7 @@
 
 **Complete Magic Link Flow Test:**
 ```
-Generated Magic Link: https://mobile-first-14.preview.emergentagent.com/magic/79b6225a1981f1236a0ed58f1ce5d30de8a894f8a155df1bb4978eba0f2bf019
+Generated Magic Link: https://pmapp-stability.preview.emergentagent.com/magic/79b6225a1981f1236a0ed58f1ce5d30de8a894f8a155df1bb4978eba0f2bf019
 
 Token Validation:
 ✅ destination_type: drawing_review
@@ -620,7 +620,7 @@ The External Project Detail page (`/project/{id}`) is not properly fetching or d
 ### Review Request Testing:
 **Comprehensive UI testing performed as requested with test credentials:**
 - Team Leader: balbirgkaur@gmail.com / TeamLeader@123
-- Test URL: https://mobile-first-14.preview.emergentagent.com
+- Test URL: https://pmapp-stability.preview.emergentagent.com
 
 ### Test Results Summary:
 - **Total UI Tests**: 15
@@ -917,7 +917,7 @@ Major backend refactoring where ~860 lines were removed from `/app/backend/serve
 - Owner: deepaksahajwani@gmail.com / Deepak@2025
 - Team Leader: balbirgkaur@gmail.com / TeamLeader@123
 
-**API URL:** https://mobile-first-14.preview.emergentagent.com/api
+**API URL:** https://pmapp-stability.preview.emergentagent.com/api
 
 ### Test Results Summary:
 - **Total Tests**: 13
@@ -1063,7 +1063,7 @@ Major backend refactoring where ~860 lines were removed from `/app/backend/serve
 - Owner: deepaksahajwani@gmail.com / Deepak@2025
 - Team Leader: balbirgkaur@gmail.com / TeamLeader@123
 
-**API URL:** https://mobile-first-14.preview.emergentagent.com/api
+**API URL:** https://pmapp-stability.preview.emergentagent.com/api
 
 ### Test Results Summary:
 - **Total Tests**: 11
@@ -1142,7 +1142,7 @@ Major backend refactoring where ~860 lines were removed from `/app/backend/serve
 - Owner: deepaksahajwani@gmail.com / Deepak@2025
 - Team Leader: balbirgkaur@gmail.com / TeamLeader@123
 
-**Test URL:** https://mobile-first-14.preview.emergentagent.com
+**Test URL:** https://pmapp-stability.preview.emergentagent.com
 
 ### Test Results Summary:
 - **Total Tests**: 8
@@ -1252,7 +1252,7 @@ Major backend refactoring where ~860 lines were removed from `/app/backend/serve
 - Owner: deepaksahajwani@gmail.com / Deepak@2025
 - Team Leader: balbirgkaur@gmail.com / TeamLeader@123
 
-**API URL:** https://mobile-first-14.preview.emergentagent.com/api
+**API URL:** https://pmapp-stability.preview.emergentagent.com/api
 
 ### Test Results Summary:
 - **Total Tests**: 8
@@ -1490,7 +1490,7 @@ Major backend refactoring where ~860 lines were removed from `/app/backend/serve
 - Owner: deepaksahajwani@gmail.com / Deepak@2025
 - Team Leader: balbirgkaur@gmail.com / TeamLeader@123
 
-**Test URL:** https://mobile-first-14.preview.emergentagent.com
+**Test URL:** https://pmapp-stability.preview.emergentagent.com
 
 ### Test Results Summary:
 - **Total Tests**: 12

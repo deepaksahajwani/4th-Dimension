@@ -28,7 +28,7 @@ client = AsyncIOMotorClient(mongo_url)
 db = client[db_name]
 
 # App URL
-APP_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://mobile-first-14.preview.emergentagent.com')
+APP_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://pmapp-stability.preview.emergentagent.com')
 
 # Conversation states
 CONVERSATION_STATES = {}  # In-memory state (consider Redis for production)

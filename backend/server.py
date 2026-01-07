@@ -1,4 +1,4 @@
-from fastapi import FastAPI, APIRouter, Depends, HTTPException, UploadFile, File, Form, Query, Body, Request, Cookie
+from fastapi import FastAPI, APIRouter, Depends, HTTPException, UploadFile, File, Form, Query, Body, Cookie
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
@@ -1629,7 +1629,7 @@ async def get_email_preview(user_id: str = Query(None), role: str = Query(...), 
             'preferred_language': lang
         }
         
-        login_url = os.getenv('REACT_APP_BACKEND_URL', 'https://mobile-first-14.preview.emergentagent.com')
+        login_url = os.getenv('REACT_APP_BACKEND_URL', 'https://pmapp-stability.preview.emergentagent.com')
         
         subject, html_content = get_translated_email_content(mock_user, login_url, lang)
         
