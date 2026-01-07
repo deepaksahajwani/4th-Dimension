@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { FolderOpen, Calendar, User, TrendingUp } from 'lucide-react';
 import { toast } from 'sonner';
+import { LoadingState, ErrorState } from '@/utils/stability';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
@@ -22,6 +23,7 @@ export default function ExternalDashboard({ user, onLogout }) {
   const navigate = useNavigate();
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null); // New error state for stability
 
   useEffect(() => {
     fetchProjects();
@@ -29,6 +31,7 @@ export default function ExternalDashboard({ user, onLogout }) {
 
   const fetchProjects = async () => {
     try {
+      setError(null); // Clear previous errors
       const token = localStorage.getItem('token');
       const response = await axios.get(`${API}/projects`, {
         headers: { Authorization: `Bearer ${token}` }
@@ -65,6 +68,8 @@ export default function ExternalDashboard({ user, onLogout }) {
       setProjects(projectsWithStats);
     } catch (error) {
       console.error('Error fetching projects:', error);
+      const errorMessage = error.response?.data?.detail || error.message || 'Failed to load projects';
+      setError(errorMessage);
       toast.error('Failed to load projects');
     } finally {
       setLoading(false);
