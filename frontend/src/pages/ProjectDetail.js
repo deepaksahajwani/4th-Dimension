@@ -1480,9 +1480,23 @@ export default function ProjectDetail({ user, onLogout }) {
   if (loading) {
     return (
       <Layout user={user} onLogout={onLogout}>
-        <div className="flex items-center justify-center h-64">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-600"></div>
-        </div>
+        <LoadingState message="Loading project..." />
+      </Layout>
+    );
+  }
+
+  // Show error state with retry option
+  if (error) {
+    return (
+      <Layout user={user} onLogout={onLogout}>
+        <ErrorState 
+          message={error} 
+          onRetry={() => {
+            setError(null);
+            setLoading(true);
+            fetchProjectData();
+          }} 
+        />
       </Layout>
     );
   }
