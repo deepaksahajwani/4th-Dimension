@@ -551,6 +551,35 @@ export default function OwnerDashboard({ user, onLogout }) {
     ? Math.round(projects.reduce((sum, p) => sum + (p.progress || 0), 0) / projects.length)
     : 0;
 
+  // Show loading state
+  if (loading) {
+    return (
+      <Layout user={user} onLogout={onLogout}>
+        <div className="max-w-full mx-auto">
+          <LoadingState message="Loading dashboard..." />
+        </div>
+      </Layout>
+    );
+  }
+
+  // Show error state with retry option
+  if (error) {
+    return (
+      <Layout user={user} onLogout={onLogout}>
+        <div className="max-w-full mx-auto">
+          <ErrorState 
+            message={error} 
+            onRetry={() => {
+              setError(null);
+              setLoading(true);
+              fetchAllData();
+            }} 
+          />
+        </div>
+      </Layout>
+    );
+  }
+
   return (
     <Layout user={user} onLogout={onLogout}>
       <div className="max-w-full mx-auto">
