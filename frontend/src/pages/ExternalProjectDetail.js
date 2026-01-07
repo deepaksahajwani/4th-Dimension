@@ -584,12 +584,12 @@ export default function ExternalProjectDetail({ user, onLogout }) {
           </Card>
         )}
 
-        {activeSection === 'leader' && (
+        {activeSection === 'team' && (
           <Card className="mb-6 animate-in slide-in-from-top-2">
             <CardHeader className="pb-3">
               <CardTitle className="text-lg flex items-center gap-2">
-                <User className="w-5 h-5 text-green-600" />
-                Team Leader
+                <Users className="w-5 h-5 text-green-600" />
+                Project Team
               </CardTitle>
             </CardHeader>
             <CardContent>
