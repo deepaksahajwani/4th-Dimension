@@ -236,7 +236,10 @@ export default function ProjectDetail({ user, onLogout }) {
         // Clear the query parameter from URL
         window.history.replaceState({}, '', `/projects/${projectId}`);
       }
+      setError(null); // Clear any previous errors
     } catch (error) {
+      const errorMessage = error.response?.data?.detail || error.message || 'Failed to load project data';
+      setError(errorMessage);
       toast.error('Failed to load project data');
       console.error(error);
     } finally {
