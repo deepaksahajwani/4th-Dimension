@@ -368,6 +368,14 @@ function App() {
               }
             />
             <Route
+              path="/drawing-templates"
+              element={
+                <ProtectedRoute>
+                  <DrawingTemplates user={user} onLogout={handleLogout} />
+                </ProtectedRoute>
+              }
+            />
+            <Route
               path="/contractors"
               element={
                 <ProtectedRoute>
