@@ -298,12 +298,23 @@ export default function ExternalProjectDetail({ user, onLogout }) {
   if (loading) {
     return (
       <Layout user={user} onLogout={onLogout}>
-        <div className="flex items-center justify-center h-64">
-          <div className="text-center">
-            <div className="w-8 h-8 border-4 border-orange-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-            <p className="text-slate-500">Loading project...</p>
-          </div>
-        </div>
+        <LoadingState message="Loading project..." />
+      </Layout>
+    );
+  }
+
+  // Show error state with retry option
+  if (error) {
+    return (
+      <Layout user={user} onLogout={onLogout}>
+        <ErrorState 
+          message={error} 
+          onRetry={() => {
+            setError(null);
+            setLoading(true);
+            fetchProjectData();
+          }} 
+        />
       </Layout>
     );
   }
