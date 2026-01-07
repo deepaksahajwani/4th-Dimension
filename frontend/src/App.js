@@ -331,7 +331,7 @@ function App() {
             <Route
               path="/dashboard"
               element={
-                <ProtectedRoute>
+                <ProtectedRoute authChecked={authChecked}>
                   <Dashboard user={user} onLogout={handleLogout} />
                 </ProtectedRoute>
               }
@@ -339,7 +339,7 @@ function App() {
             <Route
               path="/external-dashboard"
               element={
-                <ProtectedRoute>
+                <ProtectedRoute authChecked={authChecked}>
                   <ExternalDashboard user={user} onLogout={handleLogout} />
                 </ProtectedRoute>
               }
@@ -347,7 +347,7 @@ function App() {
             <Route
               path="/project/:projectId"
               element={
-                <ProtectedRoute>
+                <ProtectedRoute authChecked={authChecked}>
                   <ExternalProjectDetail user={user} onLogout={handleLogout} />
                 </ProtectedRoute>
               }
@@ -355,7 +355,7 @@ function App() {
             <Route
               path="/weekly-dashboard"
               element={
-                <ProtectedRoute>
+                <ProtectedRoute authChecked={authChecked}>
                   <WeeklyDashboard user={user} onLogout={handleLogout} />
                 </ProtectedRoute>
               }
@@ -363,7 +363,7 @@ function App() {
             <Route
               path="/owner-dashboard"
               element={
-                <ProtectedRoute>
+                <ProtectedRoute authChecked={authChecked}>
                   <OwnerDashboard user={user} onLogout={handleLogout} />
                 </ProtectedRoute>
               }
@@ -371,7 +371,7 @@ function App() {
             <Route
               path="/client-dashboard"
               element={
-                <ProtectedRoute>
+                <ProtectedRoute authChecked={authChecked}>
                   <ClientDashboard user={user} onLogout={handleLogout} />
                 </ProtectedRoute>
               }
@@ -379,7 +379,7 @@ function App() {
             <Route
               path="/work-tracker"
               element={
-                <ProtectedRoute>
+                <ProtectedRoute authChecked={authChecked}>
                   <WorkTracker user={user} onLogout={handleLogout} />
                 </ProtectedRoute>
               }
@@ -387,7 +387,7 @@ function App() {
             <Route
               path="/my-work"
               element={
-                <ProtectedRoute>
+                <ProtectedRoute authChecked={authChecked}>
                   <MyWork user={user} onLogout={handleLogout} />
                 </ProtectedRoute>
               }
@@ -395,7 +395,7 @@ function App() {
             <Route
               path="/assign-targets"
               element={
-                <ProtectedRoute>
+                <ProtectedRoute authChecked={authChecked}>
                   <AssignTargets user={user} onLogout={handleLogout} />
                 </ProtectedRoute>
               }
@@ -403,7 +403,7 @@ function App() {
             <Route
               path="/drawing-templates"
               element={
-                <ProtectedRoute>
+                <ProtectedRoute authChecked={authChecked}>
                   <DrawingTemplates user={user} onLogout={handleLogout} />
                 </ProtectedRoute>
               }
@@ -411,7 +411,7 @@ function App() {
             <Route
               path="/contractors"
               element={
-                <ProtectedRoute>
+                <ProtectedRoute authChecked={authChecked}>
                   <Contractors user={user} onLogout={handleLogout} />
                 </ProtectedRoute>
               }
@@ -420,7 +420,7 @@ function App() {
             <Route
               path="/consultants"
               element={
-                <ProtectedRoute>
+                <ProtectedRoute authChecked={authChecked}>
                   <Consultants user={user} onLogout={handleLogout} />
                 </ProtectedRoute>
               }
@@ -429,7 +429,7 @@ function App() {
             <Route
               path="/vendors"
               element={
-                <ProtectedRoute>
+                <ProtectedRoute authChecked={authChecked}>
                   <Vendors user={user} onLogout={handleLogout} />
                 </ProtectedRoute>
               }
@@ -438,7 +438,7 @@ function App() {
             <Route
               path="/projects"
               element={
-                <ProtectedRoute>
+                <ProtectedRoute authChecked={authChecked}>
                   <Projects user={user} onLogout={handleLogout} />
                 </ProtectedRoute>
               }
@@ -446,7 +446,7 @@ function App() {
             <Route
               path="/projects/:projectId"
               element={
-                <ProtectedRoute>
+                <ProtectedRoute authChecked={authChecked}>
                   <ProjectDetail user={user} onLogout={handleLogout} />
                 </ProtectedRoute>
               }
@@ -454,7 +454,7 @@ function App() {
             <Route
               path="/clients"
               element={
-                <ProtectedRoute>
+                <ProtectedRoute authChecked={authChecked}>
                   <Clients user={user} onLogout={handleLogout} />
                 </ProtectedRoute>
               }
@@ -462,7 +462,7 @@ function App() {
             <Route
               path="/clients/:clientId"
               element={
-                <ProtectedRoute>
+                <ProtectedRoute authChecked={authChecked}>
                   <ClientDetail user={user} onLogout={handleLogout} />
                 </ProtectedRoute>
               }
@@ -470,7 +470,7 @@ function App() {
             <Route
               path="/team"
               element={
-                <ProtectedRoute>
+                <ProtectedRoute authChecked={authChecked}>
                   <Team user={user} onLogout={handleLogout} />
                 </ProtectedRoute>
               }
@@ -479,7 +479,7 @@ function App() {
             <Route
               path="/notifications"
               element={
-                <ProtectedRoute>
+                <ProtectedRoute authChecked={authChecked}>
                   <Notifications user={user} onLogout={handleLogout} />
                 </ProtectedRoute>
               }
@@ -488,7 +488,7 @@ function App() {
             <Route
               path="/team/manage"
               element={
-                <ProtectedRoute>
+                <ProtectedRoute authChecked={authChecked}>
                   <ManageTeam user={user} onLogout={handleLogout} />
                 </ProtectedRoute>
               }
@@ -496,7 +496,7 @@ function App() {
             <Route
               path="/team/:memberId"
               element={
-                <ProtectedRoute>
+                <ProtectedRoute authChecked={authChecked}>
                   <TeamMemberDetail user={user} onLogout={handleLogout} />
                 </ProtectedRoute>
               }
@@ -504,7 +504,7 @@ function App() {
             <Route
               path="/pending-registrations"
               element={
-                <ProtectedRoute>
+                <ProtectedRoute authChecked={authChecked}>
                   <PendingRegistrations user={user} onLogout={handleLogout} />
                 </ProtectedRoute>
               }
@@ -513,7 +513,7 @@ function App() {
             <Route
               path="/accounting"
               element={
-                <ProtectedRoute>
+                <ProtectedRoute authChecked={authChecked}>
                   <Accounting user={user} onLogout={handleLogout} />
                 </ProtectedRoute>
               }
@@ -521,7 +521,7 @@ function App() {
             <Route
               path="/system-logs"
               element={
-                <ProtectedRoute>
+                <ProtectedRoute authChecked={authChecked}>
                   <SystemLogs user={user} onLogout={handleLogout} />
                 </ProtectedRoute>
               }
@@ -529,7 +529,7 @@ function App() {
             <Route
               path="/drawings"
               element={
-                <ProtectedRoute>
+                <ProtectedRoute authChecked={authChecked}>
                   <Drawings user={user} onLogout={handleLogout} />
                 </ProtectedRoute>
               }
@@ -537,7 +537,7 @@ function App() {
             <Route
               path="/tasks"
               element={
-                <ProtectedRoute>
+                <ProtectedRoute authChecked={authChecked}>
                   <Tasks user={user} onLogout={handleLogout} />
                 </ProtectedRoute>
               }
@@ -545,7 +545,7 @@ function App() {
             <Route
               path="/settings"
               element={
-                <ProtectedRoute>
+                <ProtectedRoute authChecked={authChecked}>
                   <Settings user={user} onLogout={handleLogout} />
                 </ProtectedRoute>
               }
@@ -553,7 +553,7 @@ function App() {
             <Route
               path="/resources"
               element={
-                <ProtectedRoute>
+                <ProtectedRoute authChecked={authChecked}>
                   <Resources user={user} onLogout={handleLogout} />
                 </ProtectedRoute>
               }
@@ -561,7 +561,7 @@ function App() {
             <Route
               path="/team-leader"
               element={
-                <ProtectedRoute>
+                <ProtectedRoute authChecked={authChecked}>
                   <TeamLeaderDashboard user={user} onLogout={handleLogout} />
                 </ProtectedRoute>
               }
@@ -569,7 +569,7 @@ function App() {
             <Route
               path="/team-leader/project/:projectId"
               element={
-                <ProtectedRoute>
+                <ProtectedRoute authChecked={authChecked}>
                   <TeamLeaderProjectDetail user={user} onLogout={handleLogout} />
                 </ProtectedRoute>
               }
@@ -578,7 +578,7 @@ function App() {
             <Route
               path="/projects/:projectId/drawing/:drawingId"
               element={
-                <ProtectedRoute>
+                <ProtectedRoute authChecked={authChecked}>
                   <DrawingReviewPage user={user} onLogout={handleLogout} />
                 </ProtectedRoute>
               }
@@ -586,7 +586,7 @@ function App() {
             <Route
               path="/projects/:projectId/3d-image/:imageId"
               element={
-                <ProtectedRoute>
+                <ProtectedRoute authChecked={authChecked}>
                   <DrawingReviewPage user={user} onLogout={handleLogout} />
                 </ProtectedRoute>
               }
