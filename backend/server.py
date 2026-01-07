@@ -3115,6 +3115,50 @@ async def get_pending_approval_drawings(
     return result
 
 
+# ==================== DRAWING TEMPLATES ====================
+
+@api_router.get("/drawing-templates")
+async def get_drawing_templates(current_user: User = Depends(require_owner)):
+    """Get all drawing templates (owner only)"""
+    templates = await db.drawing_templates.find({}, {"_id": 0}).to_list(100)
+    return templates
+
+
+@api_router.put("/drawing-templates/{category}")
+async def update_drawing_template(
+    category: str,
+    template_data: dict = Body(...),
+    current_user: User = Depends(require_owner)
+):
+    """Update drawing template for a category (owner only)"""
+    await db.drawing_templates.update_one(
+        {"category": category},
+        {
+            "$set": {
+                "category": category,
+                "drawings": template_data.get("drawings", []),
+                "updated_at": datetime.now(timezone.utc).isoformat(),
+                "updated_by": current_user.id
+            }
+        },
+        upsert=True
+    )
+    return {"status": "success", "category": category}
+
+
+@api_router.get("/drawing-templates/{category}")
+async def get_drawing_template_by_category(
+    category: str,
+    current_user: User = Depends(get_current_user)
+):
+    """Get drawing template for a specific category"""
+    template = await db.drawing_templates.find_one(
+        {"category": category},
+        {"_id": 0}
+    )
+    return template or {"category": category, "drawings": []}
+
+
 @api_router.post("/projects/{project_id}/drawings")
 async def create_drawing(
     project_id: str,
