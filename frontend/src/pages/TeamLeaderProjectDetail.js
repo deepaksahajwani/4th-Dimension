@@ -366,12 +366,23 @@ export default function TeamLeaderProjectDetail({ user, onLogout }) {
   };
 
   const handleDownloadDrawing = async (drawing) => {
-    if (drawing.file_url) {
-      const link = document.createElement('a');
-      link.href = `${BACKEND_URL}${drawing.file_url}`;
-      link.download = drawing.name || 'drawing';
-      link.click();
-      toast.success('Download started');
+    if (!drawing.file_url) {
+      toast.error('Drawing file not available for download');
+      return;
+    }
+    
+    try {
+      const { safeFileDownload } = await import('@/utils/stability');
+      const filename = `${drawing.name || 'drawing'}.pdf`;
+      const result = await safeFileDownload(drawing.file_url, filename);
+      
+      if (result.success) {
+        toast.success('Download started');
+      }
+      // Error toast is handled by safeFileDownload
+    } catch (error) {
+      console.error('Download error:', error);
+      toast.error('Failed to download file. Please try again.');
     }
   };
 
