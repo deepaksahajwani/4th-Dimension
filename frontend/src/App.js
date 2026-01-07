@@ -156,23 +156,35 @@ function ProtectedRoute({ children }) {
 function App() {
   const [user, setUser] = useState(null);
   const [isProcessingOAuth, setIsProcessingOAuth] = useState(false);
+  const [authChecked, setAuthChecked] = useState(false); // Track if auth check is complete
 
   useEffect(() => {
-    // First check for magic link auth (cookie-based)
-    const magicLinkUser = checkMagicLinkAuth();
-    if (magicLinkUser) {
-      setUser(magicLinkUser);
-      return;
-    }
-    
-    // Then check localStorage
-    const storedUser = localStorage.getItem('user');
-    if (storedUser) {
-      setUser(JSON.parse(storedUser));
-    }
+    const initializeAuth = async () => {
+      try {
+        // First check for magic link auth (cookie-based)
+        const magicLinkUser = checkMagicLinkAuth();
+        if (magicLinkUser) {
+          setUser(magicLinkUser);
+          setAuthChecked(true);
+          return;
+        }
+        
+        // Then check localStorage
+        const storedUser = localStorage.getItem('user');
+        if (storedUser) {
+          try {
+            const parsedUser = JSON.parse(storedUser);
+            setUser(parsedUser);
+          } catch (e) {
+            console.error('Error parsing stored user:', e);
+            // Clear corrupted data
+            localStorage.removeItem('user');
+            localStorage.removeItem('token');
+          }
+        }
 
-    // Check for Google OAuth session_id in URL fragment
-    const hash = window.location.hash;
+        // Check for Google OAuth session_id in URL fragment
+        const hash = window.location.hash;
     if (hash.includes('session_id=')) {
       setIsProcessingOAuth(true);
       const sessionId = hash.split('session_id=')[1].split('&')[0];
