@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { toast } from 'sonner';
 import Layout from '../components/Layout';
+import { LoadingState, ErrorState, safeApiCall } from '../utils/stability';
 import { 
   LayoutGrid,
   Users,
@@ -49,6 +50,7 @@ const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8001'
 export default function OwnerDashboard({ user, onLogout }) {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null); // New error state for stability
   const [projects, setProjects] = useState([]);
   const [teamMembers, setTeamMembers] = useState([]);
   const [filteredProjects, setFilteredProjects] = useState([]);
