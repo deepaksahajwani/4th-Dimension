@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Building2, LayoutDashboard, FolderOpen, Users, DollarSign, FileText, CheckSquare, Settings, LogOut, Menu, X, Target, Clock, BookOpen, Store, Activity } from 'lucide-react';
+import { Building2, LayoutDashboard, FolderOpen, Users, DollarSign, FileText, CheckSquare, Settings, LogOut, Menu, X, Target, Clock, BookOpen, Store, Activity, Layers } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import NotificationBell from './NotificationBell';
 
@@ -12,15 +12,16 @@ export default function Layout({ children, user, onLogout }) {
   const isExternalUser = user?.role && ['client', 'contractor', 'consultant', 'vendor'].includes(user.role);
   
   const navigation = isExternalUser ? [
-    // Simplified menu for external users
+    // Simplified menu for external users - only Dashboard and Projects
     { name: 'Dashboard', href: '/external-dashboard', icon: LayoutDashboard },
-    { name: 'Projects', href: '/projects', icon: FolderOpen },
+    { name: 'My Projects', href: '/projects', icon: FolderOpen },
   ] : [
     // Full menu for internal users (owner, team members)
     { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
     ...(user?.is_owner ? [{ name: 'Pending Approvals', href: '/pending-registrations', icon: Clock }] : []),
     ...(user?.is_owner ? [{ name: 'Work Tracker', href: '/work-tracker', icon: CheckSquare }] : []),
     ...(user?.is_owner ? [{ name: 'Assign Targets', href: '/assign-targets', icon: Target }] : []),
+    ...(user?.is_owner ? [{ name: 'Drawing Templates', href: '/drawing-templates', icon: Layers }] : []),
     ...(!user?.is_owner ? [{ name: 'My Work', href: '/my-work', icon: CheckSquare }] : []),
     { name: 'Projects', href: '/projects', icon: FolderOpen },
     { name: 'Clients', href: '/clients', icon: Users },
@@ -33,7 +34,11 @@ export default function Layout({ children, user, onLogout }) {
     ...(user?.is_owner ? [{ name: 'System Logs', href: '/system-logs', icon: Activity }] : []),
   ];
 
-  const mobileBottomNav = [
+  // Mobile bottom nav - different for external vs internal users
+  const mobileBottomNav = isExternalUser ? [
+    { name: 'Dashboard', href: '/external-dashboard', icon: LayoutDashboard },
+    { name: 'Projects', href: '/projects', icon: FolderOpen },
+  ] : [
     { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
     { name: 'Projects', href: '/projects', icon: FolderOpen },
     { name: 'Clients', href: '/clients', icon: Users },
