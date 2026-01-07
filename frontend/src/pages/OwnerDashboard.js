@@ -182,11 +182,14 @@ export default function OwnerDashboard({ user, onLogout }) {
         console.warn('Could not fetch system metrics:', metricsError);
       }
       
+      setError(null); // Clear any previous errors
       setLoading(false);
     } catch (error) {
       console.error('Error fetching data:', error);
       console.error('Error details:', error.response?.data);
-      toast.error(`Failed to load dashboard: ${error.response?.data?.detail || error.message}`);
+      const errorMessage = error.response?.data?.detail || error.message || 'Failed to load dashboard';
+      setError(errorMessage);
+      toast.error(`Failed to load dashboard: ${errorMessage}`);
       setLoading(false);
     }
   };
