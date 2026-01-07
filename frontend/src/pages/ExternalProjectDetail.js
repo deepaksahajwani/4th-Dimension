@@ -385,20 +385,20 @@ export default function ExternalProjectDetail({ user, onLogout }) {
             </CardContent>
           </Card>
 
-          {/* Team Leader Card */}
+          {/* Project Team Card */}
           <Card 
             className={`cursor-pointer transition-all hover:shadow-md active:scale-[0.98] ${
-              activeSection === 'leader' ? 'ring-2 ring-orange-500' : ''
+              activeSection === 'team' ? 'ring-2 ring-orange-500' : ''
             }`}
-            onClick={() => setActiveSection(activeSection === 'leader' ? null : 'leader')}
+            onClick={() => setActiveSection(activeSection === 'team' ? null : 'team')}
           >
             <CardContent className="p-4 text-center">
               <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-2">
-                <User className="w-6 h-6 text-green-600" />
+                <Users className="w-6 h-6 text-green-600" />
               </div>
-              <h3 className="font-semibold text-slate-900">Team Leader</h3>
-              <p className="text-xs text-slate-500 truncate">
-                {teamLeader?.name || project.team_leader_name || 'Not assigned'}
+              <h3 className="font-semibold text-slate-900">Project Team</h3>
+              <p className="text-xs text-slate-500">
+                {teamLeader ? '1 leader' : 'View team'}
               </p>
             </CardContent>
           </Card>
