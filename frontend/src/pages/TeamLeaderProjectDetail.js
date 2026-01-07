@@ -150,8 +150,11 @@ export default function TeamLeaderProjectDetail({ user, onLogout }) {
       } else {
         setUnreadComments(commentsRes.data?.length || 0);
       }
+      setError(null); // Clear any previous errors
     } catch (error) {
       console.error('Error fetching project:', error);
+      const errorMessage = error.response?.data?.detail || error.message || 'Failed to load project';
+      setError(errorMessage);
       toast.error('Failed to load project');
     } finally {
       setLoading(false);
