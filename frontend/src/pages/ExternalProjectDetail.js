@@ -144,31 +144,35 @@ export default function ExternalProjectDetail({ user, onLogout }) {
   };
 
   const handleViewDrawing = (drawing) => {
-    if (drawing.file_url) {
-      // Ensure full URL with backend
-      const fullUrl = drawing.file_url.startsWith('http') 
-        ? drawing.file_url 
-        : `${BACKEND_URL}${drawing.file_url}`;
-      window.open(fullUrl, '_blank');
-    } else {
+    if (!drawing.file_url) {
       toast.error('Drawing file not available');
+      return;
     }
+    // Ensure full URL with backend
+    const fullUrl = drawing.file_url.startsWith('http') 
+      ? drawing.file_url 
+      : `${BACKEND_URL}${drawing.file_url}`;
+    window.open(fullUrl, '_blank');
   };
 
   const handleDownloadDrawing = async (drawing) => {
-    if (drawing.file_url) {
-      // Ensure full URL with backend
-      const fullUrl = drawing.file_url.startsWith('http') 
-        ? drawing.file_url 
-        : `${BACKEND_URL}${drawing.file_url}`;
-      const link = document.createElement('a');
-      link.href = fullUrl;
-      link.download = drawing.name || 'drawing';
-      link.target = '_blank';
-      link.click();
-      toast.success('Download started');
-    } else {
-      toast.error('Drawing file not available');
+    if (!drawing.file_url) {
+      toast.error('Drawing file not available for download');
+      return;
+    }
+    
+    try {
+      // Use the stable file download utility
+      const filename = `${drawing.name || 'drawing'}.pdf`;
+      const result = await safeFileDownload(drawing.file_url, filename);
+      
+      if (result.success) {
+        toast.success('Download started');
+      }
+      // Error toast is handled by safeFileDownload
+    } catch (error) {
+      console.error('Download error:', error);
+      toast.error('Failed to download file. Please try again.');
     }
   };
 
