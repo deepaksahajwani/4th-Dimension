@@ -40,7 +40,11 @@ export default function DrawingTemplates({ user, onLogout }) {
   const [editDrawingName, setEditDrawingName] = useState('');
 
   useEffect(() => {
-    if (!user?.is_owner) {
+    // Wait for user to be loaded
+    if (!user) return;
+    
+    // Check owner access
+    if (!user.is_owner && user.role !== 'owner') {
       toast.error('Access denied');
       navigate('/dashboard');
       return;
