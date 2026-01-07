@@ -11,6 +11,7 @@ import { Progress } from '@/components/ui/progress';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { LoadingState, ErrorState } from '@/utils/stability';
 import {
   ArrowLeft,
   FileText,
@@ -48,6 +49,7 @@ export default function TeamLeaderProjectDetail({ user, onLogout }) {
   
   // State
   const [project, setProject] = useState(null);
+  const [error, setError] = useState(null); // New error state for stability
   const [drawings, setDrawings] = useState([]);
   const [images3D, setImages3D] = useState([]);
   const [imageCategories, setImageCategories] = useState([]);
