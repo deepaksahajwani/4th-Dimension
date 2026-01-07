@@ -3265,6 +3265,16 @@ async def update_drawing(
             update_dict['revision_history'] = revision_history
     
     # If drawing is being issued, activate next drawing and create new one
+    # CORE STABILITY: Validate that drawing cannot be issued without a file
+    if update_dict.get('is_issued') == True:
+        # Check if drawing has a file_url either in current data or in the update
+        has_file = drawing.get('file_url') or update_dict.get('file_url')
+        if not has_file:
+            raise HTTPException(
+                status_code=400, 
+                detail="Cannot issue drawing without an attached file. Please upload the drawing file first."
+            )
+    
     if update_dict.get('is_issued') == True and drawing.get('is_issued') == False:
         issue_date = datetime.now(timezone.utc)
         update_dict['issued_date'] = issue_date.isoformat()
