@@ -185,14 +185,22 @@ function App() {
 
         // Check for Google OAuth session_id in URL fragment
         const hash = window.location.hash;
-    if (hash.includes('session_id=')) {
-      setIsProcessingOAuth(true);
-      const sessionId = hash.split('session_id=')[1].split('&')[0];
-      handleGoogleAuth(sessionId);
-    }
+        if (hash.includes('session_id=')) {
+          setIsProcessingOAuth(true);
+          const sessionId = hash.split('session_id=')[1].split('&')[0];
+          await handleGoogleAuthAsync(sessionId);
+        }
+      } catch (error) {
+        console.error('Auth initialization error:', error);
+      } finally {
+        setAuthChecked(true);
+      }
+    };
+    
+    initializeAuth();
   }, []);
 
-  const handleGoogleAuth = async (sessionId) => {
+  const handleGoogleAuthAsync = async (sessionId) => {
     console.log('Google auth started with session:', sessionId);
     try {
       const response = await axios.post(`${API}/auth/google/session?session_id=${sessionId}`);
