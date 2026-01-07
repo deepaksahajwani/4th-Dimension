@@ -593,46 +593,91 @@ export default function ExternalProjectDetail({ user, onLogout }) {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              {teamLeader || project.team_leader_name ? (
-                <div 
-                  className="flex items-center gap-4 cursor-pointer hover:bg-slate-50 p-2 rounded-lg -m-2 transition-colors"
-                  onClick={() => {
-                    const leaderId = teamLeader?.id || project.team_leader_id;
-                    if (leaderId) navigate(`/team/${leaderId}`);
-                  }}
-                >
-                  <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center">
-                    <User className="w-8 h-8 text-green-600" />
-                  </div>
-                  <div>
-                    <h3 className="font-semibold text-slate-900 hover:text-orange-600">
-                      {teamLeader?.name || project.team_leader_name}
-                    </h3>
-                    {teamLeader?.email && (
-                      <a 
-                        href={`mailto:${teamLeader.email}`}
-                        onClick={(e) => e.stopPropagation()}
-                        className="flex items-center gap-1 text-sm text-blue-600 hover:underline"
-                      >
-                        <Mail className="w-3 h-3" />
-                        {teamLeader.email}
-                      </a>
-                    )}
-                    {teamLeader?.mobile && (
-                      <a 
-                        href={`tel:${teamLeader.mobile}`}
-                        onClick={(e) => e.stopPropagation()}
-                        className="flex items-center gap-1 text-sm text-blue-600 hover:underline"
-                      >
-                        <Phone className="w-3 h-3" />
-                        {teamLeader.mobile}
-                      </a>
-                    )}
-                    <p className="text-xs text-orange-500 mt-1">Tap to view profile</p>
+              {/* Team Leader */}
+              {(teamLeader || project.team_leader_name) && (
+                <div className="mb-4 pb-4 border-b">
+                  <p className="text-xs font-medium text-slate-500 mb-2">Team Leader</p>
+                  <div 
+                    className="flex items-center gap-3 cursor-pointer hover:bg-slate-50 p-2 rounded-lg -mx-2 transition-colors"
+                    onClick={() => {
+                      const leaderId = teamLeader?.id || project.team_leader_id;
+                      if (leaderId) navigate(`/team/${leaderId}`);
+                    }}
+                  >
+                    <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
+                      <User className="w-6 h-6 text-green-600" />
+                    </div>
+                    <div>
+                      <h4 className="font-semibold text-slate-900 hover:text-orange-600">
+                        {teamLeader?.name || project.team_leader_name}
+                      </h4>
+                      {teamLeader?.mobile && (
+                        <a 
+                          href={`tel:${teamLeader.mobile}`}
+                          onClick={(e) => e.stopPropagation()}
+                          className="flex items-center gap-1 text-xs text-blue-600 hover:underline"
+                        >
+                          <Phone className="w-3 h-3" />
+                          {teamLeader.mobile}
+                        </a>
+                      )}
+                    </div>
                   </div>
                 </div>
-              ) : (
-                <p className="text-center text-slate-500 py-4">Team leader not assigned yet</p>
+              )}
+              
+              {/* Contractors on project */}
+              {project.contractors && project.contractors.length > 0 && (
+                <div className="mb-4 pb-4 border-b">
+                  <p className="text-xs font-medium text-slate-500 mb-2">Contractors</p>
+                  <div className="space-y-2">
+                    {project.contractors.map((contractor, idx) => (
+                      <div key={idx} className="flex items-center gap-3 p-2 bg-slate-50 rounded-lg">
+                        <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+                          <Building2 className="w-5 h-5 text-blue-600" />
+                        </div>
+                        <div>
+                          <p className="font-medium text-sm text-slate-900">{contractor.name || contractor.company_name}</p>
+                          {contractor.mobile && (
+                            <a href={`tel:${contractor.mobile}`} className="text-xs text-blue-600 flex items-center gap-1">
+                              <Phone className="w-3 h-3" />{contractor.mobile}
+                            </a>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+              
+              {/* Consultants on project */}
+              {project.consultants && project.consultants.length > 0 && (
+                <div className="mb-4 pb-4 border-b">
+                  <p className="text-xs font-medium text-slate-500 mb-2">Consultants</p>
+                  <div className="space-y-2">
+                    {project.consultants.map((consultant, idx) => (
+                      <div key={idx} className="flex items-center gap-3 p-2 bg-slate-50 rounded-lg">
+                        <div className="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center">
+                          <FileText className="w-5 h-5 text-purple-600" />
+                        </div>
+                        <div>
+                          <p className="font-medium text-sm text-slate-900">{consultant.name || consultant.company_name}</p>
+                          {consultant.mobile && (
+                            <a href={`tel:${consultant.mobile}`} className="text-xs text-blue-600 flex items-center gap-1">
+                              <Phone className="w-3 h-3" />{consultant.mobile}
+                            </a>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+              
+              {!teamLeader && !project.team_leader_name && 
+               (!project.contractors || project.contractors.length === 0) && 
+               (!project.consultants || project.consultants.length === 0) && (
+                <p className="text-center text-slate-500 py-4">No team members assigned yet</p>
               )}
             </CardContent>
           </Card>
