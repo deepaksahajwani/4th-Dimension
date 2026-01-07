@@ -1802,3 +1802,50 @@ Major backend refactoring where ~860 lines were removed from `/app/backend/serve
 - `ensureArray`, `ensureObject`: Safe data access utilities
 
 
+
+
+---
+
+## Core Stability Pass - Phase 2 Implementation (2026-01-07)
+
+### Changes Made:
+
+#### 1. **Data Consistency - Backend Validation**
+- Added validation in `server.py` to prevent `is_issued=True` without `file_url`
+- Returns 400 error: "Cannot issue drawing without an attached file. Please upload the drawing file first."
+- Fixed 6 existing drawings that had is_issued=True but no file_url
+
+#### 2. **File Downloads - Enhanced Error Handling**
+- Updated `TeamLeaderProjectDetail.js` - uses `safeFileDownload` utility
+- Updated `ExternalProjectDetail.js` - uses `safeFileDownload` utility
+- All download functions now check for file existence before attempting download
+- Proper error messages shown to users on failure
+
+#### 3. **External User Stability**
+- **ExternalDashboard.js**: Added `error` state, `LoadingState`, and `ErrorState` with retry
+- **ExternalProjectDetail.js**: Added `error` state, `LoadingState`, and `ErrorState` with retry
+- Both pages now handle API failures gracefully with user-visible errors
+
+### Files Modified:
+- /app/backend/server.py (data validation)
+- /app/frontend/src/pages/ExternalDashboard.js
+- /app/frontend/src/pages/ExternalProjectDetail.js
+- /app/frontend/src/pages/TeamLeaderProjectDetail.js
+
+### Data Cleanup:
+- Fixed 6 drawings with inconsistent data (is_issued=True without file_url):
+  - LAYOUT PLAN GROUND FLOOR
+  - OVERALL HVAC LAYOUT
+  - OVERALL ELECTRICAL DRAWING WTH MDB AND SWITCH LOCATION
+  - OVERALL AUTOMATION KEYPAD DRAWINGS
+  - OVERALL DATA DRAWING INCLUDING VDP
+  - OVERALL PLUMBING DRAWING WITH AC, KIT, UTILITY, BALCONY
+
+### Test Results:
+- ✅ Backend validation prevents issuing drawings without files
+- ✅ Owner dashboard working correctly
+- ✅ Team Leader dashboard working correctly
+- ✅ External pages have proper loading/error states
+- ✅ File download error handling working
+
+
