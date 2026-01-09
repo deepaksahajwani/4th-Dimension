@@ -3264,6 +3264,87 @@ async def reorder_drawing_templates(
     return {"status": "success", "reordered": len(template_ids)}
 
 
+# ==================== EXECUTION UPDATES ====================
+
+class ExecutionUpdate(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    drawing_id: str
+    project_id: str
+    contractor_id: str
+    contractor_name: str
+    text: Optional[str] = None
+    image_url: Optional[str] = None
+    progress: Optional[str] = None  # not_started, in_progress, completed
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+@api_router.post("/drawings/{drawing_id}/execution-update")
+async def create_execution_update(
+    drawing_id: str,
+    text: str = Form(None),
+    progress: str = Form(None),
+    image: UploadFile = File(None),
+    current_user: User = Depends(get_current_user)
+):
+    """Create execution update for a drawing (contractor only, issued drawings only)"""
+    # Check if user is contractor
+    if current_user.role != 'contractor':
+        raise HTTPException(status_code=403, detail="Only contractors can submit execution updates")
+    
+    # Get the drawing
+    drawing = await db.project_drawings.find_one({"id": drawing_id}, {"_id": 0})
+    if not drawing:
+        raise HTTPException(status_code=404, detail="Drawing not found")
+    
+    # Check if drawing is issued
+    if not drawing.get("is_issued"):
+        raise HTTPException(status_code=400, detail="Execution updates can only be submitted for issued drawings")
+    
+    # Handle image upload
+    image_url = None
+    if image:
+        file_extension = os.path.splitext(image.filename)[1]
+        unique_filename = f"execution_{drawing_id}_{uuid.uuid4()}{file_extension}"
+        file_path = f"/app/uploads/execution/{unique_filename}"
+        os.makedirs(os.path.dirname(file_path), exist_ok=True)
+        
+        with open(file_path, "wb") as f:
+            content = await image.read()
+            f.write(content)
+        
+        image_url = f"/api/uploads/execution/{unique_filename}"
+    
+    # Create execution update
+    update = ExecutionUpdate(
+        drawing_id=drawing_id,
+        project_id=drawing.get("project_id"),
+        contractor_id=current_user.id,
+        contractor_name=current_user.name,
+        text=text,
+        image_url=image_url,
+        progress=progress
+    )
+    
+    update_dict = update.model_dump()
+    update_dict["created_at"] = update_dict["created_at"].isoformat()
+    
+    await db.execution_updates.insert_one(update_dict)
+    
+    return {"status": "success", "update": update_dict}
+
+@api_router.get("/drawings/{drawing_id}/execution-updates")
+async def get_execution_updates(
+    drawing_id: str,
+    current_user: User = Depends(get_current_user)
+):
+    """Get execution updates for a drawing"""
+    updates = await db.execution_updates.find(
+        {"drawing_id": drawing_id},
+        {"_id": 0}
+    ).sort("created_at", -1).to_list(100)
+    return updates
+
+
 @api_router.post("/projects/{project_id}/drawings")
 async def create_drawing(
     project_id: str,
