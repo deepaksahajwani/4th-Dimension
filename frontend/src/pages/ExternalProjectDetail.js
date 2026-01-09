@@ -586,7 +586,7 @@ export default function ExternalProjectDetail({ user, onLogout }) {
                             )}
                           </div>
                         </div>
-                        {/* Action buttons - External users: View, Download only */}
+                        {/* Action buttons - External users: View, Download + Execution Update for contractors */}
                         <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
                           <Button
                             variant="outline"
@@ -606,8 +606,106 @@ export default function ExternalProjectDetail({ user, onLogout }) {
                           >
                             <Download className="w-4 h-4" />
                           </Button>
+                          {/* Execution Update button for contractors */}
+                          {isContractor && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => {
+                                setShowExecutionForm(showExecutionForm === drawing.id ? null : drawing.id);
+                                if (!executionUpdates[drawing.id]) fetchExecutionUpdates(drawing.id);
+                              }}
+                              title="Add Execution Update"
+                              className="p-2 h-8 w-8 text-orange-600 border-orange-300 hover:bg-orange-50"
+                            >
+                              <Camera className="w-4 h-4" />
+                            </Button>
+                          )}
                         </div>
                       </div>
+                      
+                      {/* Execution Updates Section (Contractor only) */}
+                      {isContractor && showExecutionForm === drawing.id && (
+                        <div className="mt-4 pt-4 border-t border-slate-200">
+                          <h4 className="text-sm font-medium text-slate-700 mb-3">Execution Updates</h4>
+                          
+                          {/* Update Form */}
+                          <div className="space-y-3 mb-4 p-3 bg-slate-50 rounded-lg">
+                            <Textarea
+                              placeholder="Describe your progress..."
+                              value={executionText}
+                              onChange={(e) => setExecutionText(e.target.value)}
+                              className="min-h-[80px]"
+                            />
+                            <div className="flex flex-wrap gap-2">
+                              <select
+                                value={executionProgress}
+                                onChange={(e) => setExecutionProgress(e.target.value)}
+                                className="px-3 py-2 border rounded-lg text-sm"
+                              >
+                                <option value="">Select Progress</option>
+                                <option value="not_started">Not Started</option>
+                                <option value="in_progress">In Progress</option>
+                                <option value="completed">Completed</option>
+                              </select>
+                              <input
+                                type="file"
+                                ref={executionFileInputRef}
+                                accept="image/*"
+                                onChange={(e) => setExecutionImage(e.target.files[0])}
+                                className="hidden"
+                              />
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => executionFileInputRef.current?.click()}
+                              >
+                                <Camera className="w-4 h-4 mr-1" />
+                                {executionImage ? 'Change Photo' : 'Add Photo'}
+                              </Button>
+                              <Button
+                                size="sm"
+                                onClick={() => handleSubmitExecutionUpdate(drawing.id)}
+                                disabled={submittingExecution}
+                                className="bg-orange-600 hover:bg-orange-700"
+                              >
+                                <SendIcon className="w-4 h-4 mr-1" />
+                                {submittingExecution ? 'Sending...' : 'Submit Update'}
+                              </Button>
+                            </div>
+                            {executionImage && (
+                              <p className="text-xs text-slate-500">Photo: {executionImage.name}</p>
+                            )}
+                          </div>
+                          
+                          {/* Previous Updates */}
+                          {executionUpdates[drawing.id]?.length > 0 && (
+                            <div className="space-y-2">
+                              <p className="text-xs font-medium text-slate-500">Previous Updates:</p>
+                              {executionUpdates[drawing.id].map((update) => (
+                                <div key={update.id} className="p-2 bg-white border rounded text-sm">
+                                  {update.text && <p className="text-slate-700">{update.text}</p>}
+                                  {update.progress && (
+                                    <Badge variant="outline" className="mt-1 text-xs">
+                                      {update.progress.replace('_', ' ')}
+                                    </Badge>
+                                  )}
+                                  {update.image_url && (
+                                    <img 
+                                      src={`${BACKEND_URL}${update.image_url}`} 
+                                      alt="Execution" 
+                                      className="mt-2 max-w-[200px] rounded"
+                                    />
+                                  )}
+                                  <p className="text-xs text-slate-400 mt-1">
+                                    {new Date(update.created_at).toLocaleDateString('en-IN')}
+                                  </p>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      )}
                     </div>
                   ))}
                   {drawings.filter(d => !d.is_issued).length > 0 && (
