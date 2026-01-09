@@ -3372,6 +3372,22 @@ async def create_drawing(
     # Return without _id
     return {k: v for k, v in drawing_dict.items() if k != '_id'}
 
+
+def compute_drawing_state(drawing: dict) -> str:
+    """Compute drawing state from its flags - Single Source of Truth"""
+    if drawing.get('is_not_applicable'):
+        return "not_applicable"
+    if drawing.get('is_issued') and not drawing.get('has_pending_revision'):
+        return "issued"
+    if drawing.get('has_pending_revision'):
+        return "revision_required"
+    if drawing.get('is_approved') and not drawing.get('is_issued'):
+        return "approved_ready_to_issue"
+    if drawing.get('under_review') or drawing.get('file_url'):
+        return "uploaded_waiting_approval"
+    return "pending_upload"
+
+
 @api_router.put("/drawings/{drawing_id}")
 async def update_drawing(
     drawing_id: str,
