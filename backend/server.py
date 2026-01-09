@@ -3119,45 +3119,149 @@ async def get_pending_approval_drawings(
 # ==================== DRAWING TEMPLATES ====================
 
 @api_router.get("/drawing-templates")
-async def get_drawing_templates(current_user: User = Depends(require_owner)):
-    """Get all drawing templates (owner only)"""
-    templates = await db.drawing_templates.find({}, {"_id": 0}).to_list(100)
+async def get_drawing_templates(current_user: User = Depends(get_current_user)):
+    """Get all drawing templates grouped by category"""
+    templates = await db.drawing_templates.find({}, {"_id": 0}).sort("order", 1).to_list(1000)
     return templates
 
-
-@api_router.put("/drawing-templates/{category}")
-async def update_drawing_template(
-    category: str,
-    template_data: dict = Body(...),
-    current_user: User = Depends(require_owner)
-):
-    """Update drawing template for a category (owner only)"""
-    await db.drawing_templates.update_one(
-        {"category": category},
-        {
-            "$set": {
-                "category": category,
-                "drawings": template_data.get("drawings", []),
-                "updated_at": datetime.now(timezone.utc).isoformat(),
-                "updated_by": current_user.id
-            }
-        },
-        upsert=True
-    )
-    return {"status": "success", "category": category}
-
-
-@api_router.get("/drawing-templates/{category}")
-async def get_drawing_template_by_category(
+@api_router.get("/drawing-templates/by-category/{category}")
+async def get_drawing_templates_by_category(
     category: str,
     current_user: User = Depends(get_current_user)
 ):
-    """Get drawing template for a specific category"""
-    template = await db.drawing_templates.find_one(
+    """Get drawing templates for a specific category"""
+    templates = await db.drawing_templates.find(
         {"category": category},
         {"_id": 0}
+    ).sort("order", 1).to_list(500)
+    return templates
+
+@api_router.post("/drawing-templates")
+async def create_drawing_template(
+    template_data: DrawingTemplateCreate,
+    current_user: User = Depends(require_owner)
+):
+    """Create a new drawing template (owner only)"""
+    # Get the current max order for this category
+    max_order_doc = await db.drawing_templates.find_one(
+        {"category": template_data.category},
+        sort=[("order", -1)]
     )
-    return template or {"category": category, "drawings": []}
+    new_order = (max_order_doc.get("order", 0) + 1) if max_order_doc else 1
+    
+    template = DrawingTemplate(
+        name=template_data.name,
+        category=template_data.category,
+        order=template_data.order if template_data.order is not None else new_order,
+        is_default=False
+    )
+    
+    template_dict = template.model_dump()
+    await db.drawing_templates.insert_one(template_dict)
+    return {"status": "success", "template": template_dict}
+
+@api_router.put("/drawing-templates/{template_id}")
+async def update_drawing_template(
+    template_id: str,
+    update_data: DrawingTemplateUpdate,
+    current_user: User = Depends(require_owner)
+):
+    """Update a drawing template and propagate name changes to all project drawings"""
+    # Get the existing template
+    existing = await db.drawing_templates.find_one({"id": template_id}, {"_id": 0})
+    if not existing:
+        raise HTTPException(status_code=404, detail="Template not found")
+    
+    old_name = existing.get("name")
+    category = existing.get("category")
+    
+    # Build update dict
+    update_dict = {}
+    if update_data.name is not None:
+        update_dict["name"] = update_data.name
+    if update_data.order is not None:
+        update_dict["order"] = update_data.order
+    
+    if not update_dict:
+        return {"status": "no_changes"}
+    
+    # Update the template
+    await db.drawing_templates.update_one(
+        {"id": template_id},
+        {"$set": update_dict}
+    )
+    
+    # If name was changed, propagate to all project drawings with this name and category
+    if update_data.name and update_data.name != old_name:
+        result = await db.project_drawings.update_many(
+            {"name": old_name, "category": category},
+            {"$set": {"name": update_data.name}}
+        )
+        return {
+            "status": "success", 
+            "updated_template": True,
+            "updated_drawings": result.modified_count,
+            "message": f"Template renamed and {result.modified_count} project drawings updated"
+        }
+    
+    return {"status": "success", "updated_template": True}
+
+@api_router.delete("/drawing-templates/{template_id}")
+async def delete_drawing_template(
+    template_id: str,
+    current_user: User = Depends(require_owner)
+):
+    """Delete a drawing template (owner only)"""
+    result = await db.drawing_templates.delete_one({"id": template_id})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Template not found")
+    return {"status": "success", "deleted": True}
+
+@api_router.post("/drawing-templates/seed")
+async def seed_drawing_templates(current_user: User = Depends(require_owner)):
+    """Seed drawing templates from predefined list (owner only)"""
+    from drawing_templates import DRAWING_TEMPLATES
+    
+    seeded_count = 0
+    for category, drawings in DRAWING_TEMPLATES.items():
+        for order, name in enumerate(drawings, 1):
+            # Check if already exists
+            existing = await db.drawing_templates.find_one({
+                "category": category,
+                "name": name
+            })
+            if not existing:
+                template = DrawingTemplate(
+                    name=name,
+                    category=category,
+                    order=order,
+                    is_default=True
+                )
+                await db.drawing_templates.insert_one(template.model_dump())
+                seeded_count += 1
+    
+    return {"status": "success", "seeded_count": seeded_count}
+
+@api_router.put("/drawing-templates/reorder")
+async def reorder_drawing_templates(
+    reorder_data: dict = Body(...),
+    current_user: User = Depends(require_owner)
+):
+    """Reorder drawing templates within a category"""
+    category = reorder_data.get("category")
+    template_ids = reorder_data.get("template_ids", [])  # List of template IDs in new order
+    
+    if not category or not template_ids:
+        raise HTTPException(status_code=400, detail="Category and template_ids required")
+    
+    # Update order for each template
+    for order, template_id in enumerate(template_ids, 1):
+        await db.drawing_templates.update_one(
+            {"id": template_id, "category": category},
+            {"$set": {"order": order}}
+        )
+    
+    return {"status": "success", "reordered": len(template_ids)}
 
 
 @api_router.post("/projects/{project_id}/drawings")
