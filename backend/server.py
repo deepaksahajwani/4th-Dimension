@@ -349,17 +349,18 @@ class DrawingTemplate(BaseModel):
     model_config = ConfigDict(extra="ignore")
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     name: str
-    category: str
-    description: Optional[str] = None
-    order: int
-    project_type: str  # architectural, interior, both
+    category: str  # Architecture, Interior, Landscape, MEP, Structure
+    order: int = 0
+    is_default: bool = False  # True for pre-seeded templates
 
 class DrawingTemplateCreate(BaseModel):
     name: str
     category: str
-    description: Optional[str] = None
-    order: int
-    project_type: str
+    order: Optional[int] = None
+
+class DrawingTemplateUpdate(BaseModel):
+    name: Optional[str] = None
+    order: Optional[int] = None
 
 class OTP(BaseModel):
     model_config = ConfigDict(extra="ignore")
