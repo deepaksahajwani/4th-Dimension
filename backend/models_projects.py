@@ -395,6 +395,7 @@ class ProjectDrawing(BaseModel):
     project_id: str
     category: str  # Architecture, Interior, Landscape, Planning
     name: str  # Drawing name/title
+    state: str = "pending_upload"  # Drawing state machine: pending_upload, uploaded_waiting_approval, revision_required, approved_ready_to_issue, issued, not_applicable
     complexity: str = "Medium"  # Simple, Medium, Complex (for progress weighting)
     assigned_to_id: Optional[str] = None  # Team member assigned to this drawing
     assigned_to_name: Optional[str] = None  # Team member name for display
@@ -406,12 +407,17 @@ class ProjectDrawing(BaseModel):
     approved_date: Optional[datetime] = None
     is_issued: bool = False  # Whether drawing has been issued
     issued_date: Optional[datetime] = None
+    is_not_applicable: bool = False  # Mark drawing as N/A
     comment_count: int = 0  # Total number of comments
     unread_comments: int = 0  # Number of unread comments for tracking
     revision_count: int = 0  # Number of revisions
+    current_revision: int = 0  # Current revision number
     has_pending_revision: bool = False  # True if there's a revision needed
     current_revision_notes: Optional[str] = None  # Current pending revision notes
     current_revision_due_date: Optional[datetime] = None  # Due date for current revision
+    revision_requested_by: Optional[str] = None  # Who requested the revision (user ID)
+    revision_requested_by_name: Optional[str] = None  # Who requested the revision (name)
+    revision_requested_at: Optional[datetime] = None  # When revision was requested
     due_date: Optional[datetime] = None  # Original due date
     revision_history: List[RevisionHistoryItem] = []  # Complete revision history
     reminder_sent: bool = False
