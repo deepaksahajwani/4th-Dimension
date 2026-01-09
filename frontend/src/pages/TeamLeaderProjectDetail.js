@@ -661,23 +661,36 @@ export default function TeamLeaderProjectDetail({ user, onLogout }) {
                 </CardHeader>
                 <CardContent className="space-y-2">
                   {pendingRevisions.map(drawing => (
-                    <div key={drawing.id} className="bg-white p-3 rounded-lg flex items-center justify-between">
-                      <div className="flex-1 min-w-0 mr-2">
-                        <p className="font-medium text-sm truncate">{drawing.name}</p>
-                        <p className="text-xs text-slate-500">{drawing.category}</p>
+                    <div key={drawing.id} className="bg-white border rounded-lg p-3 sm:p-4">
+                      <div className="flex flex-col sm:flex-row sm:items-start gap-3">
+                        <div className="flex-1 min-w-0">
+                          {/* Full drawing name - NO TRUNCATION */}
+                          <p className="font-medium text-sm sm:text-base text-slate-900 leading-tight break-words">
+                            {drawing.name}
+                          </p>
+                          <div className="flex flex-wrap items-center gap-2 mt-1.5">
+                            <span className="text-xs text-slate-500">{drawing.category}</span>
+                          </div>
+                          <Badge variant="outline" className="bg-red-50 text-red-700 border-red-200 mt-2">
+                            Revision Needed
+                          </Badge>
+                        </div>
+                        <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+                          <Button
+                            size="sm"
+                            onClick={() => {
+                              setSelectedDrawing(drawing);
+                              setUploadType('revision');
+                              setUploadDialogOpen(true);
+                            }}
+                            className="bg-red-600 hover:bg-red-700 h-8"
+                            title="Upload Revision"
+                          >
+                            <Upload className="w-4 h-4 mr-1" />
+                            Upload
+                          </Button>
+                        </div>
                       </div>
-                      <Button
-                        size="sm"
-                        onClick={() => {
-                          setSelectedDrawing(drawing);
-                          setUploadType('revision');
-                          setUploadDialogOpen(true);
-                        }}
-                        className="bg-red-600 hover:bg-red-700 shrink-0"
-                      >
-                        <Upload className="w-4 h-4 mr-1" />
-                        Upload
-                      </Button>
                     </div>
                   ))}
                 </CardContent>
@@ -695,22 +708,31 @@ export default function TeamLeaderProjectDetail({ user, onLogout }) {
                 </CardHeader>
                 <CardContent className="space-y-2">
                   {underReview.map(drawing => (
-                    <div key={drawing.id} className="bg-white p-3 rounded-lg flex items-center justify-between">
-                      <div className="flex-1 min-w-0 mr-2">
-                        <p className="font-medium text-sm truncate">{drawing.name}</p>
-                        <p className="text-xs text-slate-500">{drawing.category}</p>
-                      </div>
-                      <div className="flex gap-2 shrink-0">
-                        <Button size="sm" variant="outline" onClick={() => handleViewDrawing(drawing)} title="View">
-                          <Eye className="w-4 h-4" />
-                        </Button>
-                        <Button size="sm" variant="outline" onClick={() => handleDownloadDrawing(drawing)} title="Download">
-                          <Download className="w-4 h-4" />
-                        </Button>
-                        <Button size="sm" onClick={() => handleApproveDrawing(drawing)} className="bg-green-600 hover:bg-green-700">
-                          <Check className="w-4 h-4 mr-1" />
-                          Approve
-                        </Button>
+                    <div key={drawing.id} className="bg-white border rounded-lg p-3 sm:p-4">
+                      <div className="flex flex-col sm:flex-row sm:items-start gap-3">
+                        <div className="flex-1 min-w-0">
+                          <p className="font-medium text-sm sm:text-base text-slate-900 leading-tight break-words">
+                            {drawing.name}
+                          </p>
+                          <div className="flex flex-wrap items-center gap-2 mt-1.5">
+                            <span className="text-xs text-slate-500">{drawing.category}</span>
+                          </div>
+                          <Badge variant="outline" className="bg-amber-50 text-amber-700 border-amber-200 mt-2">
+                            Pending Approval
+                          </Badge>
+                        </div>
+                        <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+                          <Button size="sm" variant="outline" onClick={() => handleViewDrawing(drawing)} title="View" className="p-2 h-8 w-8">
+                            <Eye className="w-4 h-4" />
+                          </Button>
+                          <Button size="sm" variant="outline" onClick={() => handleDownloadDrawing(drawing)} title="Download" className="p-2 h-8 w-8">
+                            <Download className="w-4 h-4" />
+                          </Button>
+                          <Button size="sm" onClick={() => handleApproveDrawing(drawing)} className="bg-green-600 hover:bg-green-700 h-8" title="Approve">
+                            <Check className="w-4 h-4 mr-1" />
+                            Approve
+                          </Button>
+                        </div>
                       </div>
                     </div>
                   ))}
@@ -729,22 +751,33 @@ export default function TeamLeaderProjectDetail({ user, onLogout }) {
                 </CardHeader>
                 <CardContent className="space-y-2">
                   {readyToIssue.map(drawing => (
-                    <div key={drawing.id} className="bg-white p-3 rounded-lg flex items-center justify-between">
-                      <div className="flex-1 min-w-0 mr-2">
-                        <p className="font-medium text-sm truncate">{drawing.name}</p>
-                        <p className="text-xs text-slate-500">{drawing.category}</p>
-                      </div>
-                      <div className="flex gap-2 shrink-0">
-                        <Button size="sm" variant="outline" onClick={() => handleViewDrawing(drawing)}>
-                          <Eye className="w-4 h-4" />
-                        </Button>
-                        <Button 
-                          size="sm" 
-                          className="bg-green-600 hover:bg-green-700"
-                          onClick={() => handleOpenIssueDialog(drawing)}
-                        >
-                          Issue
-                        </Button>
+                    <div key={drawing.id} className="bg-white border rounded-lg p-3 sm:p-4">
+                      <div className="flex flex-col sm:flex-row sm:items-start gap-3">
+                        <div className="flex-1 min-w-0">
+                          <p className="font-medium text-sm sm:text-base text-slate-900 leading-tight break-words">
+                            {drawing.name}
+                          </p>
+                          <div className="flex flex-wrap items-center gap-2 mt-1.5">
+                            <span className="text-xs text-slate-500">{drawing.category}</span>
+                          </div>
+                          <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200 mt-2">
+                            Ready to Issue
+                          </Badge>
+                        </div>
+                        <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+                          <Button size="sm" variant="outline" onClick={() => handleViewDrawing(drawing)} title="View" className="p-2 h-8 w-8">
+                            <Eye className="w-4 h-4" />
+                          </Button>
+                          <Button 
+                            size="sm" 
+                            className="bg-blue-600 hover:bg-blue-700 h-8"
+                            onClick={() => handleOpenIssueDialog(drawing)}
+                            title="Issue Drawing"
+                          >
+                            <Check className="w-4 h-4 mr-1" />
+                            Issue
+                          </Button>
+                        </div>
                       </div>
                     </div>
                   ))}
@@ -763,32 +796,43 @@ export default function TeamLeaderProjectDetail({ user, onLogout }) {
                 </CardHeader>
                 <CardContent className="space-y-2">
                   {notStarted.map(drawing => (
-                    <div key={drawing.id} className="bg-slate-50 p-3 rounded-lg flex items-center justify-between border border-slate-200">
-                      <div className="flex-1 min-w-0 mr-2">
-                        <p className="font-medium text-sm truncate">{drawing.name}</p>
-                        <p className="text-xs text-slate-500">{drawing.category}</p>
-                      </div>
-                      <div className="flex gap-2 shrink-0">
-                        <Button
-                          size="sm"
-                          onClick={() => {
-                            setSelectedDrawing(drawing);
-                            setUploadType('new');
-                            setUploadDialogOpen(true);
-                          }}
-                        >
-                          <Upload className="w-4 h-4 mr-1" />
-                          Upload
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          onClick={() => handleMarkAsNotApplicable(drawing.id)}
-                          title="Mark as Not Applicable"
-                          className="text-slate-400 hover:text-slate-600"
-                        >
-                          <X className="w-4 h-4" />
-                        </Button>
+                    <div key={drawing.id} className="bg-white border rounded-lg p-3 sm:p-4">
+                      <div className="flex flex-col sm:flex-row sm:items-start gap-3">
+                        <div className="flex-1 min-w-0">
+                          <p className="font-medium text-sm sm:text-base text-slate-900 leading-tight break-words">
+                            {drawing.name}
+                          </p>
+                          <div className="flex flex-wrap items-center gap-2 mt-1.5">
+                            <span className="text-xs text-slate-500">{drawing.category}</span>
+                          </div>
+                          <Badge variant="outline" className="bg-slate-50 text-slate-600 border-slate-200 mt-2">
+                            Pending Upload
+                          </Badge>
+                        </div>
+                        <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+                          <Button
+                            size="sm"
+                            onClick={() => {
+                              setSelectedDrawing(drawing);
+                              setUploadType('new');
+                              setUploadDialogOpen(true);
+                            }}
+                            className="h-8"
+                            title="Upload Drawing"
+                          >
+                            <Upload className="w-4 h-4 mr-1" />
+                            Upload
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => handleMarkAsNotApplicable(drawing.id)}
+                            title="Mark as N/A"
+                            className="p-2 h-8 w-8 text-slate-400 hover:text-slate-600"
+                          >
+                            <X className="w-4 h-4" />
+                          </Button>
+                        </div>
                       </div>
                     </div>
                   ))}
@@ -807,9 +851,9 @@ export default function TeamLeaderProjectDetail({ user, onLogout }) {
                 </CardHeader>
                 <CardContent className="space-y-2">
                   {notApplicable.slice(0, 3).map(drawing => (
-                    <div key={drawing.id} className="bg-white/50 p-3 rounded-lg">
-                      <p className="font-medium text-sm text-slate-500 truncate">{drawing.name}</p>
-                      <p className="text-xs text-slate-400">{drawing.category}</p>
+                    <div key={drawing.id} className="bg-white/50 border rounded-lg p-3">
+                      <p className="font-medium text-sm text-slate-500 leading-tight break-words">{drawing.name}</p>
+                      <p className="text-xs text-slate-400 mt-1">{drawing.category}</p>
                     </div>
                   ))}
                   {notApplicable.length > 3 && (
