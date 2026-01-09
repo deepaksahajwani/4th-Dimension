@@ -5453,28 +5453,6 @@ async def get_project_revisions(project_id: str, current_user: User = Depends(ge
 
 # ==================== ACCOUNTING ROUTES (Moved to routes/accounting.py) ====================
 
-# ==================== DRAWING TEMPLATE ROUTES ====================
-
-@api_router.post("/drawing-templates", response_model=DrawingTemplate)
-async def create_drawing_template(template_data: DrawingTemplateCreate, current_user: User = Depends(require_owner)):
-    template = DrawingTemplate(**template_data.model_dump())
-    template_dict = template.model_dump()
-    await db.drawing_templates.insert_one(template_dict)
-    return template
-
-@api_router.get("/drawing-templates", response_model=List[DrawingTemplate])
-async def get_drawing_templates(current_user: User = Depends(get_current_user)):
-    templates = await db.drawing_templates.find({}, {"_id": 0}).sort("order", 1).to_list(1000)
-    return templates
-
-@api_router.delete("/drawing-templates/{template_id}")
-async def delete_drawing_template(template_id: str, current_user: User = Depends(require_owner)):
-    result = await db.drawing_templates.delete_one({"id": template_id})
-    if result.deleted_count == 0:
-        raise HTTPException(status_code=404, detail="Template not found")
-    return {"message": "Template deleted successfully"}
-
-
 # ==================== DASHBOARD/STATS ROUTES ====================
 
 @api_router.get("/dashboard/stats")
