@@ -1091,48 +1091,65 @@ export default function TeamLeaderProjectDetail({ user, onLogout }) {
                     const dateB = b.issued_date ? new Date(b.issued_date) : new Date(0);
                     return dateB - dateA;
                   }).map(drawing => (
-                    <div key={drawing.id} className="bg-green-50 p-3 rounded-lg">
-                      <div className="flex items-center justify-between">
-                        <div className="flex-1 min-w-0 mr-2">
-                          <p className="font-medium text-sm truncate">{drawing.name}</p>
-                          <p className="text-xs text-slate-500">{drawing.category} • Rev {drawing.current_revision || 0}</p>
-                          {drawing.issued_date && (
-                            <p className="text-xs text-green-600">Issued: {formatDate(drawing.issued_date)}</p>
-                          )}
+                    <div key={drawing.id} className="bg-white border border-green-200 rounded-lg p-3 sm:p-4">
+                      <div className="flex flex-col sm:flex-row sm:items-start gap-3">
+                        <div className="flex-1 min-w-0">
+                          {/* Full drawing name - NO TRUNCATION */}
+                          <p className="font-medium text-sm sm:text-base text-slate-900 leading-tight break-words">
+                            {drawing.name}
+                          </p>
+                          <div className="flex flex-wrap items-center gap-2 mt-1.5">
+                            <span className="text-xs text-slate-500">{drawing.category}</span>
+                            {drawing.current_revision > 0 && (
+                              <span className="text-xs text-slate-400">• R{drawing.current_revision}</span>
+                            )}
+                          </div>
+                          <div className="flex flex-wrap items-center gap-2 mt-2">
+                            <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
+                              Issued
+                            </Badge>
+                            {drawing.issued_date && (
+                              <span className="text-xs text-green-600">
+                                {formatDate(drawing.issued_date)}
+                              </span>
+                            )}
+                          </div>
                         </div>
-                        <div className="flex gap-1 shrink-0">
-                          <Button size="sm" variant="ghost" onClick={() => handleViewDrawing(drawing)} title="View">
+                        <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 shrink-0">
+                          <Button size="sm" variant="outline" onClick={() => handleViewDrawing(drawing)} title="View" className="p-2 h-8 w-8">
                             <Eye className="w-4 h-4" />
                           </Button>
-                          <Button size="sm" variant="ghost" onClick={() => handleDownloadDrawing(drawing)} title="Download">
+                          <Button size="sm" variant="outline" onClick={() => handleDownloadDrawing(drawing)} title="Download" className="p-2 h-8 w-8">
                             <Download className="w-4 h-4" />
                           </Button>
                           <Button 
                             size="sm" 
-                            variant="ghost" 
+                            variant="outline" 
                             onClick={() => navigate(`/projects/${projectId}/drawing/${drawing.id}`)} 
-                            title="View Details & Comments"
+                            title="Comment"
+                            className="p-2 h-8 w-8"
                           >
                             <MessageSquare className="w-4 h-4" />
                           </Button>
                           <Button 
                             size="sm" 
-                            variant="ghost"
+                            variant="outline"
                             onClick={() => setShowRevisionHistory(prev => ({...prev, [drawing.id]: !prev[drawing.id]}))}
                             title="Revision History"
+                            className="p-2 h-8 w-8"
                           >
                             <Clock className="w-4 h-4" />
                           </Button>
-                          {/* Re-issue button - shown if drawing was revised after last issue */}
+                          {/* Re-issue button - Team Leader can re-issue */}
                           {drawing.current_revision > 0 && (
                             <Button 
                               size="sm" 
-                              className="bg-blue-600 hover:bg-blue-700"
+                              className="bg-blue-600 hover:bg-blue-700 h-8"
                               onClick={() => {
                                 setDrawingToIssue(drawing);
                                 setIssueDialogOpen(true);
                               }}
-                              title="Re-issue to recipients"
+                              title="Re-issue"
                             >
                               <RefreshCw className="w-4 h-4 mr-1" />
                               Re-issue
@@ -1146,7 +1163,7 @@ export default function TeamLeaderProjectDetail({ user, onLogout }) {
                           <p className="text-xs font-medium text-slate-600 mb-2">Revision History:</p>
                           <div className="space-y-1">
                             {drawing.revision_history.map((rev, idx) => (
-                              <div key={idx} className="flex items-center justify-between text-xs bg-white p-2 rounded">
+                              <div key={idx} className="flex items-center justify-between text-xs bg-slate-50 p-2 rounded">
                                 <span className="text-slate-600">Rev {rev.revision || idx}</span>
                                 <span className="text-slate-500">{rev.date ? formatDate(rev.date) : 'N/A'}</span>
                                 {rev.file_url && (
