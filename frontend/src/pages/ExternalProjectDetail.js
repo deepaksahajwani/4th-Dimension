@@ -289,6 +289,55 @@ export default function ExternalProjectDetail({ user, onLogout }) {
     setUnreadComments(0);
   };
 
+  // Execution Updates (Contractor only)
+  const fetchExecutionUpdates = async (drawingId) => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.get(`${API}/drawings/${drawingId}/execution-updates`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setExecutionUpdates(prev => ({ ...prev, [drawingId]: response.data }));
+    } catch (error) {
+      console.error('Error fetching execution updates:', error);
+    }
+  };
+
+  const handleSubmitExecutionUpdate = async (drawingId) => {
+    if (!executionText && !executionImage && !executionProgress) {
+      toast.error('Please provide update text, image, or progress');
+      return;
+    }
+
+    setSubmittingExecution(true);
+    try {
+      const token = localStorage.getItem('token');
+      const formData = new FormData();
+      if (executionText) formData.append('text', executionText);
+      if (executionProgress) formData.append('progress', executionProgress);
+      if (executionImage) formData.append('image', executionImage);
+
+      await axios.post(`${API}/drawings/${drawingId}/execution-update`, formData, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'multipart/form-data'
+        }
+      });
+
+      toast.success('Execution update submitted!');
+      setExecutionText('');
+      setExecutionProgress('');
+      setExecutionImage(null);
+      setShowExecutionForm(null);
+      fetchExecutionUpdates(drawingId);
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Failed to submit update');
+    } finally {
+      setSubmittingExecution(false);
+    }
+  };
+
+  const isContractor = user?.role === 'contractor';
+
 
   const formatDate = (dateStr) => {
     if (!dateStr) return '';
