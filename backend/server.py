@@ -3426,6 +3426,9 @@ async def update_drawing(
     if update_dict.get('has_pending_revision') == True:
         update_dict['is_issued'] = False
         update_dict['current_revision_notes'] = update_dict.pop('revision_notes', None)
+        update_dict['revision_requested_by'] = current_user.id
+        update_dict['revision_requested_by_name'] = current_user.name
+        update_dict['revision_requested_at'] = datetime.now(timezone.utc).isoformat()
         
         # Handle revision due date
         if update_dict.get('revision_due_date'):
@@ -3441,13 +3444,16 @@ async def update_drawing(
                 revision_history[-1]['revision_requested_date'] = datetime.now(timezone.utc).isoformat()
                 revision_history[-1]['revision_notes'] = update_dict.get('current_revision_notes')
                 revision_history[-1]['revision_due_date'] = update_dict.get('current_revision_due_date')
+                revision_history[-1]['requested_by'] = current_user.name
             else:
                 # Create new revision history item
                 new_history = {
+                    'revision': (drawing.get('current_revision', 0) or 0) + 1,
                     'issued_date': drawing.get('issued_date'),
                     'revision_requested_date': datetime.now(timezone.utc).isoformat(),
                     'revision_notes': update_dict.get('current_revision_notes'),
                     'revision_due_date': update_dict.get('current_revision_due_date'),
+                    'requested_by': current_user.name,
                     'resolved_date': None
                 }
                 revision_history.append(new_history)
