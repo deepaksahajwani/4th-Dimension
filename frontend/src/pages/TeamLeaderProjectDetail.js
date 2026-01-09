@@ -537,19 +537,36 @@ export default function TeamLeaderProjectDetail({ user, onLogout }) {
     }));
   };
 
-  // Group drawings by status for Upcoming tab
-  // Upcoming = (no file) OR (approved but not issued) OR (has pending revision)
-  const pendingRevisions = drawings.filter(d => d.has_pending_revision && !d.is_not_applicable);
-  const underReview = drawings.filter(d => d.under_review && !d.is_approved && !d.has_pending_revision && !d.is_not_applicable);
-  const readyToIssue = drawings.filter(d => d.is_approved && !d.is_issued && !d.is_not_applicable && !d.has_pending_revision);
-  const notStarted = drawings.filter(d => !d.file_url && !d.is_issued && !d.has_pending_revision && !d.is_not_applicable);
-  const notApplicable = drawings.filter(d => d.is_not_applicable);
+  // State for viewing revision details
+  const [viewRevisionDrawing, setViewRevisionDrawing] = useState(null);
+
+  // Group drawings by state for tabs (using computed state or fallback to flags)
+  // Upcoming = pending_upload OR uploaded_waiting_approval OR revision_required OR approved_ready_to_issue
+  // Note: We still use flags as fallback since state field may not exist on all drawings yet
   
-  // Issued tab: is_issued == true AND has_pending_revision == false
-  const issued = drawings.filter(d => d.is_issued && !d.has_pending_revision && !d.is_not_applicable);
+  const getDrawingState = (d) => {
+    if (d.state) return d.state;
+    // Compute from flags
+    if (d.is_not_applicable) return "not_applicable";
+    if (d.is_issued && !d.has_pending_revision) return "issued";
+    if (d.has_pending_revision) return "revision_required";
+    if (d.is_approved && !d.is_issued) return "approved_ready_to_issue";
+    if (d.under_review || d.file_url) return "uploaded_waiting_approval";
+    return "pending_upload";
+  };
+
+  // Filter drawings by computed state
+  const pendingRevisions = drawings.filter(d => getDrawingState(d) === 'revision_required');
+  const underReview = drawings.filter(d => getDrawingState(d) === 'uploaded_waiting_approval' && !d.is_approved);
+  const readyToIssue = drawings.filter(d => getDrawingState(d) === 'approved_ready_to_issue');
+  const notStarted = drawings.filter(d => getDrawingState(d) === 'pending_upload');
+  const notApplicable = drawings.filter(d => getDrawingState(d) === 'not_applicable');
+  
+  // Issued tab: state == issued
+  const issued = drawings.filter(d => getDrawingState(d) === 'issued');
 
   // Progress calculation - excludes N/A drawings
-  const applicableDrawings = drawings.filter(d => !d.is_not_applicable);
+  const applicableDrawings = drawings.filter(d => getDrawingState(d) !== 'not_applicable');
   const totalDrawings = applicableDrawings.length;
   const issuedCount = issued.length;
   const percentComplete = totalDrawings > 0 ? Math.round((issuedCount / totalDrawings) * 100) : 0;
