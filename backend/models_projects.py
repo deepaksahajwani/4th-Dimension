@@ -59,6 +59,15 @@ class DrawingCategoryEnum(str, Enum):
     LANDSCAPE = "Landscape"
     OTHER = "Other"
 
+# Drawing State Enum - Single Source of Truth
+class DrawingState(str, Enum):
+    PENDING_UPLOAD = "pending_upload"
+    UPLOADED_WAITING_APPROVAL = "uploaded_waiting_approval"
+    REVISION_REQUIRED = "revision_required"
+    APPROVED_READY_TO_ISSUE = "approved_ready_to_issue"
+    ISSUED = "issued"
+    NOT_APPLICABLE = "not_applicable"
+
 class DrawingStatus(str, Enum):
     PLANNED = "Planned"
     IN_PROGRESS = "InProgress"
