@@ -497,36 +497,55 @@ export default function ExternalProjectDetail({ user, onLogout }) {
                     }).map((drawing) => (
                     <div 
                       key={drawing.id}
-                      className="flex items-center justify-between p-3 bg-slate-50 rounded-lg"
+                      className="bg-white border rounded-lg p-3 sm:p-4"
                     >
-                      <div className="flex-1 min-w-0 mr-3">
-                        <p className="font-medium text-slate-900 truncate">{drawing.name}</p>
-                        <div className="flex items-center gap-2 text-xs text-slate-500">
-                          <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
-                            Issued
-                          </Badge>
-                          {drawing.current_revision && (
-                            <span>Rev {drawing.current_revision}</span>
-                          )}
+                      {/* Drawing info - NO TRUNCATION */}
+                      <div className="flex flex-col sm:flex-row sm:items-start gap-3">
+                        <div className="flex-1 min-w-0">
+                          {/* Full drawing name - allows 2-line wrap */}
+                          <p className="font-medium text-sm sm:text-base text-slate-900 leading-tight break-words">
+                            {drawing.name}
+                          </p>
+                          <div className="flex flex-wrap items-center gap-2 mt-1.5">
+                            {drawing.category && (
+                              <span className="text-xs text-slate-500">{drawing.category}</span>
+                            )}
+                            {drawing.current_revision > 0 && (
+                              <span className="text-xs text-slate-400">• R{drawing.current_revision}</span>
+                            )}
+                          </div>
+                          <div className="flex flex-wrap items-center gap-2 mt-2">
+                            <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
+                              Issued
+                            </Badge>
+                            {drawing.issued_date && (
+                              <span className="text-xs text-slate-400">
+                                {new Date(drawing.issued_date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
+                              </span>
+                            )}
+                          </div>
                         </div>
-                      </div>
-                      <div className="flex gap-2">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleViewDrawing(drawing)}
-                          className="p-2"
-                        >
-                          <Eye className="w-4 h-4" />
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleDownloadDrawing(drawing)}
-                          className="p-2"
-                        >
-                          <Download className="w-4 h-4" />
-                        </Button>
+                        {/* Action buttons - External users: View, Download only */}
+                        <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleViewDrawing(drawing)}
+                            title="View"
+                            className="p-2 h-8 w-8"
+                          >
+                            <Eye className="w-4 h-4" />
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleDownloadDrawing(drawing)}
+                            title="Download"
+                            className="p-2 h-8 w-8"
+                          >
+                            <Download className="w-4 h-4" />
+                          </Button>
+                        </div>
                       </div>
                     </div>
                   ))}
