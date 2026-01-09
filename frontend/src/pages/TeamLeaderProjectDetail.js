@@ -537,13 +537,16 @@ export default function TeamLeaderProjectDetail({ user, onLogout }) {
     }));
   };
 
-  // Group drawings by status
+  // Group drawings by status for Upcoming tab
+  // Upcoming = (no file) OR (approved but not issued) OR (has pending revision)
   const pendingRevisions = drawings.filter(d => d.has_pending_revision && !d.is_not_applicable);
   const underReview = drawings.filter(d => d.under_review && !d.is_approved && !d.has_pending_revision && !d.is_not_applicable);
-  const readyToIssue = drawings.filter(d => d.is_approved && !d.is_issued && !d.is_not_applicable);
-  const issued = drawings.filter(d => d.is_issued && !d.has_pending_revision && !d.is_not_applicable);
+  const readyToIssue = drawings.filter(d => d.is_approved && !d.is_issued && !d.is_not_applicable && !d.has_pending_revision);
   const notStarted = drawings.filter(d => !d.file_url && !d.is_issued && !d.has_pending_revision && !d.is_not_applicable);
   const notApplicable = drawings.filter(d => d.is_not_applicable);
+  
+  // Issued tab: is_issued == true AND has_pending_revision == false
+  const issued = drawings.filter(d => d.is_issued && !d.has_pending_revision && !d.is_not_applicable);
 
   // Progress calculation - excludes N/A drawings
   const applicableDrawings = drawings.filter(d => !d.is_not_applicable);
