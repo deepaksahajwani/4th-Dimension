@@ -647,6 +647,26 @@ export default function ProjectDetail({ user, onLogout }) {
     }
   };
 
+  // Fetch execution updates for a drawing
+  const fetchExecutionUpdates = async (drawingId) => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.get(`${API}/drawings/${drawingId}/execution-updates`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setExecutionUpdates(prev => ({ ...prev, [drawingId]: response.data }));
+    } catch (error) {
+      console.error('Error fetching execution updates:', error);
+    }
+  };
+
+  const toggleExecutionUpdates = (drawingId) => {
+    setShowExecutionUpdates(prev => ({ ...prev, [drawingId]: !prev[drawingId] }));
+    if (!executionUpdates[drawingId]) {
+      fetchExecutionUpdates(drawingId);
+    }
+  };
+
   const handleDownloadPDF = async (drawing) => {
     try {
       const token = localStorage.getItem('token');
