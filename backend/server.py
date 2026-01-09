@@ -3560,6 +3560,10 @@ async def update_drawing(
     # Update the drawing
     update_dict['updated_at'] = datetime.now(timezone.utc).isoformat()
     
+    # Compute and set the state based on flags
+    merged_drawing = {**drawing, **update_dict}
+    update_dict['state'] = compute_drawing_state(merged_drawing)
+    
     await db.project_drawings.update_one(
         {"id": drawing_id},
         {"$set": update_dict}
