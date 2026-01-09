@@ -32,9 +32,12 @@ import {
   Phone,
   Mail,
   Users,
-  Building2
+  Building2,
+  Camera,
+  Send as SendIcon
 } from 'lucide-react';
 import { toast } from 'sonner';
+import { Textarea } from '@/components/ui/textarea';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
@@ -50,10 +53,18 @@ export default function ExternalProjectDetail({ user, onLogout }) {
   const [teamLeader, setTeamLeader] = useState(null);
   const [comments, setComments] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null); // New error state for stability
+  const [error, setError] = useState(null);
   const [activeSection, setActiveSection] = useState(null);
   const [expandedCategories, setExpandedCategories] = useState({});
   const [searchQuery, setSearchQuery] = useState('');
+  
+  // Execution Updates state (for contractors)
+  const [executionUpdates, setExecutionUpdates] = useState({});
+  const [showExecutionForm, setShowExecutionForm] = useState(null);
+  const [executionText, setExecutionText] = useState('');
+  const [executionProgress, setExecutionProgress] = useState('');
+  const [executionImage, setExecutionImage] = useState(null);
+  const [submittingExecution, setSubmittingExecution] = useState(false);
   
   // Comments state
   const [showComments, setShowComments] = useState(false);
@@ -69,6 +80,7 @@ export default function ExternalProjectDetail({ user, onLogout }) {
   const mediaRecorderRef = useRef(null);
   const audioChunksRef = useRef([]);
   const fileInputRef = useRef(null);
+  const executionFileInputRef = useRef(null);
 
   useEffect(() => {
     fetchProjectData();
