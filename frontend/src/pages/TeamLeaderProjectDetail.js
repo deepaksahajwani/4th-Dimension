@@ -1676,6 +1676,100 @@ export default function TeamLeaderProjectDetail({ user, onLogout }) {
             </DialogFooter>
           </DialogContent>
         </Dialog>
+
+        {/* Revision Details Dialog */}
+        <Dialog open={!!viewRevisionDrawing} onOpenChange={() => setViewRevisionDrawing(null)}>
+          <DialogContent className="max-w-lg">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2 text-red-700">
+                <AlertCircle className="w-5 h-5" />
+                Revision Required
+              </DialogTitle>
+            </DialogHeader>
+            {viewRevisionDrawing && (
+              <div className="space-y-4">
+                <div>
+                  <Label className="text-xs text-slate-500">Drawing Name</Label>
+                  <p className="font-medium text-slate-900 break-words">{viewRevisionDrawing.name}</p>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label className="text-xs text-slate-500">Category</Label>
+                    <p className="text-sm">{viewRevisionDrawing.category}</p>
+                  </div>
+                  <div>
+                    <Label className="text-xs text-slate-500">Revision #</Label>
+                    <p className="text-sm">R{(viewRevisionDrawing.current_revision || 0) + 1}</p>
+                  </div>
+                </div>
+                <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
+                  <Label className="text-xs text-red-600 font-medium">Revision Request</Label>
+                  {viewRevisionDrawing.revision_requested_by_name && (
+                    <p className="text-sm text-slate-700 mt-1">
+                      <strong>Requested by:</strong> {viewRevisionDrawing.revision_requested_by_name}
+                    </p>
+                  )}
+                  {viewRevisionDrawing.revision_requested_at && (
+                    <p className="text-sm text-slate-700">
+                      <strong>Date:</strong> {formatDate(viewRevisionDrawing.revision_requested_at)}
+                    </p>
+                  )}
+                  {viewRevisionDrawing.current_revision_notes && (
+                    <div className="mt-2 p-2 bg-white rounded border">
+                      <p className="text-sm text-slate-600 italic">"{viewRevisionDrawing.current_revision_notes}"</p>
+                    </div>
+                  )}
+                  {viewRevisionDrawing.current_revision_due_date && (
+                    <p className="text-sm text-red-600 mt-2">
+                      <strong>Due:</strong> {formatDate(viewRevisionDrawing.current_revision_due_date)}
+                    </p>
+                  )}
+                </div>
+                {viewRevisionDrawing.file_url && (
+                  <div>
+                    <Label className="text-xs text-slate-500">Current File</Label>
+                    <div className="flex gap-2 mt-1">
+                      <Button size="sm" variant="outline" onClick={() => handleViewDrawing(viewRevisionDrawing)}>
+                        <Eye className="w-4 h-4 mr-1" /> View
+                      </Button>
+                      <Button size="sm" variant="outline" onClick={() => handleDownloadDrawing(viewRevisionDrawing)}>
+                        <Download className="w-4 h-4 mr-1" /> Download
+                      </Button>
+                    </div>
+                  </div>
+                )}
+                {/* Revision History */}
+                {viewRevisionDrawing.revision_history && viewRevisionDrawing.revision_history.length > 0 && (
+                  <div>
+                    <Label className="text-xs text-slate-500">Revision History</Label>
+                    <div className="space-y-1 mt-1 max-h-32 overflow-y-auto">
+                      {viewRevisionDrawing.revision_history.map((rev, idx) => (
+                        <div key={idx} className="text-xs p-2 bg-slate-50 rounded flex justify-between">
+                          <span>R{rev.revision || idx + 1}</span>
+                          <span className="text-slate-500">{rev.date ? formatDate(rev.date) : formatDate(rev.issued_date)}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setViewRevisionDrawing(null)}>Close</Button>
+              <Button 
+                onClick={() => {
+                  setSelectedDrawing(viewRevisionDrawing);
+                  setUploadType('revision');
+                  setUploadDialogOpen(true);
+                  setViewRevisionDrawing(null);
+                }}
+                className="bg-red-600 hover:bg-red-700"
+              >
+                <Upload className="w-4 h-4 mr-1" /> Upload Revision
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
     </Layout>
   );
