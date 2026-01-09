@@ -59,6 +59,8 @@ export default function ProjectDetail({ user, onLogout }) {
   const [historyDialogOpen, setHistoryDialogOpen] = useState(false);
   const [selectedDrawing, setSelectedDrawing] = useState(null);
   const [editingDrawing, setEditingDrawing] = useState(null);
+  const [executionUpdates, setExecutionUpdates] = useState({});
+  const [showExecutionUpdates, setShowExecutionUpdates] = useState({});
   
   // Project action dialog states
   const [editProjectDialogOpen, setEditProjectDialogOpen] = useState(false);
