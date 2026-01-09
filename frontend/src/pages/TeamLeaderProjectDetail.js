@@ -681,21 +681,55 @@ export default function TeamLeaderProjectDetail({ user, onLogout }) {
                 </CardHeader>
                 <CardContent className="space-y-2">
                   {pendingRevisions.map(drawing => (
-                    <div key={drawing.id} className="bg-white border rounded-lg p-3 sm:p-4">
+                    <div key={drawing.id} className="bg-white border border-red-200 rounded-lg p-3 sm:p-4">
                       <div className="flex flex-col sm:flex-row sm:items-start gap-3">
-                        <div className="flex-1 min-w-0">
-                          {/* Full drawing name - NO TRUNCATION */}
+                        <div 
+                          className="flex-1 min-w-0 cursor-pointer hover:bg-red-50 p-2 -m-2 rounded transition-colors"
+                          onClick={() => setViewRevisionDrawing(drawing)}
+                        >
+                          {/* Full drawing name - NO TRUNCATION - CLICKABLE */}
                           <p className="font-medium text-sm sm:text-base text-slate-900 leading-tight break-words">
                             {drawing.name}
                           </p>
                           <div className="flex flex-wrap items-center gap-2 mt-1.5">
                             <span className="text-xs text-slate-500">{drawing.category}</span>
+                            {drawing.current_revision > 0 && (
+                              <span className="text-xs text-slate-400">• R{drawing.current_revision}</span>
+                            )}
                           </div>
                           <Badge variant="outline" className="bg-red-50 text-red-700 border-red-200 mt-2">
                             Revision Needed
                           </Badge>
+                          {/* Show revision request info */}
+                          {drawing.revision_requested_by_name && (
+                            <p className="text-xs text-red-600 mt-2">
+                              Requested by: {drawing.revision_requested_by_name}
+                              {drawing.revision_requested_at && (
+                                <span className="text-red-400 ml-2">
+                                  ({formatDate(drawing.revision_requested_at)})
+                                </span>
+                              )}
+                            </p>
+                          )}
+                          {drawing.current_revision_notes && (
+                            <p className="text-xs text-slate-600 mt-1 italic">
+                              "{drawing.current_revision_notes}"
+                            </p>
+                          )}
+                          <p className="text-xs text-blue-600 mt-1 underline">Click to view details →</p>
                         </div>
                         <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+                          {drawing.file_url && (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => handleViewDrawing(drawing)}
+                              title="View Current File"
+                              className="p-2 h-8 w-8"
+                            >
+                              <Eye className="w-4 h-4" />
+                            </Button>
+                          )}
                           <Button
                             size="sm"
                             onClick={() => {
