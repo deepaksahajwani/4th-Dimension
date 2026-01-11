@@ -161,7 +161,7 @@ async def handle_magic_link(token: str):
     except Exception as e:
         logger.error(f"Magic link error: {e}")
         return RedirectResponse(
-            url=f"{APP_URL}/login?error=server_error",
+            url=f"{FRONTEND_URL}/login?error=server_error",
             status_code=302
         )
 
