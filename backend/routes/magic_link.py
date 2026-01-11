@@ -105,7 +105,7 @@ async def handle_magic_link(token: str):
         if user.get("approval_status") != "approved":
             logger.warning(f"Unapproved user tried to use magic link: {user.get('id')}")
             return RedirectResponse(
-                url=f"{APP_URL}/login?error=account_pending",
+                url=f"{FRONTEND_URL}/login?error=account_pending",
                 status_code=302
             )
         
