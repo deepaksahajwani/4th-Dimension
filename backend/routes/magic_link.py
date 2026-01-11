@@ -114,7 +114,7 @@ async def handle_magic_link(token: str):
         
         # Step 5: Build destination URL and create redirect response
         destination = build_destination_url(token_data)
-        redirect_url = f"{APP_URL}{destination}"
+        redirect_url = f"{FRONTEND_URL}{destination}"
         
         # Log successful authentication
         logger.info(f"Magic link auth successful: user={user.get('id')}, dest={destination}")
