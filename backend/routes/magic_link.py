@@ -97,7 +97,7 @@ async def handle_magic_link(token: str):
         if not user:
             logger.warning(f"User not found for magic token: {token_data.get('user_id')}")
             return RedirectResponse(
-                url=f"{APP_URL}/login?error=user_not_found",
+                url=f"{FRONTEND_URL}/login?error=user_not_found",
                 status_code=302
             )
         
