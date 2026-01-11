@@ -12,6 +12,16 @@ import { formatErrorMessage } from '@/utils/errorHandler';
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
 
+// Magic link error messages
+const MAGIC_LINK_ERRORS = {
+  'link_expired': 'This link has expired or has already been used. Please request a new link.',
+  'user_not_found': 'User account not found. Please contact support.',
+  'account_pending': 'Your account is pending approval. Please wait for admin approval.',
+  'server_error': 'An error occurred. Please try again or request a new link.',
+  'auth_failed': 'Authentication failed. Please login with your credentials.',
+  'invalid_link': 'This link is invalid. Please request a new link.'
+};
+
 export default function LoginPage({ onLogin }) {
   const navigate = useNavigate();
   const location = useLocation();
@@ -21,8 +31,18 @@ export default function LoginPage({ onLogin }) {
   const [loginData, setLoginData] = useState({ email: '', password: '' });
 
   useEffect(() => {
-    // Check for approval/rejection from email link
     const params = new URLSearchParams(location.search);
+    
+    // Handle magic link errors
+    const magicLinkError = params.get('error');
+    if (magicLinkError) {
+      const errorMessage = MAGIC_LINK_ERRORS[magicLinkError] || 'An error occurred with your link.';
+      toast.error(errorMessage, { duration: 6000 });
+      // Clear the URL params
+      window.history.replaceState({}, '', '/login');
+    }
+    
+    // Check for approval/rejection from email link
     const approved = params.get('approved');
     const rejected = params.get('rejected');
     const userName = params.get('user');
