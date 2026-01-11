@@ -87,7 +87,7 @@ async def handle_magic_link(token: str):
             
             # Redirect to login page with error message
             return RedirectResponse(
-                url=f"{APP_URL}/login?error=link_expired&message=This+link+has+expired+or+already+been+used",
+                url=f"{FRONTEND_URL}/login?error=link_expired&message=This+link+has+expired+or+already+been+used",
                 status_code=302
             )
         
