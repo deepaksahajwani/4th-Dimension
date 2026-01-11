@@ -35,12 +35,14 @@ JWT_SECRET = os.environ.get("JWT_SECRET", "your-secret-key-change-in-production"
 JWT_ALGORITHM = "HS256"
 JWT_EXPIRY_HOURS = 24 * 7  # 7 days - same as normal login
 
-APP_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://pmapp-stability.preview.emergentagent.com')
+# CRITICAL: Use frontend URL for redirects, NOT backend URL
+# Magic links must redirect to React app, not backend API
+FRONTEND_URL = os.environ.get('REACT_APP_FRONTEND_URL', 'https://pmapp-stability.preview.emergentagent.com')
 
 # Cookie configuration
 COOKIE_NAME = "auth_token"
 COOKIE_MAX_AGE = 60 * 60 * 24 * 7  # 7 days in seconds
-COOKIE_SECURE = os.environ.get('ENVIRONMENT', 'production') != 'development'
+COOKIE_SECURE = True  # Always secure for production
 COOKIE_SAMESITE = "lax"  # Allow cross-site navigation while protecting against CSRF
 
 
