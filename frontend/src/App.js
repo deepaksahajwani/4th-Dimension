@@ -155,6 +155,8 @@ function ProtectedRoute({ children, authChecked }) {
       return children;
     } catch (e) {
       console.error('Error processing magic link auth in ProtectedRoute:', e);
+      // Clear corrupted cookie auth data
+      localStorage.removeItem('use_cookie_auth');
     }
   }
   
@@ -163,7 +165,9 @@ function ProtectedRoute({ children, authChecked }) {
     return children;
   }
   
-  return <Navigate to="/" replace />;
+  // FAILSAFE: authChecked is true but no valid auth - redirect to login with error
+  // This prevents blank screens
+  return <Navigate to="/login?error=auth_failed" replace />;
 }
 
 function App() {
